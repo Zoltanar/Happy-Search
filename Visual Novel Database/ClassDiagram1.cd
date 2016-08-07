@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Visual_Novel_Database.VNRoot" Collapsed="true">
+    <Position X="2.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.VNItem" BaseTypeListCollapsed="true">
+    <Position X="11.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAACAAggEAEgAEAAABAAAAAANEACAACAAAAAAQ=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Visual_Novel_Database.Links" Collapsed="true">
+    <Position X="2.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAQBAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.TagItem" Collapsed="true">
+    <Position X="4" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAgEAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ProducersRoot" Collapsed="true">
+    <Position X="0.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ProducerItem" Collapsed="true">
+    <Position X="9.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAgAAACAAAAAQAAIAAAAAAAQAAAAAAAAQ=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ReleasesRoot" Collapsed="true">
+    <Position X="5.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ReleaseItem" Collapsed="true">
+    <Position X="4" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAgEAAAAAAAEAAAAAQZAEAAQAAAAAAAAQ=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.UserListItem" Collapsed="true">
+    <Position X="5.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAEAAAAAAAAAAAAAEAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.UserListRoot" Collapsed="true">
+    <Position X="7.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.WishListItem" Collapsed="true">
+    <Position X="9.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAEAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.WishListRoot" Collapsed="true">
+    <Position X="0.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.VoteListItem" Collapsed="true">
+    <Position X="5.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAEAAAAAABAAAAAAAAAABAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.VoteListRoot" Collapsed="true">
+    <Position X="7.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.DbRoot" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAIAEAAhAAAAAAAACAQBEAAAAACAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.CharacterItem" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAgAAAAAAEAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.CharacterRoot" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAIAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ErrorResponse" Collapsed="true">
+    <Position X="9.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAgAAAAAAAAAAAAAAAABAAAARAAAAAAAAA=</HashCode>
+      <FileName>APIClasses.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.Connection" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAICIgAAAAAAABAAAAAAAIgDQAQQAAAAABA=</HashCode>
+      <FileName>Connection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.DbHelper" Collapsed="true">
+    <Position X="5.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IqwQAAAYBAAgIBgAiQIACA5BDggCYAAAgACIAAKAChA=</HashCode>
+      <FileName>DBHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.FormMain" Collapsed="true">
+    <Position X="0.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>/9tn2sNt1yLrV/3/owK23mbvFfW9Jhkvf2/2/w8rXd4=</HashCode>
+      <FileName>FormMain.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ListedVN" Collapsed="true">
+    <Position X="7.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABBQAAAAAhAEAEBAAKAAAAAAAwAESAAEAAASIBAAA=</HashCode>
+      <FileName>ObjectListItems.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ListedProducer" Collapsed="true">
+    <Position X="4" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAAEBgAAAAAAAAAQAAAAAAAAAQAAAAAAAAAA=</HashCode>
+      <FileName>ObjectListItems.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.ListedSearchedProducer" Collapsed="true">
+    <Position X="5.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ObjectListItems.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.Program" Collapsed="true">
+    <Position X="2.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.XmlHelper">
+    <Position X="4" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAIAAAAAAAAAQAAAAAAAAAAEACBAAAAAAAA=</HashCode>
+      <FileName>StoredVars.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.VNTileRenderer" Collapsed="true">
+    <Position X="4" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAEAgAAAAEAAAAAAAAAAAgBBAAIAAACAAAAA=</HashCode>
+      <FileName>TileViewHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.VisualNovelForm">
+    <Position X="9.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAhAIABBEiAIADAAACCEAAACABAIAAAAACIICAAQBYA=</HashCode>
+      <FileName>VisualNovelForm.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.WrittenTag" Collapsed="true">
+    <Position X="2.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQggAAAAAEAAAQAAAAABIAAAAAAAAAIAAA=</HashCode>
+      <FileName>WrittenTags.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.Properties.Resources" Collapsed="true">
+    <Position X="7.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gEAgAFCBLAAIoAw7EAQBUAAAEQCBAAACCEBAgAAAAII=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Visual_Novel_Database.Properties.Settings" Collapsed="true">
+    <Position X="9.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAIEggAAABAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>Settings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SplashScreen.SplashScreen" Collapsed="true">
+    <Position X="0.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ggBAAAYAQSAAAAACQQCIgAACcJAAgAAAlAQQIBJMECo=</HashCode>
+      <FileName>SplashScreen.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SplashScreen.SplashScreenXMLStorage" Collapsed="true">
+    <Position X="2.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAIAAABgAAAIAAIAAAAAAAAAACAAAAACAAAAA=</HashCode>
+      <FileName>SplashScreen.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
