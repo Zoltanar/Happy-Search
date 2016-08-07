@@ -1,7 +1,7 @@
 ﻿using System;
 using BrightIdeasSoftware;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     public class ListedVN
     {

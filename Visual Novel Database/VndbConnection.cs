@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     public class VndbConnection
     {

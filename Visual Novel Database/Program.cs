@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     internal static class Program
     {

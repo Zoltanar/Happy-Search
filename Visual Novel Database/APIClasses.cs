@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 // ReSharper disable InconsistentNaming
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     //object received by 'get vn' command
     public class VNRoot

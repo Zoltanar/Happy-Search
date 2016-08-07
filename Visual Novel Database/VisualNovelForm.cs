@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Visual_Novel_Database.Properties;
+using Happy_Search.Properties;
 
 // ReSharper disable InconsistentNaming
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     public partial class VisualNovelForm : Form
     {

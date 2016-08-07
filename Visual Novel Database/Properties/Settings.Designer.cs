@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Visual_Novel_Database.Properties {
+namespace Happy_Search.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -49,7 +49,7 @@ namespace Visual_Novel_Database.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool TagTypeS {
             get {
                 return ((bool)(this["TagTypeS"]));
@@ -85,7 +85,7 @@ namespace Visual_Novel_Database.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool TagTypeS2 {
             get {
                 return ((bool)(this["TagTypeS2"]));
@@ -110,18 +110,6 @@ namespace Visual_Novel_Database.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool TileImageFill {
-            get {
-                return ((bool)(this["TileImageFill"]));
-            }
-            set {
-                this["TileImageFill"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ShowNSFWImages {
             get {
                 return ((bool)(this["ShowNSFWImages"]));
@@ -133,6 +121,7 @@ namespace Visual_Novel_Database.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1970-01-01")]
         public global::System.DateTime TagdumpUpdate {
             get {
                 return ((global::System.DateTime)(this["TagdumpUpdate"]));
@@ -144,6 +133,7 @@ namespace Visual_Novel_Database.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1970-01-01")]
         public global::System.DateTime DBStatsUpdate {
             get {
                 return ((global::System.DateTime)(this["DBStatsUpdate"]));
@@ -167,6 +157,7 @@ namespace Visual_Novel_Database.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1970-01-01")]
         public global::System.DateTime URTUpdate {
             get {
                 return ((global::System.DateTime)(this["URTUpdate"]));
@@ -197,18 +188,6 @@ namespace Visual_Novel_Database.Properties {
             }
             set {
                 this["Limit10Years"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ShowBlacklistedTitles {
-            get {
-                return ((bool)(this["ShowBlacklistedTitles"]));
-            }
-            set {
-                this["ShowBlacklistedTitles"] = value;
             }
         }
     }

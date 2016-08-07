@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     partial class FormMain
     {
@@ -487,7 +487,7 @@ namespace Visual_Novel_Database
             // infoTab
             // 
             this.infoTab.BackColor = System.Drawing.SystemColors.Control;
-            this.infoTab.BackgroundImage = global::Visual_Novel_Database.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
+            this.infoTab.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
             this.infoTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.infoTab.Controls.Add(this.groupBox3);
             this.infoTab.Controls.Add(this.statBox);
@@ -1016,7 +1016,7 @@ namespace Visual_Novel_Database
             // vnTab
             // 
             this.vnTab.BackColor = System.Drawing.Color.Gray;
-            this.vnTab.BackgroundImage = global::Visual_Novel_Database.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
+            this.vnTab.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.vnTab.Controls.Add(this.URTToggleBox);
             this.vnTab.Controls.Add(this.UnreleasedToggleBox);

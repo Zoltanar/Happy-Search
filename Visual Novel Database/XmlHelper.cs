@@ -4,7 +4,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     public static class XmlHelper
     {

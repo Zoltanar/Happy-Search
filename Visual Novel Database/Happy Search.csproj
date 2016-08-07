@@ -7,8 +7,8 @@
     <ProjectGuid>{E6DD9509-0EDA-441D-BEB7-C8E482AC70C9}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Visual_Novel_Database</RootNamespace>
-    <AssemblyName>Visual Novel Database</AssemblyName>
+    <RootNamespace>Happy_Search</RootNamespace>
+    <AssemblyName>Happy Search</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

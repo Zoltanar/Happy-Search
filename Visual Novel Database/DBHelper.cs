@@ -6,13 +6,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using static Visual_Novel_Database.FormMain;
+using static Happy_Search.FormMain;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     internal class DbHelper
     {
@@ -32,9 +32,9 @@ namespace Visual_Novel_Database
 
         #region Set Methods
 
-        public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command)
+        public void UpdateVNStatus(int userID, int vnid, FormMain.ChangeType type, int statusInt, FormMain.Command command)
         {
-            if (command == Command.Delete)
+            if (command == FormMain.Command.Delete)
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
                 Debug.Print(deleteString);
@@ -48,40 +48,40 @@ namespace Visual_Novel_Database
                 : DateTimeToUnixTimestamp(DateTime.UtcNow).ToString(CultureInfo.InvariantCulture);
             switch (type)
             {
-                case ChangeType.UL:
+                case FormMain.ChangeType.UL:
                     switch (command)
                     {
-                        case Command.New:
+                        case FormMain.Command.New:
                             commandString =
                                 $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
-                        case Command.Update:
+                        case FormMain.Command.Update:
                             commandString =
                                 $"UPDATE userlist SET ULStatus = {statusInt}, ULAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
-                case ChangeType.WL:
+                case FormMain.ChangeType.WL:
                     switch (command)
                     {
-                        case Command.New:
+                        case FormMain.Command.New:
                             commandString =
                                 $"INSERT INTO userlist (VNID, UserID, WLStatus, WLAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
-                        case Command.Update:
+                        case FormMain.Command.Update:
                             commandString =
                                 $"UPDATE userlist SET WLStatus = {statusInt}, WLAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
-                case ChangeType.Vote:
+                case FormMain.ChangeType.Vote:
                     switch (command)
                     {
-                        case Command.New:
+                        case FormMain.Command.New:
                             commandString =
                                 $"INSERT INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt*10}, {statusDate});";
                             break;
-                        case Command.Update:
+                        case FormMain.Command.Update:
                             commandString =
                                 $"UPDATE userlist SET Vote = {statusInt*10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;

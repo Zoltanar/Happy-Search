@@ -74,7 +74,7 @@ namespace SplashScreen
             // pictureBox1
             // 
             this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pictureBox1.Image = global::Visual_Novel_Database.Properties.Resources._38;
+            this.pictureBox1.Image = global::Happy_Search.Properties.Resources._38;
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(421, 222);
@@ -86,7 +86,7 @@ namespace SplashScreen
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.BackColor = System.Drawing.Color.Gainsboro;
-            this.BackgroundImage = global::Visual_Novel_Database.Properties.Resources.Splash;
+            this.BackgroundImage = global::Happy_Search.Properties.Resources.Splash;
             this.ClientSize = new System.Drawing.Size(421, 221);
             this.Controls.Add(this.lblTimeRemaining);
             this.Controls.Add(this.pnlStatus);

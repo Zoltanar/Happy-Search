@@ -4,10 +4,10 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Happy_Search.Properties;
 using Newtonsoft.Json;
-using Visual_Novel_Database.Properties;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     public partial class ProducerSearchForm : Form
     {

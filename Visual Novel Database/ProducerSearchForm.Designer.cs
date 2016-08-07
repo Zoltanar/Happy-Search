@@ -1,4 +1,4 @@
-﻿namespace Visual_Novel_Database
+﻿namespace Happy_Search
 {
     partial class ProducerSearchForm
     {

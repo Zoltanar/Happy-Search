@@ -15,11 +15,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using BrightIdeasSoftware;
+using Happy_Search.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Visual_Novel_Database.Properties;
 
-namespace Visual_Novel_Database
+namespace Happy_Search
 {
     public partial class FormMain : Form
     {
@@ -158,8 +158,6 @@ namespace Visual_Novel_Database
             if (DialogResult != DialogResult.OK) return;
             Settings.Default.UserID = UserID;
             Settings.Default.Save();
-            LoadFavoriteProducerList();
-            ReloadLists();
             UpdateUserStats();
             SetOLV();
         }
@@ -227,8 +225,7 @@ https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SplashScreen.SetStatus("Loading Tagdump...");
             {
-                Debug.Print(
-                    $"Tagdump Update = {Settings.Default.TagdumpUpdate}, days since = {DaysSince(Settings.Default.TagdumpUpdate)}");
+                Debug.Print($"Tagdump Update = {Settings.Default.TagdumpUpdate}, days since = {DaysSince(Settings.Default.TagdumpUpdate)}");
                 if (DaysSince(Settings.Default.TagdumpUpdate) > 2 || DaysSince(Settings.Default.TagdumpUpdate) == -1)
                     GetNewTagdump();
                 else LoadTagdump();
@@ -388,6 +385,12 @@ https://github.com/FredTheBarber/VndbClient";
                         //should never happen
                         loginReply.ForeColor = Color.LightGreen;
                         loginReply.Text = Resources.already_logged_in;
+                        break;
+                    }
+                    if (Conn.LastResponse.Error.ID.Equals("auth"))
+                    {
+                        loginReply.ForeColor = Color.Red;
+                        loginReply.Text = Conn.LastResponse.Error.Msg;
                         break;
                     }
                     loginReply.ForeColor = Color.Red;
@@ -806,9 +809,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #region API Methods
 
-        internal async Task<bool> TryQuery(string query, string errorMessage, Label label,
-            bool additionalMessage = false,
-            bool refreshList = false)
+        internal async Task<bool> TryQuery(string query, string errorMessage, Label label, bool additionalMessage = false, bool refreshList = false)
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
@@ -1072,7 +1073,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 case ChangeType.WL:
                     queryString = statusInt == -1
                         ? $"set wishlist {vn.VNID}"
-                        : $"set wishlist {vn.VNID} {{\"status\":{statusInt}}}";
+                        : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
