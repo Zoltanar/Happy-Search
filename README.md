@@ -14,8 +14,10 @@ Search for titles by choosing tags and then clicking 'Update Results'
 Save Tag Filters created as above  
 Search for titles by year  
 Add producers to a 'Favorite Producers' list.  
-Search for titles by producer or by name (NYI)
+Search for titles by producer or by name (NYI)  
 Filter titles in many ways   
+
+![Visual Example](https://s19.postimg.org/iq3dgce8z/happysearch100.png)  
 
 ## Resources Used
 ObjectListView by Phillip Piper (GPLv3)  
