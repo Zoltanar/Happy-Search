@@ -6,13 +6,17 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Visual_Novel_Database.Properties;
+
 // ReSharper disable InconsistentNaming
 
 namespace Visual_Novel_Database
 {
     public partial class VisualNovelForm : Form
     {
+        public const int WM_NCLBUTTONDOWN = 0xA1;
+        public const int HT_CAPTION = 0x2;
         private readonly FormMain _parentForm;
+
         public VisualNovelForm(ListedVN vnItem, FormMain parentForm)
         {
             _parentForm = parentForm;
@@ -31,10 +35,15 @@ namespace Visual_Novel_Database
         private void SetData(ListedVN vnItem)
         {
             //prepare data
-            string ext = Path.GetExtension(vnItem.ImageURL);
+            var ext = Path.GetExtension(vnItem.ImageURL);
             var imageLoc = $"vnImages\\{vnItem.VNID}{ext}";
-            List<string> taglist = vnItem.Tags != string.Empty ? FormMain.StringToTags(vnItem.Tags).Select(tag => _parentForm.PlainTags.Find(item => item.ID == tag.ID)?.Name).Where(tagName => tagName != null).ToList() : new List<string>{"No Tags Found"};
-            string[] parts = { "", "", "" };
+            List<string> taglist = vnItem.Tags != string.Empty
+                ? FormMain.StringToTags(vnItem.Tags)
+                    .Select(tag => _parentForm.PlainTags.Find(item => item.ID == tag.ID)?.Name)
+                    .Where(tagName => tagName != null)
+                    .ToList()
+                : new List<string> {"No Tags Found"};
+            string[] parts = {"", "", ""};
             if (!vnItem.ULStatus.Equals(""))
             {
                 parts[0] = "Userlist: ";
@@ -46,7 +55,7 @@ namespace Visual_Novel_Database
                 parts[1] = vnItem.WLStatus;
             }
             if (vnItem.Vote > 0) parts[2] = $" (Vote:{vnItem.Vote.ToString("#.##")})";
-            string complete = string.Join(" ", parts);
+            var complete = string.Join(" ", parts);
 
             //set data
             vnName.Text = vnItem.Title;
@@ -62,7 +71,6 @@ namespace Visual_Novel_Database
             if (vnItem.ImageNSFW && !Settings.Default.ShowNSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
-
         }
 
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -86,11 +94,9 @@ namespace Visual_Novel_Database
             Process.Start("http://vndb.org/v" + vnID.Text + '/');
         }
 
-        public const int WM_NCLBUTTONDOWN = 0xA1;
-        public const int HT_CAPTION = 0x2;
-
         [DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
 
@@ -113,5 +119,4 @@ namespace Visual_Novel_Database
             if (e.KeyCode == Keys.Escape) Close();
         }
     }
-
 }

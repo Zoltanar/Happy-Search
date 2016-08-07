@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using static Visual_Novel_Database.FormMain;
+
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
@@ -15,10 +16,13 @@ namespace Visual_Novel_Database
 {
     internal class DbHelper
     {
-        public static SQLiteConnection DbConn;
         private const string DbFile = "VNDBPC-database.sqlite";
-        private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;"; //Pooling=True;Max Pool Size=100;
+
+        private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
+            //Pooling=True;Max Pool Size=100;
+
         private const bool PrintGetMethods = false;
+        public static SQLiteConnection DbConn;
 
         public DbHelper()
         {
@@ -38,18 +42,22 @@ namespace Visual_Novel_Database
                 cmd.ExecuteNonQuery();
                 return;
             }
-            string commandString = "";
-            var statusDate = statusInt == -1 ? "NULL" : DateTimeToUnixTimestamp(DateTime.UtcNow).ToString(CultureInfo.InvariantCulture);
+            var commandString = "";
+            var statusDate = statusInt == -1
+                ? "NULL"
+                : DateTimeToUnixTimestamp(DateTime.UtcNow).ToString(CultureInfo.InvariantCulture);
             switch (type)
             {
                 case ChangeType.UL:
                     switch (command)
                     {
                         case Command.New:
-                            commandString = $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
+                            commandString =
+                                $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
                         case Command.Update:
-                            commandString = $"UPDATE userlist SET ULStatus = {statusInt}, ULAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
+                            commandString =
+                                $"UPDATE userlist SET ULStatus = {statusInt}, ULAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
@@ -57,10 +65,12 @@ namespace Visual_Novel_Database
                     switch (command)
                     {
                         case Command.New:
-                            commandString = $"INSERT INTO userlist (VNID, UserID, WLStatus, WLAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
+                            commandString =
+                                $"INSERT INTO userlist (VNID, UserID, WLStatus, WLAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
                         case Command.Update:
-                            commandString = $"UPDATE userlist SET WLStatus = {statusInt}, WLAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
+                            commandString =
+                                $"UPDATE userlist SET WLStatus = {statusInt}, WLAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
@@ -68,10 +78,12 @@ namespace Visual_Novel_Database
                     switch (command)
                     {
                         case Command.New:
-                            commandString = $"INSERT INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt * 10}, {statusDate});";
+                            commandString =
+                                $"INSERT INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt*10}, {statusDate});";
                             break;
                         case Command.Update:
-                            commandString = $"UPDATE userlist SET Vote = {statusInt * 10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
+                            commandString =
+                                $"UPDATE userlist SET Vote = {statusInt*10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
@@ -81,12 +93,13 @@ namespace Visual_Novel_Database
             var cmd2 = new SQLiteCommand(commandString, DbConn);
             cmd2.ExecuteNonQuery();
         }
-        
+
         public void InsertFavoriteProducers(List<ListedProducer> addProducerList, int userid)
         {
             foreach (var item in addProducerList)
             {
-                var insertString = $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote}, {item.UserDropRate});";
+                var insertString =
+                    $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote}, {item.UserDropRate});";
                 var command = new SQLiteCommand(insertString, DbConn);
                 Debug.Print(insertString);
                 command.ExecuteNonQuery();
@@ -96,7 +109,8 @@ namespace Visual_Novel_Database
         public void InsertProducer(ListedProducer producer)
         {
             var name = Regex.Replace(producer.Name, "'", "''");
-            var insertString = $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles, Loaded) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles}, '{producer.Loaded}');";
+            var insertString =
+                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles, Loaded) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles}, '{producer.Loaded}');";
             Debug.Print(insertString);
             var cmd = new SQLiteCommand(insertString, DbConn);
             cmd.ExecuteNonQuery();
@@ -106,8 +120,10 @@ namespace Visual_Novel_Database
         {
             if (item.Notes == null) item.Notes = "";
             var note = Regex.Replace(item.Notes, "'", "''");
-            var commandString = $"UPDATE userlist SET ULStatus = '{item.Status}', ULAdded = '{item.Added}', ULNote = '{note}' WHERE VNID = {item.VN} AND UserID = {userid};";
-            var insertString = $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote) VALUES ({item.VN},{userid},'{item.Status}', '{item.Added}', '{note}');";
+            var commandString =
+                $"UPDATE userlist SET ULStatus = '{item.Status}', ULAdded = '{item.Added}', ULNote = '{note}' WHERE VNID = {item.VN} AND UserID = {userid};";
+            var insertString =
+                $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote) VALUES ({item.VN},{userid},'{item.Status}', '{item.Added}', '{note}');";
             if (!update) commandString = insertString;
             var command = new SQLiteCommand(commandString, DbConn);
             Debug.Print(commandString);
@@ -116,8 +132,10 @@ namespace Visual_Novel_Database
 
         public void UpsertWishList(int userid, WishListItem item, bool update)
         {
-            var commandString = $"UPDATE userlist SET WLStatus = '{item.Priority}', WLAdded = '{item.Added}' WHERE VNID = '{item.VN}' AND UserID = '{userid}';";
-            var insertString = $"INSERT INTO userlist (VNID, WLStatus, WLAdded, UserID) VALUES ('{item.VN}','{item.Priority}','{item.Added}', '{userid}');";
+            var commandString =
+                $"UPDATE userlist SET WLStatus = '{item.Priority}', WLAdded = '{item.Added}' WHERE VNID = '{item.VN}' AND UserID = '{userid}';";
+            var insertString =
+                $"INSERT INTO userlist (VNID, WLStatus, WLAdded, UserID) VALUES ('{item.VN}','{item.Priority}','{item.Added}', '{userid}');";
             if (!update) commandString = insertString;
             var command = new SQLiteCommand(commandString, DbConn);
             Debug.Print(commandString);
@@ -126,8 +144,10 @@ namespace Visual_Novel_Database
 
         public void UpsertVoteList(int userid, VoteListItem item, bool update)
         {
-            var commandString = $"UPDATE userlist SET Vote = '{item.Vote}', VoteAdded = '{item.Added}' WHERE VNID = '{item.VN}' AND UserID = '{userid}';";
-            var insertString = $"INSERT INTO userlist (VNID, Vote, VoteAdded, UserID) VALUES ('{item.VN}','{item.Vote}','{item.Added}', '{userid}');";
+            var commandString =
+                $"UPDATE userlist SET Vote = '{item.Vote}', VoteAdded = '{item.Added}' WHERE VNID = '{item.VN}' AND UserID = '{userid}';";
+            var insertString =
+                $"INSERT INTO userlist (VNID, Vote, VoteAdded, UserID) VALUES ('{item.VN}','{item.Vote}','{item.Added}', '{userid}');";
             if (!update) commandString = insertString;
             var command = new SQLiteCommand(commandString, DbConn);
             Debug.Print(commandString);
@@ -141,7 +161,8 @@ namespace Visual_Novel_Database
             var kanjiTitle = item.Original != null ? Regex.Replace(item.Original, "'", "''") : "";
             var description = item.Description != null ? Regex.Replace(item.Description, "'", "''") : "";
             int? length = item.Length ?? 0;
-            var insertString = "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, VNID)" +
+            var insertString =
+                "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, VNID)" +
                 $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, {length}, {item.ID});";
             var command = new SQLiteCommand(insertString, DbConn);
             if (print) Debug.Print(insertString);
@@ -155,6 +176,7 @@ namespace Visual_Novel_Database
             Debug.Print(commandString);
             command.ExecuteNonQuery();
         }
+
         #endregion
 
         #region Get Methods
@@ -163,7 +185,7 @@ namespace Visual_Novel_Database
         {
             var selectString =
                 $"SELECT VNID FROM userlist WHERE VNID NOT IN (SELECT VNID FROM vnlist) AND UserID = {userid};";
-            List<int> list = new List<int>();
+            var list = new List<int>();
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
@@ -173,7 +195,8 @@ namespace Visual_Novel_Database
 
         public ListedVN GetSingleVN(int vnid, int userid)
         {
-            var selectString = $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID={vnid};";
+            var selectString =
+                $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID={vnid};";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
@@ -187,9 +210,9 @@ namespace Visual_Novel_Database
             var returnString = "N/A";
             var selectString = $"SELECT Name FROM producerlist WHERE ProducerID={producerid};";
             var command = new SQLiteCommand(selectString, DbConn);
-            SQLiteDataReader reader = command.ExecuteReader();
+            var reader = command.ExecuteReader();
             while (
-            reader.Read())
+                reader.Read())
             {
                 returnString = reader["Name"].ToString();
             }
@@ -199,10 +222,10 @@ namespace Visual_Novel_Database
         public List<ListedProducer> GetAllProducers()
         {
             var list = new List<ListedProducer>();
-            string selectString = "SELECT * FROM producerlist;";
+            var selectString = "SELECT * FROM producerlist;";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
-            SQLiteDataReader reader = command.ExecuteReader();
+            var reader = command.ExecuteReader();
             while (reader.Read())
             {
                 list.Add(GetListedProducer(reader));
@@ -215,7 +238,7 @@ namespace Visual_Novel_Database
             var producerIDList = new List<int>();
             var selectString = $"SELECT ProducerID FROM userprodlist WHERE UserID={userid};";
             var command = new SQLiteCommand(selectString, DbConn);
-            SQLiteDataReader reader = command.ExecuteReader();
+            var reader = command.ExecuteReader();
             while (reader.Read()) producerIDList.Add(DbInt(reader["ProducerID"]));
             return producerIDList;
         }
@@ -223,9 +246,10 @@ namespace Visual_Novel_Database
         public List<ListedProducer> GetFavoriteProducersForUser(int userid)
         {
             var readerList = new List<ListedProducer>();
-            var selectString = $"SELECT producerlist.*, userprodlist.UserAverageVote, userprodlist.UserDropRate FROM producerlist LEFT JOIN userprodlist ON producerlist.ProducerID = userprodlist.ProducerID WHERE userprodlist.UserID = {userid};";
+            var selectString =
+                $"SELECT producerlist.*, userprodlist.UserAverageVote, userprodlist.UserDropRate FROM producerlist LEFT JOIN userprodlist ON producerlist.ProducerID = userprodlist.ProducerID WHERE userprodlist.UserID = {userid};";
             var command = new SQLiteCommand(selectString, DbConn);
-            SQLiteDataReader reader = command.ExecuteReader();
+            var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetFavoriteProducer(reader));
             return readerList;
         }
@@ -244,7 +268,8 @@ namespace Visual_Novel_Database
         public List<ListedVN> GetUserRelatedTitles(int userid)
         {
             var readerList = new List<ListedVN>();
-            var selectString = $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist, userlist  LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID = userlist.VNID AND UserID = {userid};";
+            var selectString =
+                $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist, userlist  LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID = userlist.VNID AND UserID = {userid};";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
@@ -255,7 +280,8 @@ namespace Visual_Novel_Database
         public List<ListedVN> GetAllTitles(int userid)
         {
             var readerList = new List<ListedVN>();
-            var selectString = $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE Title NOT NULL;";
+            var selectString =
+                $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE Title NOT NULL;";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
@@ -266,7 +292,8 @@ namespace Visual_Novel_Database
         public List<ListedVN> GetTitlesFromProducerID(int userid, int producerID)
         {
             var readerList = new List<ListedVN>();
-            var selectString = $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userid} WHERE vnlist.ProducerID={producerID};";
+            var selectString =
+                $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userid} WHERE vnlist.ProducerID={producerID};";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
@@ -279,13 +306,15 @@ namespace Visual_Novel_Database
             var idList = new List<int>();
             var selectIDsString = $"SELECT VNID FROM vnlist WHERE ProducerID={producerid} AND Title IS NULL;";
             var command = new SQLiteCommand(selectIDsString, DbConn);
-            SQLiteDataReader reader = command.ExecuteReader();
+            var reader = command.ExecuteReader();
             while (reader.Read()) idList.Add(DbInt(reader["VNID"]));
             return idList;
         }
+
         #endregion
 
         #region Other
+
         private ListedVN GetListedVN(SQLiteDataReader reader)
         {
             return new ListedVN(
@@ -330,6 +359,7 @@ namespace Visual_Novel_Database
                 DbDouble(reader["UserAverageVote"]),
                 DbInt(reader["UserDropRate"]));
         }
+
         public void Open()
         {
             if (DbConn.State == ConnectionState.Closed)
@@ -382,8 +412,8 @@ namespace Visual_Novel_Database
 
         private static void CreateVNListTable()
         {
-            string createCommand =
-        @"CREATE TABLE `vnlist` (
+            var createCommand =
+                @"CREATE TABLE `vnlist` (
 	`VNID`	INTEGER NOT NULL UNIQUE,
 	`Title`	TEXT,
 	`KanjiTitle`	TEXT,
@@ -398,14 +428,14 @@ namespace Visual_Novel_Database
 	PRIMARY KEY(VNID),
 	FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID`
 )";
-            SQLiteCommand command = new SQLiteCommand(createCommand, DbConn);
+            var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
         }
 
         private static void CreateProducerListTable()
         {
-            string createCommand =
-        @"CREATE TABLE `producerlist` (
+            var createCommand =
+                @"CREATE TABLE `producerlist` (
 	`ProducerID`	INTEGER NOT NULL,
 	`Name`	TEXT,
 	`Titles`	INTEGER,
@@ -413,14 +443,14 @@ namespace Visual_Novel_Database
 	`Updated`	DATE DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY(ProducerID)
 )";
-            SQLiteCommand command = new SQLiteCommand(createCommand, DbConn);
+            var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
         }
 
         private static void CreateUserlistTable()
         {
-            string createCommand =
-        @"CREATE TABLE `userlist` (
+            var createCommand =
+                @"CREATE TABLE `userlist` (
 	`VNID`	INTEGER,
 	`UserID`	INTEGER,
 	`ULStatus`	INTEGER,
@@ -432,53 +462,52 @@ namespace Visual_Novel_Database
 	`VoteAdded`	INTEGER,
 	PRIMARY KEY(VNID,UserID)
 )";
-            SQLiteCommand command = new SQLiteCommand(createCommand, DbConn);
+            var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
         }
 
         private static void CreateUserProdListTable()
         {
-            string createCommand =
-        @"CREATE TABLE `userprodlist`(
+            var createCommand =
+                @"CREATE TABLE `userprodlist`(
 	`ProducerID`	INTEGER NOT NULL,
 	`UserID`	INTEGER NOT NULL,
 	`UserAverageVote`	NUMERIC,
 	`UserDropRate`	INTEGER,
 	PRIMARY KEY(ProducerID, UserID)
 )";
-            SQLiteCommand command = new SQLiteCommand(createCommand, DbConn);
+            var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
         }
 
         private static void CreateTriggers()
         {
-            string createCommand =
-        @"CREATE TRIGGER [UpdateTimestamp]
+            var createCommand =
+                @"CREATE TRIGGER [UpdateTimestamp]
     AFTER UPDATE    ON vnlist    FOR EACH ROW
 BEGIN
     UPDATE vnlist 
 	SET DateUpdated=CURRENT_TIMESTAMP
 	WHERE VNID=OLD.VNID;
 END";
-            string createCommand2 =
-         @"CREATE TRIGGER [UpdateTimestampProducerList]
+            var createCommand2 =
+                @"CREATE TRIGGER [UpdateTimestampProducerList]
     AFTER UPDATE    ON producerlist    FOR EACH ROW
 BEGIN
     UPDATE producerlist 
 	SET Updated=CURRENT_TIMESTAMP
 	WHERE ProducerID=OLD.ProducerID;
 END";
-            SQLiteCommand command = new SQLiteCommand(createCommand, DbConn);
+            var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
-            SQLiteCommand command2 = new SQLiteCommand(createCommand2, DbConn);
+            var command2 = new SQLiteCommand(createCommand2, DbConn);
             command2.ExecuteNonQuery();
         }
 
 
-
         private static int SetImageStatus(bool imageNSFW)
         {
-            int i = imageNSFW ? 1 : 0;
+            var i = imageNSFW ? 1 : 0;
             return i;
         }
 
@@ -488,7 +517,7 @@ END";
             if (!int.TryParse(imageNSFW.ToString(), out i)) return false;
             return i == 1;
         }
-        #endregion
 
+        #endregion
     }
 }

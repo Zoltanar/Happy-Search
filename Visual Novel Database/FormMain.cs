@@ -23,6 +23,7 @@ namespace Visual_Novel_Database
 {
     public partial class FormMain : Form
     {
+        private const string VNImagesFolder = "vnImages\\";
         private const string DBStatsXml = "dbs.xml";
         private const string TagsJsonGz = "tags.json.gz";
         private const string TagsJson = "tags.json";
@@ -30,7 +31,7 @@ namespace Visual_Novel_Database
         private const string TagTypeUrt = "mctULLabel";
         private const string FilterLabel = "filterLabel";
         internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "0.85";
+        internal const string ClientVersion = "0.90";
         internal const string APIVersion = "2.25";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
@@ -43,8 +44,8 @@ namespace Visual_Novel_Database
         private static readonly Color ErrorColor = Color.Red;
         internal static readonly Color NormalColor = SystemColors.ControlLightLight;
         internal static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
-        private readonly Func<ListedVN, bool>[] _filters = { x => true, x => true, x => true };
         private static readonly Color WarningColor = Color.YellowGreen;
+        private readonly Func<ListedVN, bool>[] _filters = {x => true, x => true, x => true};
         internal readonly VndbConnection Conn = new VndbConnection();
         internal readonly DbHelper DBConn;
         private int _added;
@@ -59,6 +60,110 @@ namespace Visual_Novel_Database
         internal int UserID;
         internal List<ListedVN> UserList;
 
+        private void VNSearchButt(object sender, EventArgs e) //Fetch information from 'VNDB.org'
+        {
+            //TODO Whole method
+        }
+
+        private async void GetYearTitles(object sender, EventArgs e)
+        {
+            if (yearBox.Text == "") //check if box is empty
+            {
+                WriteError(replyText, Resources.enter_year, true);
+                return;
+            }
+            int year;
+            var userIsNumber = int.TryParse(yearBox.Text, out year);
+            if (userIsNumber == false) //check if box has integer
+            {
+                WriteError(replyText, Resources.must_be_integer, true);
+                return;
+            }
+            var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
+            WriteText(replyText, $"Getting All VNs For year {year}\nStarted at {startTime}");
+            ReloadLists();
+            _currentList = x => x.RelDate.StartsWith(yearBox.Text);
+            _added = 0;
+            _skipped = 0;
+            string vnInfoQuery =
+                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
+            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true);
+            if (!result) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            List<VNItem> vnItems = vnRoot.Items;
+            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
+            var pageNo = 1;
+            var moreResults = vnRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string vnInfoMoreQuery =
+                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true);
+                if (!moreResult) return;
+                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                List<VNItem> vnMoreItems = vnMoreRoot.Items;
+                foreach (var vnid in vnMoreItems.Select(x => x.ID))
+                    await GetSingleVN(vnid, replyText, false, true, true);
+                moreResults = vnMoreRoot.More;
+            }
+            var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
+            WriteText(replyText,
+                $"Got all VNs for {year}\nTime:{startTime}-{endTime}\n{_added} added, {_skipped} skipped.");
+            RefreshList();
+        }
+
+        private void Test(object sender, EventArgs e)
+        {
+        }
+
+        private async void HandleContextItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
+            {
+                WriteError(replyText, "Not Logged In", true);
+                return;
+            }
+            var nitem = e.ClickedItem;
+            if (nitem == null) return;
+            bool success;
+            var vn = tileOLV.SelectedObject as ListedVN;
+            var statusInt = -1;
+            switch (nitem.OwnerItem.Text)
+            {
+                case "Userlist":
+                    statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
+                    success = await ChangeVNStatus(vn, ChangeType.UL, statusInt);
+                    break;
+                case "Wishlist":
+                    statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
+                    success = await ChangeVNStatus(vn, ChangeType.WL, statusInt);
+                    break;
+                case "Vote":
+                    if (!nitem.Text.Equals("(None)")) statusInt = Convert.ToInt32(nitem.Text);
+                    success = await ChangeVNStatus(vn, ChangeType.Vote, statusInt);
+                    break;
+                default:
+                    success = false;
+                    break;
+            }
+            if (success) SetOLV();
+            WriteText(replyText, success ? Resources.item_changed : "Unknown Error");
+        }
+
+        private void LogInDialog(object sender, EventArgs e)
+        {
+            DialogResult = new LoginForm(this).ShowDialog();
+            Debug.Print(DialogResult.ToString());
+            if (DialogResult != DialogResult.OK) return;
+            Settings.Default.UserID = UserID;
+            Settings.Default.Save();
+            LoadFavoriteProducerList();
+            ReloadLists();
+            UpdateUserStats();
+            SetOLV();
+        }
+
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
         (slightly modified) A Pretty Good Splash Screen in C# by Tom Clement (CPOL) from http://www.codeproject.com/Articles/5454/A-Pretty-Good-Splash-Screen-in-C
@@ -66,6 +171,7 @@ namespace Visual_Novel_Database
         */
 
         #region Initialization
+
         public FormMain()
         {
             InitializeComponent();
@@ -94,9 +200,17 @@ namespace Visual_Novel_Database
                 checkBox9.Visible = false;
                 checkBox10.Visible = false;
                 tileOLV.ItemRenderer = new VNTileRenderer();
-                richTextBox1.Text = $"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})\n" +
-                                    Resources.about_line1 + '\n' +
-                                    Resources.about_line2;
+                aboutTextBox.Text =
+                    $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
+VNDB API Client for filtering/organizing and finding visual novels.
+
+Resources:
+ObjectListView by Phillip Piper (GPLv3)
+http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
+(slightly modified) A Pretty Good Splash Screen in C# by Tom Clement (CPOL)
+http://www.codeproject.com/Articles/5454/A-Pretty-Good-Splash-Screen-in-C
+(reasonably modified) VndbClient by FredTheBarber
+https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SplashScreen.SetStatus("Loading User Settings...");
             {
@@ -218,7 +332,7 @@ namespace Visual_Novel_Database
             ulstatsul.Text = ulCount.ToString();
             ulstatswl.Text = wlCount.ToString();
             ulstatsvl.Text = vlCount.ToString();
-            ulstatsavs.Text = (cumulativeScore / vlCount).ToString("#.##");
+            ulstatsavs.Text = (cumulativeScore/vlCount).ToString("#.##");
             DisplayCommonTagsULStats(null, null);
         }
 
@@ -308,14 +422,11 @@ namespace Visual_Novel_Database
                 APILogin();
             }
         }
+
         #endregion
 
-        private void VNSearchButt(object sender, EventArgs e) //Fetch information from 'VNDB.org'
-        {
-            //TODO Whole method
-        }
-
         #region Get User-Related Titles
+
         //Get user's user/wish/votelists from VNDB
         private void UpdateURTButtonClick(object sender, EventArgs e)
         {
@@ -368,17 +479,18 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userDropRate = finishedCount + droppedCount != 0
-                        ? (double)droppedCount / (droppedCount + finishedCount)
+                        ? (double) droppedCount/(droppedCount + finishedCount)
                         : -1;
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 }
                 favprolist.Add(new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded,
-                    DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
+                    DateTime.UtcNow, producer.ID, userAverageVote, (int) Math.Round(userDropRate*100)));
             }
             DBConn.Open();
             DBConn.InsertFavoriteProducers(favprolist, UserID);
             DBConn.Close();
             tileOLV.Sort(tileColumnDate, SortOrder.Descending);
+            UpdateUserStats();
         }
 
         private async Task GetUserList()
@@ -499,107 +611,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #endregion
 
-        private async void GetYearTitles(object sender, EventArgs e)
-        {
-            if (yearBox.Text == "") //check if box is empty
-            {
-                WriteError(replyText, Resources.enter_year, true);
-                return;
-            }
-            int year;
-            var userIsNumber = Int32.TryParse(yearBox.Text, out year);
-            if (userIsNumber == false) //check if box has integer
-            {
-                WriteError(replyText, Resources.must_be_integer, true);
-                return;
-            }
-            var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText, $"Getting All VNs For year {year}\nStarted at {startTime}");
-            ReloadLists();
-            _currentList = x => x.RelDate.StartsWith(yearBox.Text);
-            _added = 0;
-            _skipped = 0;
-            string vnInfoQuery =
-                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
-            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true);
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            List<VNItem> vnItems = vnRoot.Items;
-            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
-            var pageNo = 1;
-            var moreResults = vnRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                string vnInfoMoreQuery =
-                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true);
-                if (!moreResult) return;
-                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                foreach (var vnid in vnMoreItems.Select(x => x.ID))
-                    await GetSingleVN(vnid, replyText, false, true, true);
-                moreResults = vnMoreRoot.More;
-            }
-            var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText, $"Got all VNs for {year}\nTime:{startTime}-{endTime}\n{_added} added, {_skipped} skipped.");
-            RefreshList();
-        }
-
-        private void Test(object sender, EventArgs e)
-        {
-            SetOLV();
-        }
-
-        private async void HandleContextItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
-            {
-                WriteError(replyText, "Not Logged In", true);
-                return;
-            }
-            var nitem = e.ClickedItem;
-            if (nitem == null) return;
-            bool success;
-            var vn = tileOLV.SelectedObject as ListedVN;
-            int statusInt = -1;
-            switch (nitem.OwnerItem.Text)
-            {
-                case "Userlist":
-                    statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
-                    success = await ChangeVNStatus(vn, ChangeType.UL, statusInt);
-                    break;
-                case "Wishlist":
-                    statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
-                    success = await ChangeVNStatus(vn, ChangeType.WL, statusInt);
-                    break;
-                case "Vote":
-                    if(!nitem.Text.Equals("(None)")) statusInt = Convert.ToInt32(nitem.Text);
-                    success = await ChangeVNStatus(vn, ChangeType.Vote, statusInt);
-                    break;
-                default:
-                    success = false;
-                    break;
-            }
-            if (success) SetOLV();
-            WriteText(replyText, success ? Resources.item_changed : "Unknown Error");
-        }
-
-        private void LogInDialog(object sender, EventArgs e)
-        {
-            DialogResult = new LoginForm(this).ShowDialog();
-            Debug.Print(DialogResult.ToString());
-            if (DialogResult != DialogResult.OK) return;
-            Settings.Default.UserID = UserID;
-            Settings.Default.Save();
-            LoadFavoriteProducerList();
-            ReloadLists();
-            UpdateUserStats();
-            SetOLV();
-        }
-
-
         #region User-Settings
+
         private void ToggleNSFWImages(object sender, EventArgs e)
         {
             Settings.Default.ShowNSFWImages = nsfwToggle.Checked;
@@ -618,6 +631,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             Settings.Default.Limit10Years = yearLimitBox.Checked;
             Settings.Default.Save();
         }
+
         #endregion
 
         #region Favorite Producers
@@ -740,7 +754,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 return;
             }
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.SelectedObjects
-                                           select producer.Name;
+                select producer.Name;
             _currentList = vn => prodList.Contains(vn.Producer);
             RefreshList();
         }
@@ -768,7 +782,6 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             {
                 WriteError(prodReply, "No Items in list.", true);
                 return;
-
             }
             var askBox =
                 MessageBox.Show(Resources.get_new_fp_titles_confirm, Resources.are_you_sure, MessageBoxButtons.YesNo);
@@ -783,16 +796,18 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void FormatRowFavoriteProducers(object sender, FormatRowEventArgs e)
         {
-            var listedProducer = (ListedProducer)e.Model;
+            var listedProducer = (ListedProducer) e.Model;
             if (listedProducer.UserAverageVote < 1) e.Item.GetSubItem(2).Text = "";
             if (listedProducer.UserDropRate < 0) e.Item.GetSubItem(3).Text = "";
             if (listedProducer.NumberOfTitles == -1) e.Item.GetSubItem(1).Text = "";
         }
+
         #endregion
 
         #region API Methods
 
-        internal async Task<bool> TryQuery(string query, string errorMessage, Label label, bool additionalMessage = false,
+        internal async Task<bool> TryQuery(string query, string errorMessage, Label label,
+            bool additionalMessage = false,
             bool refreshList = false)
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
@@ -824,14 +839,14 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     ChangeAPIStatus(Conn.Status);
                     return false;
                 }
-                var waitS = Conn.LastResponse.Error.Minwait * 30;
+                var waitS = Conn.LastResponse.Error.Minwait*30;
                 var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
                 string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
                 string additionalWarning = $" Added {_added} and skipped {_skipped} so far...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 WriteWarning(label, fullThrottleMessage);
                 ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
-                var waitMS = minWait * 1000;
+                var waitMS = minWait*1000;
                 var wait = Convert.ToInt32(waitMS);
                 Debug.Print($"{DateTime.UtcNow} - {fullThrottleMessage}");
                 if (refreshList) tileOLV.SetObjects(_vnList.Where(_currentList));
@@ -1042,42 +1057,56 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             switch (type)
             {
                 case ChangeType.UL:
-                    queryString = statusInt == -1 ? $"set vnlist {vn.VNID}" : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
+                    queryString = statusInt == -1
+                        ? $"set vnlist {vn.VNID}"
+                        : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
-                    if (hasWLStatus || hasVote) DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
-                    else if (statusInt == -1) DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Delete);
+                    if (hasWLStatus || hasVote)
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
+                    else if (statusInt == -1)
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Delete);
                     else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.New);
                     break;
                 case ChangeType.WL:
-                    queryString = statusInt == -1 ? $"set wishlist {vn.VNID}" : $"set wishlist {vn.VNID} {{\"status\":{statusInt}}}";
+                    queryString = statusInt == -1
+                        ? $"set wishlist {vn.VNID}"
+                        : $"set wishlist {vn.VNID} {{\"status\":{statusInt}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
-                    if (hasULStatus || hasVote) DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
-                    else if (statusInt == -1) DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Delete);
+                    if (hasULStatus || hasVote)
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
+                    else if (statusInt == -1)
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Delete);
                     else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
                     break;
                 case ChangeType.Vote:
-                    queryString = statusInt == -1 ? $"set votelist {vn.VNID}" : $"set votelist {vn.VNID} {{\"vote\":{statusInt * 10}}}";
+                    queryString = statusInt == -1
+                        ? $"set votelist {vn.VNID}"
+                        : $"set votelist {vn.VNID} {{\"vote\":{statusInt*10}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
-                    if (hasULStatus || hasWLStatus) DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update);
-                    else if (statusInt == -1) DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
+                    if (hasULStatus || hasWLStatus)
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update);
+                    else if (statusInt == -1)
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
                     else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New);
                     break;
             }
             DBConn.Close();
             return true;
         }
+
         #endregion
 
         #region Tag Filtering
+
         private void TagFilterAdded(object sender, EventArgs e)
         {
-            var checkbox = (CheckBox)sender;
+            var checkbox = (CheckBox) sender;
             //Filter Added
             if (!checkbox.Checked) return;
             var tagName = checkbox.Text.Split('(').First().Trim();
@@ -1152,7 +1181,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             parents.AddRange(_filterIDList);
             var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, parents);
             var notNeeded = false;
-            int count = _vnList.Count(vn => VNMatchesSingleTag(vn, newFilter));
+            var count = _vnList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
             WriteText(filterReply, $"Tag {tagName} has {count} VNs in local database.");
             foreach (var filter in _activeFilter)
@@ -1173,12 +1202,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         {
             //clear old labels
             var oldCount = 0;
-            var oldLabel = (CheckBox)Controls.Find(FilterLabel + 0, true).FirstOrDefault();
+            var oldLabel = (CheckBox) Controls.Find(FilterLabel + 0, true).FirstOrDefault();
             while (oldLabel != null)
             {
                 oldLabel.Dispose();
                 oldCount++;
-                oldLabel = (CheckBox)Controls.Find(FilterLabel + oldCount, true).FirstOrDefault();
+                oldLabel = (CheckBox) Controls.Find(FilterLabel + oldCount, true).FirstOrDefault();
             }
             if (clear)
             {
@@ -1192,7 +1221,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 var filterLabel = new CheckBox
                 {
                     AutoSize = true,
-                    Location = new Point(264, 44 + count * 22),
+                    Location = new Point(264, 44 + count*22),
                     Name = FilterLabel + count,
                     Size = new Size(35, 13),
                     Text = $"{filter.Name} (Total: {filter.Titles})",
@@ -1209,7 +1238,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private void TagFilterChanged(object sender, EventArgs e)
         {
             if (tileOLV.Items.Count == 0) return;
-            var checkbox = (CheckBox)sender;
+            var checkbox = (CheckBox) sender;
             //Filter Added
             if (checkbox.Checked)
             {
@@ -1236,7 +1265,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private async void LogQuestion(object sender, KeyPressEventArgs e) //send a command direct to server
         {
-            if (e.KeyChar != (char)Keys.Enter) return;
+            if (e.KeyChar != (char) Keys.Enter) return;
             e.Handled = true;
             await Conn.QueryAsync(questionBox.Text);
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
@@ -1295,6 +1324,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             else label.ForeColor = NormalColor;
             label.Text = message;
         }
+
         internal static void WriteWarning(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
@@ -1315,7 +1345,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void OLVChangeView(object sender, EventArgs e)
         {
-            var cb = (ComboBox)sender;
+            var cb = (ComboBox) sender;
             switch (cb.SelectedIndex)
             {
                 case 0:
@@ -1350,56 +1380,56 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             voteToolStripMenuItem.Checked = false;
 
             //set new
-            var vn = (ListedVN)model;
+            var vn = (ListedVN) model;
             userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
             wishlistToolStripMenuItem.Checked = !vn.WLStatus.Equals("");
             voteToolStripMenuItem.Checked = vn.Vote > 0;
             switch (vn.ULStatus)
             {
                 case "":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
+                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
                     break;
                 case "Unknown":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
+                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
                     break;
                 case "Playing":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
+                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
                     break;
                 case "Finished":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
+                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
                     break;
                 case "Stalled":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
+                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
                     break;
                 case "Dropped":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
+                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
                     break;
             }
             switch (vn.WLStatus)
             {
                 case "":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
+                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
                     break;
                 case "High":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
+                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
                     break;
                 case "Medium":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
+                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
                     break;
                 case "Low":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
+                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
                     break;
                 case "Blacklist":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
+                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
                     break;
             }
             if (vn.Vote > 0)
             {
-                var vote = (int)Math.Floor(vn.Vote);
-                ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[vote]).Checked = true;
+                var vote = (int) Math.Floor(vn.Vote);
+                ((ToolStripMenuItem) voteToolStripMenuItem.DropDownItems[vote]).Checked = true;
             }
             else
-                ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
+                ((ToolStripMenuItem) voteToolStripMenuItem.DropDownItems[0]).Checked = true;
 
             return ContextMenuVN;
         }
@@ -1420,8 +1450,10 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             int[] vnTags = StringToTags(vn.Tags).Select(x => x.ID).ToArray();
             return vnTags.Any(vntag => tag.AllIDs.Contains(vntag));
         }
+
         private void SaveImage(VNItem vn)
         {
+            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.Image == null || vn.Image.Equals("")) return;
             var ext = Path.GetExtension(vn.Image);
             string imageLoc = $"vnImages\\{vn.ID}{ext}";
@@ -1437,7 +1469,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         internal static void FadeLabel(Label tLabel) //start timer to make label invisible
         {
-            var fadeTimer = new Timer { Interval = LabelFadeTime };
+            var fadeTimer = new Timer {Interval = LabelFadeTime};
             fadeTimer.Tick += (sender, e) =>
             {
                 tLabel.Text = "";
@@ -1450,7 +1482,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private void FormatRow(object sender, FormatRowEventArgs e)
         {
             if (e.ListView.View != View.Details) return;
-            var listedVN = (ListedVN)e.Model;
+            var listedVN = (ListedVN) e.Model;
             switch (listedVN.ULStatus)
             {
                 case "Finished":
@@ -1493,7 +1525,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 while (labelCount <= 10)
                 {
                     var name = TagTypeUrt + labelCount;
-                    var mctULLabel = (Label)Controls.Find(name, true).First();
+                    var mctULLabel = (Label) Controls.Find(name, true).First();
                     mctULLabel.Visible = false;
                     labelCount++;
                 }
@@ -1502,7 +1534,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             //userlist stats - most common tags
             if (sender != null)
             {
-                var checkBox = (CheckBox)sender;
+                var checkBox = (CheckBox) sender;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC2":
@@ -1524,7 +1556,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 while (labelCount <= 10)
                 {
                     var name = TagTypeUrt + labelCount;
-                    var mctULLabel = (Label)Controls.Find(name, true).First();
+                    var mctULLabel = (Label) Controls.Find(name, true).First();
                     mctULLabel.Visible = false;
                     labelCount++;
                 }
@@ -1561,16 +1593,16 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             while (p < max)
             {
                 var name = TagTypeUrt + p;
-                var mctULLabel = (Label)Controls.Find(name, true).First();
+                var mctULLabel = (Label) Controls.Find(name, true).First();
                 var tagName = PlainTags.Find(item => item.ID == ulProdlistlist[p - 1].Key).Name;
-                mctULLabel.Text = $"{tagName} ({ulProdlistlist[p - 1].Value} items)";
+                mctULLabel.Text = $"{tagName} ({ulProdlistlist[p - 1].Value})";
                 mctULLabel.Visible = true;
                 p++;
             }
             while (max <= 10)
             {
                 var name = TagTypeUrt + max;
-                var mctULLabel = (Label)Controls.Find(name, true).First();
+                var mctULLabel = (Label) Controls.Find(name, true).First();
                 mctULLabel.Visible = false;
                 max++;
             }
@@ -1580,7 +1612,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         {
             if (sender != null)
             {
-                var checkBox = (CheckBox)sender;
+                var checkBox = (CheckBox) sender;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
@@ -1603,7 +1635,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 return;
             }
             List<KeyValuePair<int, int>> toptentags = null;
-            var bw = new BackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+            var bw = new BackgroundWorker {WorkerReportsProgress = true, WorkerSupportsCancellation = true};
             bw.DoWork += delegate
             {
                 //vn list - most common tags
@@ -1611,11 +1643,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 var vnNo = 1;
                 foreach (var vn in vnlist)
                 {
-                    var progressPercent = (double)vnNo / vnCount * 100;
+                    var progressPercent = (double) vnNo/vnCount*100;
                     vnNo++;
                     try
                     {
-                        bw.ReportProgress((int)Math.Floor(progressPercent));
+                        bw.ReportProgress((int) Math.Floor(progressPercent));
                     }
                     catch
                     {
@@ -1647,7 +1679,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 toptentags = prodlistlist.Take(10).ToList();
             };
             bw.ProgressChanged +=
-                delegate (object o, ProgressChangedEventArgs args)
+                delegate(object o, ProgressChangedEventArgs args)
                 {
                     mctLoadingLabel.Text = $"{args.ProgressPercentage}% Completed";
                 };
@@ -1659,9 +1691,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 {
                     var mctIndex = mctNo - 1;
                     var name = TagTypeAll + mctNo;
-                    var cb = (CheckBox)Controls.Find(name, true).First();
+                    var cb = (CheckBox) Controls.Find(name, true).First();
                     var tagName = PlainTags.Find(item => item.ID == toptentags[mctIndex].Key).Name;
-                    cb.Text = $"{tagName} ({toptentags[mctIndex].Value} items)";
+                    cb.Text = $"{tagName} ({toptentags[mctIndex].Value})";
                     cb.Checked = false;
                     cb.Visible = true;
                     mctNo++;
@@ -1688,7 +1720,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private static bool CheckUnreleased(string date)
         {
             if (!date.Contains('-')) return true;
-            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
+            int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
             if (dateRegex.IsMatch(date))
@@ -1735,7 +1767,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         internal static string TagsToString(List<TagItem> tags)
         {
             //var tagstring = string.Join(",", tags.Select(v => string.Join(",", v.ToArray())).Select(vstring => '[' + vstring + ']').ToArray());
-            return '[' + String.Join(",", tags.Select(v => v.ToString())) + ']';
+            return '[' + string.Join(",", tags.Select(v => v.ToString())) + ']';
         }
 
         internal static List<TagItem> StringToTags(string tagstring)
@@ -1748,9 +1780,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void ObjectList_SelectedIndexChanged(object sender, CellClickEventArgs e) //display info on selected VN
         {
-            var listView = (ObjectListView)sender;
+            var listView = (ObjectListView) sender;
             if (listView.SelectedIndices.Count <= 0) return;
-            var vnItem = (ListedVN)listView.SelectedObjects[0];
+            var vnItem = (ListedVN) listView.SelectedObjects[0];
             DBConn.Open();
             vnItem = DBConn.GetSingleVN(vnItem.VNID, UserID);
             DBConn.Close();
@@ -1793,9 +1825,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             return days;
         }
 
-        private async void GetNewDBStats()
+        private void GetNewDBStats()
         {
-            await Conn.QueryAsync("dbstats");
+            Conn.Query("dbstats");
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type != ResponseType.DBStats)
             {
@@ -1863,9 +1895,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private void tileOLV_Resize(object sender, EventArgs e)
         {
             var width = tileOLV.Width - 24;
-            var s = (int)Math.Round((double)width / 230);
+            var s = (int) Math.Round((double) width/230);
             if (s == 0) return;
-            tileOLV.TileSize = new Size(width / s, 300);
+            tileOLV.TileSize = new Size(width/s, 300);
         }
 
         private static void SaveCustomFiltersXML()
@@ -1933,7 +1965,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
             var tagName = tagSearchBox.Text;
             AddFilterTag(tagName);
-            var s = (Control)sender;
+            var s = (Control) sender;
             s.Text = "";
         }
 
@@ -1944,7 +1976,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
         {
-            if (e.KeyChar == (char)Keys.Enter)
+            if (e.KeyChar == (char) Keys.Enter)
             {
                 e.Handled = true;
                 VNSearchButt(sender, e);
@@ -1975,7 +2007,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 return;
             }
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.Objects
-                                           select producer.Name;
+                select producer.Name;
             _currentList = vn => prodList.Contains(vn.Producer);
             RefreshList();
         }
@@ -1988,7 +2020,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void Filter_ULStatus(object sender, EventArgs e)
         {
-            var dropdownlist = (ComboBox)sender;
+            var dropdownlist = (ComboBox) sender;
             switch (dropdownlist.SelectedIndex)
             {
                 case 0:
@@ -2016,7 +2048,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void Filter_Custom(object sender, EventArgs e)
         {
-            var dropdownlist = (ComboBox)sender;
+            var dropdownlist = (ComboBox) sender;
             switch (dropdownlist.SelectedIndex)
             {
                 case 0:
@@ -2067,7 +2099,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             _added = 0;
             _skipped = 0;
             IEnumerable<string> betterTags = _activeFilter.Select(x => x.ID).Select(s => $"tags = {s}");
-            var tags = String.Join(" and ", betterTags);
+            var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{\"results\":25}}";
             var result = await TryQuery(tagQuery, "UCF Query Error", replyText, true, true);
             if (!result) return;
@@ -2169,7 +2201,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void ApplyToggleFilters(ToggleFilter toggleFilter, Func<ListedVN, bool> function)
         {
-            _filters[(int)toggleFilter] = function;
+            _filters[(int) toggleFilter] = function;
             /*
             //clear filter list
             _filters.Clear();
@@ -2180,7 +2212,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             if (noURTFilter.Checked) _filters.Add(x => UserList.Find(y => y.VNID == x.VNID) == null);
             if (_blacklistToggle != null) _filters.Add(_blacklistToggle);*/
             tileOLV.ModelFilter = _filters.Any()
-                ? new ModelFilter(vn => _filters.Select(filter => filter((ListedVN)vn)).All(valid => valid))
+                ? new ModelFilter(vn => _filters.Select(filter => filter((ListedVN) vn)).All(valid => valid))
                 : null;
             objectList_ItemsChanged(null, null);
         }
@@ -2272,7 +2304,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     BorderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
                     HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
                 }
-                DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem)e.Item);
+                DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem) e.Item);
 
                 // Finally render the buffered graphics
                 buffered.Render();
@@ -2317,36 +2349,36 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     var id = vn.VNID.ToString();
                     var imageUrl = vn.ImageURL;
                     var ext = Path.GetExtension(imageUrl);
-                    photoRect.Height = (int)(itemBounds.Height - 3 * size.Height - spacing * 2);
-                    var rectratio = (double)photoRect.Width / photoRect.Height;
-                    var photoFile = String.Format($"vnImages\\{id}{ext}");
+                    photoRect.Height = (int) (itemBounds.Height - 3*size.Height - spacing*2);
+                    var rectratio = (double) photoRect.Width/photoRect.Height;
+                    var photoFile = string.Format($"vnImages\\{id}{ext}");
                     if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoRect);
                     else if (File.Exists(photoFile))
                     {
                         var photo = Image.FromFile(photoFile);
-                        var photoratio = (double)photo.Width / photo.Height;
+                        var photoratio = (double) photo.Width/photo.Height;
                         //zoom in image to occupy whole area
                         //Alternately show whole image but do not occupy whole area
                         if (photoratio > rectratio) //if image is wider
                         {
-                            var shrinkratio = (double)photo.Width / photoRect.Width;
+                            var shrinkratio = (double) photo.Width/photoRect.Width;
                             var newWidth = photoRect.Width;
-                            var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
+                            var newHeight = (int) Math.Floor(photo.Height/shrinkratio);
                             var newX = photoRect.X;
-                            var hny = (double)newHeight / 2;
-                            var hph = (double)photoRect.Height / 2;
-                            var newY = photoRect.Y + (int)Math.Floor(hph) - (int)Math.Floor(hny);
+                            var hny = (double) newHeight/2;
+                            var hph = (double) photoRect.Height/2;
+                            var newY = photoRect.Y + (int) Math.Floor(hph) - (int) Math.Floor(hny);
                             var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
                             g.DrawImage(photo, newPhotoRect);
                         }
                         else //if image is taller
                         {
-                            var shrinkratio = (double)photo.Height / photoRect.Height;
-                            var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
+                            var shrinkratio = (double) photo.Height/photoRect.Height;
+                            var newWidth = (int) Math.Floor(photo.Width/shrinkratio);
                             var newHeight = photoRect.Height;
-                            var hnx = (double)newWidth / 2;
-                            var hpw = (double)photoRect.Width / 2;
-                            var newX = photoRect.X + (int)Math.Floor(hpw) - (int)Math.Floor(hnx);
+                            var hnx = (double) newWidth/2;
+                            var hpw = (double) photoRect.Width/2;
+                            var newX = photoRect.X + (int) Math.Floor(hpw) - (int) Math.Floor(hnx);
                             var newY = photoRect.Y;
                             var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
                             g.DrawImage(photo, newPhotoRect);
@@ -2374,7 +2406,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 textBoxRect.Y += size.Height;
                 g.DrawString(producer.GetStringValue(rowObject), font, TextBrush, textBoxRect, fmt);
                 textBoxRect.Y += size.Height;
-                string[] parts = { "", "", "" };
+                string[] parts = {"", "", ""};
                 if (!ulStatus.GetStringValue(rowObject).Equals(""))
                 {
                     parts[0] = "Userlist: ";
@@ -2387,7 +2419,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 }
                 if (Convert.ToInt32(vote.GetStringValue(rowObject)) > 0)
                     parts[2] = $" (Vote: {vote.GetStringValue(rowObject)})";
-                var complete = String.Join(" ", parts);
+                var complete = string.Join(" ", parts);
                 g.DrawString(complete, font, TextBrush, textBoxRect, fmt);
             }
 
@@ -2410,12 +2442,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
             public static Image ScaleImage(Image image, int maxWidth, int maxHeight)
             {
-                var ratioX = (double)maxWidth / image.Width;
-                var ratioY = (double)maxHeight / image.Height;
+                var ratioX = (double) maxWidth/image.Width;
+                var ratioY = (double) maxHeight/image.Height;
                 var ratio = Math.Min(ratioX, ratioY);
 
-                var newWidth = (int)(image.Width * ratio);
-                var newHeight = (int)(image.Height * ratio);
+                var newWidth = (int) (image.Width*ratio);
+                var newHeight = (int) (image.Height*ratio);
 
                 var newImage = new Bitmap(newWidth, newHeight);
 
@@ -2426,12 +2458,27 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
         }
 
-        private enum ToggleFilter { URT, Unreleased, Blacklisted }
+        private enum ToggleFilter
+        {
+            URT,
+            Unreleased,
+            Blacklisted
+        }
+
+        internal enum Command
+        {
+            New,
+            Update,
+            Delete
+        }
+
+        internal enum ChangeType
+        {
+            UL,
+            WL,
+            Vote
+        }
 
         #endregion
-
-        internal enum Command { New, Update, Delete }
-
-        internal enum ChangeType { UL, WL, Vote }
     }
 }

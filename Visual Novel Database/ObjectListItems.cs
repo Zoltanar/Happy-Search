@@ -5,17 +5,24 @@ namespace Visual_Novel_Database
 {
     public class ListedVN
     {
-        internal static string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
-        internal static string[] PriorityWL = { "High", "Medium", "Low", "Blacklist" };
-        internal static string[] LengthTime = { "", "Very short (< 2 hours)", "Short (2 - 10 hours)", "Medium (10 - 30 hours)", "Long (30 - 50 hours)", "Very long(> 50 hours)" };
+        internal static string[] StatusUL = {"Unknown", "Playing", "Finished", "Stalled", "Dropped"};
+        internal static string[] PriorityWL = {"High", "Medium", "Low", "Blacklist"};
 
-        public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus, int uladded, string ulnote,
-            int wlstatus, int wladded, int vote, int voteadded, string tags, int vnid, DateTime updatedDate, string imageURL, bool imageNSFW, string description)
+        internal static string[] LengthTime =
+        {
+            "", "Very short (< 2 hours)", "Short (2 - 10 hours)",
+            "Medium (10 - 30 hours)", "Long (30 - 50 hours)", "Very long(> 50 hours)"
+        };
+
+        public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus,
+            int uladded, string ulnote,
+            int wlstatus, int wladded, int vote, int voteadded, string tags, int vnid, DateTime updatedDate,
+            string imageURL, bool imageNSFW, string description)
         {
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
             WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
-            if (vote != -1) Vote = (double)vote / 10;
+            if (vote != -1) Vote = (double) vote/10;
             Title = title;
             KanjiTitle = kanjiTitle;
             RelDate = reldate;
@@ -34,17 +41,19 @@ namespace Visual_Novel_Database
         }
 
         //For UserRelated Only
-        public ListedVN(int ulstatus, int uladded, string ulnote, int wlstatus, int wladded, int vote, int voteadded, int vnid)
+        public ListedVN(int ulstatus, int uladded, string ulnote, int wlstatus, int wladded, int vote, int voteadded,
+            int vnid)
         {
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
             WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
-            if (vote != -1) Vote = (double)vote / 10;
+            if (vote != -1) Vote = (double) vote/10;
             ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
             ULNote = ulnote;
             WLAdded = DateTimeOffset.FromUnixTimeSeconds(wladded).UtcDateTime;
             VoteAdded = DateTimeOffset.FromUnixTimeSeconds(voteadded).UtcDateTime;
             VNID = vnid;
         }
+
         public string Title { get; set; }
         public string KanjiTitle { get; set; }
         public string RelDate { get; set; }
@@ -57,14 +66,19 @@ namespace Visual_Novel_Database
         public DateTime WLAdded { get; set; }
         public double Vote { get; set; }
         public DateTime VoteAdded { get; set; }
+
         [OLVIgnore]
         public string Tags { get; set; }
+
         public int VNID { get; set; }
         public int UpdatedDate { get; set; }
+
         [OLVIgnore]
         public string ImageURL { get; set; }
+
         [OLVIgnore]
         public bool ImageNSFW { get; set; }
+
         [OLVIgnore]
         public string Description { get; set; }
 
@@ -82,14 +96,16 @@ namespace Visual_Novel_Database
             Updated = DaysSince(updated);
             ID = id;
         }
-        public ListedProducer(string name, int numberOfTitles, string loaded, DateTime updated, int id, double userAverageVote, int userDropRate)
+
+        public ListedProducer(string name, int numberOfTitles, string loaded, DateTime updated, int id,
+            double userAverageVote, int userDropRate)
         {
             Name = name;
             NumberOfTitles = numberOfTitles;
             Loaded = loaded;
             Updated = DaysSince(updated);
             ID = id;
-            UserAverageVote = Math.Round(userAverageVote,2);
+            UserAverageVote = Math.Round(userAverageVote, 2);
             UserDropRate = userDropRate;
         }
 

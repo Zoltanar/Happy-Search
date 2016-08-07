@@ -14,9 +14,9 @@ save vn rating info
 show vn relations and screenshots/anime etc
 exclude tag filters
 save toggle filters
-setting for item in either vnlist or wishlist but not both
 change toggle checkboxes to comboboxes
 turn tag filters into OLV filter instead 
+button to upgrade old vns to newest version eg before imagensfw was added
 
 Incomplete
 ---------------
@@ -32,7 +32,6 @@ Quick Filters
 	URT toggle
 	User-created//dropdown list
 Update Button on Single VN and display date of last update
-tile view fit image better, if pic too wide, crop sides
 "no image" image
 save image when getting vn for first time
 download/decompress tags.json.gz if it doesnt exist or is corrupt
@@ -40,20 +39,15 @@ close all open visual novel forms
 "this image is NSFW" image
 toggle for nsfw images
 keep up to date tagdump (2 days)
-sort out splash screen loading messages
-better toggle filters, combine two filters somehow (like released AND URT)
 search vndb by tag
 option to delete custom filter
 change user related title status in right click menu
 save urt update date
 ---auto update urt every 2 days
 save user credentials
-api statuslabel method
 limit all api queries to user-specified year limit (e.g. only get titles under 10 years old)
-instead of bool apisuccess change to response type to return proper error response
 distinguish login error server or wrong password
 refresh list on vn status change
-move apiloggedin/apiconnected/apistatus to connection fields
 favorite producer average vote and average drop rate
 do not allow certain methods if api throttled
 dont allow things if userid is nonexistant

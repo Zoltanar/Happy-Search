@@ -13,6 +13,7 @@ namespace Visual_Novel_Database
     public partial class LoginForm : Form
     {
         private readonly FormMain _parentForm;
+
         public LoginForm(FormMain parentForm)
         {
             InitializeComponent();
@@ -37,6 +38,7 @@ you will also need to enter your Username and Password";
             }
             _parentForm.UserID = userID;
             Settings.Default.URTUpdate = DateTime.MinValue;
+            rememberBox.Checked = false;
             if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.Yes)
             {
                 if (_parentForm.Conn.Status != VndbConnection.APIStatus.Closed)
@@ -49,7 +51,9 @@ you will also need to enter your Username and Password";
             else
             {
                 _parentForm.loginReply.ForeColor = Color.LightGreen;
-                _parentForm.loginReply.Text = _parentForm.UserID > 0 ? $"Connected with ID {_parentForm.UserID}." : "Connected without ID.";
+                _parentForm.loginReply.Text = _parentForm.UserID > 0
+                    ? $"Connected with ID {_parentForm.UserID}."
+                    : "Connected without ID.";
             }
             DialogResult = DialogResult.OK;
         }
@@ -62,9 +66,9 @@ you will also need to enter your Username and Password";
                 replyLabel.Text = Resources.userid_only_numbers;
                 return;
             }
-            string username = UsernameBox.Text;
+            var username = UsernameBox.Text;
             char[] password = PasswordBox.Text.ToCharArray();
-            Regex m = new Regex(@"[a-z0-9]+");
+            var m = new Regex(@"[a-z0-9]+");
 
             if (!m.Match(username).Success || !password.Any())
             {
@@ -74,12 +78,12 @@ you will also need to enter your Username and Password";
                 return;
             }
             Debug.Print("Login Credentials Validated");
-            if(rememberBox.Checked) FormMain.SaveCredentials(username, password);
+            if (rememberBox.Checked) FormMain.SaveCredentials(username, password);
             //
             _parentForm.UserID = userID;
-                if (_parentForm.Conn.Status != VndbConnection.APIStatus.Closed)
-                {
-                    _parentForm.Conn.Close();
+            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Closed)
+            {
+                _parentForm.Conn.Close();
             }
             _parentForm.Conn.Open();
             _parentForm.APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password));
@@ -96,7 +100,6 @@ you will also need to enter your Username and Password";
         {
             var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{FormMain.ClientName}");
             if (key != null) Registry.CurrentUser.DeleteSubKey($"SOFTWARE\\{FormMain.ClientName}");
-
         }
     }
 }

@@ -22,7 +22,6 @@ namespace Visual_Novel_Database
         internal LogInStatus LogIn = LogInStatus.No;
         internal APIStatus Status = APIStatus.Closed;
 
-        internal enum LogInStatus { No, Yes, YesWithCredentials }
         public void Open()
         {
             var complete = false;
@@ -44,7 +43,7 @@ namespace Visual_Novel_Database
                 }
             }
         }
-        
+
         public void Login(string clientName, string clientVersion, string username = null, char[] password = null)
         {
             string loginBuffer;
@@ -53,18 +52,18 @@ namespace Visual_Novel_Database
             {
                 loginBuffer =
                     $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":{clientVersion},\"username\":\"{username}\",\"password\":\"{new string(password)}\"}}";
-                IssueCommandReadResponse(loginBuffer);
+                Query(loginBuffer);
                 if (LastResponse.Type == ResponseType.Ok) LogIn = LogInStatus.YesWithCredentials;
             }
             else
             {
                 loginBuffer = $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":{clientVersion}}}";
-                IssueCommandReadResponse(loginBuffer);
+                Query(loginBuffer);
                 if (LastResponse.Type == ResponseType.Ok) LogIn = LogInStatus.Yes;
             }
         }
-        
-        private void IssueCommandReadResponse(string command)
+
+        internal void Query(string command)
         {
             Status = APIStatus.Busy;
             byte[] encoded = Encoding.UTF8.GetBytes(command);
@@ -81,7 +80,7 @@ namespace Visual_Novel_Database
                 totalRead += currentRead;
                 if (IsCompleteMessage(responseBuffer, totalRead)) break;
                 if (totalRead != responseBuffer.Length) continue;
-                var biggerBadderBuffer = new byte[responseBuffer.Length * 2];
+                var biggerBadderBuffer = new byte[responseBuffer.Length*2];
                 Buffer.BlockCopy(responseBuffer, 0, biggerBadderBuffer, 0, responseBuffer.Length);
                 responseBuffer = biggerBadderBuffer;
             }
@@ -105,12 +104,12 @@ namespace Visual_Novel_Database
                 totalRead += currentRead;
                 if (IsCompleteMessage(responseBuffer, totalRead)) break;
                 if (totalRead != responseBuffer.Length) continue;
-                var biggerBadderBuffer = new byte[responseBuffer.Length * 2];
+                var biggerBadderBuffer = new byte[responseBuffer.Length*2];
                 Buffer.BlockCopy(responseBuffer, 0, biggerBadderBuffer, 0, responseBuffer.Length);
                 responseBuffer = biggerBadderBuffer;
             }
             LastResponse = Parse(responseBuffer, totalRead);
-            switch(LastResponse.Type)
+            switch (LastResponse.Type)
             {
                 case ResponseType.Ok:
                 case ResponseType.Results:
@@ -176,6 +175,13 @@ namespace Visual_Novel_Database
                 default:
                     return new Response(ResponseType.Unknown, payload);
             }
+        }
+
+        internal enum LogInStatus
+        {
+            No,
+            Yes,
+            YesWithCredentials
         }
 
         internal enum APIStatus

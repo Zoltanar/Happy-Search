@@ -11,8 +11,8 @@ namespace Visual_Novel_Database
 {
     public partial class ProducerSearchForm : Form
     {
-        private readonly List<ListedProducer> _producerList;
         private readonly FormMain _parentForm;
+        private readonly List<ListedProducer> _producerList;
 
         public ProducerSearchForm(FormMain parentForm)
         {
@@ -22,14 +22,13 @@ namespace Visual_Novel_Database
             _parentForm.DBConn.Open();
             _producerList = _parentForm.DBConn.GetFavoriteProducersForUser(_parentForm.UserID);
             _parentForm.DBConn.Close();
-
         }
 
         private async void SearchProducersClick(object sender, EventArgs e)
         {
             await SearchProducers();
         }
-        
+
         internal async Task SearchProducers()
         {
             if (producerSearchBox.Text == "") //check if box is empty
@@ -58,9 +57,11 @@ namespace Visual_Novel_Database
                 pageNo++;
                 string prodSearchMoreQuery =
                     $"get producer basic (search~\"{producerName}\") {{\"results\":25, \"page\":{pageNo}}}";
-                var moreResult = await _parentForm.TryQuery(prodSearchMoreQuery, Resources.ps_query_error, prodSearchReply);
+                var moreResult =
+                    await _parentForm.TryQuery(prodSearchMoreQuery, Resources.ps_query_error, prodSearchReply);
                 if (!moreResult) return;
-                var prodMoreRoot = JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+                var prodMoreRoot =
+                    JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
                 List<ProducerItem> prodMoreItems = prodMoreRoot.Items;
                 foreach (var producer in prodMoreItems)
                 {
@@ -73,10 +74,10 @@ namespace Visual_Novel_Database
             olProdSearch.Sort(olProdSearch.GetColumn(0), SortOrder.Ascending);
             prodSearchReply.Text = $"{searchedProducers.Count} producers found.";
         }
-        
+
         private void AddProducerByDoubleClick(object sender, MouseEventArgs e)
         {
-            AddProducersClick(null,null);
+            AddProducersClick(null, null);
         }
 
         private async void SearchProducersEnterKey(object sender, KeyEventArgs e) //press enter on producer search
@@ -109,13 +110,16 @@ namespace Visual_Novel_Database
                 double userDropRate = -1;
                 if (producerVNs.Any())
                 {
-                    int finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                    int droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                    var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
+                    var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
-                    userDropRate = finishedCount + droppedCount != 0 ? (double)droppedCount / (droppedCount + finishedCount) : -1;
+                    userDropRate = finishedCount + droppedCount != 0
+                        ? (double) droppedCount/(droppedCount + finishedCount)
+                        : -1;
                 }
-                addProducerList.Add(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate*100)));
+                addProducerList.Add(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID,
+                    userAverageVote, (int) Math.Round(userDropRate*100)));
             }
             _parentForm.DBConn.Open();
             _parentForm.DBConn.InsertFavoriteProducers(addProducerList, _parentForm.UserID);
@@ -124,5 +128,4 @@ namespace Visual_Novel_Database
             prodSearchReply.Text = $"{addProducerList.Count} added.";
         }
     }
-
 }

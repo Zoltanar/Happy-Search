@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
+
 // ReSharper disable InconsistentNaming
 
 namespace Visual_Novel_Database
@@ -32,27 +33,27 @@ namespace Visual_Novel_Database
         public Links Links { get; set; }
         public string Image { get; set; }
         public bool Image_Nsfw { get; set; }
-        public List<object> Anime { get; set; }     //flag: anime
+        public List<object> Anime { get; set; } //flag: anime
         public List<object> Relations { get; set; } //flag: relations
-        public List<TagItem> Tags { get; set; }     //flag: tags
+        public List<TagItem> Tags { get; set; } //flag: tags
         //flag: stats
         public double Popularity { get; set; }
         public double Rating { get; set; }
         public int Votecount { get; set; }
-        public List<object> Screens { get; set; }   //flag: screens
-
-
-        public override string ToString() => $"ID={ID}\t\tTitle={Title}";
+        public List<object> Screens { get; set; } //flag: screens
 
         public bool Equals(VNItem other)
         {
             return ID == other.ID;
         }
 
+
+        public override string ToString() => $"ID={ID}\t\tTitle={Title}";
+
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
-            int hashID = ID == -1 ? 0 : ID.GetHashCode();
+            var hashID = ID == -1 ? 0 : ID.GetHashCode();
             return hashID;
         }
     }
@@ -68,16 +69,30 @@ namespace Visual_Novel_Database
     //object contained in VNItem.Tags
     public class TagItem : List<double>
     {
-        public int ID { get { return (int) this[0]; } set { this[0] = value; } }
-        public double Score { get { return this[1]; } set { this[1] = value; } }
-        public int Spoiler { get { return (int)this[2]; } set { this[2] = value; } }
+        public int ID
+        {
+            get { return (int) this[0]; }
+            set { this[0] = value; }
+        }
+
+        public double Score
+        {
+            get { return this[1]; }
+            set { this[1] = value; }
+        }
+
+        public int Spoiler
+        {
+            get { return (int) this[2]; }
+            set { this[2] = value; }
+        }
 
         public override string ToString()
         {
             return $"[{ID},{Score},{Spoiler}]";
         }
     }
-    
+
     //object received by 'get producers' command
     public class ProducersRoot
     {
@@ -102,7 +117,7 @@ namespace Visual_Novel_Database
             return $"ID={ID}\t \tName={Name}";
         }
     }
-    
+
     //object received by 'get release' command
     public class ReleasesRoot
     {
@@ -110,7 +125,7 @@ namespace Visual_Novel_Database
         public List<ReleaseItem> Items { get; set; }
         public bool More { get; set; }
     }
-    
+
     //object contained in ReleasesRoot
     public class ReleaseItem
     {
@@ -125,12 +140,10 @@ namespace Visual_Novel_Database
         public string Original { get; set; }
         public string[] Languages { get; set; }
         public bool Doujin { get; set; }
-
     }
-    
+
     public class UserListItem
     {
-
         public UserListItem(int vn, int status, int added, string notes)
         {
             VN = vn;
@@ -154,7 +167,6 @@ namespace Visual_Novel_Database
 
     public class WishListItem
     {
-
         public WishListItem(int vn, int priority, int added)
         {
             VN = vn;
@@ -194,7 +206,7 @@ namespace Visual_Novel_Database
         public List<VoteListItem> Items { get; set; }
         public bool More { get; set; }
     }
-    
+
     //object received by 'dbstats' command
     [Serializable, XmlRoot("DbRoot")]
     public class DbRoot
@@ -210,7 +222,7 @@ namespace Visual_Novel_Database
         public int VN { get; set; }
         public int Users { get; set; }
     }
-    
+
     public class CharacterItem
     {
         public int Id { get; set; }
