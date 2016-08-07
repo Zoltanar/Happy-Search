@@ -31,7 +31,7 @@ namespace Happy_Search
         private const string TagTypeUrt = "mctULLabel";
         private const string FilterLabel = "filterLabel";
         internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "0.90";
+        internal const string ClientVersion = "1.00";
         internal const string APIVersion = "2.25";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
@@ -63,6 +63,7 @@ namespace Happy_Search
         private void VNSearchButt(object sender, EventArgs e) //Fetch information from 'VNDB.org'
         {
             //TODO Whole method
+            WriteError(replyText, "Not yet implemented", true);
         }
 
         private async void GetYearTitles(object sender, EventArgs e)
@@ -225,7 +226,8 @@ https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SplashScreen.SetStatus("Loading Tagdump...");
             {
-                Debug.Print($"Tagdump Update = {Settings.Default.TagdumpUpdate}, days since = {DaysSince(Settings.Default.TagdumpUpdate)}");
+                Debug.Print(
+                    $"Tagdump Update = {Settings.Default.TagdumpUpdate}, days since = {DaysSince(Settings.Default.TagdumpUpdate)}");
                 if (DaysSince(Settings.Default.TagdumpUpdate) > 2 || DaysSince(Settings.Default.TagdumpUpdate) == -1)
                     GetNewTagdump();
                 else LoadTagdump();
@@ -289,7 +291,7 @@ https://github.com/FredTheBarber/VndbClient";
                 Console.WriteLine($"URTUpdate= {Settings.Default.URTUpdate}");
                 if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
                 {
-                    UpdateURT();
+                    Task.Run(UpdateURT);
                     Settings.Default.URTUpdate = DateTime.UtcNow;
                     Settings.Default.Save();
                 }
@@ -431,7 +433,7 @@ https://github.com/FredTheBarber/VndbClient";
         #region Get User-Related Titles
 
         //Get user's user/wish/votelists from VNDB
-        private void UpdateURTButtonClick(object sender, EventArgs e)
+        private async void UpdateURTButtonClick(object sender, EventArgs e)
         {
             if (UserID < 1)
             {
@@ -451,11 +453,11 @@ You currently have {_useridList
 be displayed by clicking the User Related Titles (URT) filter below.",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            UpdateURT();
+            await UpdateURT();
             WriteText(userListReply, Resources.gurt_success);
         }
 
-        private async void UpdateURT()
+        private async Task UpdateURT()
         {
             if (UserID < 1) return;
             DBConn.Open();
@@ -494,6 +496,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             DBConn.Close();
             tileOLV.Sort(tileColumnDate, SortOrder.Descending);
             UpdateUserStats();
+            var ulCount = UserList.Count;
+            if (ulCount > 0) WriteText(userListReply, $"Found {ulCount} titles.");
+            else WriteError(userListReply, Resources.no_results);
         }
 
         private async Task GetUserList()
@@ -573,11 +578,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             var result = await TryQuery(voteListQuery, Resources.gvl_query_error, userListReply);
             if (!result) return;
             var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
-            if (vlRoot.Num == 0) //if no results found
-            {
-                WriteError(userListReply, Resources.no_results);
-                return;
-            }
+            if (vlRoot.Num == 0) return;
             List<VoteListItem> vlList = vlRoot.Items; //make list of vn in list
             var pageNo = 1;
             var moreResults = vlRoot.More;
@@ -659,11 +660,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             LoadFavoriteProducerList();
         }
 
-        private async Task GetProducerTitles(ListedProducer producer, bool updateAll = false)
+        private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool updateAll = false)
         {
             Debug.Print($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{\"results\":25}}";
-            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, prodReply);
+            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
@@ -676,7 +677,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 pageNo++;
                 string prodReleaseMoreQuery =
                     $"get release vn (producer={producer.ID}) {{\"results\":25, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, prodReply);
+                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, replyLabel);
                 if (!moreResult) return;
                 var releaseMoreRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
                 List<ReleaseItem> releaseMoreItems = releaseMoreRoot.Items;
@@ -744,7 +745,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             if (askBox != DialogResult.Yes) return;
             _added = 0;
             _skipped = 0;
-            foreach (ListedProducer producer in olFavoriteProducers.Objects) await GetProducerTitles(producer, true);
+            foreach (ListedProducer producer in olFavoriteProducers.Objects)
+                await GetProducerTitles(producer, prodReply, true);
             SetOLV();
             WriteText(prodReply, Resources.update_fp_titles_success + $" ({_added} new titles)");
         }
@@ -773,7 +775,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Loaded.Equals("No")).ToList();
             foreach (var producer in producers)
             {
-                await GetProducerTitles(producer);
+                await GetProducerTitles(producer, prodReply);
             }
             SetOLV();
             WriteText(prodReply, $"Loaded {producers.Count} producers.");
@@ -792,7 +794,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             List<ListedProducer> producers =
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2).ToList();
             Debug.Print($"{producers.Count} to be updated");
-            foreach (var producer in producers) await GetProducerTitles(producer);
+            foreach (var producer in producers) await GetProducerTitles(producer, prodReply);
             SetOLV();
             WriteText(prodReply, Resources.get_new_fp_titles_success);
         }
@@ -809,7 +811,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #region API Methods
 
-        internal async Task<bool> TryQuery(string query, string errorMessage, Label label, bool additionalMessage = false, bool refreshList = false)
+        internal async Task<bool> TryQuery(string query, string errorMessage, Label label,
+            bool additionalMessage = false, bool refreshList = false)
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
@@ -1124,10 +1127,13 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             AddFilterTag(tagName);
         }
 
-
         private void SaveCustomFilter(object sender, EventArgs e)
         {
-            if (filterNameBox.Text.Length == 0) return;
+            if (filterNameBox.Text.Length == 0)
+            {
+                WriteText(filterReply, "Enter name of filter.");
+                return;
+            }
             //
             customFilters.Items.Add(filterNameBox.Text);
             _customFilters.Add(new ComplexFilter(filterNameBox.Text, _activeFilter));
@@ -1147,7 +1153,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void AddFilterTag(string tagName)
         {
-            var writtenTag = PlainTags.Find(item => item.Name == tagName);
+            var writtenTag =
+                PlainTags.Find(item => item.Name.Equals(tagName, StringComparison.InvariantCultureIgnoreCase));
             if (writtenTag == null)
             {
                 WriteError(filterReply, $"Tag {tagName} not found");
@@ -1162,7 +1169,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 Debug.Print($"{writtenTag.Name} Tag Displaced {filter.Name} Tag");
                 break;
             }
-            filterReply.Text = $"Tag {tagName} found, VNs={writtenTag.VNs}";
+            filterReply.Text = $"Tag {writtenTag.Name} found, VNs={writtenTag.VNs}";
             //save tag as tag and children
             _filterIDList.Clear();
             var parents = new List<int>();
@@ -1258,6 +1265,52 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 if (_activeFilter.Any()) tileOLV.SetObjects(_vnList.Where(VNMatchesFilter));
                 else Filter_All(null, null);
             }
+        }
+
+        private async void UpdateResults(object sender, EventArgs e)
+        {
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                WriteWarning(filterReply, "Connection busy with previous request...", true);
+                return;
+            }
+            var message = Resources.update_custom_filter;
+            var askBox = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (askBox != DialogResult.Yes) return;
+            await UpdateFilterResults(filterReply);
+        }
+
+        private async Task UpdateFilterResults(Label replyLabel)
+        {
+            ReloadLists();
+            _added = 0;
+            _skipped = 0;
+            IEnumerable<string> betterTags = _activeFilter.Select(x => x.ID).Select(s => $"tags = {s}");
+            var tags = string.Join(" and ", betterTags);
+            string tagQuery = $"get vn basic ({tags}) {{\"results\":25}}";
+            var result = await TryQuery(tagQuery, "UCF Query Error", replyLabel, true, true);
+            if (!result) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num == 0) return;
+            List<VNItem> vnItems = vnRoot.Items;
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyLabel, true);
+            var pageNo = 1;
+            var moreResults = vnRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string moreTagQuery = $"get vn basic ({tags}) {{\"results\":25, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyLabel, true, true);
+                if (!moreResult) return;
+                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                if (vnRoot.Num == 0) break;
+                List<VNItem> moreVNItems = moreVNRoot.Items;
+                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyLabel, true);
+                moreResults = moreVNRoot.More;
+            }
+            ReloadLists();
+            tileOLV.SetObjects(_vnList.Where(VNMatchesFilter));
+            WriteText(replyLabel, $"Update complete, added {_added} and skipped {_skipped} titles.");
         }
 
         #endregion
@@ -2084,7 +2137,6 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private async void UpdateCustomFilter(object sender, EventArgs e)
         {
-            //Resources.update_custom_filter
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 WriteWarning(replyText, "Connection busy with previous request...", true);
@@ -2096,37 +2148,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 : Resources.update_custom_filter;
             var askBox = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            ReloadLists();
-            _added = 0;
-            _skipped = 0;
-            IEnumerable<string> betterTags = _activeFilter.Select(x => x.ID).Select(s => $"tags = {s}");
-            var tags = string.Join(" and ", betterTags);
-            string tagQuery = $"get vn basic ({tags}) {{\"results\":25}}";
-            var result = await TryQuery(tagQuery, "UCF Query Error", replyText, true, true);
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num == 0) return;
-            List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyText, true);
-            var pageNo = 1;
-            var moreResults = vnRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                string moreTagQuery = $"get vn basic ({tags}) {{\"results\":25, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyText, true, true);
-                if (!moreResult) return;
-                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num == 0) break;
-                List<VNItem> moreVNItems = moreVNRoot.Items;
-                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyText, true);
-                moreResults = moreVNRoot.More;
-            }
-            replyText.Text = $"Update complete, added {_added} and skipped {_skipped} titles.";
+            await UpdateFilterResults(replyText);
             _customFilters[customFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
             SaveCustomFiltersXML();
-            ReloadLists();
-            tileOLV.SetObjects(_vnList.Where(VNMatchesFilter));
         }
 
         private void DeleteCustomFilter(object sender, EventArgs e)
@@ -2198,6 +2222,23 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     break;
             }
             ApplyToggleFilters(ToggleFilter.URT, function);
+        }
+
+        private async void UpdateProducerTitles(object sender, EventArgs e)
+        {
+            var producer = ProducerFilterBox.Text;
+            if (producer.Equals("")) return;
+            var producerItem = _producerList.Find(x => x.Name.Equals(producer));
+            if (producerItem == null)
+            {
+                WriteError(replyText, "NYI (Producer not in local db)", true);
+                return;
+            }
+            _added = 0;
+            _skipped = 0;
+            await GetProducerTitles(producerItem, replyText, true);
+            WriteText(replyText, $"Got all VNs for {producerItem.Name} ({_added + _skipped} titles)");
+            RefreshList();
         }
 
         private void ApplyToggleFilters(ToggleFilter toggleFilter, Func<ListedVN, bool> function)

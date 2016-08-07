@@ -5,7 +5,6 @@ split database into 2, one for general info (vnlist, producerlist) and another f
 save general database in the internet and : send general info changes to database in the internet, get database changes from the internet
 save settings to %localappdata%
 Restart Most common tags
-verify existence of database
 handle abrupt exit, terminate api connection
 look at addfiltertag
 deselect custom filter on other filter
@@ -17,6 +16,8 @@ save toggle filters
 change toggle checkboxes to comboboxes
 turn tag filters into OLV filter instead 
 button to upgrade old vns to newest version eg before imagensfw was added
+split FormMain into partial class files
+
 
 Incomplete
 ---------------
@@ -53,7 +54,9 @@ do not allow certain methods if api throttled
 dont allow things if userid is nonexistant
 setting to hide blacklisted titles
 refresh list after set vnlist/wishlist/vote
+verify existence of database
 
 Currently Not Possible
 -------------------------
 add search by artist or search by voice actor
+show not public list error if needed

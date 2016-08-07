@@ -107,6 +107,7 @@ namespace Happy_Search
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.aboutTextBox = new System.Windows.Forms.RichTextBox();
             this.vnTab = new System.Windows.Forms.TabPage();
+            this.updateProducerTitlesButton = new System.Windows.Forms.Button();
             this.UnreleasedToggleBox = new System.Windows.Forms.CheckBox();
             this.BlacklistToggleBox = new System.Windows.Forms.CheckBox();
             this.statusLabel = new System.Windows.Forms.Label();
@@ -162,6 +163,7 @@ namespace Happy_Search
             this.loginReply = new System.Windows.Forms.Label();
             this.resultLabel = new System.Windows.Forms.Label();
             this.tagFilteringBox = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.filterReply = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
@@ -1018,6 +1020,7 @@ namespace Happy_Search
             this.vnTab.BackColor = System.Drawing.Color.Gray;
             this.vnTab.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.vnTab.Controls.Add(this.updateProducerTitlesButton);
             this.vnTab.Controls.Add(this.URTToggleBox);
             this.vnTab.Controls.Add(this.UnreleasedToggleBox);
             this.vnTab.Controls.Add(this.BlacklistToggleBox);
@@ -1051,6 +1054,20 @@ namespace Happy_Search
             this.vnTab.Size = new System.Drawing.Size(1410, 757);
             this.vnTab.TabIndex = 1;
             this.vnTab.Text = "Visual Novel Info";
+            // 
+            // updateProducerTitlesButton
+            // 
+            this.updateProducerTitlesButton.BackColor = System.Drawing.Color.LightCoral;
+            this.updateProducerTitlesButton.FlatAppearance.BorderSize = 0;
+            this.updateProducerTitlesButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.updateProducerTitlesButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.updateProducerTitlesButton.Location = new System.Drawing.Point(897, 336);
+            this.updateProducerTitlesButton.Name = "updateProducerTitlesButton";
+            this.updateProducerTitlesButton.Size = new System.Drawing.Size(53, 23);
+            this.updateProducerTitlesButton.TabIndex = 84;
+            this.updateProducerTitlesButton.Text = "Update";
+            this.updateProducerTitlesButton.UseVisualStyleBackColor = false;
+            this.updateProducerTitlesButton.Click += new System.EventHandler(this.UpdateProducerTitles);
             // 
             // UnreleasedToggleBox
             // 
@@ -1691,6 +1708,7 @@ namespace Happy_Search
             // tagFilteringBox
             // 
             this.tagFilteringBox.BackColor = System.Drawing.Color.Transparent;
+            this.tagFilteringBox.Controls.Add(this.button1);
             this.tagFilteringBox.Controls.Add(this.filterReply);
             this.tagFilteringBox.Controls.Add(this.filterNameBox);
             this.tagFilteringBox.Controls.Add(this.label6);
@@ -1720,9 +1738,20 @@ namespace Happy_Search
             this.tagFilteringBox.TabStop = false;
             this.tagFilteringBox.Text = "Tag Filtering";
             // 
+            // button1
+            // 
+            this.button1.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button1.Location = new System.Drawing.Point(461, 102);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(100, 23);
+            this.button1.TabIndex = 50;
+            this.button1.Text = "Update Results";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.UpdateResults);
+            // 
             // filterReply
             // 
-            this.filterReply.Location = new System.Drawing.Point(461, 99);
+            this.filterReply.Location = new System.Drawing.Point(461, 137);
             this.filterReply.Name = "filterReply";
             this.filterReply.Size = new System.Drawing.Size(100, 155);
             this.filterReply.TabIndex = 49;
@@ -2290,6 +2319,8 @@ namespace Happy_Search
         private Label logReplyLabel;
         private Button clearLogButton;
         public RichTextBox serverQ;
+        private Button button1;
+        private Button updateProducerTitlesButton;
     }
 }
 

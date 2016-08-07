@@ -32,9 +32,9 @@ namespace Happy_Search
 
         #region Set Methods
 
-        public void UpdateVNStatus(int userID, int vnid, FormMain.ChangeType type, int statusInt, FormMain.Command command)
+        public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command)
         {
-            if (command == FormMain.Command.Delete)
+            if (command == Command.Delete)
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
                 Debug.Print(deleteString);
@@ -48,40 +48,40 @@ namespace Happy_Search
                 : DateTimeToUnixTimestamp(DateTime.UtcNow).ToString(CultureInfo.InvariantCulture);
             switch (type)
             {
-                case FormMain.ChangeType.UL:
+                case ChangeType.UL:
                     switch (command)
                     {
-                        case FormMain.Command.New:
+                        case Command.New:
                             commandString =
                                 $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
-                        case FormMain.Command.Update:
+                        case Command.Update:
                             commandString =
                                 $"UPDATE userlist SET ULStatus = {statusInt}, ULAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
-                case FormMain.ChangeType.WL:
+                case ChangeType.WL:
                     switch (command)
                     {
-                        case FormMain.Command.New:
+                        case Command.New:
                             commandString =
                                 $"INSERT INTO userlist (VNID, UserID, WLStatus, WLAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
-                        case FormMain.Command.Update:
+                        case Command.Update:
                             commandString =
                                 $"UPDATE userlist SET WLStatus = {statusInt}, WLAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
-                case FormMain.ChangeType.Vote:
+                case ChangeType.Vote:
                     switch (command)
                     {
-                        case FormMain.Command.New:
+                        case Command.New:
                             commandString =
                                 $"INSERT INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt*10}, {statusDate});";
                             break;
-                        case FormMain.Command.Update:
+                        case Command.Update:
                             commandString =
                                 $"UPDATE userlist SET Vote = {statusInt*10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
