@@ -81,8 +81,7 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///Username can only consist of alphanumeric characters..
+        ///   Looks up a localized string similar to Username can only consist of alphanumeric characters..
         /// </summary>
         internal static string _username_only_alphanumeric {
             get {
@@ -290,15 +289,6 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SVNR Query Error.
-        /// </summary>
-        internal static string FormMain_UpdateSingleVN_SVNR_Query_Error {
-            get {
-                return ResourceManager.GetString("FormMain_UpdateSingleVN_SVNR_Query_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Are you sure you wish to do this?
         ///This may take a while if you have a lot of favorite producers....
         /// </summary>
@@ -314,6 +304,15 @@ namespace Happy_Search.Properties {
         internal static string get_new_fp_titles_success {
             get {
                 return ResourceManager.GetString("get_new_fp_titles_success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetMultipleVN Query Error.
+        /// </summary>
+        internal static string gmvn_query_error {
+            get {
+                return ResourceManager.GetString("gmvn_query_error", resourceCulture);
             }
         }
         
@@ -546,15 +545,6 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SVNR Query Error.
-        /// </summary>
-        internal static string svnr_query_error {
-            get {
-                return ResourceManager.GetString("svnr_query_error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Userlist received..
         /// </summary>
         internal static string ul_received {
@@ -624,6 +614,15 @@ namespace Happy_Search.Properties {
         internal static string userid_only_numbers {
             get {
                 return ResourceManager.GetString("userid_only_numbers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UpdateSingleVN Query Error.
+        /// </summary>
+        internal static string usvn_query_error {
+            get {
+                return ResourceManager.GetString("usvn_query_error", resourceCulture);
             }
         }
         

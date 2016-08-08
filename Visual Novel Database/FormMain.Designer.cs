@@ -50,7 +50,7 @@ namespace Happy_Search
             this.langImages = new System.Windows.Forms.ImageList(this.components);
             this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
             this.toolTip3 = new System.Windows.Forms.ToolTip(this.components);
-            this.searchText = new System.Windows.Forms.TextBox();
+            this.searchBox = new System.Windows.Forms.TextBox();
             this.tagSearchBox = new System.Windows.Forms.TextBox();
             this.ProducerFilterBox = new System.Windows.Forms.TextBox();
             this.filterNameBox = new System.Windows.Forms.TextBox();
@@ -442,15 +442,15 @@ namespace Happy_Search
             this.langImages.Images.SetKeyName(59, "zh-hans.png");
             this.langImages.Images.SetKeyName(60, "zh-hant.png");
             // 
-            // searchText
+            // searchBox
             // 
-            this.searchText.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.searchText.Location = new System.Drawing.Point(93, 311);
-            this.searchText.Name = "searchText";
-            this.searchText.Size = new System.Drawing.Size(92, 20);
-            this.searchText.TabIndex = 21;
-            this.toolTip3.SetToolTip(this.searchText, "Type VN name here.");
-            this.searchText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.searchButton_keyPress);
+            this.searchBox.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.searchBox.Location = new System.Drawing.Point(93, 311);
+            this.searchBox.Name = "searchBox";
+            this.searchBox.Size = new System.Drawing.Size(92, 20);
+            this.searchBox.TabIndex = 21;
+            this.toolTip3.SetToolTip(this.searchBox, "Type VN name here.");
+            this.searchBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.searchButton_keyPress);
             // 
             // tagSearchBox
             // 
@@ -1036,7 +1036,7 @@ namespace Happy_Search
             this.vnTab.Controls.Add(this.yearBox);
             this.vnTab.Controls.Add(this.btnFetch);
             this.vnTab.Controls.Add(this.customFilters);
-            this.vnTab.Controls.Add(this.searchText);
+            this.vnTab.Controls.Add(this.searchBox);
             this.vnTab.Controls.Add(this.ProducerFilterBox);
             this.vnTab.Controls.Add(this.label4);
             this.vnTab.Controls.Add(this.label14);
@@ -1512,7 +1512,7 @@ namespace Happy_Search
             this.btnFetch.TabIndex = 27;
             this.btnFetch.Text = "Go";
             this.btnFetch.UseVisualStyleBackColor = false;
-            this.btnFetch.Click += new System.EventHandler(this.VNSearchButt);
+            this.btnFetch.Click += new System.EventHandler(this.VNSearch);
             // 
             // customFilters
             // 
@@ -2164,7 +2164,7 @@ namespace Happy_Search
         private Button userListButt;
         private Label resultLabel;
         private Button btnFetch;
-        private TextBox searchText;
+        private TextBox searchBox;
         private Label label4;
         private TabControl tabControl1;
         private TextBox tagSearchBox;

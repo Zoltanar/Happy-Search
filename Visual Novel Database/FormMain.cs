@@ -496,11 +496,44 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #region Search Visual Novels
 
-
-        private void VNSearchButt(object sender, EventArgs e) //Fetch information from 'VNDB.org'
+        /// <summary>
+        /// Searches for VNs from VNDB, adds them if they are not in local database.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void VNSearch(object sender, EventArgs e) //Fetch information from 'VNDB.org'
         {
-            //TODO Whole method
-            WriteError(replyText, "Not yet implemented", true);
+            if (searchBox.Text == "") //check if box is empty
+            {
+                WriteError(replyText, Resources.enter_vn_title, true);
+                return;
+            }
+            _added = 0;
+            _skipped = 0;
+            string vnInfoQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{\"results\":25}}";
+            var result = await TryQuery(vnInfoQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+            if (!result) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            List<VNItem> vnItems = vnRoot.Items;
+            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText);
+            var pageNo = 1;
+            var moreResults = vnRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string vnInfoMoreQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{\"results\":25, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.vn_query_error, replyText);
+                if (!moreResult) return;
+                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                List<VNItem> vnMoreItems = vnMoreRoot.Items;
+                foreach (var vnid in vnMoreItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
+                vnItems.AddRange(vnMoreItems);
+                moreResults = vnMoreRoot.More;
+            }
+            WriteText(replyText, $"Found {_added+_skipped} VNs for, {_added} added, {_skipped} skipped.");
+            IEnumerable<int> idList = vnItems.Select(x => x.ID);
+            _currentList = x => idList.Contains(x.VNID);
+            RefreshList();
         }
 
         private async void GetYearTitles(object sender, EventArgs e)
@@ -1674,7 +1707,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             if (e.KeyChar == (char) Keys.Enter)
             {
                 e.Handled = true;
-                VNSearchButt(sender, e);
+                VNSearch(sender, e);
             }
         }
 
@@ -1872,6 +1905,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             var producerItem = _producerList.Find(x => x.Name.Equals(producer));
             if (producerItem == null)
             {
+                //TODO
                 WriteError(replyText, "NYI (Producer not in local db)", true);
                 return;
             }

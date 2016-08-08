@@ -19,11 +19,12 @@ namespace Happy_Search
         /// <param name="query">Command to be sent</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="label">Label where reply will be printed.</param>
-        /// <param name="additionalMessage">Should throttle message be printed if connection is throttled?</param>
+        /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        /// <param name="ignoreDateLimit">Ignore 10 Year VN Limit (if enabled)?</param>
         /// <returns>Returns whether it was successful.</returns>
         internal async Task<bool> TryQuery(string query, string errorMessage, Label label,
-            bool additionalMessage = false, bool refreshList = false)
+            bool additionalMessage = false, bool refreshList = false, bool ignoreDateLimit = false)
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
@@ -33,7 +34,7 @@ namespace Happy_Search
             //change status to busy until it is solved, if error is returned then status is changed to throttled or ready if the error isn't throttling error
             //if response type is unknown then status is changed to error because it's probably a connection loss and will require reconnecting.
             ChangeAPIStatus(VndbConnection.APIStatus.Busy);
-            if (Settings.Default.Limit10Years && query.StartsWith("get vn ") && !query.Contains("id = "))
+            if (Settings.Default.Limit10Years && !ignoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
             {
                 query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
             }
@@ -85,7 +86,7 @@ namespace Happy_Search
         {
             ReloadLists();
             string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
-            var result = await TryQuery(singleVNQuery, Resources.svn_query_error, updateLink);
+            var result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             var vnItem = vnRoot.Items[0];
@@ -93,7 +94,7 @@ namespace Happy_Search
             SaveImage(vnItem);
             //fetch developer from releases
             string relInfoQuery = $"get release producers (vn =\"{vnid}\")";
-            var releaseResult = await TryQuery(relInfoQuery, Resources.svnr_query_error, updateLink);
+            var releaseResult = await TryQuery(relInfoQuery, Resources.usvn_query_error, updateLink);
             if (!releaseResult) return;
             var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> relItem = relInfo.Items;
@@ -109,7 +110,7 @@ namespace Happy_Search
             {
                 //query api
                 string producerQuery = $"get producer basic (id={relProducer})";
-                var producerResult = await TryQuery(producerQuery, Resources.sp_query_error, updateLink);
+                var producerResult = await TryQuery(producerQuery, Resources.usvn_query_error, updateLink);
                 if (!producerResult) return;
                 var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
                 List<ProducerItem> producers = root.Items;
@@ -130,14 +131,14 @@ namespace Happy_Search
             UpdatingVN = DBConn.GetSingleVN(vnid, UserID);
             DBConn.Close();
         }
-        
+
         /// <summary>
         ///     Method for retrieving data about a single visual novel.
         /// </summary>
         /// <param name="vnid">ID of VN to be retrieved.</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="forceUpdate">Should VN be updated even if it's already in VNList?</param>
-        /// <param name="additionalMessage">Should throttle message be printed if connection is throttled?</param>
+        /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <returns></returns>
         internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false,
@@ -214,7 +215,7 @@ namespace Happy_Search
                     continue;
                 }
                 string singleVNQuery = $"get vn basic,details,tags (id = {id})";
-                var result = await TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel, true, refreshList);
+                var result = await TryQuery(singleVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!result) continue;
                 var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) continue;
@@ -224,7 +225,7 @@ namespace Happy_Search
                 //fetch developer from releases
                 string relInfoQuery = $"get release producers (vn =\"{id}\")";
                 var releaseResult =
-                    await TryQuery(relInfoQuery, Resources.svnr_query_error, replyLabel, true, refreshList);
+                    await TryQuery(relInfoQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!releaseResult) continue;
                 var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
                 List<ReleaseItem> relItem = relInfo.Items;
@@ -241,7 +242,7 @@ namespace Happy_Search
                     //query api
                     string producerQuery = $"get producer basic (id={relProducer})";
                     var producerResult =
-                        await TryQuery(producerQuery, Resources.sp_query_error, replyLabel, true, refreshList);
+                        await TryQuery(producerQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                     if (!producerResult) return;
                     var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
                     List<ProducerItem> producers = root.Items;

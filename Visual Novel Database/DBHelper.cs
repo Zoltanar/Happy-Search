@@ -53,7 +53,7 @@ namespace Happy_Search
                     {
                         case Command.New:
                             commandString =
-                                $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
+                                $"INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
                         case Command.Update:
                             commandString =
@@ -66,7 +66,7 @@ namespace Happy_Search
                     {
                         case Command.New:
                             commandString =
-                                $"INSERT INTO userlist (VNID, UserID, WLStatus, WLAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
+                                $"INSERT OR REPLACE  INTO userlist (VNID, UserID, WLStatus, WLAdded) Values ({vnid}, {userID}, {statusInt}, {statusDate});";
                             break;
                         case Command.Update:
                             commandString =
@@ -79,7 +79,7 @@ namespace Happy_Search
                     {
                         case Command.New:
                             commandString =
-                                $"INSERT INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt*10}, {statusDate});";
+                                $"INSERT OR REPLACE  INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt*10}, {statusDate});";
                             break;
                         case Command.Update:
                             commandString =
