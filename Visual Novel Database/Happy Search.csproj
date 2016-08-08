@@ -86,6 +86,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
+    <Compile Include="FormMainAPIMethods.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="VndbConnection.cs" />
     <Compile Include="DBHelper.cs" />
     <Compile Include="LoginForm.cs">

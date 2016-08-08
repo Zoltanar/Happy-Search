@@ -60,60 +60,6 @@ namespace Happy_Search
         internal int UserID;
         internal List<ListedVN> UserList;
 
-        private void VNSearchButt(object sender, EventArgs e) //Fetch information from 'VNDB.org'
-        {
-            //TODO Whole method
-            WriteError(replyText, "Not yet implemented", true);
-        }
-
-        private async void GetYearTitles(object sender, EventArgs e)
-        {
-            if (yearBox.Text == "") //check if box is empty
-            {
-                WriteError(replyText, Resources.enter_year, true);
-                return;
-            }
-            int year;
-            var userIsNumber = int.TryParse(yearBox.Text, out year);
-            if (userIsNumber == false) //check if box has integer
-            {
-                WriteError(replyText, Resources.must_be_integer, true);
-                return;
-            }
-            var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText, $"Getting All VNs For year {year}\nStarted at {startTime}");
-            ReloadLists();
-            _currentList = x => x.RelDate.StartsWith(yearBox.Text);
-            _added = 0;
-            _skipped = 0;
-            string vnInfoQuery =
-                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
-            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true);
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            List<VNItem> vnItems = vnRoot.Items;
-            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
-            var pageNo = 1;
-            var moreResults = vnRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                string vnInfoMoreQuery =
-                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true);
-                if (!moreResult) return;
-                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                foreach (var vnid in vnMoreItems.Select(x => x.ID))
-                    await GetSingleVN(vnid, replyText, false, true, true);
-                moreResults = vnMoreRoot.More;
-            }
-            var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText,
-                $"Got all VNs for {year}\nTime:{startTime}-{endTime}\n{_added} added, {_skipped} skipped.");
-            RefreshList();
-        }
-
         private void Test(object sender, EventArgs e)
         {
         }
@@ -340,73 +286,6 @@ https://github.com/FredTheBarber/VndbClient";
             Conn.Close();
         }
 
-        internal void APILogin()
-        {
-            Conn.Login(ClientName, ClientVersion);
-            switch (Conn.LastResponse.Type)
-            {
-                case ResponseType.Ok:
-                    loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = UserID > 0 ? $"Connected with ID {UserID}." : "Connected without ID.";
-                    Console.WriteLine(loginReply.Text);
-                    ChangeAPIStatus(Conn.Status);
-                    return;
-                case ResponseType.Error:
-                    if (Conn.LastResponse.Error.ID.Equals("loggedin"))
-                    {
-                        //should never happen
-                        loginReply.ForeColor = Color.LightGreen;
-                        loginReply.Text = Resources.already_logged_in;
-                        break;
-                    }
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.connection_failed;
-                    break;
-                default:
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.login_unknown_error;
-                    break;
-            }
-            serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status);
-        }
-
-        internal void APILoginWithCredentials(KeyValuePair<string, char[]> credentials)
-        {
-            Conn.Login(ClientName, ClientVersion, credentials.Key, credentials.Value);
-            switch (Conn.LastResponse.Type)
-            {
-                case ResponseType.Ok:
-                    ChangeAPIStatus(Conn.Status);
-                    loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = $"Logged in as {credentials.Key}.";
-                    return;
-                case ResponseType.Error:
-                    if (Conn.LastResponse.Error.ID.Equals("loggedin"))
-                    {
-                        //should never happen
-                        loginReply.ForeColor = Color.LightGreen;
-                        loginReply.Text = Resources.already_logged_in;
-                        break;
-                    }
-                    if (Conn.LastResponse.Error.ID.Equals("auth"))
-                    {
-                        loginReply.ForeColor = Color.Red;
-                        loginReply.Text = Conn.LastResponse.Error.Msg;
-                        break;
-                    }
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.connection_failed;
-                    break;
-                default:
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.login_unknown_error;
-                    break;
-            }
-            serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status);
-        }
-
         private void InitAPIConnection()
         {
             SplashScreen.SplashScreen.SetStatus("Logging into VNDB API...");
@@ -615,6 +494,65 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #endregion
 
+        #region Search Visual Novels
+
+
+        private void VNSearchButt(object sender, EventArgs e) //Fetch information from 'VNDB.org'
+        {
+            //TODO Whole method
+            WriteError(replyText, "Not yet implemented", true);
+        }
+
+        private async void GetYearTitles(object sender, EventArgs e)
+        {
+            if (yearBox.Text == "") //check if box is empty
+            {
+                WriteError(replyText, Resources.enter_year, true);
+                return;
+            }
+            int year;
+            var userIsNumber = int.TryParse(yearBox.Text, out year);
+            if (userIsNumber == false) //check if box has integer
+            {
+                WriteError(replyText, Resources.must_be_integer, true);
+                return;
+            }
+            var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
+            WriteText(replyText, $"Getting All VNs For year {year}\nStarted at {startTime}");
+            ReloadLists();
+            _currentList = x => x.RelDate.StartsWith(yearBox.Text);
+            _added = 0;
+            _skipped = 0;
+            string vnInfoQuery =
+                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
+            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true);
+            if (!result) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            List<VNItem> vnItems = vnRoot.Items;
+            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
+            var pageNo = 1;
+            var moreResults = vnRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string vnInfoMoreQuery =
+                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true);
+                if (!moreResult) return;
+                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                List<VNItem> vnMoreItems = vnMoreRoot.Items;
+                foreach (var vnid in vnMoreItems.Select(x => x.ID))
+                    await GetSingleVN(vnid, replyText, false, true, true);
+                moreResults = vnMoreRoot.More;
+            }
+            var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
+            WriteText(replyText,
+                $"Got all VNs for {year}\nTime:{startTime}-{endTime}\n{_added} added, {_skipped} skipped.");
+            RefreshList();
+        }
+
+        #endregion
+
         #region User-Settings
 
         private void ToggleNSFWImages(object sender, EventArgs e)
@@ -805,303 +743,6 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             if (listedProducer.UserAverageVote < 1) e.Item.GetSubItem(2).Text = "";
             if (listedProducer.UserDropRate < 0) e.Item.GetSubItem(3).Text = "";
             if (listedProducer.NumberOfTitles == -1) e.Item.GetSubItem(1).Text = "";
-        }
-
-        #endregion
-
-        #region API Methods
-
-        internal async Task<bool> TryQuery(string query, string errorMessage, Label label,
-            bool additionalMessage = false, bool refreshList = false)
-        {
-            if (Conn.Status != VndbConnection.APIStatus.Ready)
-            {
-                WriteError(label, "API Connection isn't ready.");
-                return false;
-            }
-            //change status to busy until it is solved, if error is returned then status is changed to throttled or ready if the error isn't throttling error
-            //if response type is unknown then status is changed to error because it's probably a connection loss and will require reconnecting.
-            ChangeAPIStatus(VndbConnection.APIStatus.Busy);
-            if (Settings.Default.Limit10Years && query.StartsWith("get vn ") && !query.Contains("id = "))
-            {
-                query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
-            }
-            Debug.Print(query);
-            await Conn.QueryAsync(query); //request detailed information
-            serverQ.Text += query + Environment.NewLine;
-            serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            if (Conn.LastResponse.Type == ResponseType.Unknown)
-            {
-                ChangeAPIStatus(VndbConnection.APIStatus.Error);
-                return false;
-            }
-            while (Conn.LastResponse.Type == ResponseType.Error)
-            {
-                if (!Conn.LastResponse.Error.ID.Equals("throttled"))
-                {
-                    WriteError(label, errorMessage);
-                    ChangeAPIStatus(Conn.Status);
-                    return false;
-                }
-                var waitS = Conn.LastResponse.Error.Minwait*30;
-                var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
-                string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
-                string additionalWarning = $" Added {_added} and skipped {_skipped} so far...";
-                var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
-                WriteWarning(label, fullThrottleMessage);
-                ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
-                var waitMS = minWait*1000;
-                var wait = Convert.ToInt32(waitMS);
-                Debug.Print($"{DateTime.UtcNow} - {fullThrottleMessage}");
-                if (refreshList) tileOLV.SetObjects(_vnList.Where(_currentList));
-                await Task.Delay(wait);
-                ClearLog(null, null);
-                await Conn.QueryAsync(query); //request detailed information
-                serverQ.Text += query + Environment.NewLine;
-                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            }
-            ChangeAPIStatus(VndbConnection.APIStatus.Ready);
-            return true;
-        }
-
-        internal async Task UpdateSingleVN(int vnid, LinkLabel updateLink)
-        {
-            ReloadLists();
-            string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
-            var result = await TryQuery(singleVNQuery, Resources.svn_query_error, updateLink);
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            var vnItem = vnRoot.Items[0];
-            var relProducer = -1;
-            SaveImage(vnItem);
-            //fetch developer from releases
-            string relInfoQuery = $"get release producers (vn =\"{vnid}\")";
-            var releaseResult = await TryQuery(relInfoQuery, Resources.svnr_query_error, updateLink);
-            if (!releaseResult) return;
-            var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-            List<ReleaseItem> relItem = relInfo.Items;
-            if (relItem.Count != 0)
-            {
-                foreach (var item in relItem)
-                {
-                    relProducer = item.Producers.Find(x => x.Developer)?.ID ?? -1;
-                    if (relProducer > 0) break;
-                }
-            }
-            if (relProducer != -1 && !_producerIDList.Contains(relProducer))
-            {
-                //query api
-                string producerQuery = $"get producer basic (id={relProducer})";
-                var producerResult = await TryQuery(producerQuery, Resources.sp_query_error, updateLink);
-                if (!producerResult) return;
-                var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
-                List<ProducerItem> producers = root.Items;
-                DBConn.Open();
-                foreach (var producer in producers)
-                {
-                    if (_producerIDList.Contains(producer.ID)) continue;
-
-                    DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
-                }
-                DBConn.Close();
-            }
-            DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer, false);
-            DBConn.Close();
-            WriteText(updateLink, Resources.vn_updated);
-            DBConn.Open();
-            UpdatingVN = DBConn.GetSingleVN(vnid, UserID);
-            DBConn.Close();
-        }
-
-        internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false,
-            bool additionalMessage = false, bool refreshList = false)
-        {
-            if (_vnIDList.Contains(vnid) && forceUpdate == false)
-            {
-                _skipped++;
-                return;
-            }
-            //fetch visual novel information
-            string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
-            var result =
-                await TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            var vnItem = vnRoot.Items[0];
-            var relProducer = -1;
-            SaveImage(vnItem);
-            //fetch developer from releases
-            string relInfoQuery = $"get release producers (vn =\"{vnid}\")";
-            var releaseResult =
-                await TryQuery(relInfoQuery, Resources.gsvn_query_error, replyLabel, additionalMessage, refreshList);
-            if (!releaseResult) return;
-            var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-            List<ReleaseItem> relItem = relInfo.Items;
-            if (relItem.Any())
-            {
-                foreach (var item in relItem)
-                {
-                    relProducer = item.Producers.Find(x => x.Developer)?.ID ?? -1;
-                    if (relProducer > 0) break;
-                }
-            }
-            //get producer information if not already present
-            if (relProducer != -1 && !_producerIDList.Contains(relProducer))
-            {
-                string producerQuery = $"get producer basic (id={relProducer})";
-                var producerResult =
-                    await TryQuery(producerQuery, Resources.sp_query_error, replyLabel, additionalMessage, refreshList);
-                if (!producerResult) return;
-                var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
-                List<ProducerItem> producers = root.Items;
-                DBConn.Open();
-                //insert all producers that weren't already present
-                foreach (var producer in producers)
-                {
-                    if (_producerIDList.Contains(producer.ID)) continue;
-                    DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
-                }
-                DBConn.Close();
-            }
-            DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer, false);
-            DBConn.Close();
-            _added++;
-        }
-
-        internal async Task GetMultipleVN(List<int> vnIDs, Label replyLabel, bool refreshList = false)
-        {
-            ReloadLists();
-            foreach (var id in vnIDs)
-            {
-                if (_vnIDList.Contains(id))
-                {
-                    _skipped++;
-                    continue;
-                }
-                string singleVNQuery = $"get vn basic,details,tags (id = {id})";
-                var result = await TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel, true, refreshList);
-                if (!result) continue;
-                var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num == 0) continue;
-                var vnItem = vnRoot.Items[0];
-                var relProducer = -1;
-                SaveImage(vnItem);
-                //fetch developer from releases
-                string relInfoQuery = $"get release producers (vn =\"{id}\")";
-                var releaseResult =
-                    await TryQuery(relInfoQuery, Resources.svnr_query_error, replyLabel, true, refreshList);
-                if (!releaseResult) continue;
-                var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-                List<ReleaseItem> relItem = relInfo.Items;
-                if (relItem.Any())
-                {
-                    foreach (var item in relItem)
-                    {
-                        relProducer = item.Producers.Find(x => x.Developer)?.ID ?? -1;
-                        if (relProducer > 0) break;
-                    }
-                }
-                if (relProducer != -1 && !_producerIDList.Contains(relProducer))
-                {
-                    //query api
-                    string producerQuery = $"get producer basic (id={relProducer})";
-                    var producerResult =
-                        await TryQuery(producerQuery, Resources.sp_query_error, replyLabel, true, refreshList);
-                    if (!producerResult) return;
-                    var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
-                    List<ProducerItem> producers = root.Items;
-                    DBConn.Open();
-                    foreach (var producer in producers)
-                    {
-                        if (_producerIDList.Contains(producer.ID)) continue;
-                        DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
-                    }
-                    DBConn.Close();
-                }
-                _added++;
-                DBConn.Open();
-                DBConn.UpsertSingleVN(vnItem, relProducer, false);
-                DBConn.Close();
-            }
-        }
-
-        private void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
-        {
-            switch (apiStatus)
-            {
-                case VndbConnection.APIStatus.Ready:
-                    statusLabel.Text = @"Ready";
-                    statusLabel.BackColor = Color.LightGreen;
-                    break;
-                case VndbConnection.APIStatus.Busy:
-                    statusLabel.Text = @"Busy";
-                    statusLabel.BackColor = Color.Khaki;
-                    break;
-                case VndbConnection.APIStatus.Throttled:
-                    statusLabel.Text = @"Throttled";
-                    statusLabel.BackColor = Color.Khaki;
-                    break;
-                case VndbConnection.APIStatus.Error:
-                    statusLabel.Text = @"Error";
-                    statusLabel.BackColor = Color.Red;
-                    Conn.Close();
-                    break;
-            }
-        }
-
-        private async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt)
-        {
-            var hasULStatus = vn.ULStatus != null && !vn.ULStatus.Equals("");
-            var hasWLStatus = vn.WLStatus != null && !vn.WLStatus.Equals("");
-            var hasVote = vn.Vote > 0;
-            string queryString;
-            bool result;
-            switch (type)
-            {
-                case ChangeType.UL:
-                    queryString = statusInt == -1
-                        ? $"set vnlist {vn.VNID}"
-                        : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
-                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
-                    if (!result) return false;
-                    DBConn.Open();
-                    if (hasWLStatus || hasVote)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
-                    else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.New);
-                    break;
-                case ChangeType.WL:
-                    queryString = statusInt == -1
-                        ? $"set wishlist {vn.VNID}"
-                        : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
-                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
-                    if (!result) return false;
-                    DBConn.Open();
-                    if (hasULStatus || hasVote)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
-                    else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
-                    break;
-                case ChangeType.Vote:
-                    queryString = statusInt == -1
-                        ? $"set votelist {vn.VNID}"
-                        : $"set votelist {vn.VNID} {{\"vote\":{statusInt*10}}}";
-                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
-                    if (!result) return false;
-                    DBConn.Open();
-                    if (hasULStatus || hasWLStatus)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update);
-                    else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New);
-                    break;
-            }
-            DBConn.Close();
-            return true;
         }
 
         #endregion
@@ -2262,7 +1903,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         #endregion
 
         #region Classes/Enums
-
+        /// <summary>
+        /// Holds details of user-created custom filter
+        /// </summary>
         [Serializable, XmlRoot("ComplexFilter")]
         public class ComplexFilter
         {
@@ -2280,7 +1923,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             public List<TagFilter> Filters { get; set; }
             public DateTime Updated { get; set; }
         }
-
+        /// <summary>
+        /// Holds details of a VNDB Tag and its subtags
+        /// </summary>
         [Serializable, XmlRoot("TagFilter")]
         public class TagFilter
         {
@@ -2311,10 +1956,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
         }
 
+        /// <summary>
+        /// Class for drawing individual tiles in ObjectListView
+        /// </summary>
         public class VNTileRenderer : AbstractRenderer
         {
             internal Brush BackBrush = Brushes.LightPink;
-
             internal Pen BorderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
             internal Brush HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
             internal Brush HeaderTextBrush = Brushes.AliceBlue;
