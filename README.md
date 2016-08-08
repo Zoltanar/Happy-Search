@@ -4,7 +4,7 @@ For Windows, .NET Framework 4.6 required.
 Written in C#.  
 
 ## Instructions
-Open the solution in Microsoft Visual Studio and Build Solution.  
+[Download release](https://github.com/Zoltanar/Happy-Search/releases)  
 Run Happy Search.exe  
 
 ## Features
