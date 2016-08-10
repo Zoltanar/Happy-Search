@@ -44,7 +44,7 @@ namespace Happy_Search
         private static readonly Color ErrorColor = Color.Red;
         internal static readonly Color NormalColor = SystemColors.ControlLightLight;
         internal static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
-        private static readonly Color WarningColor = Color.YellowGreen;
+        private static readonly Color WarningColor = Color.DarkKhaki;
         private readonly Func<ListedVN, bool>[] _filters = {x => true, x => true, x => true};
         internal readonly VndbConnection Conn = new VndbConnection();
         internal readonly DbHelper DBConn;
@@ -508,6 +508,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 WriteError(replyText, Resources.enter_vn_title, true);
                 return;
             }
+            if (searchBox.Text.Length < 3)
+            {
+                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
+                return;
+            }
             _added = 0;
             _skipped = 0;
             string vnInfoQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{\"results\":25}}";
@@ -536,6 +541,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             RefreshList();
         }
 
+        /// <summary>
+        /// Gets VNs released in the year entered by user, doesn't update VNs already in local database
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void GetYearTitles(object sender, EventArgs e)
         {
             if (yearBox.Text == "") //check if box is empty
@@ -551,18 +561,18 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 return;
             }
             var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText, $"Getting All VNs For year {year}\nStarted at {startTime}");
+            WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTime}");
             ReloadLists();
             _currentList = x => x.RelDate.StartsWith(yearBox.Text);
             _added = 0;
             _skipped = 0;
             string vnInfoQuery =
                 $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
-            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true);
+            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyText, true);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -570,17 +580,16 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 pageNo++;
                 string vnInfoMoreQuery =
                     $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true);
+                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true, true);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                foreach (var vnid in vnMoreItems.Select(x => x.ID))
-                    await GetSingleVN(vnid, replyText, false, true, true);
+                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), replyText, true);
                 moreResults = vnMoreRoot.More;
             }
             var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
             WriteText(replyText,
-                $"Got all VNs for {year}\nTime:{startTime}-{endTime}\n{_added} added, {_skipped} skipped.");
+                $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_added} added, {_skipped} skipped.");
             RefreshList();
         }
 
@@ -1009,6 +1018,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #region Other/General
 
+        /// <summary>
+        /// Close All Open Visual Novel Forms (windows)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CloseAllForms(object sender, EventArgs e)
         {
             for (var i = Application.OpenForms.Count - 1; i >= 0; i--)
@@ -1718,224 +1732,6 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         #endregion
 
-        #region Quick Filters
-
-        private void Filter_All(object sender, EventArgs e)
-        {
-            tileOLV.ModelFilter = null;
-            _currentList = x => true;
-            RefreshList();
-        }
-
-        private void Filter_FavoriteProducers(object sender, EventArgs e)
-        {
-            if (olFavoriteProducers.Items.Count == 0)
-            {
-                WriteError(replyText, "No Favorite Producers.", true);
-                return;
-            }
-            IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.Objects
-                select producer.Name;
-            _currentList = vn => prodList.Contains(vn.Producer);
-            RefreshList();
-        }
-
-        private void Filter_Wishlist(object sender, EventArgs e)
-        {
-            _currentList = x => !x.WLStatus.Equals("");
-            RefreshList();
-        }
-
-        private void Filter_ULStatus(object sender, EventArgs e)
-        {
-            var dropdownlist = (ComboBox) sender;
-            switch (dropdownlist.SelectedIndex)
-            {
-                case 0:
-                    Filter_All(null, null);
-                    return;
-                case 1:
-                    dropdownlist.SelectedIndex = 0;
-                    Filter_All(null, null);
-                    return;
-                case 2:
-                    _currentList = x => x.ULStatus.Equals("Unknown");
-                    break;
-                case 3:
-                    _currentList = x => x.ULStatus.Equals("Playing");
-                    break;
-                case 4:
-                    _currentList = x => x.ULStatus.Equals("Finished");
-                    break;
-                case 5:
-                    _currentList = x => x.ULStatus.Equals("Dropped");
-                    break;
-            }
-            RefreshList();
-        }
-
-        private void Filter_Custom(object sender, EventArgs e)
-        {
-            var dropdownlist = (ComboBox) sender;
-            switch (dropdownlist.SelectedIndex)
-            {
-                case 0:
-                    deleteCustomFilterButton.Enabled = false;
-                    updateCustomFilterButton.Enabled = false;
-                    Filter_All(null, null);
-                    return;
-                case 1:
-                    deleteCustomFilterButton.Enabled = false;
-                    updateCustomFilterButton.Enabled = false;
-                    dropdownlist.SelectedIndex = 0;
-                    Filter_All(null, null);
-                    return;
-                default:
-                    deleteCustomFilterButton.Enabled = true;
-                    updateCustomFilterButton.Enabled = true;
-                    _activeFilter = _customFilters[dropdownlist.SelectedIndex - 2]?.Filters;
-                    DisplayFilterTags();
-                    _currentList = VNMatchesFilter;
-                    break;
-            }
-            RefreshList();
-        }
-
-        private void Filter_Producer(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode != Keys.Enter) return;
-            if (!ProducerFilterBox.Text.Any()) return;
-            _currentList = x => x.Producer.Equals(ProducerFilterBox.Text);
-            RefreshList();
-        }
-
-        private async void UpdateCustomFilter(object sender, EventArgs e)
-        {
-            if (Conn.Status != VndbConnection.APIStatus.Ready)
-            {
-                WriteWarning(replyText, "Connection busy with previous request...", true);
-                return;
-            }
-            var selectedFilter = _customFilters[customFilters.SelectedIndex - 2];
-            var message = selectedFilter.Updated != DateTime.MinValue
-                ? $"This filter was last updated {DaysSince(selectedFilter.Updated)} days ago.\n{Resources.update_custom_filter}"
-                : Resources.update_custom_filter;
-            var askBox = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (askBox != DialogResult.Yes) return;
-            await UpdateFilterResults(replyText);
-            _customFilters[customFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
-            SaveCustomFiltersXML();
-        }
-
-        private void DeleteCustomFilter(object sender, EventArgs e)
-        {
-            var selectedFilter = customFilters.SelectedIndex;
-            customFilters.Items.RemoveAt(selectedFilter);
-            _customFilters.RemoveAt(selectedFilter - 2);
-            SaveCustomFiltersXML();
-            replyText.Text = Resources.filter_deleted;
-            FadeLabel(replyText);
-            customFilters.SelectedIndex = 0;
-        }
-
-        private void BlacklistToggle(object sender, EventArgs e)
-        {
-            Func<ListedVN, bool> function = x => true;
-            switch (BlacklistToggleBox.CheckState)
-            {
-                case CheckState.Unchecked:
-                    BlacklistToggleBox.Text = @"Hide Blacklisted";
-                    function = x => !x.WLStatus.Equals("Blacklist");
-                    break;
-                case CheckState.Indeterminate:
-                    BlacklistToggleBox.Text = @"Show Blacklisted";
-                    break;
-                case CheckState.Checked:
-                    BlacklistToggleBox.Text = @"Only Blacklisted";
-                    function = x => x.WLStatus.Equals("Blacklist");
-                    break;
-            }
-            ApplyToggleFilters(ToggleFilter.Blacklisted, function);
-        }
-
-        private void UnreleasedToggle(object sender, EventArgs e)
-        {
-            Func<ListedVN, bool> function = x => true;
-            switch (UnreleasedToggleBox.CheckState)
-            {
-                case CheckState.Unchecked:
-                    UnreleasedToggleBox.Text = @"Hide Unreleased";
-                    function = x => !CheckUnreleased(x.RelDate);
-                    break;
-                case CheckState.Indeterminate:
-                    UnreleasedToggleBox.Text = @"Show Unreleased";
-                    break;
-                case CheckState.Checked:
-                    UnreleasedToggleBox.Text = @"Only Unreleased";
-                    function = x => CheckUnreleased(x.RelDate);
-                    break;
-            }
-            ApplyToggleFilters(ToggleFilter.Unreleased, function);
-        }
-
-        private void URTToggle(object sender, EventArgs e)
-        {
-            Func<ListedVN, bool> function = x => true;
-            switch (URTToggleBox.CheckState)
-            {
-                case CheckState.Unchecked:
-                    URTToggleBox.Text = @"Hide URT";
-                    function = x => UserList.Find(y => y.VNID == x.VNID) == null;
-                    break;
-                case CheckState.Indeterminate:
-                    URTToggleBox.Text = @"Show URT";
-                    break;
-                case CheckState.Checked:
-                    URTToggleBox.Text = @"Only URT";
-                    function = x => UserList.Find(y => y.VNID == x.VNID) != null;
-                    break;
-            }
-            ApplyToggleFilters(ToggleFilter.URT, function);
-        }
-
-        private async void UpdateProducerTitles(object sender, EventArgs e)
-        {
-            var producer = ProducerFilterBox.Text;
-            if (producer.Equals("")) return;
-            var producerItem = _producerList.Find(x => x.Name.Equals(producer));
-            if (producerItem == null)
-            {
-                //TODO
-                WriteError(replyText, "NYI (Producer not in local db)", true);
-                return;
-            }
-            _added = 0;
-            _skipped = 0;
-            await GetProducerTitles(producerItem, replyText, true);
-            WriteText(replyText, $"Got all VNs for {producerItem.Name} ({_added + _skipped} titles)");
-            RefreshList();
-        }
-
-        private void ApplyToggleFilters(ToggleFilter toggleFilter, Func<ListedVN, bool> function)
-        {
-            _filters[(int) toggleFilter] = function;
-            /*
-            //clear filter list
-            _filters.Clear();
-            //add each enabled filter to list
-            if (unreleasedFilter.Checked) _filters.Add(x => CheckUnreleased(x.RelDate));
-            if (releasedFilter.Checked) _filters.Add(x => !CheckUnreleased(x.RelDate));
-            if (urtFilter.Checked) _filters.Add(x => UserList.Find(y => y.VNID == x.VNID) != null);
-            if (noURTFilter.Checked) _filters.Add(x => UserList.Find(y => y.VNID == x.VNID) == null);
-            if (_blacklistToggle != null) _filters.Add(_blacklistToggle);*/
-            tileOLV.ModelFilter = _filters.Any()
-                ? new ModelFilter(vn => _filters.Select(filter => filter((ListedVN) vn)).All(valid => valid))
-                : null;
-            objectList_ItemsChanged(null, null);
-        }
-
-        #endregion
-
         #region Classes/Enums
         /// <summary>
         /// Holds details of user-created custom filter
@@ -2181,12 +1977,6 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
         }
 
-        private enum ToggleFilter
-        {
-            URT,
-            Unreleased,
-            Blacklisted
-        }
 
         internal enum Command
         {
