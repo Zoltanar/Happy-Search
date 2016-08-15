@@ -105,7 +105,7 @@ namespace Happy_Search
                 if (producer.InList.Equals("Yes")) continue;
                 olProdSearch.SelectedItems[i].SubItems[1].Text = @"Yes";
                 producer.InList = @"Yes";
-                ListedVN[] producerVNs = _parentForm.UserList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+                ListedVN[] producerVNs = _parentForm.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
                 double userAverageVote = -1;
                 double userDropRate = -1;
                 if (producerVNs.Any())

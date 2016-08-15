@@ -135,6 +135,15 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do you wish to overwrite?.
+        /// </summary>
+        internal static string ask_overwrite {
+            get {
+                return ResourceManager.GetString("ask_overwrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to connect to VNDB..
         /// </summary>
         internal static string connection_failed {

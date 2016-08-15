@@ -58,7 +58,7 @@ namespace Happy_Search
                 var waitS = Conn.LastResponse.Error.Minwait*30;
                 var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
                 string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
-                string additionalWarning = $" Added {_added} and skipped {_skipped} so far...";
+                string additionalWarning = $" Added {_vnsAdded} and skipped {_vnsSkipped} so far...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 WriteWarning(label, fullThrottleMessage);
                 ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
@@ -81,10 +81,12 @@ namespace Happy_Search
         /// </summary>
         /// <param name="vnid">ID of VN to be updated</param>
         /// <param name="updateLink">Linklabel where reply will be printed</param>
+        /// 
         /// <returns></returns>
         internal async Task UpdateSingleVN(int vnid, LinkLabel updateLink)
         {
             ReloadLists();
+            var producerIDList = _producerList.Select(x => x.ID).ToArray();
             string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
             var result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
             if (!result) return;
@@ -106,7 +108,7 @@ namespace Happy_Search
                     if (relProducer > 0) break;
                 }
             }
-            if (relProducer != -1 && !_producerIDList.Contains(relProducer))
+            if (relProducer != -1 && !producerIDList.Contains(relProducer))
             {
                 //query api
                 string producerQuery = $"get producer basic (id={relProducer})";
@@ -117,7 +119,7 @@ namespace Happy_Search
                 DBConn.Open();
                 foreach (var producer in producers)
                 {
-                    if (_producerIDList.Contains(producer.ID)) continue;
+                    if (producerIDList.Contains(producer.ID)) continue;
 
                     DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
                 }
@@ -141,12 +143,13 @@ namespace Happy_Search
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <returns></returns>
-        internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false,
-            bool additionalMessage = false, bool refreshList = false)
+        internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false, bool additionalMessage = false, bool refreshList = false)
         {
-            if (_vnIDList.Contains(vnid) && forceUpdate == false)
+            int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
+            int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
+            if (vnIDList.Contains(vnid) && forceUpdate == false)
             {
-                _skipped++;
+                _vnsSkipped++;
                 return;
             }
             //fetch visual novel information
@@ -174,7 +177,7 @@ namespace Happy_Search
                 }
             }
             //get producer information if not already present
-            if (relProducer != -1 && !_producerIDList.Contains(relProducer))
+            if (relProducer != -1 && !producerIDList.Contains(relProducer))
             {
                 string producerQuery = $"get producer basic (id={relProducer})";
                 var producerResult =
@@ -186,7 +189,7 @@ namespace Happy_Search
                 //insert all producers that weren't already present
                 foreach (var producer in producers)
                 {
-                    if (_producerIDList.Contains(producer.ID)) continue;
+                    if (producerIDList.Contains(producer.ID)) continue;
                     DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
                 }
                 DBConn.Close();
@@ -194,24 +197,26 @@ namespace Happy_Search
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer, false);
             DBConn.Close();
-            _added++;
+            _vnsAdded++;
         }
 
         /// <summary>
-        ///     Method for retrieving data about multiple visual novels, to be changed into array query later.
+        /// Method for retrieving data about multiple visual novels, to be changed into array query later.
         /// </summary>
         /// <param name="vnIDs">List of IDs of VNs to be retrieved.</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
-        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param> 
         /// <returns></returns>
-        internal async Task GetMultipleVN(List<int> vnIDs, Label replyLabel, bool refreshList = false)
+        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false)
         {
             ReloadLists();
+            int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
             foreach (var id in vnIDs)
             {
-                if (_vnIDList.Contains(id))
+                int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
+                if (vnIDList.Contains(id))
                 {
-                    _skipped++;
+                    _vnsSkipped++;
                     continue;
                 }
                 string singleVNQuery = $"get vn basic,details,tags (id = {id})";
@@ -237,7 +242,7 @@ namespace Happy_Search
                         if (relProducer > 0) break;
                     }
                 }
-                if (relProducer != -1 && !_producerIDList.Contains(relProducer))
+                if (relProducer != -1 && !producerIDList.Contains(relProducer))
                 {
                     //query api
                     string producerQuery = $"get producer basic (id={relProducer})";
@@ -249,12 +254,12 @@ namespace Happy_Search
                     DBConn.Open();
                     foreach (var producer in producers)
                     {
-                        if (_producerIDList.Contains(producer.ID)) continue;
+                        if (producerIDList.Contains(producer.ID)) continue;
                         DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
                     }
                     DBConn.Close();
                 }
-                _added++;
+                _vnsAdded++;
                 DBConn.Open();
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();

@@ -23,6 +23,7 @@ namespace Happy_Search
 {
     public partial class FormMain : Form
     {
+        //constants / definables
         private const string VNImagesFolder = "vnImages\\";
         private const string DBStatsXml = "dbs.xml";
         private const string TagsJsonGz = "tags.json.gz";
@@ -35,30 +36,29 @@ namespace Happy_Search
         internal const string APIVersion = "2.25";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
-        private const string CustomfiltersXml = "customfilters.xml";
-        private static List<ListedVN> _vnList;
-        private static List<ListedProducer> _producerList;
-        private static List<int> _filterIDList = new List<int>();
-        private static List<TagFilter> _activeFilter = new List<TagFilter>();
-        private static List<ComplexFilter> _customFilters;
+        private const string MainXmlFile = "saved_objects.xml";
         private static readonly Color ErrorColor = Color.Red;
         internal static readonly Color NormalColor = SystemColors.ControlLightLight;
         internal static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
         private static readonly Color WarningColor = Color.DarkKhaki;
-        private readonly Func<ListedVN, bool>[] _filters = {x => true, x => true, x => true};
+
+        private List<ListedVN> _vnList;
+        private List<ListedProducer> _producerList;
+        private List<int> _filterIDList = new List<int>();
+        private List<TagFilter> _activeFilter = new List<TagFilter>();
+        private readonly List<ComplexFilter> _customFilters;
         internal readonly VndbConnection Conn = new VndbConnection();
         internal readonly DbHelper DBConn;
-        private int _added;
+        private ushort _vnsAdded;
+        private ushort _vnsSkipped;
         private Func<ListedVN, bool> _currentList = x => true;
-        private bool _fullyLoaded;
-        private IEnumerable<int> _producerIDList;
-        private int _skipped;
-        private List<int> _useridList;
-        private IEnumerable<int> _vnIDList;
+        private bool _dontTriggerEvent;
+        //private bool _fullyLoaded;
         internal List<WrittenTag> PlainTags; //Contains all plain_tags, meaning the loaded tagdump.json
         internal ListedVN UpdatingVN;
         internal int UserID;
-        internal List<ListedVN> UserList;
+        internal List<ListedVN> URTList;
+
 
         private void Test(object sender, EventArgs e)
         {
@@ -75,6 +75,7 @@ namespace Happy_Search
             if (nitem == null) return;
             bool success;
             var vn = tileOLV.SelectedObject as ListedVN;
+            if (vn == null) return;
             var statusInt = -1;
             switch (nitem.OwnerItem.Text)
             {
@@ -122,11 +123,14 @@ namespace Happy_Search
             InitializeComponent();
             SplashScreen.SplashScreen.SetStatus("Initializing Controls...");
             {
+                _dontTriggerEvent = true;
                 ULStatusDropDown.SelectedIndex = 0;
                 customFilters.SelectedIndex = 0;
                 viewPicker.SelectedIndex = 0;
-                ULStatusDropDown.SelectedIndexChanged += Filter_ULStatus;
-                customFilters.SelectedIndexChanged += Filter_Custom;
+                URTToggleBox.SelectedIndex = 0;
+                UnreleasedToggleBox.SelectedIndex = 0;
+                BlacklistToggleBox.SelectedIndex = 0;
+                _dontTriggerEvent = false;
                 replyText.Text = "";
                 userListReply.Text = "";
                 resultLabel.Text = "";
@@ -191,13 +195,11 @@ https://github.com/FredTheBarber/VndbClient";
                 DBConn.Open();
                 _vnList = DBConn.GetAllTitles(UserID);
                 _producerList = DBConn.GetAllProducers();
-                UserList = DBConn.GetUserRelatedTitles(UserID);
+                URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
                 Debug.Print("VN Items= " + _vnList.Count);
                 Debug.Print("Producers= " + _producerList.Count);
-                Debug.Print("UserRelated Items= " + UserList.Count);
-                _vnIDList = _vnList.Select(x => x.VNID);
-                _producerIDList = _producerList.Select(x => x.ID);
+                Debug.Print("UserRelated Items= " + URTList.Count);
                 var producerFilterSource = new AutoCompleteStringCollection();
                 producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
                 ProducerFilterBox.AutoCompleteCustomSource = producerFilterSource;
@@ -213,10 +215,12 @@ https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SplashScreen.SetStatus("Loading Custom Filters...");
             {
-                _customFilters = File.Exists(CustomfiltersXml)
-                    ? XmlHelper.FromXmlFile<List<ComplexFilter>>(CustomfiltersXml)
-                    : new List<ComplexFilter>();
+                MainXml xml = File.Exists(MainXmlFile) ? XmlHelper.FromXmlFile<MainXml>(MainXmlFile) : new MainXml();
+                _customFilters = xml.ComplexFilters;
                 foreach (var filter in _customFilters) customFilters.Items.Add(filter.Name);
+                URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleFunc;
+                UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleFunc;
+                BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleFunc;
             }
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
             InitAPIConnection();
@@ -249,9 +253,16 @@ https://github.com/FredTheBarber/VndbClient";
             }
         }
 
+        private void ShowProducerTitles(object sender, EventArgs e)
+        {
+            var vn = tileOLV.SelectedObject as ListedVN;
+            if (vn == null) return;
+            ProducerFilterBox.Text = vn.Producer;
+            Filter_Producer(null, new KeyEventArgs(Keys.Enter));
+        }
         private void UpdateUserStats()
         {
-            if (!UserList.Any())
+            if (!URTList.Any())
             {
                 ulstatsall.Text = @"None";
                 ulstatsul.Text = @"-";
@@ -265,7 +276,7 @@ https://github.com/FredTheBarber/VndbClient";
             var wlCount = 0;
             var vlCount = 0;
             double cumulativeScore = 0;
-            foreach (var item in UserList)
+            foreach (var item in URTList)
             {
                 if (item.ULStatus.Length > 0) ulCount++;
                 if (item.WLStatus.Length > 0) wlCount++;
@@ -273,11 +284,11 @@ https://github.com/FredTheBarber/VndbClient";
                 vlCount++;
                 cumulativeScore += item.Vote;
             }
-            ulstatsall.Text = UserList.Count.ToString();
+            ulstatsall.Text = URTList.Count.ToString();
             ulstatsul.Text = ulCount.ToString();
             ulstatswl.Text = wlCount.ToString();
             ulstatsvl.Text = vlCount.ToString();
-            ulstatsavs.Text = (cumulativeScore/vlCount).ToString("#.##");
+            ulstatsavs.Text = (cumulativeScore / vlCount).ToString("#.##");
             DisplayCommonTagsULStats(null, null);
         }
 
@@ -312,6 +323,11 @@ https://github.com/FredTheBarber/VndbClient";
         #region Get User-Related Titles
 
         //Get user's user/wish/votelists from VNDB
+        /// <summary>
+        /// Get user's userlist, wishlist and votelist from VNDB.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void UpdateURTButtonClick(object sender, EventArgs e)
         {
             if (UserID < 1)
@@ -319,17 +335,14 @@ https://github.com/FredTheBarber/VndbClient";
                 WriteText(userListReply, Resources.set_userid_first);
                 return;
             }
-            DBConn.Open();
-            _useridList = DBConn.GetUserRelatedIDs(UserID);
-            DBConn.Close();
             var askBox =
                 MessageBox.Show(
-                    $@"This may take a while depending on how many titles are in your lists.
+                    $@"This may take a while depending on how many titles are in your lists,
+especially if this is the first time.
 Are you sure?
 
-You currently have {_useridList
-                        .Count} items in the local database, they can
-be displayed by clicking the User Related Titles (URT) filter below.",
+You currently have {URTList.Count} items in the local database, they can
+be displayed by clicking the User Related Titles (URT) filter.",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
             await UpdateURT();
@@ -339,13 +352,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private async Task UpdateURT()
         {
             if (UserID < 1) return;
-            DBConn.Open();
-            _useridList = DBConn.GetUserRelatedIDs(UserID);
-            DBConn.Close();
-            Debug.Print($"Starting GetUserRelatedTitles for {UserID}, previously had {_useridList.Count} titles.");
-            await GetUserList();
-            await GetWishList();
-            await GetVoteList();
+            Debug.Print($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
+            var userIDList = URTList.Select(x => x.VNID).ToList();
+            userIDList = await GetUserList(userIDList);
+            userIDList = await GetWishList(userIDList);
+            await GetVoteList(userIDList);
             await GetRemainingTitles();
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
@@ -354,7 +365,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             var favprolist = new List<ListedProducer>();
             foreach (ListedProducer producer in olFavoriteProducers.Objects)
             {
-                ListedVN[] producerVNs = UserList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+                ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
                 double userDropRate = -1;
                 double userAverageVote = -1;
                 if (producerVNs.Any())
@@ -363,35 +374,37 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userDropRate = finishedCount + droppedCount != 0
-                        ? (double) droppedCount/(droppedCount + finishedCount)
+                        ? (double)droppedCount / (droppedCount + finishedCount)
                         : -1;
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 }
                 favprolist.Add(new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded,
-                    DateTime.UtcNow, producer.ID, userAverageVote, (int) Math.Round(userDropRate*100)));
+                    DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             DBConn.Open();
             DBConn.InsertFavoriteProducers(favprolist, UserID);
             DBConn.Close();
             tileOLV.Sort(tileColumnDate, SortOrder.Descending);
             UpdateUserStats();
-            var ulCount = UserList.Count;
+            var ulCount = URTList.Count;
             if (ulCount > 0) WriteText(userListReply, $"Found {ulCount} titles.");
             else WriteError(userListReply, Resources.no_results);
         }
 
-        private async Task GetUserList()
+        /// <summary>
+        /// Get user's userlist from VNDB, add titles that aren't in local db already.
+        /// </summary>
+        /// <param name="userIDList">list of title IDs (avoids duplicate fetching)</param>
+        /// <returns>list of title IDs (avoids duplicate fetching)</returns>
+        private async Task<List<int>> GetUserList(List<int> userIDList)
         {
             Debug.Print("Starting GetUserList");
-            DBConn.Open();
-            _useridList = DBConn.GetUserRelatedIDs(UserID);
-            DBConn.Close();
             string userListQuery = $"get vnlist basic (uid = {UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
             var result = await TryQuery(userListQuery, Resources.gul_query_error, userListReply);
-            if (!result) return;
+            if (!result) return userIDList;
             var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
-            if (ulRoot.Num == 0) return;
+            if (ulRoot.Num == 0) return userIDList;
             List<UserListItem> ulList = ulRoot.Items; //make list of vns in list
             var pageNo = 1;
             var moreResults = ulRoot.More;
@@ -400,7 +413,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 pageNo++;
                 string userListQuery2 = $"get vnlist basic (uid = {UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error, userListReply);
-                if (!moreResult) return;
+                if (!moreResult) return userIDList;
                 var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
                 ulList.AddRange(ulMoreRoot.Items);
                 moreResults = ulMoreRoot.More;
@@ -408,23 +421,21 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             DBConn.Open();
             foreach (var item in ulList)
             {
-                DBConn.UpsertUserList(UserID, item, _useridList.Contains(item.VN));
-                if (!_useridList.Contains(item.VN)) _useridList.Add(item.VN);
+                DBConn.UpsertUserList(UserID, item, userIDList.Contains(item.VN));
+                if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
             DBConn.Close();
+            return userIDList;
         }
 
-        private async Task GetWishList()
+        private async Task<List<int>> GetWishList(List<int> userIDList)
         {
             Debug.Print("Starting GetWishList");
-            DBConn.Open();
-            _useridList = DBConn.GetUserRelatedIDs(UserID);
-            DBConn.Close();
             string wishListQuery = $"get wishlist basic (uid = {UserID} ) {{\"results\":100}}";
             var result = await TryQuery(wishListQuery, Resources.gwl_query_error, userListReply);
-            if (!result) return;
+            if (!result) return userIDList;
             var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
-            if (wlRoot.Num == 0) return;
+            if (wlRoot.Num == 0) return userIDList;
             List<WishListItem> wlList = wlRoot.Items; //make list of vn in list
             var pageNo = 1;
             var moreResults = wlRoot.More;
@@ -433,7 +444,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 pageNo++;
                 string wishListQuery2 = $"get wishlist basic (uid = {UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error, userListReply);
-                if (!moreResult) return;
+                if (!moreResult) return userIDList;
                 var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
                 wlList.AddRange(wlMoreRoot.Items);
                 moreResults = wlMoreRoot.More;
@@ -441,23 +452,21 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             DBConn.Open();
             foreach (var item in wlList)
             {
-                DBConn.UpsertWishList(UserID, item, _useridList.Contains(item.VN));
-                if (!_useridList.Contains(item.VN)) _useridList.Add(item.VN);
+                DBConn.UpsertWishList(UserID, item, userIDList.Contains(item.VN));
+                if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
             DBConn.Close();
+            return userIDList;
         }
 
-        private async Task GetVoteList()
+        private async Task<List<int>> GetVoteList(List<int> userIDList)
         {
             Debug.Print("Starting GetVoteList");
-            DBConn.Open();
-            _useridList = DBConn.GetUserRelatedIDs(UserID);
-            DBConn.Close();
             string voteListQuery = $"get votelist basic (uid = {UserID} ) {{\"results\":100}}";
             var result = await TryQuery(voteListQuery, Resources.gvl_query_error, userListReply);
-            if (!result) return;
+            if (!result) return userIDList;
             var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
-            if (vlRoot.Num == 0) return;
+            if (vlRoot.Num == 0) return userIDList;
             List<VoteListItem> vlList = vlRoot.Items; //make list of vn in list
             var pageNo = 1;
             var moreResults = vlRoot.More;
@@ -466,7 +475,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 pageNo++;
                 string voteListQuery2 = $"get votelist basic (uid = {UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error, userListReply);
-                if (!moreResult) return;
+                if (!moreResult) return userIDList;
                 var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
                 vlList.AddRange(vlMoreRoot.Items);
                 moreResults = vlMoreRoot.More;
@@ -474,10 +483,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             DBConn.Open();
             foreach (var item in vlList)
             {
-                DBConn.UpsertVoteList(UserID, item, _useridList.Contains(item.VN));
-                if (!_useridList.Contains(item.VN)) _useridList.Add(item.VN);
+                DBConn.UpsertVoteList(UserID, item, userIDList.Contains(item.VN));
+                if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
             DBConn.Close();
+            return userIDList;
         }
 
         private async Task GetRemainingTitles()
@@ -513,14 +523,14 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
                 return;
             }
-            _added = 0;
-            _skipped = 0;
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
             string vnInfoQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{\"results\":25}}";
             var result = await TryQuery(vnInfoQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            foreach (var vnid in vnItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText);
+            await GetMultipleVN(vnItems.Select(x => x.ID), replyText);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -531,11 +541,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                foreach (var vnid in vnMoreItems.Select(x => x.ID)) await GetSingleVN(vnid, replyText, false, true, true);
+                await GetMultipleVN(vnMoreItems.Select(x => x.ID), replyText, true);
                 vnItems.AddRange(vnMoreItems);
                 moreResults = vnMoreRoot.More;
             }
-            WriteText(replyText, $"Found {_added+_skipped} VNs for, {_added} added, {_skipped} skipped.");
+            WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} VNs for, {_vnsAdded} added, {_vnsSkipped} skipped.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
             RefreshList();
@@ -564,8 +574,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTime}");
             ReloadLists();
             _currentList = x => x.RelDate.StartsWith(yearBox.Text);
-            _added = 0;
-            _skipped = 0;
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
             string vnInfoQuery =
                 $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
             var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
@@ -589,7 +599,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
             var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
             WriteText(replyText,
-                $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_added} added, {_skipped} skipped.");
+                $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
             RefreshList();
         }
 
@@ -640,8 +650,16 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             LoadFavoriteProducerList();
         }
 
+        /// <summary>
+        /// Get titles developed/published by producer.
+        /// </summary>
+        /// <param name="producer">Producer whose titles should be found</param>
+        /// <param name="replyLabel">Label that should receive reply</param>
+        /// <param name="updateAll">Should already known titles be updated as well?</param>
+        /// <returns></returns>
         private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool updateAll = false)
         {
+            int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
             Debug.Print($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{\"results\":25}}";
             var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel);
@@ -668,9 +686,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             Debug.Print($"Found {producerIDList.Count} titles.");
             foreach (var vnid in producerIDList)
             {
-                if (_vnIDList.Contains(vnid)) _skipped++;
-                else _added++;
-                if (!updateAll && _vnIDList.Contains(vnid)) continue;
+                if (vnIDList.Contains(vnid)) _vnsSkipped++;
+                else _vnsAdded++;
+                if (!updateAll && vnIDList.Contains(vnid)) continue;
                 await UpdateProducerVN(vnid, producer.ID);
             }
             DBConn.Open();
@@ -723,12 +741,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 MessageBox.Show($"Are you sure you wish to reload {vnCount}+ VNs?\nThis may take a while...",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            _added = 0;
-            _skipped = 0;
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
             foreach (ListedProducer producer in olFavoriteProducers.Objects)
                 await GetProducerTitles(producer, prodReply, true);
             SetOLV();
-            WriteText(prodReply, Resources.update_fp_titles_success + $" ({_added} new titles)");
+            WriteText(prodReply, Resources.update_fp_titles_success + $" ({_vnsAdded} new titles)");
         }
 
         private void ShowSelectedProducerVNs(object sender, EventArgs e)
@@ -739,7 +757,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 return;
             }
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.SelectedObjects
-                select producer.Name;
+                                           select producer.Name;
             _currentList = vn => prodList.Contains(vn.Producer);
             RefreshList();
         }
@@ -781,7 +799,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void FormatRowFavoriteProducers(object sender, FormatRowEventArgs e)
         {
-            var listedProducer = (ListedProducer) e.Model;
+            var listedProducer = (ListedProducer)e.Model;
             if (listedProducer.UserAverageVote < 1) e.Item.GetSubItem(2).Text = "";
             if (listedProducer.UserDropRate < 0) e.Item.GetSubItem(3).Text = "";
             if (listedProducer.NumberOfTitles == -1) e.Item.GetSubItem(1).Text = "";
@@ -793,7 +811,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void TagFilterAdded(object sender, EventArgs e)
         {
-            var checkbox = (CheckBox) sender;
+            var checkbox = (CheckBox)sender;
             //Filter Added
             if (!checkbox.Checked) return;
             var tagName = checkbox.Text.Split('(').First().Trim();
@@ -812,16 +830,26 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void SaveCustomFilter(object sender, EventArgs e)
         {
-            if (filterNameBox.Text.Length == 0)
+            var filterName = filterNameBox.Text;
+            if (filterName.Length == 0)
             {
                 WriteText(filterReply, "Enter name of filter.");
                 return;
             }
-            //
-            customFilters.Items.Add(filterNameBox.Text);
-            _customFilters.Add(new ComplexFilter(filterNameBox.Text, _activeFilter));
-            filterNameBox.Text = "";
-            //serialize custom filters
+            var customFilter = _customFilters.Find(x => x.Name.Equals(filterName));
+            if (customFilter != null)
+            {
+                var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?", Resources.ask_overwrite, MessageBoxButtons.YesNo);
+                if (askBox != DialogResult.Yes) return;
+                customFilter.Filters = _activeFilter;
+                customFilter.Updated = DateTime.UtcNow;
+                SaveCustomFiltersXML();
+                WriteText(filterReply, Resources.filter_saved);
+                customFilters.SelectedIndex = customFilters.Items.IndexOf(filterName);
+                return;
+            }
+            customFilters.Items.Add(filterName);
+            _customFilters.Add(new ComplexFilter(filterName, _activeFilter));
             SaveCustomFiltersXML();
             WriteText(filterReply, Resources.filter_saved);
             customFilters.SelectedIndex = customFilters.Items.Count - 1;
@@ -893,12 +921,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         {
             //clear old labels
             var oldCount = 0;
-            var oldLabel = (CheckBox) Controls.Find(FilterLabel + 0, true).FirstOrDefault();
+            var oldLabel = (CheckBox)Controls.Find(FilterLabel + 0, true).FirstOrDefault();
             while (oldLabel != null)
             {
                 oldLabel.Dispose();
                 oldCount++;
-                oldLabel = (CheckBox) Controls.Find(FilterLabel + oldCount, true).FirstOrDefault();
+                oldLabel = (CheckBox)Controls.Find(FilterLabel + oldCount, true).FirstOrDefault();
             }
             if (clear)
             {
@@ -912,7 +940,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 var filterLabel = new CheckBox
                 {
                     AutoSize = true,
-                    Location = new Point(264, 44 + count*22),
+                    Location = new Point(264, 44 + count * 22),
                     Name = FilterLabel + count,
                     Size = new Size(35, 13),
                     Text = $"{filter.Name} (Total: {filter.Titles})",
@@ -929,7 +957,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private void TagFilterChanged(object sender, EventArgs e)
         {
             if (tileOLV.Items.Count == 0) return;
-            var checkbox = (CheckBox) sender;
+            var checkbox = (CheckBox)sender;
             //Filter Added
             if (checkbox.Checked)
             {
@@ -957,8 +985,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 WriteWarning(filterReply, "Connection busy with previous request...", true);
                 return;
             }
-            var message = Resources.update_custom_filter;
-            var askBox = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
             await UpdateFilterResults(filterReply);
         }
@@ -966,8 +993,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private async Task UpdateFilterResults(Label replyLabel)
         {
             ReloadLists();
-            _added = 0;
-            _skipped = 0;
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
             IEnumerable<string> betterTags = _activeFilter.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{\"results\":25}}";
@@ -993,7 +1020,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
             ReloadLists();
             tileOLV.SetObjects(_vnList.Where(VNMatchesFilter));
-            WriteText(replyLabel, $"Update complete, added {_added} and skipped {_skipped} titles.");
+            WriteText(replyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
         }
 
         #endregion
@@ -1002,7 +1029,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private async void LogQuestion(object sender, KeyPressEventArgs e) //send a command direct to server
         {
-            if (e.KeyChar != (char) Keys.Enter) return;
+            if (e.KeyChar != (char)Keys.Enter) return;
             e.Handled = true;
             await Conn.QueryAsync(questionBox.Text);
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
@@ -1038,10 +1065,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
             _producerList = DBConn.GetAllProducers();
-            UserList = DBConn.GetUserRelatedTitles(UserID);
+            URTList = DBConn.GetUserRelatedTitles(UserID);
             DBConn.Close();
-            _vnIDList = _vnList.Select(x => x.VNID);
-            _producerIDList = _producerList.Select(x => x.ID);
             LoadFavoriteProducerList();
         }
 
@@ -1052,12 +1077,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             tileOLV.SetObjects(_vnList.Where(_currentList));
         }
 
-        private void FormMain_Enter(object sender, EventArgs e)
+        /*private void FormMain_Enter(object sender, EventArgs e)
         {
             if (_fullyLoaded) return;
             _fullyLoaded = true;
             Activate();
-        }
+        }*/
 
         internal static void WriteText(Label label, string message)
         {
@@ -1087,7 +1112,8 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void OLVChangeView(object sender, EventArgs e)
         {
-            var cb = (ComboBox) sender;
+            if (_dontTriggerEvent) return;
+            var cb = (ComboBox)sender;
             switch (cb.SelectedIndex)
             {
                 case 0:
@@ -1122,61 +1148,61 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             voteToolStripMenuItem.Checked = false;
 
             //set new
-            var vn = (ListedVN) model;
+            var vn = (ListedVN)model;
             userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
             wishlistToolStripMenuItem.Checked = !vn.WLStatus.Equals("");
             voteToolStripMenuItem.Checked = vn.Vote > 0;
             switch (vn.ULStatus)
             {
                 case "":
-                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
                     break;
                 case "Unknown":
-                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
                     break;
                 case "Playing":
-                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
                     break;
                 case "Finished":
-                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
                     break;
                 case "Stalled":
-                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
                     break;
                 case "Dropped":
-                    ((ToolStripMenuItem) userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
                     break;
             }
             switch (vn.WLStatus)
             {
                 case "":
-                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
                     break;
                 case "High":
-                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
                     break;
                 case "Medium":
-                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
                     break;
                 case "Low":
-                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
                     break;
                 case "Blacklist":
-                    ((ToolStripMenuItem) wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
                     break;
             }
             if (vn.Vote > 0)
             {
-                var vote = (int) Math.Floor(vn.Vote);
-                ((ToolStripMenuItem) voteToolStripMenuItem.DropDownItems[vote]).Checked = true;
+                var vote = (int)Math.Floor(vn.Vote);
+                ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[vote]).Checked = true;
             }
             else
-                ((ToolStripMenuItem) voteToolStripMenuItem.DropDownItems[0]).Checked = true;
+                ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
 
             return ContextMenuVN;
         }
 
-        private static bool VNMatchesFilter(ListedVN vn)
+        private bool VNMatchesFilter(ListedVN vn)
         {
             int[] vnTags = StringToTags(vn.Tags).Select(x => x.ID).ToArray();
             var filtersMatched = 0;
@@ -1211,7 +1237,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         internal static void FadeLabel(Label tLabel) //start timer to make label invisible
         {
-            var fadeTimer = new Timer {Interval = LabelFadeTime};
+            var fadeTimer = new Timer { Interval = LabelFadeTime };
             fadeTimer.Tick += (sender, e) =>
             {
                 tLabel.Text = "";
@@ -1224,7 +1250,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private void FormatRow(object sender, FormatRowEventArgs e)
         {
             if (e.ListView.View != View.Details) return;
-            var listedVN = (ListedVN) e.Model;
+            var listedVN = (ListedVN)e.Model;
             switch (listedVN.ULStatus)
             {
                 case "Finished":
@@ -1261,13 +1287,13 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void DisplayCommonTagsULStats(object sender, EventArgs e)
         {
-            if (!UserList.Any())
+            if (!URTList.Any())
             {
                 var labelCount = 1;
                 while (labelCount <= 10)
                 {
                     var name = TagTypeUrt + labelCount;
-                    var mctULLabel = (Label) Controls.Find(name, true).First();
+                    var mctULLabel = (Label)Controls.Find(name, true).First();
                     mctULLabel.Visible = false;
                     labelCount++;
                 }
@@ -1276,7 +1302,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             //userlist stats - most common tags
             if (sender != null)
             {
-                var checkBox = (CheckBox) sender;
+                var checkBox = (CheckBox)sender;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC2":
@@ -1298,15 +1324,15 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 while (labelCount <= 10)
                 {
                     var name = TagTypeUrt + labelCount;
-                    var mctULLabel = (Label) Controls.Find(name, true).First();
+                    var mctULLabel = (Label)Controls.Find(name, true).First();
                     mctULLabel.Visible = false;
                     labelCount++;
                 }
                 return;
             }
             var ulTagList = new Dictionary<int, int>();
-            if (UserList.Count == 0) return;
-            foreach (var vn in UserList)
+            if (URTList.Count == 0) return;
+            foreach (var vn in URTList)
             {
                 if (!vn.Tags.Any()) continue;
                 List<TagItem> tags = StringToTags(vn.Tags);
@@ -1335,7 +1361,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             while (p < max)
             {
                 var name = TagTypeUrt + p;
-                var mctULLabel = (Label) Controls.Find(name, true).First();
+                var mctULLabel = (Label)Controls.Find(name, true).First();
                 var tagName = PlainTags.Find(item => item.ID == ulProdlistlist[p - 1].Key).Name;
                 mctULLabel.Text = $"{tagName} ({ulProdlistlist[p - 1].Value})";
                 mctULLabel.Visible = true;
@@ -1344,7 +1370,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             while (max <= 10)
             {
                 var name = TagTypeUrt + max;
-                var mctULLabel = (Label) Controls.Find(name, true).First();
+                var mctULLabel = (Label)Controls.Find(name, true).First();
                 mctULLabel.Visible = false;
                 max++;
             }
@@ -1354,7 +1380,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         {
             if (sender != null)
             {
-                var checkBox = (CheckBox) sender;
+                var checkBox = (CheckBox)sender;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
@@ -1377,7 +1403,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 return;
             }
             List<KeyValuePair<int, int>> toptentags = null;
-            var bw = new BackgroundWorker {WorkerReportsProgress = true, WorkerSupportsCancellation = true};
+            var bw = new BackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
             bw.DoWork += delegate
             {
                 //vn list - most common tags
@@ -1385,11 +1411,11 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 var vnNo = 1;
                 foreach (var vn in vnlist)
                 {
-                    var progressPercent = (double) vnNo/vnCount*100;
+                    var progressPercent = (double)vnNo / vnCount * 100;
                     vnNo++;
                     try
                     {
-                        bw.ReportProgress((int) Math.Floor(progressPercent));
+                        bw.ReportProgress((int)Math.Floor(progressPercent));
                     }
                     catch
                     {
@@ -1421,7 +1447,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 toptentags = prodlistlist.Take(10).ToList();
             };
             bw.ProgressChanged +=
-                delegate(object o, ProgressChangedEventArgs args)
+                delegate (object o, ProgressChangedEventArgs args)
                 {
                     mctLoadingLabel.Text = $"{args.ProgressPercentage}% Completed";
                 };
@@ -1433,7 +1459,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 {
                     var mctIndex = mctNo - 1;
                     var name = TagTypeAll + mctNo;
-                    var cb = (CheckBox) Controls.Find(name, true).First();
+                    var cb = (CheckBox)Controls.Find(name, true).First();
                     var tagName = PlainTags.Find(item => item.ID == toptentags[mctIndex].Key).Name;
                     cb.Text = $"{tagName} ({toptentags[mctIndex].Value})";
                     cb.Checked = false;
@@ -1522,9 +1548,9 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void ObjectList_SelectedIndexChanged(object sender, CellClickEventArgs e) //display info on selected VN
         {
-            var listView = (ObjectListView) sender;
+            var listView = (ObjectListView)sender;
             if (listView.SelectedIndices.Count <= 0) return;
-            var vnItem = (ListedVN) listView.SelectedObjects[0];
+            var vnItem = (ListedVN)listView.SelectedObjects[0];
             DBConn.Open();
             vnItem = DBConn.GetSingleVN(vnItem.VNID, UserID);
             DBConn.Close();
@@ -1637,14 +1663,14 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         private void tileOLV_Resize(object sender, EventArgs e)
         {
             var width = tileOLV.Width - 24;
-            var s = (int) Math.Round((double) width/230);
+            var s = (int)Math.Round((double)width / 230);
             if (s == 0) return;
-            tileOLV.TileSize = new Size(width/s, 300);
+            tileOLV.TileSize = new Size(width / s, 300);
         }
 
-        private static void SaveCustomFiltersXML()
+        private void SaveCustomFiltersXML()
         {
-            XmlHelper.ToXmlFile(_customFilters, CustomfiltersXml);
+            XmlHelper.ToXmlFile(new MainXml(_customFilters, Toggles), MainXmlFile);
         }
 
         private void RefreshList()
@@ -1707,7 +1733,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
             var tagName = tagSearchBox.Text;
             AddFilterTag(tagName);
-            var s = (Control) sender;
+            var s = (Control)sender;
             s.Text = "";
         }
 
@@ -1718,7 +1744,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
         private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
         {
-            if (e.KeyChar == (char) Keys.Enter)
+            if (e.KeyChar == (char)Keys.Enter)
             {
                 e.Handled = true;
                 VNSearch(sender, e);
@@ -1823,7 +1849,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     BorderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
                     HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
                 }
-                DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem) e.Item);
+                DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem)e.Item);
 
                 // Finally render the buffered graphics
                 buffered.Render();
@@ -1868,36 +1894,36 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                     var id = vn.VNID.ToString();
                     var imageUrl = vn.ImageURL;
                     var ext = Path.GetExtension(imageUrl);
-                    photoRect.Height = (int) (itemBounds.Height - 3*size.Height - spacing*2);
-                    var rectratio = (double) photoRect.Width/photoRect.Height;
+                    photoRect.Height = (int)(itemBounds.Height - 3 * size.Height - spacing * 2);
+                    var rectratio = (double)photoRect.Width / photoRect.Height;
                     var photoFile = string.Format($"vnImages\\{id}{ext}");
                     if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoRect);
                     else if (File.Exists(photoFile))
                     {
                         var photo = Image.FromFile(photoFile);
-                        var photoratio = (double) photo.Width/photo.Height;
+                        var photoratio = (double)photo.Width / photo.Height;
                         //zoom in image to occupy whole area
                         //Alternately show whole image but do not occupy whole area
                         if (photoratio > rectratio) //if image is wider
                         {
-                            var shrinkratio = (double) photo.Width/photoRect.Width;
+                            var shrinkratio = (double)photo.Width / photoRect.Width;
                             var newWidth = photoRect.Width;
-                            var newHeight = (int) Math.Floor(photo.Height/shrinkratio);
+                            var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
                             var newX = photoRect.X;
-                            var hny = (double) newHeight/2;
-                            var hph = (double) photoRect.Height/2;
-                            var newY = photoRect.Y + (int) Math.Floor(hph) - (int) Math.Floor(hny);
+                            var hny = (double)newHeight / 2;
+                            var hph = (double)photoRect.Height / 2;
+                            var newY = photoRect.Y + (int)Math.Floor(hph) - (int)Math.Floor(hny);
                             var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
                             g.DrawImage(photo, newPhotoRect);
                         }
                         else //if image is taller
                         {
-                            var shrinkratio = (double) photo.Height/photoRect.Height;
-                            var newWidth = (int) Math.Floor(photo.Width/shrinkratio);
+                            var shrinkratio = (double)photo.Height / photoRect.Height;
+                            var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
                             var newHeight = photoRect.Height;
-                            var hnx = (double) newWidth/2;
-                            var hpw = (double) photoRect.Width/2;
-                            var newX = photoRect.X + (int) Math.Floor(hpw) - (int) Math.Floor(hnx);
+                            var hnx = (double)newWidth / 2;
+                            var hpw = (double)photoRect.Width / 2;
+                            var newX = photoRect.X + (int)Math.Floor(hpw) - (int)Math.Floor(hnx);
                             var newY = photoRect.Y;
                             var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
                             g.DrawImage(photo, newPhotoRect);
@@ -1925,7 +1951,7 @@ be displayed by clicking the User Related Titles (URT) filter below.",
                 textBoxRect.Y += size.Height;
                 g.DrawString(producer.GetStringValue(rowObject), font, TextBrush, textBoxRect, fmt);
                 textBoxRect.Y += size.Height;
-                string[] parts = {"", "", ""};
+                string[] parts = { "", "", "" };
                 if (!ulStatus.GetStringValue(rowObject).Equals(""))
                 {
                     parts[0] = "Userlist: ";
@@ -1961,12 +1987,12 @@ be displayed by clicking the User Related Titles (URT) filter below.",
 
             public static Image ScaleImage(Image image, int maxWidth, int maxHeight)
             {
-                var ratioX = (double) maxWidth/image.Width;
-                var ratioY = (double) maxHeight/image.Height;
+                var ratioX = (double)maxWidth / image.Width;
+                var ratioY = (double)maxHeight / image.Height;
                 var ratio = Math.Min(ratioX, ratioY);
 
-                var newWidth = (int) (image.Width*ratio);
-                var newHeight = (int) (image.Height*ratio);
+                var newWidth = (int)(image.Width * ratio);
+                var newHeight = (int)(image.Height * ratio);
 
                 var newImage = new Bitmap(newWidth, newHeight);
 
@@ -1977,6 +2003,23 @@ be displayed by clicking the User Related Titles (URT) filter below.",
             }
         }
 
+        [Serializable, XmlRoot("MainXml")]
+        public class MainXml
+        {
+            public List<ComplexFilter> ComplexFilters { get; set; }
+            public ToggleArray XmlToggles { get; set; }
+
+            public MainXml()
+            {
+                ComplexFilters = new List<ComplexFilter>();
+                XmlToggles = new ToggleArray();
+            }
+            public MainXml(List<ComplexFilter> customFilters, ToggleArray xmlToggleArray)
+            {
+                ComplexFilters = customFilters;
+                XmlToggles = xmlToggleArray;
+            }
+        }
 
         internal enum Command
         {
@@ -1993,5 +2036,6 @@ be displayed by clicking the User Related Titles (URT) filter below.",
         }
 
         #endregion
+
     }
 }

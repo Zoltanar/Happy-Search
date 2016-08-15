@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
 
@@ -9,6 +10,8 @@ namespace Happy_Search
 {
     partial class FormMain
     {
+        private static readonly ToggleArray Toggles = new ToggleArray();
+
         /// <summary>
         /// Display all Visual Novels in local database.
         /// </summary>
@@ -16,11 +19,26 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_All(object sender, EventArgs e)
         {
-            tileOLV.ModelFilter = null;
+            Filter_ClearOther();
             _currentList = x => true;
             RefreshList();
         }
 
+        private void Filter_ClearOther(bool clearFilterTags = true)
+        {
+            _dontTriggerEvent = true;
+            customFilters.SelectedIndex = 0;
+            ULStatusDropDown.SelectedIndex = 0;
+            if (clearFilterTags)
+            {
+                DisplayFilterTags(true);
+                deleteCustomFilterButton.Enabled = false;
+                updateCustomFilterButton.Enabled = false;
+                filterNameBox.Text = "";
+            }
+            ProducerFilterBox.Text = "";
+            _dontTriggerEvent = false;
+        }
         /// <summary>
         /// Display VNs by producers in Favorite Producers list.
         /// </summary>
@@ -28,6 +46,8 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_FavoriteProducers(object sender, EventArgs e)
         {
+            if (_dontTriggerEvent) return;
+            Filter_ClearOther();
             if (olFavoriteProducers.Items.Count == 0)
             {
                 WriteError(replyText, "No Favorite Producers.", true);
@@ -46,6 +66,8 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_Wishlist(object sender, EventArgs e)
         {
+            if (_dontTriggerEvent) return;
+            Filter_ClearOther();
             _currentList = x => !x.WLStatus.Equals("");
             RefreshList();
         }
@@ -57,6 +79,7 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_ULStatus(object sender, EventArgs e)
         {
+            if (_dontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {
@@ -79,6 +102,11 @@ namespace Happy_Search
                     _currentList = x => x.ULStatus.Equals("Dropped");
                     break;
             }
+            var value = dropdownlist.SelectedIndex;
+            Filter_ClearOther();
+            _dontTriggerEvent = true;
+            ULStatusDropDown.SelectedIndex = value;
+            _dontTriggerEvent = false;
             RefreshList();
         }
 
@@ -89,6 +117,7 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_Custom(object sender, EventArgs e)
         {
+            if (_dontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {
@@ -104,10 +133,16 @@ namespace Happy_Search
                     deleteCustomFilterButton.Enabled = true;
                     updateCustomFilterButton.Enabled = true;
                     _activeFilter = _customFilters[dropdownlist.SelectedIndex - 2]?.Filters;
+                    filterNameBox.Text = _customFilters[dropdownlist.SelectedIndex - 2].Name;
                     DisplayFilterTags();
                     _currentList = VNMatchesFilter;
                     break;
             }
+            var value = dropdownlist.SelectedIndex;
+            Filter_ClearOther(false);
+            _dontTriggerEvent = true;
+            dropdownlist.SelectedIndex = value;
+            _dontTriggerEvent = false;
             RefreshList();
         }
 
@@ -160,8 +195,11 @@ namespace Happy_Search
         private void Filter_Producer(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
-            if (!ProducerFilterBox.Text.Any()) return;
-            _currentList = x => x.Producer.Equals(ProducerFilterBox.Text, StringComparison.InvariantCultureIgnoreCase);
+            var producerName = ProducerFilterBox.Text;
+            if (!producerName.Any()) return;
+            Filter_ClearOther();
+            _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
+            ProducerFilterBox.Text = producerName;
             RefreshList();
         }
 
@@ -183,63 +221,11 @@ namespace Happy_Search
                 WriteError(replyText, "NYI (Producer not in local db)", true);
                 return;
             }
-            _added = 0;
-            _skipped = 0;
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
             await GetProducerTitles(producerItem, replyText);
-            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_added} titles.");
+            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
             RefreshList();
-        }
-
-        /// <summary>
-        /// Filter titles by blacklist status.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BlacklistToggle(object sender, EventArgs e)
-        {
-            //TODO change ThreeStateBox to ComboBox
-            Func<ListedVN, bool> function = x => true;
-            switch (BlacklistToggleBox.CheckState)
-            {
-                case CheckState.Unchecked:
-                    BlacklistToggleBox.Text = @"Hide Blacklisted";
-                    function = x => !x.WLStatus.Equals("Blacklist");
-                    break;
-                case CheckState.Indeterminate:
-                    BlacklistToggleBox.Text = @"Show Blacklisted";
-                    break;
-                case CheckState.Checked:
-                    BlacklistToggleBox.Text = @"Only Blacklisted";
-                    function = x => x.WLStatus.Equals("Blacklist");
-                    break;
-            }
-            ApplyToggleFilters(ToggleFilter.Blacklisted, function);
-        }
-
-        /// <summary>
-        /// Filter titles by released status.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void UnreleasedToggle(object sender, EventArgs e)
-        {
-            //TODO change ThreeStateBox to ComboBox
-            Func<ListedVN, bool> function = x => true;
-            switch (UnreleasedToggleBox.CheckState)
-            {
-                case CheckState.Unchecked:
-                    UnreleasedToggleBox.Text = @"Hide Unreleased";
-                    function = x => !CheckUnreleased(x.RelDate);
-                    break;
-                case CheckState.Indeterminate:
-                    UnreleasedToggleBox.Text = @"Show Unreleased";
-                    break;
-                case CheckState.Checked:
-                    UnreleasedToggleBox.Text = @"Only Unreleased";
-                    function = x => CheckUnreleased(x.RelDate);
-                    break;
-            }
-            ApplyToggleFilters(ToggleFilter.Unreleased, function);
         }
 
         /// <summary>
@@ -249,47 +235,130 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void URTToggle(object sender, EventArgs e)
         {
-            //TODO change ThreeStateBox to ComboBox
-            Func<ListedVN, bool> function = x => true;
-            switch (URTToggleBox.CheckState)
-            {
-                case CheckState.Unchecked:
-                    URTToggleBox.Text = @"Hide URT";
-                    function = x => UserList.Find(y => y.VNID == x.VNID) == null;
-                    break;
-                case CheckState.Indeterminate:
-                    URTToggleBox.Text = @"Show URT";
-                    break;
-                case CheckState.Checked:
-                    URTToggleBox.Text = @"Only URT";
-                    function = x => UserList.Find(y => y.VNID == x.VNID) != null;
-                    break;
-            }
-            ApplyToggleFilters(ToggleFilter.URT, function);
+            if (_dontTriggerEvent) return;
+            Toggles.URTToggleFunc = (ToggleSetting)URTToggleBox.SelectedIndex;
+            ApplyToggleFilters();
         }
 
         /// <summary>
-        /// Change filter and apply it to VN List.
+        /// Filter titles by released status.
         /// </summary>
-        /// <param name="toggleFilter">Filter that should be changed</param>
-        /// <param name="function">What the filter should be changed to</param>
-        private void ApplyToggleFilters(ToggleFilter toggleFilter, Func<ListedVN, bool> function)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void UnreleasedToggle(object sender, EventArgs e)
         {
-            _filters[(int)toggleFilter] = function;
-            tileOLV.ModelFilter = _filters.Any()
-                ? new ModelFilter(vn => _filters.Select(filter => filter((ListedVN)vn)).All(valid => valid))
-                : null;
+            if (_dontTriggerEvent) return;
+            Toggles.UnreleasedToggleFunc = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
+            ApplyToggleFilters();
+        }
+
+        /// <summary>
+        /// Filter titles by blacklist status.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BlacklistToggle(object sender, EventArgs e)
+        {
+            if (_dontTriggerEvent) return;
+            Toggles.BlacklistToggleFunc = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
+            ApplyToggleFilters();
+        }
+
+        /// <summary>
+        /// Get function for the specified filter.
+        /// </summary>
+        /// <param name="toggle">Which filter to get function from</param>
+        /// <returns>Function for specified filter</returns>
+        public Func<ListedVN, bool> GetFunc(ToggleFilter toggle)
+        {
+            var function = new Func<ListedVN, bool>(x => true);
+            switch (toggle)
+            {
+                case ToggleFilter.URT:
+                    switch (Toggles.URTToggleFunc)
+                    {
+                        case ToggleSetting.Show:
+                            return function;
+                        case ToggleSetting.Hide:
+                            return x => URTList.Find(y => y.VNID == x.VNID) == null;
+                        case ToggleSetting.Only:
+                            return x => URTList.Find(y => y.VNID == x.VNID) != null;
+                        default: return function;
+                    }
+                case ToggleFilter.Unreleased:
+                    switch (Toggles.UnreleasedToggleFunc)
+                    {
+                        case ToggleSetting.Show:
+                            return function;
+                        case ToggleSetting.Hide:
+                            return x => !CheckUnreleased(x.RelDate);
+                        case ToggleSetting.Only:
+                            return x => CheckUnreleased(x.RelDate);
+                        default: return function;
+                    }
+                case ToggleFilter.Blacklisted:
+                    switch (Toggles.BlacklistToggleFunc)
+                    {
+                        case ToggleSetting.Show:
+                            return function;
+                        case ToggleSetting.Hide:
+                            return x => !x.WLStatus.Equals("Blacklist");
+                        case ToggleSetting.Only:
+                            return x => x.WLStatus.Equals("Blacklist");
+                        default: return function;
+                    }
+                default:
+                    return function;
+            }
+        }
+
+        /// <summary>
+        /// Apply toggle filters to list.
+        /// </summary>
+        private void ApplyToggleFilters()
+        {
+            Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted) };
+            tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
             objectList_ItemsChanged(null, null);
+            XmlHelper.ToXmlFile(new MainXml(_customFilters, Toggles), MainXmlFile);
         }
 
         /// <summary>
         /// Specifies toggle filter
         /// </summary>
-        private enum ToggleFilter
+        public enum ToggleFilter
         {
             URT,
             Unreleased,
             Blacklisted
+        }
+
+        /// <summary>
+        /// Specifies toggle setting
+        /// </summary>
+        public enum ToggleSetting
+        {
+            Show,
+            Hide,
+            Only
+        }
+
+        /// <summary>
+        /// Class holding toggle filter settings.
+        /// </summary>
+        [Serializable, XmlRoot("ToggleArray")]
+        public class ToggleArray
+        {
+            public ToggleArray()
+            {
+                URTToggleFunc = 0;
+                UnreleasedToggleFunc = 0;
+                BlacklistToggleFunc = 0;
+            }
+            public ToggleSetting URTToggleFunc { get; set; }
+            public ToggleSetting UnreleasedToggleFunc { get; set; }
+            public ToggleSetting BlacklistToggleFunc { get; set; }
+
         }
     }
 }

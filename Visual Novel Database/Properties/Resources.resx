@@ -318,4 +318,7 @@ Are you sure?</value>
   <data name="usvn_query_error" xml:space="preserve">
     <value>UpdateSingleVN Query Error</value>
   </data>
+  <data name="ask_overwrite" xml:space="preserve">
+    <value>Do you wish to overwrite?</value>
+  </data>
 </root>
