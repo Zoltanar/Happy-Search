@@ -13,7 +13,6 @@ show vn relations and screenshots/anime etc
 add 'exclude tag' filters
 turn tag filters into OLV filter instead 
 button to upgrade old vns to newest version eg before imagensfw was added
-help buttons on each section with info
 handle resizing issues, controls anchoring and image stretching is slow
 
 
@@ -21,7 +20,8 @@ Incomplete
 ---------------
 make things pretty textured backgrounds
 split FormMain into partial class files
-Minimize globals by passing parameters - make added/skipped into passable parameters instead of global(maybe)
+Minimize globals by passing parameters - 'added/skipped' ushort instead of int
+help buttons on each section with info - favoriteproducers done
 
 
 Completed
@@ -58,12 +58,14 @@ verify existence of database
 make producerfilter case insensitive
 fix getyeartitles, messages wrong color and no newlines, skip yearlimit
 put list filters into own file
--
 change toggle checkboxes to comboboxes
 add "show producer VNs" to right click menu
 save 'toggle filters' under unified xml doc
 deselect custom filter on other filter
 allowed changing/overwriting custom filters 
+-
+put favorite producers stuff into own file
+made favorite producers help file
 
 Currently Not Possible
 -------------------------

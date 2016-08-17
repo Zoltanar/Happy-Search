@@ -86,11 +86,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
+    <Compile Include="FlexibleMessageBox.cs" />
     <Compile Include="FormMainAPIMethods.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMainFavoriteProducers.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormMainListFilters.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HtmlForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HtmlForm.Designer.cs">
+      <DependentUpon>HtmlForm.cs</DependentUpon>
     </Compile>
     <Compile Include="VndbConnection.cs" />
     <Compile Include="DBHelper.cs" />
@@ -173,14 +183,24 @@
     <None Include="Resources\38.gif" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="help\StyleSheet1.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\2013-06-Dark-Black-Wallpaper-Background-Dekstop.jpg" />
     <None Include="Resources\fb darklined full.png" />
     <None Include="Resources\no-image.bmp" />
     <None Include="Resources\nsfw-image.png" />
     <None Include="Resources\no-image.png" />
+    <Content Include="help\favoriteproducers.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Splash.JPG" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
