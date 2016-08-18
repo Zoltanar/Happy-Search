@@ -21,7 +21,7 @@ namespace Happy_Search
         {
             Filter_ClearOther();
             _currentList = x => true;
-            RefreshList();
+            RefreshVNList();
         }
 
         private void Filter_ClearOther(bool clearFilterTags = true)
@@ -56,7 +56,7 @@ namespace Happy_Search
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.Objects
                                            select producer.Name;
             _currentList = vn => prodList.Contains(vn.Producer);
-            RefreshList();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Happy_Search
             if (_dontTriggerEvent) return;
             Filter_ClearOther();
             _currentList = x => !x.WLStatus.Equals("");
-            RefreshList();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Happy_Search
             _dontTriggerEvent = true;
             ULStatusDropDown.SelectedIndex = value;
             _dontTriggerEvent = false;
-            RefreshList();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace Happy_Search
             _dontTriggerEvent = true;
             dropdownlist.SelectedIndex = value;
             _dontTriggerEvent = false;
-            RefreshList();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Happy_Search
             Filter_ClearOther();
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
             ProducerFilterBox.Text = producerName;
-            RefreshList();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -221,11 +221,13 @@ namespace Happy_Search
                 WriteError(replyText, "NYI (Producer not in local db)", true);
                 return;
             }
+            ReloadLists();
             _vnsAdded = 0;
             _vnsSkipped = 0;
             await GetProducerTitles(producerItem, replyText);
             WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
-            RefreshList();
+            ReloadLists();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -291,9 +293,9 @@ namespace Happy_Search
                         case ToggleSetting.Show:
                             return function;
                         case ToggleSetting.Hide:
-                            return x => !CheckUnreleased(x.RelDate);
+                            return x => !IsUnreleased(x.RelDate);
                         case ToggleSetting.Only:
-                            return x => CheckUnreleased(x.RelDate);
+                            return x => IsUnreleased(x.RelDate);
                         default: return function;
                     }
                 case ToggleFilter.Blacklisted:

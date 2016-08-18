@@ -7,11 +7,33 @@
 </head>
 <body>
     <h1>Favorite Producers</h1>
-    <p>This section allows you to add producers to a list in order to quickly filter titles based on the producers, such as:</p>
+    <p>This section allows you to add producers to a list in order to quickly filter titles based on the producers and provide features such as:</p>
     <ul>
-        <li>Display titles developed by producers</li>
+        <li>Display titles developed by your favorite producers</li>
         <li>Get your <a href="#averagevote">average vote</a> and <a href="#droprate">drop rate</a> on a producer's titles</li>
+        <li>Display upcoming titles by your favorite producers</li>
     </ul>
+    <p>Take note that in the context of this application, a title&#39;s producer is the <a href="#developer">developer.</a></p>
+    <br />
+    <h2>Buttons</h2>
+    <h3>Add Producers</h3>
+    <p>This will bring up a window where you can search for producers by name and add the selected ones to your list.</p>
+    <h3>Show VNs From Selected</h3>
+    <p>This will display all titles developed by the selected producers.</p>
+    <h3>Remove Selected</h3>
+    <p>This will remove the selected producers from your list.</p>
+    <h3 id="getnewproducertitles">Get New Producer Titles</h3>
+    <p>This will get all titles (by favorite producers) from VNDB that are not already in local database.</p>
+    <h3>Update All Producer Titles</h3>
+    <p>This will get all titles (by favorite producers) from VNDB including ones already in local database, it usually takes much longer than only getting new titles.</p>
+    <h3>Load Unloaded</h3>
+    <p>This is like <a href="#getnewproducertitles">Get New Producer Titles</a> but only goes through <a href="#loaded">unloaded</a> producers.</p>
+    <br />
+    <h2>Terms</h2>
+    <h3 id="developer">Developer</h3>
+    <p>
+        A title may have multiple releases, each with a different developer, in order to automatically choose a developer, it is determined to be the developer of the first non-trial release. 
+    </p>
     <h3 id="averagevote">Average Vote</h3>
     <p>
         This is the average score based on your votes on a producer's titles.<br />
@@ -19,10 +41,15 @@
     </p>
     <h3 id="droprate">Drop Rate</h3>
     <p>
-        This is the percentage of titles which you have dropped, only counting a producer's dropped and finished titles.<br/>
+        This is the percentage of titles which you have dropped, only counting a producer's dropped and finished titles.<br />
         This can be a useful statistic if you drop titles because they are bad, but choose not to vote because you have not completed the game.<br />
         Drop Rate = (number of dropped titles) / (number of dropped titles + number of finished titles)<br />
         For example, you finished 3 titles and dropped 1, the drop rate is 25% (1/4).
+    </p>
+    <h3 id="loaded">Loaded</h3>
+    <p>
+        This is whether a producer has had it's titles fetched from VNDB since producer was added to your list.<br />
+        Since it may take some time to load a producer's titles for the first time, it is not done automatically when a producer is added to your list.
     </p>
 </body>
 </html>

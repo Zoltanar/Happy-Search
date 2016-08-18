@@ -2,9 +2,21 @@
     font-family: Calibri;
     font-size: 12px;
     background-color: #003399;
-    color: #FFFFFF;
+    color: white;
 }
 
 a:link {
-    color: #FFFFFF;
+    color: white;
+}
+a:visited{
+  color:white;
+}
+h3 {
+    padding: 10px 0px 5px 0px;
+    margin: 0px;
+}
+
+p {
+    padding: 0px;
+    margin: 0px;
 }

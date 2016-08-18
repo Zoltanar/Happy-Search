@@ -42,8 +42,8 @@ namespace Happy_Search
                     .Select(tag => _parentForm.PlainTags.Find(item => item.ID == tag.ID)?.Name)
                     .Where(tagName => tagName != null)
                     .ToList()
-                : new List<string> {"No Tags Found"};
-            string[] parts = {"", "", ""};
+                : new List<string> { "No Tags Found" };
+            string[] parts = { "", "", "" };
             if (!vnItem.ULStatus.Equals(""))
             {
                 parts[0] = "Userlist: ";
@@ -76,16 +76,8 @@ namespace Happy_Search
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
-            await _parentForm.UpdateSingleVN(Convert.ToInt32(vnID.Text), vnUpdateLink);
-            var vnItem = _parentForm.UpdatingVN;
-            if (vnItem == null)
-            {
-                vnUpdateLink.Text = Resources.svn_query_error;
-                return;
-            }
-            Debug.Print($"Trying to update {vnItem.VNID} p3");
-            SetData(vnItem);
-            vnUpdateLink.Text = Resources.vn_updated;
+            var vnItem = await _parentForm.UpdateSingleVN(Convert.ToInt32(vnID.Text), vnUpdateLink);
+            if (vnItem != null) SetData(vnItem);
         }
 
         private void vnID_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

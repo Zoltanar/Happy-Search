@@ -289,11 +289,17 @@ namespace Happy_Search
             return readerList;
         }
 
-        public List<ListedVN> GetTitlesFromProducerID(int userid, int producerID)
+        /// <summary>
+        /// Get titles developed by Producer given.
+        /// </summary>
+        /// <param name="userID">ID of current user</param>
+        /// <param name="producerID">ID of producer</param>
+        /// <returns>List of titles by given producer</returns>
+        public List<ListedVN> GetTitlesFromProducerID(int userID, int producerID)
         {
             var readerList = new List<ListedVN>();
             var selectString =
-                $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userid} WHERE vnlist.ProducerID={producerID};";
+                $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userID} WHERE vnlist.ProducerID={producerID};";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();

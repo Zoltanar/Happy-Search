@@ -140,6 +140,11 @@ namespace Happy_Search
         public string Original { get; set; }
         public string[] Languages { get; set; }
         public bool Doujin { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Title} \t({Released})";
+        }
     }
 
     public class UserListItem

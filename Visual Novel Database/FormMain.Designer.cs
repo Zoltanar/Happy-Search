@@ -211,6 +211,7 @@ namespace Happy_Search
             this.toolStripMenuItem11 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.showProducerTitlesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.currentListLabel = new System.Windows.Forms.Label();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -330,7 +331,7 @@ namespace Happy_Search
             this.updateProducersButton.Size = new System.Drawing.Size(136, 23);
             this.updateProducersButton.TabIndex = 37;
             this.updateProducersButton.Text = "Get New Producer Titles";
-            this.toolTip1.SetToolTip(this.updateProducersButton, "Get Producer titles added since last update.");
+            this.toolTip1.SetToolTip(this.updateProducersButton, "Add all favorite producers\' new titles to local database.");
             this.updateProducersButton.UseVisualStyleBackColor = false;
             this.updateProducersButton.Click += new System.EventHandler(this.GetNewFavoriteProducerTitles);
             // 
@@ -1007,6 +1008,7 @@ namespace Happy_Search
             this.vnTab.BackColor = System.Drawing.Color.Gray;
             this.vnTab.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.vnTab.Controls.Add(this.currentListLabel);
             this.vnTab.Controls.Add(this.BlacklistToggleBox);
             this.vnTab.Controls.Add(this.UnreleasedToggleBox);
             this.vnTab.Controls.Add(this.URTToggleBox);
@@ -1313,7 +1315,7 @@ namespace Happy_Search
             this.button6.FlatAppearance.BorderSize = 0;
             this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button6.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button6.Location = new System.Drawing.Point(0, 260);
+            this.button6.Location = new System.Drawing.Point(6, 260);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(104, 23);
             this.button6.TabIndex = 47;
@@ -1341,6 +1343,7 @@ namespace Happy_Search
             this.addProducersButton.Size = new System.Drawing.Size(100, 23);
             this.addProducersButton.TabIndex = 36;
             this.addProducersButton.Text = "Add Producers";
+            this.toolTip1.SetToolTip(this.addProducersButton, "Search by name and add producers to list.");
             this.addProducersButton.UseVisualStyleBackColor = false;
             this.addProducersButton.Click += new System.EventHandler(this.AddProducers);
             // 
@@ -1432,6 +1435,7 @@ namespace Happy_Search
             this.loadUnloadedButton.Size = new System.Drawing.Size(101, 23);
             this.loadUnloadedButton.TabIndex = 35;
             this.loadUnloadedButton.Text = "Load Unloaded";
+            this.toolTip1.SetToolTip(this.loadUnloadedButton, "Get titles for favorite producers that aren\'t yet loaded.");
             this.loadUnloadedButton.UseVisualStyleBackColor = false;
             this.loadUnloadedButton.Click += new System.EventHandler(this.LoadUnloaded);
             // 
@@ -1446,6 +1450,7 @@ namespace Happy_Search
             this.reloadFavoriteProducersButton.Size = new System.Drawing.Size(146, 23);
             this.reloadFavoriteProducersButton.TabIndex = 32;
             this.reloadFavoriteProducersButton.Text = "Update All Producer Titles";
+            this.toolTip1.SetToolTip(this.reloadFavoriteProducersButton, "Update all favorite producers\' titles.");
             this.reloadFavoriteProducersButton.UseVisualStyleBackColor = false;
             this.reloadFavoriteProducersButton.Click += new System.EventHandler(this.UpdateAllFavoriteProducerTitles);
             // 
@@ -1459,7 +1464,8 @@ namespace Happy_Search
             this.selectedProducersVNButton.Name = "selectedProducersVNButton";
             this.selectedProducersVNButton.Size = new System.Drawing.Size(146, 23);
             this.selectedProducersVNButton.TabIndex = 33;
-            this.selectedProducersVNButton.Text = "Show VNs From Selected";
+            this.selectedProducersVNButton.Text = "Show Titles By Selected";
+            this.toolTip1.SetToolTip(this.selectedProducersVNButton, "Show titles by selected producers.");
             this.selectedProducersVNButton.UseVisualStyleBackColor = false;
             this.selectedProducersVNButton.Click += new System.EventHandler(this.ShowSelectedProducerVNs);
             // 
@@ -1474,6 +1480,7 @@ namespace Happy_Search
             this.button3.Size = new System.Drawing.Size(101, 23);
             this.button3.TabIndex = 7;
             this.button3.Text = "Remove Selected";
+            this.toolTip1.SetToolTip(this.button3, "Remove selected producers from list.");
             this.button3.UseVisualStyleBackColor = false;
             this.button3.Click += new System.EventHandler(this.RemoveProducers);
             // 
@@ -2148,6 +2155,18 @@ namespace Happy_Search
             this.showProducerTitlesToolStripMenuItem.Text = "Show Producer Titles";
             this.showProducerTitlesToolStripMenuItem.Click += new System.EventHandler(this.ShowProducerTitles);
             // 
+            // currentListLabel
+            // 
+            this.currentListLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.currentListLabel.BackColor = System.Drawing.Color.Transparent;
+            this.currentListLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.currentListLabel.Location = new System.Drawing.Point(1092, 739);
+            this.currentListLabel.Name = "currentListLabel";
+            this.currentListLabel.Size = new System.Drawing.Size(152, 13);
+            this.currentListLabel.TabIndex = 88;
+            this.currentListLabel.Text = "(currentListLabel)";
+            this.currentListLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2359,6 +2378,7 @@ namespace Happy_Search
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem showProducerTitlesToolStripMenuItem;
         private Button favoriteProducersHelpButton;
+        private Label currentListLabel;
     }
 }
 

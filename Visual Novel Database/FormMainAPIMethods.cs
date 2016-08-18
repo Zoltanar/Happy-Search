@@ -14,21 +14,21 @@ namespace Happy_Search
     partial class FormMain
     {
         /// <summary>
-        ///     Method for sending query/command through API Connection.
+        /// Sending query through API Connection.
         /// </summary>
         /// <param name="query">Command to be sent</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
-        /// <param name="label">Label where reply will be printed.</param>
+        /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="ignoreDateLimit">Ignore 10 Year VN Limit (if enabled)?</param>
         /// <returns>Returns whether it was successful.</returns>
-        internal async Task<bool> TryQuery(string query, string errorMessage, Label label,
+        internal async Task<bool> TryQuery(string query, string errorMessage, Label replyLabel,
             bool additionalMessage = false, bool refreshList = false, bool ignoreDateLimit = false)
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                WriteError(label, "API Connection isn't ready.");
+                WriteError(replyLabel, "API Connection isn't ready.", true);
                 return false;
             }
             //change status to busy until it is solved, if error is returned then status is changed to throttled or ready if the error isn't throttling error
@@ -51,18 +51,18 @@ namespace Happy_Search
             {
                 if (!Conn.LastResponse.Error.ID.Equals("throttled"))
                 {
-                    WriteError(label, errorMessage);
+                    WriteError(replyLabel, errorMessage);
                     ChangeAPIStatus(Conn.Status);
                     return false;
                 }
-                var waitS = Conn.LastResponse.Error.Minwait*30;
+                var waitS = Conn.LastResponse.Error.Minwait * 30;
                 var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
                 string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
                 string additionalWarning = $" Added {_vnsAdded} and skipped {_vnsSkipped} so far...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
-                WriteWarning(label, fullThrottleMessage);
+                WriteWarning(replyLabel, fullThrottleMessage);
                 ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
-                var waitMS = minWait*1000;
+                var waitMS = minWait * 1000;
                 var wait = Convert.ToInt32(waitMS);
                 Debug.Print($"{DateTime.UtcNow} - {fullThrottleMessage}");
                 if (refreshList) tileOLV.SetObjects(_vnList.Where(_currentList));
@@ -77,65 +77,32 @@ namespace Happy_Search
         }
 
         /// <summary>
-        ///     Method for updating data on a visual novel.
+        /// Get new data about a single visual novel.
         /// </summary>
         /// <param name="vnid">ID of VN to be updated</param>
         /// <param name="updateLink">Linklabel where reply will be printed</param>
-        /// 
         /// <returns></returns>
-        internal async Task UpdateSingleVN(int vnid, LinkLabel updateLink)
+        internal async Task<ListedVN> UpdateSingleVN(int vnid, LinkLabel updateLink)
         {
             ReloadLists();
-            var producerIDList = _producerList.Select(x => x.ID).ToArray();
             string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
             var result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
-            if (!result) return;
+            if (!result) return null;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             var vnItem = vnRoot.Items[0];
-            var relProducer = -1;
             SaveImage(vnItem);
-            //fetch developer from releases
-            string relInfoQuery = $"get release producers (vn =\"{vnid}\")";
-            var releaseResult = await TryQuery(relInfoQuery, Resources.usvn_query_error, updateLink);
-            if (!releaseResult) return;
-            var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-            List<ReleaseItem> relItem = relInfo.Items;
-            if (relItem.Count != 0)
-            {
-                foreach (var item in relItem)
-                {
-                    relProducer = item.Producers.Find(x => x.Developer)?.ID ?? -1;
-                    if (relProducer > 0) break;
-                }
-            }
-            if (relProducer != -1 && !producerIDList.Contains(relProducer))
-            {
-                //query api
-                string producerQuery = $"get producer basic (id={relProducer})";
-                var producerResult = await TryQuery(producerQuery, Resources.usvn_query_error, updateLink);
-                if (!producerResult) return;
-                var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
-                List<ProducerItem> producers = root.Items;
-                DBConn.Open();
-                foreach (var producer in producers)
-                {
-                    if (producerIDList.Contains(producer.ID)) continue;
-
-                    DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
-                }
-                DBConn.Close();
-            }
+            var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
+            await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer, false);
+            var vn = DBConn.GetSingleVN(vnid, UserID);
             DBConn.Close();
             WriteText(updateLink, Resources.vn_updated);
-            DBConn.Open();
-            UpdatingVN = DBConn.GetSingleVN(vnid, UserID);
-            DBConn.Close();
+            return vn;
         }
 
         /// <summary>
-        ///     Method for retrieving data about a single visual novel.
+        /// Get data about a single visual novel.
         /// </summary>
         /// <param name="vnid">ID of VN to be retrieved.</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
@@ -146,54 +113,21 @@ namespace Happy_Search
         internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false, bool additionalMessage = false, bool refreshList = false)
         {
             int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
-            int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
-            if (vnIDList.Contains(vnid) && forceUpdate == false)
+            if (forceUpdate == false && vnIDList.Contains(vnid))
             {
                 _vnsSkipped++;
                 return;
             }
-            //fetch visual novel information
             string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
             var result =
                 await TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num == 0) return;
             var vnItem = vnRoot.Items[0];
-            var relProducer = -1;
             SaveImage(vnItem);
-            //fetch developer from releases
-            string relInfoQuery = $"get release producers (vn =\"{vnid}\")";
-            var releaseResult =
-                await TryQuery(relInfoQuery, Resources.gsvn_query_error, replyLabel, additionalMessage, refreshList);
-            if (!releaseResult) return;
-            var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-            List<ReleaseItem> relItem = relInfo.Items;
-            if (relItem.Any())
-            {
-                foreach (var item in relItem)
-                {
-                    relProducer = item.Producers.Find(x => x.Developer)?.ID ?? -1;
-                    if (relProducer > 0) break;
-                }
-            }
-            //get producer information if not already present
-            if (relProducer != -1 && !producerIDList.Contains(relProducer))
-            {
-                string producerQuery = $"get producer basic (id={relProducer})";
-                var producerResult =
-                    await TryQuery(producerQuery, Resources.sp_query_error, replyLabel, additionalMessage, refreshList);
-                if (!producerResult) return;
-                var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
-                List<ProducerItem> producers = root.Items;
-                DBConn.Open();
-                //insert all producers that weren't already present
-                foreach (var producer in producers)
-                {
-                    if (producerIDList.Contains(producer.ID)) continue;
-                    DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
-                }
-                DBConn.Close();
-            }
+            var relProducer = await GetDeveloper(vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
+            await GetProducer(relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer, false);
             DBConn.Close();
@@ -201,20 +135,21 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Method for retrieving data about multiple visual novels, to be changed into array query later.
+        /// Get data about multiple visual novels.
         /// </summary>
         /// <param name="vnIDs">List of IDs of VNs to be retrieved.</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
-        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param> 
+        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        /// <param name="updateAll">Should VNs be updated if they are already in VNList?</param>
         /// <returns></returns>
-        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false)
+        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
         {
+            //TODO Change to array queries
             ReloadLists();
-            int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
             foreach (var id in vnIDs)
             {
                 int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
-                if (vnIDList.Contains(id))
+                if (!updateAll && vnIDList.Contains(id))
                 {
                     _vnsSkipped++;
                     continue;
@@ -225,40 +160,9 @@ namespace Happy_Search
                 var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) continue;
                 var vnItem = vnRoot.Items[0];
-                var relProducer = -1;
                 SaveImage(vnItem);
-                //fetch developer from releases
-                string relInfoQuery = $"get release producers (vn =\"{id}\")";
-                var releaseResult =
-                    await TryQuery(relInfoQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                if (!releaseResult) continue;
-                var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-                List<ReleaseItem> relItem = relInfo.Items;
-                if (relItem.Any())
-                {
-                    foreach (var item in relItem)
-                    {
-                        relProducer = item.Producers.Find(x => x.Developer)?.ID ?? -1;
-                        if (relProducer > 0) break;
-                    }
-                }
-                if (relProducer != -1 && !producerIDList.Contains(relProducer))
-                {
-                    //query api
-                    string producerQuery = $"get producer basic (id={relProducer})";
-                    var producerResult =
-                        await TryQuery(producerQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                    if (!producerResult) return;
-                    var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
-                    List<ProducerItem> producers = root.Items;
-                    DBConn.Open();
-                    foreach (var producer in producers)
-                    {
-                        if (producerIDList.Contains(producer.ID)) continue;
-                        DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
-                    }
-                    DBConn.Close();
-                }
+                var relProducer = await GetDeveloper(id, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 _vnsAdded++;
                 DBConn.Open();
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
@@ -267,7 +171,60 @@ namespace Happy_Search
         }
 
         /// <summary>
-        ///     Method for changing text and color of API Status label
+        /// Get Developer for VN by VNID.
+        /// </summary>
+        /// <param name="vnid">ID of VN</param>
+        /// <param name="errorMessage">Message to be printed in case of error</param>
+        /// <param name="replyLabel">Label where reply will be printed.</param>
+        /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
+        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        /// <returns></returns>
+        internal async Task<int> GetDeveloper(int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        {
+            string developerQuery = $"get release basic,producers (vn =\"{vnid}\") {{{APIMaxResults}}}";
+            var releaseResult =
+                await TryQuery(developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
+            if (!releaseResult) return -1;
+            var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
+            List<ReleaseItem> relItem = relInfo.Items;
+            relItem.Sort((x, y) => DateTime.Compare(StringToDate(x.Released), StringToDate(y.Released)));
+            if (!relItem.Any()) return -1;
+            foreach (var item in relItem)
+            {
+                var dev = item.Producers.Find(x => x.Developer);
+                if (dev != null) return dev.ID;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Get Producer from Producer ID.
+        /// </summary>
+        /// <param name="producerID">ID of Producer</param>
+        /// <param name="errorMessage">Message to be printed in case of error</param>
+        /// <param name="replyLabel">Label where reply will be printed.</param>
+        /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
+        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        /// <returns></returns>
+        internal async Task GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        {
+            int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
+            if (producerID == -1 || producerIDList.Contains(producerID)) return;
+            string producerQuery = $"get producer basic (id={producerID})";
+            var producerResult =
+                await TryQuery(producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
+            if (!producerResult) return;
+            var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
+            List<ProducerItem> producers = root.Items;
+            if (!producers.Any()) return;
+            var producer = producers.First();
+            DBConn.Open();
+            DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
+            DBConn.Close();
+        }
+        
+        /// <summary>
+        /// Change text and color of API Status label based on status.
         /// </summary>
         /// <param name="apiStatus">Status of API Connection</param>
         private void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
@@ -295,7 +252,7 @@ namespace Happy_Search
         }
 
         /// <summary>
-        ///     Method for changing userlist status, wishlist priority or user vote.
+        /// Change userlist status, wishlist priority or user vote.
         /// </summary>
         /// <param name="vn">VN which will be changed</param>
         /// <param name="type">What is being changed</param>
@@ -339,7 +296,7 @@ namespace Happy_Search
                 case ChangeType.Vote:
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
-                        : $"set votelist {vn.VNID} {{\"vote\":{statusInt*10}}}";
+                        : $"set votelist {vn.VNID} {{\"vote\":{statusInt * 10}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
@@ -355,7 +312,7 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Method for logging into VNDB without credentials.
+        /// Log into VNDB without credentials.
         /// </summary>
         internal void APILogin()
         {
@@ -389,7 +346,7 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Method for logging into VNDB with credentials.
+        /// Log into VNDB with credentials.
         /// </summary>
         /// <param name="credentials">User's username and password</param>
         internal void APILoginWithCredentials(KeyValuePair<string, char[]> credentials)

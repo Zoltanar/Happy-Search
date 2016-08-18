@@ -34,6 +34,7 @@ namespace Happy_Search
         internal const string ClientName = "Happy Search By Zolty";
         internal const string ClientVersion = "1.00";
         internal const string APIVersion = "2.25";
+        private const string APIMaxResults = "\"results\":25";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
         private const string MainXmlFile = "saved_objects.xml";
@@ -54,7 +55,6 @@ namespace Happy_Search
         private Func<ListedVN, bool> _currentList = x => true;
         private bool _dontTriggerEvent; //used to skip indexchanged events
         internal List<WrittenTag> PlainTags; //Contains all tags as in tags.json
-        internal ListedVN UpdatingVN;
         internal int UserID; //id of current user
         internal List<ListedVN> URTList; //contains all user-related vns
 
@@ -94,8 +94,10 @@ namespace Happy_Search
                     success = false;
                     break;
             }
-            if (success) SetOLV();
-            WriteText(replyText, success ? Resources.item_changed : "Unknown Error");
+            if (!success) return;
+            ReloadLists();
+            RefreshVNList();
+            WriteText(replyText, $"ID={vn.VNID}, status changed.");
         }
 
         private void LogInDialog(object sender, EventArgs e)
@@ -106,7 +108,9 @@ namespace Happy_Search
             Settings.Default.UserID = UserID;
             Settings.Default.Save();
             UpdateUserStats();
-            SetOLV();
+            ReloadLists();
+            RefreshVNList();
+            LoadFavoriteProducerList();
         }
 
         /*credits and resources
@@ -137,6 +141,7 @@ namespace Happy_Search
                 prodReply.Text = "";
                 filterReply.Text = "";
                 mctLoadingLabel.Text = "";
+                currentListLabel.Text = "";
                 checkBox1.Visible = false;
                 checkBox2.Visible = false;
                 checkBox3.Visible = false;
@@ -352,7 +357,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (UserID < 1) return;
             Debug.Print($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
-            var userIDList = URTList.Select(x => x.VNID).ToList();
+            ReloadLists();
+            List<int> userIDList = URTList.Select(x => x.VNID).ToList();
             userIDList = await GetUserList(userIDList);
             userIDList = await GetWishList(userIDList);
             await GetVoteList(userIDList);
@@ -360,7 +366,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
             DBConn.Close();
-            RefreshList();
             var favprolist = new List<ListedProducer>();
             foreach (ListedProducer producer in olFavoriteProducers.Objects)
             {
@@ -524,7 +529,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            string vnInfoQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{\"results\":25}}";
+            string vnInfoQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}}}";
             var result = await TryQuery(vnInfoQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -535,7 +540,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             while (moreResults)
             {
                 pageNo++;
-                string vnInfoMoreQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{\"results\":25, \"page\":{pageNo}}}";
+                string vnInfoMoreQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(vnInfoMoreQuery, Resources.vn_query_error, replyText);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -547,7 +552,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} VNs for, {_vnsAdded} added, {_vnsSkipped} skipped.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
-            RefreshList();
+            RefreshVNList();
         }
 
         /// <summary>
@@ -576,7 +581,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             _vnsAdded = 0;
             _vnsSkipped = 0;
             string vnInfoQuery =
-                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25}}";
+                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{APIMaxResults}}}";
             var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -588,7 +593,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string vnInfoMoreQuery =
-                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{\"results\":25, \"page\":{pageNo}}}";
+                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{APIMaxResults}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true, true);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -599,7 +604,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
             WriteText(replyText,
                 $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
-            RefreshList();
+            RefreshVNList();
         }
 
         #endregion
@@ -734,7 +739,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             _activeFilter.Add(newFilter);
             DisplayFilterTags();
             _currentList = VNMatchesFilter;
-            RefreshList();
+            RefreshVNList();
         }
 
         private void DisplayFilterTags(bool clear = false)
@@ -817,7 +822,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             _vnsSkipped = 0;
             IEnumerable<string> betterTags = _activeFilter.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
-            string tagQuery = $"get vn basic ({tags}) {{\"results\":25}}";
+            string tagQuery = $"get vn basic ({tags}) {{{APIMaxResults}}}";
             var result = await TryQuery(tagQuery, "UCF Query Error", replyLabel, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -829,7 +834,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             while (moreResults)
             {
                 pageNo++;
-                string moreTagQuery = $"get vn basic ({tags}) {{\"results\":25, \"page\":{pageNo}}}";
+                string moreTagQuery = $"get vn basic ({tags}) {{{APIMaxResults}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyLabel, true, true);
                 if (!moreResult) return;
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -865,6 +870,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Other/General
 
+
         /// <summary>
         /// Close All Open Visual Novel Forms (windows)
         /// </summary>
@@ -880,6 +886,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
+        /// <summary>
+        /// Loads lists from local database.
+        /// </summary>
         private void ReloadLists()
         {
             DBConn.Open();
@@ -887,7 +896,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             _producerList = DBConn.GetAllProducers();
             URTList = DBConn.GetUserRelatedTitles(UserID);
             DBConn.Close();
-            LoadFavoriteProducerList();
         }
 
         private void SetOLV()
@@ -897,7 +905,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             tileOLV.SetObjects(_vnList.Where(_currentList));
         }
 
-        internal static void WriteText(Label label, string message)
+        public static void WriteText(Label label, string message)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = NormalLinkColor;
@@ -905,7 +913,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             label.Text = message;
         }
 
-        internal static void WriteWarning(Label label, string message, bool fade = false)
+        public static void WriteWarning(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = WarningColor;
@@ -914,7 +922,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (fade) FadeLabel(label);
         }
 
-        internal static void WriteError(Label label, string message, bool fade = false)
+        public static void WriteError(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = ErrorColor;
@@ -1301,9 +1309,15 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
-        private static bool CheckUnreleased(string date)
+        private static bool IsUnreleased(string date)
         {
-            if (!date.Contains('-')) return true;
+            return StringToDate(date) > DateTime.UtcNow;
+        }
+
+        private static DateTime StringToDate(string date)
+        {
+            //unreleased if date is null or doesnt have any digits (tba, n/a etc)
+            if(date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
             int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
@@ -1317,6 +1331,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     try
                     {
                         dtDate = new DateTime(dateArray[0], dateArray[1], dateArray[2] - tryCount);
+                        tryDone = true;
                     }
                     catch (ArgumentOutOfRangeException)
                     {
@@ -1324,28 +1339,24 @@ be displayed by clicking the User Related Titles (URT) filter.",
                             $"Date: {dateArray[0]}-{dateArray[1]}-{dateArray[2] - tryCount} is invalid, trying again one day earlier");
                         tryCount++;
                     }
-                    finally
-                    {
-                        tryDone = true;
-                    }
                 }
-                return dtDate > DateTime.UtcNow;
+                return dtDate;
             }
             //if date only has year-month, then if month hasn't finished = unreleased
             var monthRegex = new Regex(@"^\d{4}-\d{2}$");
             if (monthRegex.IsMatch(date))
             {
                 dtDate = new DateTime(dateArray[0], dateArray[1], 28);
-                return dtDate > DateTime.UtcNow;
+                return dtDate;
             }
             //if date only has year, then if year hasn't finished = unreleased
             var yearRegex = new Regex(@"^\d{4}$");
             if (yearRegex.IsMatch(date))
             {
                 dtDate = new DateTime(dateArray[0], 12, 28);
-                return dtDate > DateTime.UtcNow;
+                return dtDate;
             }
-            return false;
+            return DateTime.MaxValue;
         }
 
         internal static string TagsToString(List<TagItem> tags)
@@ -1489,9 +1500,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
             XmlHelper.ToXmlFile(new MainXml(_customFilters, Toggles), MainXmlFile);
         }
 
-        private void RefreshList()
+        /// <summary>
+        /// Refresh VN OLV.
+        /// </summary>
+        private void RefreshVNList()
         {
-            ReloadLists();
             tileOLV.SetObjects(_vnList.Where(_currentList));
         }
 
