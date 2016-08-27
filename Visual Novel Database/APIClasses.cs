@@ -71,7 +71,7 @@ namespace Happy_Search
     {
         public int ID
         {
-            get { return (int) this[0]; }
+            get { return (int)this[0]; }
             set { this[0] = value; }
         }
 
@@ -83,13 +83,23 @@ namespace Happy_Search
 
         public int Spoiler
         {
-            get { return (int) this[2]; }
+            get { return (int)this[2]; }
             set { this[2] = value; }
         }
 
         public override string ToString()
         {
             return $"[{ID},{Score},{Spoiler}]";
+        }
+
+        public string GetName(List<WrittenTag> plainTags)
+        {
+            return plainTags.Find(item => item.ID == ID).Name;
+        }
+
+        public string Print(List<WrittenTag> plainTags)
+        {
+            return $"{GetName(plainTags)} ({Score.ToString("0.00")})";
         }
     }
 
@@ -266,5 +276,12 @@ namespace Happy_Search
         public string Cat { get; set; }
         public List<int> Parents { get; set; }
         public bool Meta { get; set; }
+
+
+        public override string ToString()
+        {
+            return $"{ID} - {Name}";
+        }
     }
+
 }

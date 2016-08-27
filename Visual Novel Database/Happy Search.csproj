@@ -86,7 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
-    <Compile Include="FlexibleMessageBox.cs" />
     <Compile Include="FormMainAPIMethods.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -141,6 +140,9 @@
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="HtmlForm.resx">
+      <DependentUpon>HtmlForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>

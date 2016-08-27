@@ -40,7 +40,7 @@
             this.htmlBox.Size = new System.Drawing.Size(444, 459);
             this.htmlBox.TabIndex = 0;
             // 
-            // HTMLForm
+            // HtmlForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -48,7 +48,7 @@
             this.Controls.Add(this.htmlBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "HtmlForm";
-            this.Text = "Form2";
+            this.Text = "Help";
             this.ResumeLayout(false);
 
         }

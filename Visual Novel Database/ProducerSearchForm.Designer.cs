@@ -93,7 +93,7 @@
             this.prodAddButton.TabIndex = 7;
             this.prodAddButton.Text = "Add Selected to List";
             this.prodAddButton.UseVisualStyleBackColor = false;
-            this.prodAddButton.Click += new System.EventHandler(this.AddProducersClick);
+            this.prodAddButton.Click += new System.EventHandler(this.AddProducersButtonClick);
             // 
             // prodSearchReply
             // 

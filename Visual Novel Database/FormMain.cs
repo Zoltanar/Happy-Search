@@ -45,7 +45,6 @@ namespace Happy_Search
 
         private List<ListedVN> _vnList; //contains all vns in local database
         private List<ListedProducer> _producerList; //contains all producers in local database
-        private List<int> _filterIDList = new List<int>();
         private List<TagFilter> _activeFilter = new List<TagFilter>();
         private readonly List<ComplexFilter> _customFilters;
         internal readonly VndbConnection Conn = new VndbConnection();
@@ -97,7 +96,7 @@ namespace Happy_Search
             if (!success) return;
             ReloadLists();
             RefreshVNList();
-            WriteText(replyText, $"ID={vn.VNID}, status changed.");
+            WriteText(replyText, $"ID={vn.VNID}, status changed.", true);
         }
 
         private void LogInDialog(object sender, EventArgs e)
@@ -111,6 +110,19 @@ namespace Happy_Search
             ReloadLists();
             RefreshVNList();
             LoadFavoriteProducerList();
+        }
+
+
+        private void Help_GetStarted(object sender, EventArgs e)
+        {
+            var path = Path.GetDirectoryName(Application.ExecutablePath);
+            if (path == null)
+            {
+                WriteError(prodReply, @"Unknown Path Error");
+                return;
+            }
+            var fpHelpFile = $"{Path.Combine(path, "help\\getstarted.html")}";
+            new HtmlForm($"file:///{fpHelpFile}").Show();
         }
 
         /*credits and resources
@@ -216,6 +228,7 @@ https://github.com/FredTheBarber/VndbClient";
             {
                 tileOLV.SetObjects(_vnList);
                 tileOLV.Sort(tileColumnDate, SortOrder.Descending);
+                currentListLabel.Text = @"List: " + @"All Titles";
             }
             SplashScreen.SplashScreen.SetStatus("Loading Custom Filters...");
             {
@@ -263,6 +276,44 @@ https://github.com/FredTheBarber/VndbClient";
             if (vn == null) return;
             ProducerFilterBox.Text = vn.Producer;
             Filter_Producer(null, new KeyEventArgs(Keys.Enter));
+        }
+
+
+        private void RightClickAddProducer(object sender, EventArgs e)
+        {
+            var vn = tileOLV.SelectedObject as ListedVN;
+            if (vn == null) return;
+            var producers = olFavoriteProducers.Objects as List<ListedProducer>;
+            if (producers?.Find(x => x.Name == vn.Producer) != null)
+            {
+                WriteText(replyText,"Already in list.",true);
+                return;
+            }
+            ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
+            double userAverageVote = -1;
+            double userDropRate = -1;
+            if (producerVNs.Any())
+            {
+                var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
+                var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
+                userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
+                userDropRate = finishedCount + droppedCount != 0
+                    ? (double)droppedCount / (droppedCount + finishedCount)
+                    : -1;
+            }
+            var addProducerList = new List<ListedProducer>
+            {
+                new ListedProducer(vn.Producer, producerVNs.Length, "No", DateTime.UtcNow,
+                    _producerList.Find(x => x.Name == vn.Producer).ID,
+                    userAverageVote, (int) Math.Round(userDropRate*100))
+            };
+            DBConn.Open();
+            DBConn.InsertFavoriteProducers(addProducerList, UserID);
+            DBConn.Close();
+            ReloadLists();
+            LoadFavoriteProducerList();
+            WriteText(replyText, $"{vn.Producer} added to list.",true);
         }
         private void UpdateUserStats()
         {
@@ -350,7 +401,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
             await UpdateURT();
-            WriteText(userListReply, Resources.gurt_success);
         }
 
         private async Task UpdateURT()
@@ -390,8 +440,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Close();
             tileOLV.Sort(tileColumnDate, SortOrder.Descending);
             UpdateUserStats();
-            var ulCount = URTList.Count;
-            if (ulCount > 0) WriteText(userListReply, $"Found {ulCount} titles.");
+            if (URTList.Count > 0) WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
             else WriteError(userListReply, Resources.no_results);
         }
 
@@ -529,29 +578,29 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            string vnInfoQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}}}";
-            var result = await TryQuery(vnInfoQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
-            if (!result) return;
+            string vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}}}";
+            var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+            if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID), replyText);
+            //await GetMultipleVN(vnItems.Select(x => x.ID), replyText);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
-                string vnInfoMoreQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.vn_query_error, replyText);
-                if (!moreResult) return;
-                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                await GetMultipleVN(vnMoreItems.Select(x => x.ID), replyText, true);
-                vnItems.AddRange(vnMoreItems);
-                moreResults = vnMoreRoot.More;
+                vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}, \"page\":{pageNo}}}";
+                queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+                if (!queryResult) return;
+                vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                vnItems.AddRange(vnRoot.Items);
+                moreResults = vnRoot.More;
             }
+            await GetMultipleVN(vnItems.Select(x => x.ID), replyText, true);
             WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} VNs for, {_vnsAdded} added, {_vnsSkipped} skipped.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
+            currentListLabel.Text = @"List: " + $"{searchBox.Text} (Search)";
             RefreshVNList();
         }
 
@@ -578,6 +627,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTime}");
             ReloadLists();
             _currentList = x => x.RelDate.StartsWith(yearBox.Text);
+            currentListLabel.Text = @"List: " + $"{yearBox.Text} (Year)";
             _vnsAdded = 0;
             _vnsSkipped = 0;
             string vnInfoQuery =
@@ -634,22 +684,17 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Tag Filtering
 
+        /// <summary>
+        /// Event from checking a MostCommonTags checkbox, adds tag to current filters.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void TagFilterAdded(object sender, EventArgs e)
         {
             var checkbox = (CheckBox)sender;
-            //Filter Added
             if (!checkbox.Checked) return;
-            var tagName = checkbox.Text.Split('(').First().Trim();
-            /*var sTag = PlainTags.Find(item => item.Name.Equals(tagName));
-                var wholelist = tileOLV.Objects;
-                List<ListedVN> filteredlist = (from ListedVN item in wholelist
-                                               let tags = StringToTags(item.Tags)
-                                               where sTag != null && tags.Any(tag => tag.ID == sTag.ID)
-                                               select item).ToList();
-                AddFilterTag(tagName);
-                tileOLV.SetObjects(filteredlist);*/
-            //
-
+            var indexOfLastBracket = checkbox.Text.LastIndexOf('(');
+            var tagName = checkbox.Text.Substring(0, indexOfLastBracket).Trim();
             AddFilterTag(tagName);
         }
 
@@ -666,7 +711,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?", Resources.ask_overwrite, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                customFilter.Filters = _activeFilter;
+                customFilter.Filters = new List<TagFilter>(_activeFilter);
                 customFilter.Updated = DateTime.UtcNow;
                 SaveCustomFiltersXML();
                 WriteText(filterReply, Resources.filter_saved);
@@ -674,7 +719,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 return;
             }
             customFilters.Items.Add(filterName);
-            _customFilters.Add(new ComplexFilter(filterName, _activeFilter));
+            _customFilters.Add(new ComplexFilter(filterName, new List<TagFilter>(_activeFilter)));
             SaveCustomFiltersXML();
             WriteText(filterReply, Resources.filter_saved);
             customFilters.SelectedIndex = customFilters.Items.Count - 1;
@@ -693,37 +738,39 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 PlainTags.Find(item => item.Name.Equals(tagName, StringComparison.InvariantCultureIgnoreCase));
             if (writtenTag == null)
             {
-                WriteError(filterReply, $"Tag {tagName} not found");
+                WriteError(filterReply, $"Tag {tagName} not found", true);
                 return;
             }
             foreach (var filter in _activeFilter)
             {
                 if (!filter.HasChild(writtenTag.ID)) continue;
-                foreach (var item in filter.Children) Debug.Write($"item={item}+");
-                Debug.Print("");
+                //this happens when tag added is more precise than a present tag, eg transfer student heroine is more precise than student heroine
                 _activeFilter.Remove(filter);
-                Debug.Print($"{writtenTag.Name} Tag Displaced {filter.Name} Tag");
+                Debug.Print($"{writtenTag.Name} Tag Displaced {filter.Name} Tag.");
                 break;
             }
-            filterReply.Text = $"Tag {writtenTag.Name} found, VNs={writtenTag.VNs}";
             //save tag as tag and children
-            _filterIDList.Clear();
-            var parents = new List<int>();
+            //var children = new List<int>();
+            int[] children = Enumerable.Empty<int>().ToArray();
             Debug.Print($"Getting Child Tags for {tagName}");
-            var debugCount = 0;
             var difference = 1;
-            IEnumerable<WrittenTag> list2 = PlainTags.Where(x => x.Parents.Contains(writtenTag.ID));
+            //new
+            int[] childrenForThisRound = PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
+                .Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
             while (difference > 0)
             {
-                var initial = _filterIDList.Count;
-                _filterIDList = _filterIDList.Union(list2.Select(x => x.ID)).ToList();
-                difference = _filterIDList.Count - initial;
-                list2 = PlainTags.Where(tag => _filterIDList.Intersect(tag.Parents).Any());
-                Debug.Print($"Found {difference} new child tags, round {debugCount}");
-                debugCount++;
+                var initial = children.Length;
+                //debug printout
+                IEnumerable<WrittenTag> debuglist = childrenForThisRound.Select(childID => PlainTags.Find(x => x.ID == childID));
+                Debug.WriteLine(string.Join(", ", debuglist));
+                //
+                children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
+                difference = children.Length - initial;
+                var tmp = new List<int>();
+                foreach (var child in childrenForThisRound) tmp.AddRange(PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
+                childrenForThisRound = tmp.ToArray();
             }
-            parents.AddRange(_filterIDList);
-            var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, parents);
+            var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, children);
             var notNeeded = false;
             var count = _vnList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
@@ -737,8 +784,10 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             if (notNeeded) return;
             _activeFilter.Add(newFilter);
+            Debug.WriteLine("");
             DisplayFilterTags();
             _currentList = VNMatchesFilter;
+            currentListLabel.Text = @"List: " + @"Tag Filters";
             RefreshVNList();
         }
 
@@ -773,34 +822,32 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     Checked = true
                 };
 
-                filterLabel.CheckedChanged += TagFilterChanged;
+                filterLabel.CheckedChanged += TagFilterRemoved;
                 count++;
                 tagFilteringBox.Controls.Add(filterLabel);
             }
         }
 
-        private void TagFilterChanged(object sender, EventArgs e)
+        private void TagFilterRemoved(object sender, EventArgs e)
         {
             if (tileOLV.Items.Count == 0) return;
             var checkbox = (CheckBox)sender;
-            //Filter Added
             if (checkbox.Checked)
             {
-                var tagName = checkbox.Text.Split('(').First().Trim();
-                AddFilterTag(tagName);
+                //shouldnt happen
+                return;
             }
             //Filter Removed
-            else
+            var filterNo = Convert.ToInt32(checkbox.Name.Remove(0, 11));
+            _activeFilter.RemoveAt(filterNo);
+            DisplayFilterTags();
+            if (!_activeFilter.Any())
             {
-                var filterNo = Convert.ToInt32(checkbox.Name.Remove(0, 11));
-                Debug.Print($"number of filter= {filterNo}");
-                Debug.Print($"tags in active filter= {_activeFilter.Count} before");
-                _activeFilter.RemoveAt(filterNo);
-                Debug.Print($"tags in active filter= {_activeFilter.Count} after");
-                DisplayFilterTags();
-                if (_activeFilter.Any()) tileOLV.SetObjects(_vnList.Where(VNMatchesFilter));
-                else Filter_All(null, null);
+                Filter_All(null, null);
+                return;
             }
+            tileOLV.SetObjects(_vnList.Where(VNMatchesFilter));
+            currentListLabel.Text = @"List: " + @"Tag Filters";
         }
 
         private async void UpdateResults(object sender, EventArgs e)
@@ -898,19 +945,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Close();
         }
 
-        private void SetOLV()
-        {
-            ReloadLists();
-            //VN List
-            tileOLV.SetObjects(_vnList.Where(_currentList));
-        }
-
-        public static void WriteText(Label label, string message)
+        public static void WriteText(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = NormalLinkColor;
             else label.ForeColor = NormalColor;
             label.Text = message;
+            if (fade) FadeLabel(label);
         }
 
         public static void WriteWarning(Label label, string message, bool fade = false)
@@ -1075,6 +1116,19 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (e.ListView.View != View.Details) return;
             var listedVN = (ListedVN)e.Model;
+            //ULStatus takes priority over WLStatus
+            switch (listedVN.WLStatus)
+            {
+                case "High":
+                    e.Item.BackColor = Color.DeepPink;
+                    break;
+                case "Medium":
+                    e.Item.BackColor = Color.Pink;
+                    break;
+                case "Low":
+                    e.Item.BackColor = Color.LightPink;
+                    break;
+            }
             switch (listedVN.ULStatus)
             {
                 case "Finished":
@@ -1088,18 +1142,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     break;
                 case "Unknown":
                     e.Item.BackColor = Color.Gray;
-                    break;
-            }
-            switch (listedVN.WLStatus)
-            {
-                case "High":
-                    e.Item.BackColor = Color.DeepPink;
-                    break;
-                case "Medium":
-                    e.Item.BackColor = Color.Pink;
-                    break;
-                case "Low":
-                    e.Item.BackColor = Color.LightPink;
                     break;
             }
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
@@ -1317,7 +1359,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if(date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
+            if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
             int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
@@ -1608,20 +1650,20 @@ be displayed by clicking the User Related Titles (URT) filter.",
             public List<TagFilter> Filters { get; set; }
             public DateTime Updated { get; set; }
         }
+
         /// <summary>
         /// Holds details of a VNDB Tag and its subtags
         /// </summary>
         [Serializable, XmlRoot("TagFilter")]
         public class TagFilter
         {
-            public TagFilter(int id, string name, int titles, List<int> children)
+            public TagFilter(int id, string name, int titles, int[] children)
             {
                 ID = id;
                 Name = name;
                 Titles = titles;
                 Children = children;
-                AllIDs = children;
-                AllIDs.Add(id);
+                AllIDs = children.Union(new[] { id }).ToArray();
             }
 
             public TagFilter()
@@ -1631,13 +1673,19 @@ be displayed by clicking the User Related Titles (URT) filter.",
             public int ID { get; set; }
             public string Name { get; set; }
             public int Titles { get; set; }
-            public List<int> Children { get; set; }
-            public List<int> AllIDs { get; set; }
+            public int[] Children { get; set; }
+            public int[] AllIDs { get; set; }
 
 
             public bool HasChild(int tag)
             {
                 return Children.Contains(tag);
+            }
+
+
+            public override string ToString()
+            {
+                return $"{ID} - {Name}";
             }
         }
 
@@ -1646,11 +1694,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         public class VNTileRenderer : AbstractRenderer
         {
-            internal Brush BackBrush = Brushes.LightPink;
             internal Pen BorderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
             internal Brush HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
             internal Brush HeaderTextBrush = Brushes.AliceBlue;
-            internal Brush TextBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
 
             public override bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds,
                 object rowObject)
@@ -1691,9 +1737,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
             public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv,
                 OLVListItem item)
             {
-                //tile size 230,375
-                //image 230-spacing, 300-spacing
-                const int spacing = 8;
+            Brush textBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
+            Brush backBrush = Brushes.LightBlue;
+            //tile size 230,375
+            //image 230-spacing, 300-spacing
+            const int spacing = 8;
                 var font = new Font("Microsoft Sans Serif", 8.25f);
                 var boldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
                 var fmt = new StringFormat(StringFormatFlags.NoWrap)
@@ -1702,102 +1750,125 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     Alignment = StringAlignment.Center,
                     LineAlignment = StringAlignment.Near
                 };
+                var fmtFar = new StringFormat(StringFormatFlags.NoWrap)
+                {
+                    Trimming = StringTrimming.EllipsisCharacter,
+                    Alignment = StringAlignment.Far,
+                    LineAlignment = StringAlignment.Far
+                };
                 var size = g.MeasureString("Wj", font, itemBounds.Width, fmt);
                 // Allow a border around the card
                 itemBounds.Inflate(-2, -2);
-
+                var vn = rowObject as ListedVN;
                 // Draw card background
                 const int rounding = 20;
                 var path = GetRoundedRect(itemBounds, rounding);
-                g.FillPath(BackBrush, path);
+                switch (vn?.WLStatus)
+                {
+                    case "High":
+                        backBrush = Brushes.DeepPink;
+                        break;
+                    case "Medium":
+                        backBrush = Brushes.Pink;
+                        break;
+                    case "Low":
+                        backBrush = Brushes.LightPink;
+                        break;
+                }
+                switch (vn?.ULStatus)
+                {
+                    case "Finished":
+                        backBrush = Brushes.LightGreen;
+                        break;
+                    case "Stalled":
+                        backBrush = Brushes.LightYellow;
+                        break;
+                    case "Dropped":
+                        backBrush = Brushes.DarkOrange;
+                        break;
+                    case "Unknown":
+                        backBrush = Brushes.Gray;
+                        break;
+                }
+                g.FillPath(backBrush, path);
                 g.DrawPath(BorderPen, path);
-
                 g.Clip = new Region(itemBounds);
-
                 // Draw the photo
                 var photoRect = itemBounds;
                 photoRect.Inflate(-spacing, -spacing);
-                var vn = rowObject as ListedVN;
-                if (vn != null)
+                if (vn == null)return;
+                var id = vn.VNID.ToString();
+                var imageUrl = vn.ImageURL;
+                var ext = Path.GetExtension(imageUrl);
+                photoRect.Height = (int) (itemBounds.Height - 3*size.Height - spacing*2);
+                var rectratio = (double) photoRect.Width/photoRect.Height;
+                var photoFile = string.Format($"vnImages\\{id}{ext}");
+                if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoRect);
+                else if (File.Exists(photoFile))
                 {
-                    var id = vn.VNID.ToString();
-                    var imageUrl = vn.ImageURL;
-                    var ext = Path.GetExtension(imageUrl);
-                    photoRect.Height = (int)(itemBounds.Height - 3 * size.Height - spacing * 2);
-                    var rectratio = (double)photoRect.Width / photoRect.Height;
-                    var photoFile = string.Format($"vnImages\\{id}{ext}");
-                    if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoRect);
-                    else if (File.Exists(photoFile))
+                    var photo = Image.FromFile(photoFile);
+                    var photoratio = (double) photo.Width/photo.Height;
+                    //zoom in image to occupy whole area
+                    //Alternately show whole image but do not occupy whole area
+                    if (photoratio > rectratio) //if image is wider
                     {
-                        var photo = Image.FromFile(photoFile);
-                        var photoratio = (double)photo.Width / photo.Height;
-                        //zoom in image to occupy whole area
-                        //Alternately show whole image but do not occupy whole area
-                        if (photoratio > rectratio) //if image is wider
-                        {
-                            var shrinkratio = (double)photo.Width / photoRect.Width;
-                            var newWidth = photoRect.Width;
-                            var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
-                            var newX = photoRect.X;
-                            var hny = (double)newHeight / 2;
-                            var hph = (double)photoRect.Height / 2;
-                            var newY = photoRect.Y + (int)Math.Floor(hph) - (int)Math.Floor(hny);
-                            var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
-                            g.DrawImage(photo, newPhotoRect);
-                        }
-                        else //if image is taller
-                        {
-                            var shrinkratio = (double)photo.Height / photoRect.Height;
-                            var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
-                            var newHeight = photoRect.Height;
-                            var hnx = (double)newWidth / 2;
-                            var hpw = (double)photoRect.Width / 2;
-                            var newX = photoRect.X + (int)Math.Floor(hpw) - (int)Math.Floor(hnx);
-                            var newY = photoRect.Y;
-                            var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
-                            g.DrawImage(photo, newPhotoRect);
-                        }
+                        var shrinkratio = (double) photo.Width/photoRect.Width;
+                        var newWidth = photoRect.Width;
+                        var newHeight = (int) Math.Floor(photo.Height/shrinkratio);
+                        var newX = photoRect.X;
+                        var hny = (double) newHeight/2;
+                        var hph = (double) photoRect.Height/2;
+                        var newY = photoRect.Y + (int) Math.Floor(hph) - (int) Math.Floor(hny);
+                        var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
+                        g.DrawImage(photo, newPhotoRect);
                     }
-                    else g.DrawImage(Resources.no_image, photoRect);
+                    else //if image is taller
+                    {
+                        var shrinkratio = (double) photo.Height/photoRect.Height;
+                        var newWidth = (int) Math.Floor(photo.Width/shrinkratio);
+                        var newHeight = photoRect.Height;
+                        var hnx = (double) newWidth/2;
+                        var hpw = (double) photoRect.Width/2;
+                        var newX = photoRect.X + (int) Math.Floor(hpw) - (int) Math.Floor(hnx);
+                        var newY = photoRect.Y;
+                        var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
+                        g.DrawImage(photo, newPhotoRect);
+                    }
                 }
-
+                else g.DrawImage(Resources.no_image, photoRect);
                 // Now draw the text portion
                 RectangleF textBoxRect = photoRect;
                 textBoxRect.Y += photoRect.Height + spacing;
                 textBoxRect.Width = itemBounds.Right - textBoxRect.X - spacing;
-
-
                 // Draw the other bits of information
                 textBoxRect.Height = size.Height;
                 fmt.Alignment = StringAlignment.Near;
-                //
-                var title = olv.AllColumns.Find(x => x.AspectName.Equals("Title"));
-                var producer = olv.AllColumns.Find(x => x.AspectName.Equals("Producer"));
-                var ulStatus = olv.AllColumns.Find(x => x.AspectName.Equals("ULStatus"));
-                var wlStatus = olv.AllColumns.Find(x => x.AspectName.Equals("WLStatus"));
-                var vote = olv.AllColumns.Find(x => x.AspectName.Equals("Vote"));
-                g.DrawString(title.GetStringValue(rowObject), boldFont, TextBrush, textBoxRect, fmt);
+                g.DrawString(vn.Title, boldFont, textBrush, textBoxRect, fmt);
                 textBoxRect.Y += size.Height;
-                g.DrawString(producer.GetStringValue(rowObject), font, TextBrush, textBoxRect, fmt);
+                g.DrawString(vn.RelDate, font, textBrush, textBoxRect, fmtFar);
+                var producerBrush = textBrush;
+                List<ListedProducer> producers = Application.OpenForms.OfType<FormMain>().Select(main => main.olFavoriteProducers.Objects as List<ListedProducer>).FirstOrDefault();
+                if (producers != null && producers.Exists(x => x.Name == vn.Producer)) producerBrush = Brushes.GreenYellow;
+                g.DrawString(vn.Producer, font, producerBrush, textBoxRect, fmt);
                 textBoxRect.Y += size.Height;
                 string[] parts = { "", "", "" };
-                if (!ulStatus.GetStringValue(rowObject).Equals(""))
+                if (!vn.ULStatus.Equals(""))
                 {
                     parts[0] = "Userlist: ";
-                    parts[1] = ulStatus.GetStringValue(rowObject);
+                    parts[1] = vn.ULStatus;
                 }
-                else if (!wlStatus.GetStringValue(rowObject).Equals(""))
+                else if (!vn.WLStatus.Equals(""))
                 {
                     parts[0] = "Wishlist: ";
-                    parts[1] = wlStatus.GetStringValue(rowObject);
+                    parts[1] = vn.WLStatus;
                 }
-                if (Convert.ToInt32(vote.GetStringValue(rowObject)) > 0)
-                    parts[2] = $" (Vote: {vote.GetStringValue(rowObject)})";
+                if (Convert.ToInt32(vn.Vote) > 0)
+                    parts[2] = $" (Vote: {vn.Vote})";
                 var complete = string.Join(" ", parts);
-                g.DrawString(complete, font, TextBrush, textBoxRect, fmt);
+                g.DrawString(complete, font, textBrush, textBoxRect, fmt);
             }
 
-            private GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
+            private static GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
             {
                 var path = new GraphicsPath();
 
@@ -1865,6 +1936,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
-
+        
     }
 }

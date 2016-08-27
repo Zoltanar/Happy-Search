@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Happy_Search.Properties;
@@ -37,12 +36,17 @@ namespace Happy_Search
             //prepare data
             var ext = Path.GetExtension(vnItem.ImageURL);
             var imageLoc = $"vnImages\\{vnItem.VNID}{ext}";
-            List<string> taglist = vnItem.Tags != string.Empty
-                ? FormMain.StringToTags(vnItem.Tags)
-                    .Select(tag => _parentForm.PlainTags.Find(item => item.ID == tag.ID)?.Name)
-                    .Where(tagName => tagName != null)
-                    .ToList()
-                : new List<string> { "No Tags Found" };
+            if (vnItem.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
+            else
+            {
+                List<string> taglist = new List<string>();
+                foreach (TagItem tag in FormMain.StringToTags(vnItem.Tags))
+                {
+                    taglist.Add(tag.Print(_parentForm.PlainTags));
+                }
+                taglist.Sort();
+                vnTagCB.DataSource = taglist;
+            }
             string[] parts = { "", "", "" };
             if (!vnItem.ULStatus.Equals(""))
             {
@@ -65,7 +69,6 @@ namespace Happy_Search
             vnDate.Text = vnItem.RelDate;
             vnDesc.Text = vnItem.Description;
             vnUpdateLink.Text = $"Updated {vnItem.UpdatedDate} days ago. Click to update.";
-            vnTagCB.DataSource = taglist;
             vnLength.Text = vnItem.Length;
             vnUserStatus.Text = complete;
             if (vnItem.ImageNSFW && !Settings.Default.ShowNSFWImages) pcbImages.Image = Resources.nsfw_image;

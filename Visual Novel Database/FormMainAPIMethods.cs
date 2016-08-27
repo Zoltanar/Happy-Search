@@ -137,16 +137,16 @@ namespace Happy_Search
         /// <summary>
         /// Get data about multiple visual novels.
         /// </summary>
-        /// <param name="vnIDs">List of IDs of VNs to be retrieved.</param>
+        /// <param name="vnIDsEnumerable">List of IDs of VNs to be retrieved.</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="updateAll">Should VNs be updated if they are already in VNList?</param>
         /// <returns></returns>
-        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
+        internal async Task GetMultipleVNOld(IEnumerable<int> vnIDsEnumerable, Label replyLabel, bool refreshList = false, bool updateAll = false)
         {
-            //TODO Change to array queries
             ReloadLists();
-            foreach (var id in vnIDs)
+            //Old - one by one
+            foreach (var id in vnIDsEnumerable)
             {
                 int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
                 if (!updateAll && vnIDList.Contains(id))
@@ -167,6 +167,63 @@ namespace Happy_Search
                 DBConn.Open();
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();
+            }
+        }
+
+        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
+        {
+            //TODO Change to array queries
+            ReloadLists();
+            //New - 25 by 25
+            var vnsToGet = new List<int>();
+            int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
+            //remove already present vns
+            if (!updateAll)
+            {
+                foreach (var id in vnIDs)
+                {
+                    if (vnIDList.Contains(id)) _vnsSkipped++;
+                    else vnsToGet.Add(id);
+                }
+            }
+            else vnsToGet = vnIDs.ToList();
+            if (!vnsToGet.Any()) return;
+            string first25 = '[' + string.Join(",", vnsToGet.Take(25)) + ']';
+            string multiVNQuery = $"get vn basic,details,tags (id = {first25}) {{{APIMaxResults}}}";
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+            if (!queryResult) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num == 0) return;
+            foreach (var vnItem in vnRoot.Items)
+            {
+                SaveImage(vnItem);
+                var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                _vnsAdded++;
+                DBConn.Open();
+                DBConn.UpsertSingleVN(vnItem, relProducer, false);
+                DBConn.Close();
+            }
+            int done = 25;
+            while (done < vnsToGet.Count)
+            {
+                string next25 = '[' + string.Join(",", vnsToGet.Skip(done).Take(25)) + ']';
+                multiVNQuery = $"get vn basic,details,tags (id = {next25}) {{{APIMaxResults}}}";
+                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                if (!queryResult) return;
+                vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                if (vnRoot.Num == 0) return;
+                foreach (var vnItem in vnRoot.Items)
+                {
+                    SaveImage(vnItem);
+                    var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    _vnsAdded++;
+                    DBConn.Open();
+                    DBConn.UpsertSingleVN(vnItem, relProducer, false);
+                    DBConn.Close();
+                }
+                done += 25;
             }
         }
 
@@ -222,7 +279,7 @@ namespace Happy_Search
             DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
             DBConn.Close();
         }
-        
+
         /// <summary>
         /// Change text and color of API Status label based on status.
         /// </summary>

@@ -15,8 +15,6 @@ turn tag filters into OLV filter instead
 button to upgrade old vns to newest version eg before imagensfw was added
 handle resizing issues, controls anchoring and image stretching is slow
 give suggestions for favorite producers based on titles finished
-right click vn - add producer to favorite producers list
-OLV - show current list eg "Favorite Producers (Selected)"
 allow certain commands to go through even when throttling for a different command, eg changevnstatus
 refresh favorite producers list when throttling fav pro commands
 
@@ -28,7 +26,8 @@ Incomplete
 make things pretty textured backgrounds
 split FormMain into partial class files
 Minimize globals by passing parameters - 'added/skipped' ushort instead of int
-help buttons on each section with info - favoriteproducers done
+help buttons on each section with info - favoriteproducers done, working on getstarted
+make most WriteText fade
 
 
 Completed
@@ -70,6 +69,12 @@ deselect custom filter on other filter
 allowed changing/overwriting custom filters 
 put favorite producers stuff into own file
 made favorite producers help file
+-
+added "no finished/dropped titles" to urt toggle (for searching for never played titles)
+current list of vns is labeled at the bottom
+display tag scores
+display release date in vn tile, right of producer, tile color based on status-
+right click vn - add producer to favorite producers list
 
 Currently Not Possible
 -------------------------

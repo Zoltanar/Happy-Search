@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+// ReSharper disable All
 
 namespace SplashScreen
 {

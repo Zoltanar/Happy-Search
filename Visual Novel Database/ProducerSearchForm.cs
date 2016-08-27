@@ -9,11 +9,17 @@ using Newtonsoft.Json;
 
 namespace Happy_Search
 {
+    /// <summary>
+    /// Form to search and add producers to user's favorite producers list.
+    /// </summary>
     public partial class ProducerSearchForm : Form
     {
         private readonly FormMain _parentForm;
         private readonly List<ListedProducer> _producerList;
 
+        /// <summary>
+        /// Form to search and add producers to user's favorite producers list.
+        /// </summary>
         public ProducerSearchForm(FormMain parentForm)
         {
             InitializeComponent();
@@ -24,11 +30,18 @@ namespace Happy_Search
             _parentForm.DBConn.Close();
         }
 
+        /// <summary>
+        /// Activates SearchProducers by button click.
+        /// </summary>
         private async void SearchProducersClick(object sender, EventArgs e)
         {
             await SearchProducers();
         }
 
+
+        /// <summary>
+        /// Searches VNDB for producers by name.
+        /// </summary>
         internal async Task SearchProducers()
         {
             if (producerSearchBox.Text == "") //check if box is empty
@@ -75,11 +88,19 @@ namespace Happy_Search
             prodSearchReply.Text = $"{searchedProducers.Count} producers found.";
         }
 
+
+        /// <summary>
+        /// Activates AddProducersButtonClick by double mouse click.
+        /// </summary>
         private void AddProducerByDoubleClick(object sender, MouseEventArgs e)
         {
-            AddProducersClick(null, null);
+            AddProducersButtonClick(null, null);
         }
 
+
+        /// <summary>
+        /// Activates SearchProducers by enter key.
+        /// </summary>
         private async void SearchProducersEnterKey(object sender, KeyEventArgs e) //press enter on producer search
         {
             if (e.KeyCode == Keys.Enter)
@@ -88,7 +109,10 @@ namespace Happy_Search
             }
         }
 
-        private void AddProducersClick(object sender, EventArgs e)
+        /// <summary>
+        /// Adds selected producers to user's favorite producers list.
+        /// </summary>
+        private void AddProducersButtonClick(object sender, EventArgs e)
         {
             if (olProdSearch.SelectedObjects.Count == 0)
             {

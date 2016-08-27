@@ -21,6 +21,7 @@ namespace Happy_Search
         {
             Filter_ClearOther();
             _currentList = x => true;
+            currentListLabel.Text = @"List: " + @"All Titles";
             RefreshVNList();
         }
 
@@ -56,6 +57,7 @@ namespace Happy_Search
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.Objects
                                            select producer.Name;
             _currentList = vn => prodList.Contains(vn.Producer);
+            currentListLabel.Text = @"List: " + @"Favorite Producers";
             RefreshVNList();
         }
 
@@ -69,6 +71,7 @@ namespace Happy_Search
             if (_dontTriggerEvent) return;
             Filter_ClearOther();
             _currentList = x => !x.WLStatus.Equals("");
+            currentListLabel.Text = @"List: " + @"Wishlist";
             RefreshVNList();
         }
 
@@ -91,15 +94,19 @@ namespace Happy_Search
                     return;
                 case 2:
                     _currentList = x => x.ULStatus.Equals("Unknown");
+                    currentListLabel.Text = @"List: " + @"UL Unknown";
                     break;
                 case 3:
                     _currentList = x => x.ULStatus.Equals("Playing");
+                    currentListLabel.Text = @"List: " + @"UL Playing";
                     break;
                 case 4:
                     _currentList = x => x.ULStatus.Equals("Finished");
+                    currentListLabel.Text = @"List: " + @"UL Finished";
                     break;
                 case 5:
                     _currentList = x => x.ULStatus.Equals("Dropped");
+                    currentListLabel.Text = @"List: " + @"UL Dropped";
                     break;
             }
             var value = dropdownlist.SelectedIndex;
@@ -132,10 +139,12 @@ namespace Happy_Search
                 default:
                     deleteCustomFilterButton.Enabled = true;
                     updateCustomFilterButton.Enabled = true;
-                    _activeFilter = _customFilters[dropdownlist.SelectedIndex - 2]?.Filters;
+                    DisplayFilterTags(true);
+                    _activeFilter = new List<TagFilter>(_customFilters[dropdownlist.SelectedIndex - 2].Filters);
                     filterNameBox.Text = _customFilters[dropdownlist.SelectedIndex - 2].Name;
                     DisplayFilterTags();
                     _currentList = VNMatchesFilter;
+                    currentListLabel.Text = @"List: " + $"{filterNameBox.Text} (Custom)";
                     break;
             }
             var value = dropdownlist.SelectedIndex;
@@ -199,6 +208,7 @@ namespace Happy_Search
             if (!producerName.Any()) return;
             Filter_ClearOther();
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
+            currentListLabel.Text = @"List: " + $"{producerName} (Producer)";
             ProducerFilterBox.Text = producerName;
             RefreshVNList();
         }
@@ -285,6 +295,8 @@ namespace Happy_Search
                             return x => URTList.Find(y => y.VNID == x.VNID) == null;
                         case ToggleSetting.Only:
                             return x => URTList.Find(y => y.VNID == x.VNID) != null;
+                        case ToggleSetting.NoFinishedOrDropped:
+                            return x => !x.ULStatus.Equals("Finished") && !x.ULStatus.Equals("Dropped");
                         default: return function;
                     }
                 case ToggleFilter.Unreleased:
@@ -322,7 +334,7 @@ namespace Happy_Search
             Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted) };
             tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
             objectList_ItemsChanged(null, null);
-            XmlHelper.ToXmlFile(new MainXml(_customFilters, Toggles), MainXmlFile);
+            SaveCustomFiltersXML();
         }
 
         /// <summary>
@@ -342,7 +354,8 @@ namespace Happy_Search
         {
             Show,
             Hide,
-            Only
+            Only,
+            NoFinishedOrDropped
         }
 
         /// <summary>

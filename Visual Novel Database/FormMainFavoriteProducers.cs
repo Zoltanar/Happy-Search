@@ -107,7 +107,9 @@ namespace Happy_Search
             }
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.SelectedObjects
                                            select producer.Name;
+            Filter_ClearOther();
             _currentList = vn => prodList.Contains(vn.Producer);
+            currentListLabel.Text = @"List: " + @"Favorite Producers (Selected)";
             RefreshVNList();
         }
 
