@@ -42,6 +42,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <UseVSHostingProcess>true</UseVSHostingProcess>
+    <DocumentationFile>bin\x64\Debug\Happy Search.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -185,6 +186,9 @@
     <None Include="Resources\38.gif" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="help\getstarted.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="help\StyleSheet1.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

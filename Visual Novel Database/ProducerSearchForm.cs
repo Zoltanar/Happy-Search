@@ -31,14 +31,29 @@ namespace Happy_Search
         }
 
         /// <summary>
+        /// Load ProducerSearchForm already populated by producers.
+        /// </summary>
+        /// <param name="parentForm">Parent Form</param>
+        /// <param name="producers">List of producers to be shown in OLV.</param>
+        public ProducerSearchForm(FormMain parentForm, List<ListedSearchedProducer> producers)
+        {
+            InitializeComponent();
+            _parentForm = parentForm;
+            prodSearchReply.Text = "";
+            olProdSearch.SetObjects(producers);
+            _parentForm.DBConn.Open();
+            _producerList = _parentForm.DBConn.GetFavoriteProducersForUser(_parentForm.UserID);
+            _parentForm.DBConn.Close();
+        }
+
+        /// <summary>
         /// Activates SearchProducers by button click.
         /// </summary>
         private async void SearchProducersClick(object sender, EventArgs e)
         {
             await SearchProducers();
         }
-
-
+        
         /// <summary>
         /// Searches VNDB for producers by name.
         /// </summary>
@@ -55,14 +70,7 @@ namespace Happy_Search
             if (!result) return;
             var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             List<ProducerItem> prodItems = prodRoot.Items;
-            var searchedProducers = new List<ListedSearchedProducer>();
-            //alternative LINQ syntax (lol)
-            //searchedProducers.AddRange(from item in prodMoreItems let inList = _producerList?.Find(item2 => item2.ID == item.ID) != null ? "No" : "Yes" select new ListedSearchedProducer(item.Name, inList, item.ID));
-            foreach (var producer in prodItems)
-            {
-                var inList = _producerList.Find(item2 => item2.ID == producer.ID) != null ? "Yes" : "No";
-                searchedProducers.Add(new ListedSearchedProducer(producer.Name, inList, producer.ID));
-            }
+            List<ListedSearchedProducer> searchedProducers = prodItems.Select(NewListedSearchedProducer).ToList();
             var moreResults = prodRoot.More;
             var pageNo = 1;
             while (moreResults)
@@ -76,19 +84,14 @@ namespace Happy_Search
                 var prodMoreRoot =
                     JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
                 List<ProducerItem> prodMoreItems = prodMoreRoot.Items;
-                foreach (var producer in prodMoreItems)
-                {
-                    var inList = _producerList.Find(item2 => item2.ID == producer.ID) != null ? "Yes" : "No";
-                    searchedProducers.Add(new ListedSearchedProducer(producer.Name, inList, producer.ID));
-                }
+                searchedProducers.AddRange(prodMoreItems.Select(NewListedSearchedProducer));
                 moreResults = prodMoreRoot.More;
             }
             olProdSearch.SetObjects(searchedProducers);
             olProdSearch.Sort(olProdSearch.GetColumn(0), SortOrder.Ascending);
             prodSearchReply.Text = $"{searchedProducers.Count} producers found.";
         }
-
-
+        
         /// <summary>
         /// Activates AddProducersButtonClick by double mouse click.
         /// </summary>
@@ -96,8 +99,7 @@ namespace Happy_Search
         {
             AddProducersButtonClick(null, null);
         }
-
-
+        
         /// <summary>
         /// Activates SearchProducers by enter key.
         /// </summary>
@@ -139,17 +141,26 @@ namespace Happy_Search
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                     userDropRate = finishedCount + droppedCount != 0
-                        ? (double) droppedCount/(droppedCount + finishedCount)
+                        ? (double)droppedCount / (droppedCount + finishedCount)
                         : -1;
                 }
                 addProducerList.Add(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID,
-                    userAverageVote, (int) Math.Round(userDropRate*100)));
+                    userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             _parentForm.DBConn.Open();
             _parentForm.DBConn.InsertFavoriteProducers(addProducerList, _parentForm.UserID);
             _parentForm.DBConn.Close();
             _producerList.AddRange(addProducerList);
             prodSearchReply.Text = $"{addProducerList.Count} added.";
+        }
+
+
+        private ListedSearchedProducer NewListedSearchedProducer(ProducerItem producer)
+        {
+            string inList = _producerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
+            int finished = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
+            int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
+            return new ListedSearchedProducer(producer.Name, inList, producer.ID, finished, urtTitles);
         }
     }
 }

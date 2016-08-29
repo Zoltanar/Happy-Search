@@ -163,7 +163,34 @@ namespace Happy_Search
             LoadFavoriteProducerList();
             WriteText(prodReply, Resources.get_new_fp_titles_success);
         }
-        
+
+        /// <summary>
+        /// Bring up form with suggestions for favorite producers (producers not in list with over 2 finished titles.
+        /// </summary>
+        private void SuggestProducers(object sender, EventArgs e)
+        {
+            var suggestions = new Dictionary<ListedSearchedProducer, int>();
+            foreach (var producer in _producerList)
+            {
+                var listedProducers = olFavoriteProducers.Objects as List<ListedProducer>;
+                if (listedProducers?.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                int finishedTitles = URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
+                int urtTitles = URTList.Count(x => x.Producer == producer.Name);
+                if (finishedTitles > 2) suggestions.Add(new ListedSearchedProducer(producer.Name,"No",producer.ID,finishedTitles,urtTitles), finishedTitles);
+            }
+            Debug.Print("Finished adding suggestions");
+            IOrderedEnumerable<KeyValuePair<ListedSearchedProducer, int>> sortedSuggestions = from entry in suggestions orderby entry.Value descending select entry;
+            var listForForm = new List<ListedSearchedProducer>();
+            foreach (KeyValuePair<ListedSearchedProducer, int> suggestion in sortedSuggestions)
+            {
+                Debug.Print($"{suggestion.Key.Name} = Finished {suggestion.Value} titles.");
+                listForForm.Add(suggestion.Key);
+            }
+
+            new ProducerSearchForm(this, listForForm).ShowDialog();
+            LoadFavoriteProducerList();
+        }
+
         /// <summary>
         /// Get titles developed/published by producer.
         /// </summary>

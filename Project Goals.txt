@@ -1,3 +1,5 @@
+Next Milestone (1.1) == Help pages for all sections of application
+
 
 No Work
 ---------------
@@ -26,7 +28,7 @@ Incomplete
 make things pretty textured backgrounds
 split FormMain into partial class files
 Minimize globals by passing parameters - 'added/skipped' ushort instead of int
-help buttons on each section with info - favoriteproducers done, working on getstarted
+help buttons on each section with info - favoriteproducers, getstarted done
 make most WriteText fade
 
 
@@ -69,7 +71,6 @@ deselect custom filter on other filter
 allowed changing/overwriting custom filters 
 put favorite producers stuff into own file
 made favorite producers help file
--
 added "no finished/dropped titles" to urt toggle (for searching for never played titles)
 current list of vns is labeled at the bottom
 display tag scores

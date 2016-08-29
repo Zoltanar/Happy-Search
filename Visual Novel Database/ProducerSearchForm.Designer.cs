@@ -37,6 +37,8 @@
             this.producerSearchLabel = new System.Windows.Forms.Label();
             this.producerSearchButton = new System.Windows.Forms.Button();
             this.producerSearchBox = new System.Windows.Forms.TextBox();
+            this.ol3Finished = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol3URT = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             ((System.ComponentModel.ISupportInitialize)(this.olProdSearch)).BeginInit();
             this.SuspendLayout();
             // 
@@ -45,12 +47,16 @@
             this.olProdSearch.AllColumns.Add(this.ol3Name);
             this.olProdSearch.AllColumns.Add(this.ol3InList);
             this.olProdSearch.AllColumns.Add(this.ol3ID);
+            this.olProdSearch.AllColumns.Add(this.ol3Finished);
+            this.olProdSearch.AllColumns.Add(this.ol3URT);
             this.olProdSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.olProdSearch.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.ol3Name,
             this.ol3InList,
-            this.ol3ID});
+            this.ol3ID,
+            this.ol3Finished,
+            this.ol3URT});
             this.olProdSearch.FullRowSelect = true;
             this.olProdSearch.GridLines = true;
             this.olProdSearch.Location = new System.Drawing.Point(12, 12);
@@ -136,6 +142,16 @@
             this.producerSearchBox.TabIndex = 10;
             this.producerSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SearchProducersEnterKey);
             // 
+            // ol3Finished
+            // 
+            this.ol3Finished.AspectName = "FinishedTitles";
+            this.ol3Finished.Text = "Finished";
+            // 
+            // ol3URT
+            // 
+            this.ol3URT.AspectName = "URTTitles";
+            this.ol3URT.Text = "URT";
+            // 
             // ProducerSearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -168,5 +184,7 @@
         private System.Windows.Forms.Label producerSearchLabel;
         private System.Windows.Forms.Button producerSearchButton;
         private System.Windows.Forms.TextBox producerSearchBox;
+        private BrightIdeasSoftware.OLVColumn ol3Finished;
+        private BrightIdeasSoftware.OLVColumn ol3URT;
     }
 }

@@ -125,20 +125,25 @@ namespace Happy_Search
             return days;
         }
 
-        public override string ToString() => $"ID={ID}\t\tName={Name}";
+        public override string ToString() => $"ID={ID} \t\tName={Name}";
     }
 
     public class ListedSearchedProducer
     {
-        public ListedSearchedProducer(string name, string inList, int id)
+        public ListedSearchedProducer(string name, string inList, int id, int finishedTitles, int urtTitles)
         {
             Name = name;
             InList = inList;
             ID = id;
+            FinishedTitles = finishedTitles;
+            URTTitles = urtTitles;
+
         }
 
         public string Name { get; set; }
         public string InList { get; set; }
         public int ID { get; set; }
+        public int FinishedTitles { get; set; }
+        public int URTTitles { get; set; }
     }
 }

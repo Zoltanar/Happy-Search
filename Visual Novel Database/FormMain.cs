@@ -21,6 +21,9 @@ using Newtonsoft.Json;
 
 namespace Happy_Search
 {
+    /// <summary>
+    /// Main Form of application, contains global variables.
+    /// </summary>
     public partial class FormMain : Form
     {
         //constants / definables
@@ -133,6 +136,9 @@ namespace Happy_Search
 
         #region Initialization
 
+        /// <summary>
+        /// Constructor for Main Application Form.
+        /// </summary>
         public FormMain()
         {
             InitializeComponent();
@@ -439,6 +445,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.InsertFavoriteProducers(favprolist, UserID);
             DBConn.Close();
             tileOLV.Sort(tileColumnDate, SortOrder.Descending);
+            ReloadLists();
+            RefreshVNList();
             UpdateUserStats();
             if (URTList.Count > 0) WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
             else WriteError(userListReply, Resources.no_results);
@@ -945,6 +953,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Close();
         }
 
+        /// <summary>
+        /// Writes message in a label with message text color.
+        /// </summary>
+        /// <param name="label">Label to which the message is written</param>
+        /// <param name="message">Message to be written</param>
+        /// <param name="fade">Should message disappear after a few seconds?</param>
         public static void WriteText(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
@@ -954,6 +968,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (fade) FadeLabel(label);
         }
 
+        /// <summary>
+        /// Writes message in a label with warning text color.
+        /// </summary>
+        /// <param name="label">Label to which the message is written</param>
+        /// <param name="message">Message to be written</param>
+        /// <param name="fade">Should message disappear after a few seconds?</param>
         public static void WriteWarning(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
@@ -963,6 +983,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (fade) FadeLabel(label);
         }
 
+        /// <summary>
+        /// Writes message in a label with error text color.
+        /// </summary>
+        /// <param name="label">Label to which the message is written</param>
+        /// <param name="message">Message to be written</param>
+        /// <param name="fade">Should message disappear after a few seconds?</param>
         public static void WriteError(Label label, string message, bool fade = false)
         {
             var linkLabel = label as LinkLabel;
@@ -987,6 +1013,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
+        /// <summary>
+        /// Convert DateTime to UnixTimestamp.
+        /// </summary>
+        /// <param name="dateTime">DateTime to be converted</param>
+        /// <returns>UnixTimestamp (double)</returns>
         public static double DateTimeToUnixTimestamp(DateTime dateTime)
         {
             return (dateTime -
@@ -1438,7 +1469,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DisplayCommonTags(null, null);
         }
 
-        public static void Decompress(string fileToDecompress, string outputFile)
+        /// <summary>
+        /// Decompress GZip file.
+        /// </summary>
+        /// <param name="fileToDecompress">File to Decompress</param>
+        /// <param name="outputFile">Output File</param>
+        public static void GZipDecompress(string fileToDecompress, string outputFile)
         {
             using (var originalFileStream = File.OpenRead(fileToDecompress))
             {
@@ -1455,6 +1491,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
+        /// <summary>
+        /// Get Days passed since date of last update.
+        /// </summary>
+        /// <param name="updatedDate">Date of last update</param>
+        /// <returns>Number of days since last update</returns>
         public static int DaysSince(DateTime updatedDate)
         {
             if (updatedDate == DateTime.MinValue) return -1;
@@ -1503,7 +1544,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     client.DownloadFile(TagsURL, TagsJsonGz);
                 }
             }
-            Decompress(TagsJsonGz, TagsJson);
+            GZipDecompress(TagsJsonGz, TagsJson);
             File.Delete(TagsJsonGz);
             Settings.Default.TagdumpUpdate = DateTime.UtcNow;
             Settings.Default.Save();
@@ -1636,18 +1677,35 @@ be displayed by clicking the User Related Titles (URT) filter.",
         [Serializable, XmlRoot("ComplexFilter")]
         public class ComplexFilter
         {
+            /// <summary>
+            /// Constructor for ComplexFilter (Custom Filter).
+            /// </summary>
+            /// <param name="name">User-set name of filter</param>
+            /// <param name="filters">List of Tags in filter</param>
             public ComplexFilter(string name, List<TagFilter> filters)
             {
                 Name = name;
                 Filters = filters;
             }
 
+            /// <summary>
+            /// Empty Constructor needed for XML.
+            /// </summary>
             public ComplexFilter()
             {
             }
 
+            /// <summary>
+            /// User-set name of custom filter
+            /// </summary>
             public string Name { get; set; }
+            /// <summary>
+            /// List of tags in custom filter
+            /// </summary>
             public List<TagFilter> Filters { get; set; }
+            /// <summary>
+            /// Date of last update to custom filter
+            /// </summary>
             public DateTime Updated { get; set; }
         }
 
@@ -1657,6 +1715,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
         [Serializable, XmlRoot("TagFilter")]
         public class TagFilter
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="id"></param>
+            /// <param name="name"></param>
+            /// <param name="titles"></param>
+            /// <param name="children"></param>
             public TagFilter(int id, string name, int titles, int[] children)
             {
                 ID = id;
@@ -1666,23 +1731,49 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 AllIDs = children.Union(new[] { id }).ToArray();
             }
 
+            /// <summary>
+            /// Empty Constructor needed for XML.
+            /// </summary>
             public TagFilter()
             {
             }
 
+            /// <summary>
+            /// ID of tag.
+            /// </summary>
             public int ID { get; set; }
+            /// <summary>
+            /// Name of tag.
+            /// </summary>
             public string Name { get; set; }
+            /// <summary>
+            /// Number of titles with tag.
+            /// </summary>
             public int Titles { get; set; }
+            /// <summary>
+            /// Subtag IDs of tag.
+            /// </summary>
             public int[] Children { get; set; }
+            /// <summary>
+            /// Tag ID and subtag IDs
+            /// </summary>
             public int[] AllIDs { get; set; }
 
 
+            /// <summary>
+            /// Check if given tag is a child tag of TagFilter
+            /// </summary>
+            /// <param name="tag">Tag to be checked</param>
+            /// <returns>Whether tag is child of TagFilter</returns>
             public bool HasChild(int tag)
             {
                 return Children.Contains(tag);
             }
 
 
+            /// <summary>Returns a string that represents the current object.</summary>
+            /// <returns>A string that represents the current object.</returns>
+            /// <filterpriority>2</filterpriority>
             public override string ToString()
             {
                 return $"{ID} - {Name}";
@@ -1698,6 +1789,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
             internal Brush HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
             internal Brush HeaderTextBrush = Brushes.AliceBlue;
 
+            /// <summary>
+            /// Render the whole item within an ObjectListView. This is only used in non-Details views.
+            /// </summary>
+            /// <param name="e">The event</param>
+            /// <param name="g">A Graphics for rendering</param>
+            /// <param name="itemBounds">The bounds of the item</param>
+            /// <param name="rowObject">The model object to be drawn</param>
+            /// <returns>Return true to indicate that the event was handled and no further processing is needed.</returns>
             public override bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds,
                 object rowObject)
             {
@@ -1734,6 +1833,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 return true;
             }
 
+            /// <summary>
+            /// Draw Visual Novel Tile, displayed in Visual Novels Object List View.
+            /// </summary>
+            /// <param name="g">A Graphics for rendering</param>
+            /// <param name="itemBounds">The bounds of the item</param>
+            /// <param name="rowObject">The model object to be drawn</param>
+            /// <param name="olv">OLV where tile is drawn.</param>
+            /// <param name="item">OLV Item</param>
             public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv,
                 OLVListItem item)
             {
@@ -1885,6 +1992,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 return path;
             }
 
+            /// <summary>
+            /// Scales an Image to fit the given dimensions.
+            /// </summary>
+            /// <param name="image">Image to be scaled</param>
+            /// <param name="maxWidth">Maximum width</param>
+            /// <param name="maxHeight">Maximum height</param>
+            /// <returns>Scaled image</returns>
             public static Image ScaleImage(Image image, int maxWidth, int maxHeight)
             {
                 var ratioX = (double)maxWidth / image.Width;
@@ -1903,17 +2017,35 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
+        /// <summary>
+        /// Class For XML File, holding saved objects.
+        /// </summary>
         [Serializable, XmlRoot("MainXml")]
         public class MainXml
         {
+            /// <summary>
+            /// List of User-created custom filters.
+            /// </summary>
             public List<ComplexFilter> ComplexFilters { get; set; }
+            /// <summary>
+            /// Current state of list filters.
+            /// </summary>
             public ToggleArray XmlToggles { get; set; }
 
+            /// <summary>
+            /// Empty constructor needed for XML.
+            /// </summary>
             public MainXml()
             {
                 ComplexFilters = new List<ComplexFilter>();
                 XmlToggles = new ToggleArray();
             }
+
+            /// <summary>
+            /// Constructor For Main XML File.
+            /// </summary>
+            /// <param name="customFilters">List of user-set custom filters</param>
+            /// <param name="xmlToggleArray">Current list toggle settings</param>
             public MainXml(List<ComplexFilter> customFilters, ToggleArray xmlToggleArray)
             {
                 ComplexFilters = customFilters;
@@ -1921,6 +2053,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
+        /// <summary>
+        /// Command to change VN status.
+        /// </summary>
         internal enum Command
         {
             New,
@@ -1928,6 +2063,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Delete
         }
 
+        /// <summary>
+        /// Type of VN status to be changed.
+        /// </summary>
         internal enum ChangeType
         {
             UL,
@@ -1937,5 +2075,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #endregion
         
+
     }
 }
