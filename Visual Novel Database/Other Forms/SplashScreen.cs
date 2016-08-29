@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+#pragma warning disable 1591
 // ReSharper disable All
 
 namespace SplashScreen

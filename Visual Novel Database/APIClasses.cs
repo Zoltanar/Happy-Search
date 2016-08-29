@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
+#pragma warning disable 1591
 
 // ReSharper disable InconsistentNaming
 

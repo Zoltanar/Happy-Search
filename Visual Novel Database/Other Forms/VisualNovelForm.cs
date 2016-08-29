@@ -10,12 +10,20 @@ using Happy_Search.Properties;
 
 namespace Happy_Search
 {
+    /// <summary>
+    /// Form for showing Visual Novel Information
+    /// </summary>
     public partial class VisualNovelForm : Form
     {
-        public const int WM_NCLBUTTONDOWN = 0xA1;
-        public const int HT_CAPTION = 0x2;
+        private const int WM_NCLBUTTONDOWN = 0xA1;
+        private const int HT_CAPTION = 0x2;
         private readonly FormMain _parentForm;
 
+        /// <summary>
+        /// Load VN form with specified Visual Novel.
+        /// </summary>
+        /// <param name="vnItem">Visual Novel to be shown</param>
+        /// <param name="parentForm">Parent form</param>
         public VisualNovelForm(ListedVN vnItem, FormMain parentForm)
         {
             _parentForm = parentForm;
@@ -25,6 +33,7 @@ namespace Happy_Search
             SetData(vnItem);
         }
 
+        /// <returns>The text associated with this control.</returns>
         public sealed override string Text
         {
             get { return base.Text; }
@@ -90,18 +99,16 @@ namespace Happy_Search
         }
 
         [DllImport("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
         [DllImport("user32.dll")]
-        public static extern bool ReleaseCapture();
+        private static extern bool ReleaseCapture();
 
         private void MoveWindowLeftclick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                ReleaseCapture();
-                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
-            }
+            if (e.Button != MouseButtons.Left) return;
+            ReleaseCapture();
+            SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
         }
 
         private void CloseButton(object sender, EventArgs e)

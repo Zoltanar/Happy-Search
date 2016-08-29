@@ -248,7 +248,7 @@ namespace Happy_Search
         private void URTToggle(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
-            Toggles.URTToggleFunc = (ToggleSetting)URTToggleBox.SelectedIndex;
+            Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
             ApplyToggleFilters();
         }
 
@@ -260,7 +260,7 @@ namespace Happy_Search
         private void UnreleasedToggle(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
-            Toggles.UnreleasedToggleFunc = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
+            Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
             ApplyToggleFilters();
         }
 
@@ -272,7 +272,7 @@ namespace Happy_Search
         private void BlacklistToggle(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
-            Toggles.BlacklistToggleFunc = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
+            Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
             ApplyToggleFilters();
         }
 
@@ -287,7 +287,7 @@ namespace Happy_Search
             switch (toggle)
             {
                 case ToggleFilter.URT:
-                    switch (Toggles.URTToggleFunc)
+                    switch (Toggles.URTToggleSetting)
                     {
                         case ToggleSetting.Show:
                             return function;
@@ -300,7 +300,7 @@ namespace Happy_Search
                         default: return function;
                     }
                 case ToggleFilter.Unreleased:
-                    switch (Toggles.UnreleasedToggleFunc)
+                    switch (Toggles.UnreleasedToggleSetting)
                     {
                         case ToggleSetting.Show:
                             return function;
@@ -311,7 +311,7 @@ namespace Happy_Search
                         default: return function;
                     }
                 case ToggleFilter.Blacklisted:
-                    switch (Toggles.BlacklistToggleFunc)
+                    switch (Toggles.BlacklistToggleSetting)
                     {
                         case ToggleSetting.Show:
                             return function;
@@ -342,9 +342,11 @@ namespace Happy_Search
         /// </summary>
         public enum ToggleFilter
         {
+#pragma warning disable 1591
             URT,
             Unreleased,
             Blacklisted
+#pragma warning restore 1591
         }
 
         /// <summary>
@@ -352,10 +354,12 @@ namespace Happy_Search
         /// </summary>
         public enum ToggleSetting
         {
+#pragma warning disable 1591
             Show,
             Hide,
             Only,
             NoFinishedOrDropped
+#pragma warning restore 1591
         }
 
         /// <summary>
@@ -364,15 +368,20 @@ namespace Happy_Search
         [Serializable, XmlRoot("ToggleArray")]
         public class ToggleArray
         {
+            /// <summary>
+            /// Empty constructor needed for XML
+            /// </summary>
             public ToggleArray()
             {
-                URTToggleFunc = 0;
-                UnreleasedToggleFunc = 0;
-                BlacklistToggleFunc = 0;
+                URTToggleSetting = 0;
+                UnreleasedToggleSetting = 0;
+                BlacklistToggleSetting = 0;
             }
-            public ToggleSetting URTToggleFunc { get; set; }
-            public ToggleSetting UnreleasedToggleFunc { get; set; }
-            public ToggleSetting BlacklistToggleFunc { get; set; }
+#pragma warning disable 1591
+            public ToggleSetting URTToggleSetting { get; set; }
+            public ToggleSetting UnreleasedToggleSetting { get; set; }
+            public ToggleSetting BlacklistToggleSetting { get; set; }
+#pragma warning restore 1591
 
         }
     }

@@ -10,10 +10,17 @@ using Microsoft.Win32;
 
 namespace Happy_Search
 {
+    /// <summary>
+    /// Form for User to log into VNDB.org
+    /// </summary>
     public partial class LoginForm : Form
     {
         private readonly FormMain _parentForm;
 
+        /// <summary>
+        /// Load form for user to log into VNDB.org
+        /// </summary>
+        /// <param name="parentForm"></param>
         public LoginForm(FormMain parentForm)
         {
             InitializeComponent();

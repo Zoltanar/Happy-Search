@@ -60,7 +60,6 @@ namespace Happy_Search
         internal int UserID; //id of current user
         internal List<ListedVN> URTList; //contains all user-related vns
 
-
         private void Test(object sender, EventArgs e)
         {
         }
@@ -114,7 +113,6 @@ namespace Happy_Search
             RefreshVNList();
             LoadFavoriteProducerList();
         }
-
 
         private void Help_GetStarted(object sender, EventArgs e)
         {
@@ -241,9 +239,9 @@ https://github.com/FredTheBarber/VndbClient";
                 MainXml xml = File.Exists(MainXmlFile) ? XmlHelper.FromXmlFile<MainXml>(MainXmlFile) : new MainXml();
                 _customFilters = xml.ComplexFilters;
                 foreach (var filter in _customFilters) customFilters.Items.Add(filter.Name);
-                URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleFunc;
-                UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleFunc;
-                BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleFunc;
+                URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleSetting;
+                UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleSetting;
+                BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleSetting;
             }
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
             InitAPIConnection();

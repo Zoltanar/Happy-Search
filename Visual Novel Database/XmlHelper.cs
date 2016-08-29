@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+#pragma warning disable 1591
 // ReSharper disable All
 
 namespace Happy_Search

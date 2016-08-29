@@ -9,6 +9,9 @@ using Newtonsoft.Json;
 
 namespace Happy_Search
 {
+    /// <summary>
+    /// Class for establishing connection with VNDB API and interacting with it.
+    /// </summary>
     public class VndbConnection
     {
         private const string VndbHost = "api.vndb.org";
@@ -17,11 +20,12 @@ namespace Happy_Search
         private Stream _stream;
         private TcpClient _tcpClient;
         internal Response LastResponse;
-
-
         internal LogInStatus LogIn = LogInStatus.No;
         internal APIStatus Status = APIStatus.Closed;
 
+        /// <summary>
+        /// Open stream with VNDB API.
+        /// </summary>
         public void Open()
         {
             var complete = false;
@@ -44,6 +48,13 @@ namespace Happy_Search
             }
         }
 
+        /// <summary>
+        /// Log into VNDB API, optionally using username/password.
+        /// </summary>
+        /// <param name="clientName">Name of Client accessing VNDB API</param>
+        /// <param name="clientVersion">Version of Client accessing VNDB API</param>
+        /// <param name="username">Username of user to log in as</param>
+        /// <param name="password">Password of user to log in as</param>
         public void Login(string clientName, string clientVersion, string username = null, char[] password = null)
         {
             string loginBuffer;
@@ -125,6 +136,9 @@ namespace Happy_Search
             }
         }
 
+        /// <summary>
+        /// Close connection with VNDB API
+        /// </summary>
         public void Close()
         {
             _tcpClient.GetStream().Close();
@@ -132,7 +146,8 @@ namespace Happy_Search
             Status = APIStatus.Closed;
         }
 
-        public static bool IsCompleteMessage(byte[] message, int bytesUsed)
+
+        private static bool IsCompleteMessage(byte[] message, int bytesUsed)
         {
             if (bytesUsed == 0)
             {
@@ -141,12 +156,10 @@ namespace Happy_Search
 
             // ASSUMPTION: simple request-response protocol, so we should see at most one message in a given byte array.
             // So, there's no need to walk the whole array looking for validity - just be lazy and check the last byte for EOS.
-            if (message[bytesUsed - 1] == EndOfStreamByte)
-                return true;
-            return false;
+            return message[bytesUsed - 1] == EndOfStreamByte;
         }
 
-        public static Response Parse(byte[] message, int bytesUsed)
+        private static Response Parse(byte[] message, int bytesUsed)
         {
             if (!IsCompleteMessage(message, bytesUsed))
             {
@@ -194,12 +207,29 @@ namespace Happy_Search
         }
     }
 
+    /// <summary>
+    /// Holds API's response to commands.
+    /// </summary>
     public class Response
     {
+        /// <summary>
+        /// If response is of type 'error', holds ErrorResponse
+        /// </summary>
         public ErrorResponse Error;
+        /// <summary>
+        /// Response in JSON format
+        /// </summary>
         public string JsonPayload;
+        /// <summary>
+        /// Type of response
+        /// </summary>
         public ResponseType Type;
 
+        /// <summary>
+        /// Constructor for Response
+        /// </summary>
+        /// <param name="type">Type of response</param>
+        /// <param name="jsonPayload">Response in JSON format</param>
         public Response(ResponseType type, string jsonPayload)
         {
             Type = type;
@@ -209,12 +239,30 @@ namespace Happy_Search
     }
 
 
+    /// <summary>
+    /// Type of API Response
+    /// </summary>
     public enum ResponseType
     {
+        /// <summary>
+        /// Returned by login command
+        /// </summary>
         Ok,
+        /// <summary>
+        /// Returned by get commands 
+        /// </summary>
         Results,
+        /// <summary>
+        /// Returned by dbstats command
+        /// </summary>
         DBStats,
+        /// <summary>
+        /// Returned when there is an error
+        /// </summary>
         Error,
+        /// <summary>
+        /// Returned in all other cases
+        /// </summary>
         Unknown
     }
 }

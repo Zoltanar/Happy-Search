@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
+#pragma warning disable 1591
 
 namespace Happy_Search
 {
