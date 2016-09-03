@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
-#pragma warning disable 1591
+//#pragma warning disable 1591
 
 namespace Happy_Search
 {
@@ -36,11 +36,7 @@ namespace Happy_Search
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.tagTypeC = new System.Windows.Forms.CheckBox();
-            this.tagTypeT = new System.Windows.Forms.CheckBox();
-            this.tagTypeS = new System.Windows.Forms.CheckBox();
             this.tagTypeS2 = new System.Windows.Forms.CheckBox();
             this.tagTypeT2 = new System.Windows.Forms.CheckBox();
             this.tagTypeC2 = new System.Windows.Forms.CheckBox();
@@ -49,16 +45,19 @@ namespace Happy_Search
             this.yearLimitBox = new System.Windows.Forms.CheckBox();
             this.addProducersButton = new System.Windows.Forms.Button();
             this.loadUnloadedButton = new System.Windows.Forms.Button();
-            this.updateAllProducersButton = new System.Windows.Forms.Button();
+            this.refreshAllProducersButton = new System.Windows.Forms.Button();
             this.selectedProducersVNButton = new System.Windows.Forms.Button();
             this.removeProducersButton = new System.Windows.Forms.Button();
-            this.langImages = new System.Windows.Forms.ImageList(this.components);
+            this.suggestProducersButton = new System.Windows.Forms.Button();
+            this.tagTypeS = new System.Windows.Forms.CheckBox();
+            this.tagTypeT = new System.Windows.Forms.CheckBox();
+            this.tagTypeC = new System.Windows.Forms.CheckBox();
             this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
             this.toolTip3 = new System.Windows.Forms.ToolTip(this.components);
             this.searchBox = new System.Windows.Forms.TextBox();
-            this.tagSearchBox = new System.Windows.Forms.TextBox();
-            this.ProducerFilterBox = new System.Windows.Forms.TextBox();
+            this.ProducerListBox = new System.Windows.Forms.TextBox();
             this.filterNameBox = new System.Windows.Forms.TextBox();
+            this.tagSearchBox = new System.Windows.Forms.TextBox();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.serverR = new System.Windows.Forms.RichTextBox();
@@ -112,14 +111,35 @@ namespace Happy_Search
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.aboutTextBox = new System.Windows.Forms.RichTextBox();
             this.vnTab = new System.Windows.Forms.TabPage();
+            this.tagFilteringBox = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.TagFilteringHelpButton = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.updateFilterResultsButton = new System.Windows.Forms.Button();
+            this.filterReply = new System.Windows.Forms.Label();
+            this.checkBox10 = new System.Windows.Forms.CheckBox();
+            this.checkBox7 = new System.Windows.Forms.CheckBox();
+            this.checkBox8 = new System.Windows.Forms.CheckBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.clearFilterButton = new System.Windows.Forms.Button();
+            this.checkBox9 = new System.Windows.Forms.CheckBox();
+            this.deleteCustomFilterButton = new System.Windows.Forms.Button();
+            this.customFilters = new System.Windows.Forms.ComboBox();
+            this.checkBox2 = new System.Windows.Forms.CheckBox();
+            this.saveCustomFilterButton = new System.Windows.Forms.Button();
+            this.checkBox4 = new System.Windows.Forms.CheckBox();
+            this.checkBox3 = new System.Windows.Forms.CheckBox();
+            this.mctLoadingLabel = new System.Windows.Forms.Label();
+            this.checkBox5 = new System.Windows.Forms.CheckBox();
+            this.checkBox6 = new System.Windows.Forms.CheckBox();
+            this.SearchingAndFilteringButton = new System.Windows.Forms.Button();
             this.currentListLabel = new System.Windows.Forms.Label();
             this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
             this.UnreleasedToggleBox = new System.Windows.Forms.ComboBox();
             this.URTToggleBox = new System.Windows.Forms.ComboBox();
             this.updateProducerTitlesButton = new System.Windows.Forms.Button();
             this.statusLabel = new System.Windows.Forms.Label();
-            this.updateCustomFilterButton = new System.Windows.Forms.Button();
-            this.deleteCustomFilterButton = new System.Windows.Forms.Button();
             this.viewPicker = new System.Windows.Forms.ComboBox();
             this.tileOLV = new BrightIdeasSoftware.ObjectListView();
             this.tileColumnTitle = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -135,7 +155,6 @@ namespace Happy_Search
             this.tileColumnID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.favoriteProducersHelpButton = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
             this.prodReply = new System.Windows.Forms.Label();
             this.olFavoriteProducers = new BrightIdeasSoftware.ObjectListView();
             this.ol2Name = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -150,7 +169,6 @@ namespace Happy_Search
             this.label15 = new System.Windows.Forms.Label();
             this.yearBox = new System.Windows.Forms.TextBox();
             this.btnFetch = new System.Windows.Forms.Button();
-            this.customFilters = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.ULStatusDropDown = new System.Windows.Forms.ComboBox();
@@ -166,24 +184,6 @@ namespace Happy_Search
             this.userListButt = new System.Windows.Forms.Button();
             this.loginReply = new System.Windows.Forms.Label();
             this.resultLabel = new System.Windows.Forms.Label();
-            this.tagFilteringBox = new System.Windows.Forms.GroupBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.filterReply = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.button5 = new System.Windows.Forms.Button();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.mctLoadingLabel = new System.Windows.Forms.Label();
-            this.checkBox6 = new System.Windows.Forms.CheckBox();
-            this.checkBox5 = new System.Windows.Forms.CheckBox();
-            this.checkBox4 = new System.Windows.Forms.CheckBox();
-            this.checkBox9 = new System.Windows.Forms.CheckBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.checkBox8 = new System.Windows.Forms.CheckBox();
-            this.checkBox7 = new System.Windows.Forms.CheckBox();
-            this.checkBox10 = new System.Windows.Forms.CheckBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.vnImages = new System.Windows.Forms.ImageList(this.components);
             this.ContextMenuVN = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -215,18 +215,17 @@ namespace Happy_Search
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.showProducerTitlesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.suggestProducersButton = new System.Windows.Forms.Button();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.vnTab.SuspendLayout();
+            this.tagFilteringBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tileOLV)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).BeginInit();
             this.settingsBox.SuspendLayout();
-            this.tagFilteringBox.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.ContextMenuVN.SuspendLayout();
             this.SuspendLayout();
@@ -239,48 +238,6 @@ namespace Happy_Search
             this.toolTip1.ReshowDelay = 0;
             this.toolTip1.UseAnimation = false;
             this.toolTip1.UseFading = false;
-            // 
-            // tagTypeC
-            // 
-            this.tagTypeC.AutoSize = true;
-            this.tagTypeC.Checked = true;
-            this.tagTypeC.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeC.Location = new System.Drawing.Point(113, 20);
-            this.tagTypeC.Name = "tagTypeC";
-            this.tagTypeC.Size = new System.Drawing.Size(33, 17);
-            this.tagTypeC.TabIndex = 35;
-            this.tagTypeC.Text = "C";
-            this.toolTip1.SetToolTip(this.tagTypeC, "Display Content Tags");
-            this.tagTypeC.UseVisualStyleBackColor = true;
-            this.tagTypeC.Click += new System.EventHandler(this.DisplayCommonTags);
-            // 
-            // tagTypeT
-            // 
-            this.tagTypeT.AutoSize = true;
-            this.tagTypeT.Checked = true;
-            this.tagTypeT.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeT.Location = new System.Drawing.Point(191, 20);
-            this.tagTypeT.Name = "tagTypeT";
-            this.tagTypeT.Size = new System.Drawing.Size(33, 17);
-            this.tagTypeT.TabIndex = 36;
-            this.tagTypeT.Text = "T";
-            this.toolTip1.SetToolTip(this.tagTypeT, "Display Technical Tags");
-            this.tagTypeT.UseVisualStyleBackColor = true;
-            this.tagTypeT.Click += new System.EventHandler(this.DisplayCommonTags);
-            // 
-            // tagTypeS
-            // 
-            this.tagTypeS.AutoSize = true;
-            this.tagTypeS.Checked = true;
-            this.tagTypeS.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeS.Location = new System.Drawing.Point(152, 20);
-            this.tagTypeS.Name = "tagTypeS";
-            this.tagTypeS.Size = new System.Drawing.Size(33, 17);
-            this.tagTypeS.TabIndex = 37;
-            this.tagTypeS.Text = "S";
-            this.toolTip1.SetToolTip(this.tagTypeS, "Display Sexual Content Tags");
-            this.tagTypeS.UseVisualStyleBackColor = true;
-            this.tagTypeS.Click += new System.EventHandler(this.DisplayCommonTags);
             // 
             // tagTypeS2
             // 
@@ -371,7 +328,7 @@ namespace Happy_Search
             this.addProducersButton.FlatAppearance.BorderSize = 0;
             this.addProducersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.addProducersButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.addProducersButton.Location = new System.Drawing.Point(315, 260);
+            this.addProducersButton.Location = new System.Drawing.Point(196, 260);
             this.addProducersButton.Name = "addProducersButton";
             this.addProducersButton.Size = new System.Drawing.Size(100, 23);
             this.addProducersButton.TabIndex = 36;
@@ -395,20 +352,20 @@ namespace Happy_Search
             this.loadUnloadedButton.UseVisualStyleBackColor = false;
             this.loadUnloadedButton.Click += new System.EventHandler(this.LoadUnloaded);
             // 
-            // updateAllProducersButton
+            // refreshAllProducersButton
             // 
-            this.updateAllProducersButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.updateAllProducersButton.FlatAppearance.BorderSize = 0;
-            this.updateAllProducersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.updateAllProducersButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.updateAllProducersButton.Location = new System.Drawing.Point(421, 289);
-            this.updateAllProducersButton.Name = "updateAllProducersButton";
-            this.updateAllProducersButton.Size = new System.Drawing.Size(146, 23);
-            this.updateAllProducersButton.TabIndex = 32;
-            this.updateAllProducersButton.Text = "Update All Producer Titles";
-            this.toolTip1.SetToolTip(this.updateAllProducersButton, "Update all favorite producers\' titles.");
-            this.updateAllProducersButton.UseVisualStyleBackColor = false;
-            this.updateAllProducersButton.Click += new System.EventHandler(this.UpdateAllFavoriteProducerTitles);
+            this.refreshAllProducersButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.refreshAllProducersButton.FlatAppearance.BorderSize = 0;
+            this.refreshAllProducersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.refreshAllProducersButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.refreshAllProducersButton.Location = new System.Drawing.Point(421, 289);
+            this.refreshAllProducersButton.Name = "refreshAllProducersButton";
+            this.refreshAllProducersButton.Size = new System.Drawing.Size(146, 23);
+            this.refreshAllProducersButton.TabIndex = 32;
+            this.refreshAllProducersButton.Text = "Refresh All Producer Titles";
+            this.toolTip1.SetToolTip(this.refreshAllProducersButton, "Update all favorite producers\' titles.");
+            this.refreshAllProducersButton.UseVisualStyleBackColor = false;
+            this.refreshAllProducersButton.Click += new System.EventHandler(this.RefreshAllFavoriteProducerTitles);
             // 
             // selectedProducersVNButton
             // 
@@ -440,115 +397,106 @@ namespace Happy_Search
             this.removeProducersButton.UseVisualStyleBackColor = false;
             this.removeProducersButton.Click += new System.EventHandler(this.RemoveProducers);
             // 
-            // langImages
+            // suggestProducersButton
             // 
-            this.langImages.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("langImages.ImageStream")));
-            this.langImages.TransparentColor = System.Drawing.Color.Transparent;
-            this.langImages.Images.SetKeyName(0, "af.png");
-            this.langImages.Images.SetKeyName(1, "ar.png");
-            this.langImages.Images.SetKeyName(2, "be.png");
-            this.langImages.Images.SetKeyName(3, "bg.png");
-            this.langImages.Images.SetKeyName(4, "bo.png");
-            this.langImages.Images.SetKeyName(5, "ca.png");
-            this.langImages.Images.SetKeyName(6, "cs.png");
-            this.langImages.Images.SetKeyName(7, "da.png");
-            this.langImages.Images.SetKeyName(8, "de.png");
-            this.langImages.Images.SetKeyName(9, "el.png");
-            this.langImages.Images.SetKeyName(10, "en.png");
-            this.langImages.Images.SetKeyName(11, "eo.png");
-            this.langImages.Images.SetKeyName(12, "es.png");
-            this.langImages.Images.SetKeyName(13, "et.png");
-            this.langImages.Images.SetKeyName(14, "eu.png");
-            this.langImages.Images.SetKeyName(15, "fa.png");
-            this.langImages.Images.SetKeyName(16, "fi.png");
-            this.langImages.Images.SetKeyName(17, "fil.png");
-            this.langImages.Images.SetKeyName(18, "fo.png");
-            this.langImages.Images.SetKeyName(19, "fr.png");
-            this.langImages.Images.SetKeyName(20, "ga.png");
-            this.langImages.Images.SetKeyName(21, "gl.png");
-            this.langImages.Images.SetKeyName(22, "he.png");
-            this.langImages.Images.SetKeyName(23, "hi.png");
-            this.langImages.Images.SetKeyName(24, "hr.png");
-            this.langImages.Images.SetKeyName(25, "hu.png");
-            this.langImages.Images.SetKeyName(26, "id.png");
-            this.langImages.Images.SetKeyName(27, "is.png");
-            this.langImages.Images.SetKeyName(28, "it.png");
-            this.langImages.Images.SetKeyName(29, "ja.png");
-            this.langImages.Images.SetKeyName(30, "km.png");
-            this.langImages.Images.SetKeyName(31, "ko.png");
-            this.langImages.Images.SetKeyName(32, "lb.png");
-            this.langImages.Images.SetKeyName(33, "lt.png");
-            this.langImages.Images.SetKeyName(34, "lv.png");
-            this.langImages.Images.SetKeyName(35, "mn.png");
-            this.langImages.Images.SetKeyName(36, "ms.png");
-            this.langImages.Images.SetKeyName(37, "nb.png");
-            this.langImages.Images.SetKeyName(38, "nl.png");
-            this.langImages.Images.SetKeyName(39, "nn.png");
-            this.langImages.Images.SetKeyName(40, "pl.png");
-            this.langImages.Images.SetKeyName(41, "pt-br.png");
-            this.langImages.Images.SetKeyName(42, "pt-pt.png");
-            this.langImages.Images.SetKeyName(43, "ro.png");
-            this.langImages.Images.SetKeyName(44, "ru.png");
-            this.langImages.Images.SetKeyName(45, "sco.png");
-            this.langImages.Images.SetKeyName(46, "se.png");
-            this.langImages.Images.SetKeyName(47, "sk.png");
-            this.langImages.Images.SetKeyName(48, "sl.png");
-            this.langImages.Images.SetKeyName(49, "so.png");
-            this.langImages.Images.SetKeyName(50, "sq.png");
-            this.langImages.Images.SetKeyName(51, "sr.png");
-            this.langImages.Images.SetKeyName(52, "sv.png");
-            this.langImages.Images.SetKeyName(53, "tg.png");
-            this.langImages.Images.SetKeyName(54, "th.png");
-            this.langImages.Images.SetKeyName(55, "tl.png");
-            this.langImages.Images.SetKeyName(56, "tr.png");
-            this.langImages.Images.SetKeyName(57, "uk.png");
-            this.langImages.Images.SetKeyName(58, "vi.png");
-            this.langImages.Images.SetKeyName(59, "zh-hans.png");
-            this.langImages.Images.SetKeyName(60, "zh-hant.png");
+            this.suggestProducersButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.suggestProducersButton.FlatAppearance.BorderSize = 0;
+            this.suggestProducersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.suggestProducersButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.suggestProducersButton.Location = new System.Drawing.Point(302, 260);
+            this.suggestProducersButton.Name = "suggestProducersButton";
+            this.suggestProducersButton.Size = new System.Drawing.Size(113, 23);
+            this.suggestProducersButton.TabIndex = 89;
+            this.suggestProducersButton.Text = "Suggest Producers";
+            this.toolTip1.SetToolTip(this.suggestProducersButton, "Search by name and add producers to list.");
+            this.suggestProducersButton.UseVisualStyleBackColor = false;
+            this.suggestProducersButton.Click += new System.EventHandler(this.SuggestProducers);
+            // 
+            // tagTypeS
+            // 
+            this.tagTypeS.AutoSize = true;
+            this.tagTypeS.Checked = true;
+            this.tagTypeS.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tagTypeS.Location = new System.Drawing.Point(149, 8);
+            this.tagTypeS.Name = "tagTypeS";
+            this.tagTypeS.Size = new System.Drawing.Size(33, 17);
+            this.tagTypeS.TabIndex = 37;
+            this.tagTypeS.Text = "S";
+            this.toolTip1.SetToolTip(this.tagTypeS, "Display Sexual Content Tags");
+            this.tagTypeS.UseVisualStyleBackColor = true;
+            this.tagTypeS.Click += new System.EventHandler(this.DisplayCommonTags);
+            // 
+            // tagTypeT
+            // 
+            this.tagTypeT.AutoSize = true;
+            this.tagTypeT.Checked = true;
+            this.tagTypeT.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tagTypeT.Location = new System.Drawing.Point(188, 8);
+            this.tagTypeT.Name = "tagTypeT";
+            this.tagTypeT.Size = new System.Drawing.Size(33, 17);
+            this.tagTypeT.TabIndex = 36;
+            this.tagTypeT.Text = "T";
+            this.toolTip1.SetToolTip(this.tagTypeT, "Display Technical Tags");
+            this.tagTypeT.UseVisualStyleBackColor = true;
+            this.tagTypeT.Click += new System.EventHandler(this.DisplayCommonTags);
+            // 
+            // tagTypeC
+            // 
+            this.tagTypeC.AutoSize = true;
+            this.tagTypeC.Checked = true;
+            this.tagTypeC.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tagTypeC.Location = new System.Drawing.Point(110, 8);
+            this.tagTypeC.Name = "tagTypeC";
+            this.tagTypeC.Size = new System.Drawing.Size(33, 17);
+            this.tagTypeC.TabIndex = 35;
+            this.tagTypeC.Text = "C";
+            this.toolTip1.SetToolTip(this.tagTypeC, "Display Content Tags");
+            this.tagTypeC.UseVisualStyleBackColor = true;
+            this.tagTypeC.Click += new System.EventHandler(this.DisplayCommonTags);
             // 
             // searchBox
             // 
             this.searchBox.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.searchBox.Location = new System.Drawing.Point(93, 311);
+            this.searchBox.Location = new System.Drawing.Point(105, 311);
             this.searchBox.Name = "searchBox";
             this.searchBox.Size = new System.Drawing.Size(92, 20);
             this.searchBox.TabIndex = 21;
             this.toolTip3.SetToolTip(this.searchBox, "Type VN name here.");
             this.searchBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.searchButton_keyPress);
             // 
-            // tagSearchBox
+            // ProducerListBox
             // 
-            this.tagSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.tagSearchBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.tagSearchBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tagSearchBox.Location = new System.Drawing.Point(264, 17);
-            this.tagSearchBox.Name = "tagSearchBox";
-            this.tagSearchBox.Size = new System.Drawing.Size(187, 22);
-            this.tagSearchBox.TabIndex = 29;
-            this.toolTip3.SetToolTip(this.tagSearchBox, "Type VN name here.");
-            this.tagSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tagSearchBox_KeyDown);
-            // 
-            // ProducerFilterBox
-            // 
-            this.ProducerFilterBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.ProducerFilterBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.ProducerFilterBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ProducerFilterBox.Location = new System.Drawing.Point(746, 336);
-            this.ProducerFilterBox.Name = "ProducerFilterBox";
-            this.ProducerFilterBox.Size = new System.Drawing.Size(145, 22);
-            this.ProducerFilterBox.TabIndex = 39;
-            this.toolTip3.SetToolTip(this.ProducerFilterBox, "Type VN name here.");
-            this.ProducerFilterBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Filter_Producer);
+            this.ProducerListBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.ProducerListBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.ProducerListBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProducerListBox.Location = new System.Drawing.Point(456, 337);
+            this.ProducerListBox.Name = "ProducerListBox";
+            this.ProducerListBox.Size = new System.Drawing.Size(145, 22);
+            this.ProducerListBox.TabIndex = 39;
+            this.toolTip3.SetToolTip(this.ProducerListBox, "Type VN name here.");
+            this.ProducerListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Filter_Producer);
             // 
             // filterNameBox
             // 
             this.filterNameBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.filterNameBox.Location = new System.Drawing.Point(461, 45);
+            this.filterNameBox.Location = new System.Drawing.Point(443, 25);
             this.filterNameBox.Name = "filterNameBox";
             this.filterNameBox.Size = new System.Drawing.Size(100, 22);
             this.filterNameBox.TabIndex = 41;
             this.toolTip3.SetToolTip(this.filterNameBox, "Type VN name here.");
             this.filterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.filterNameBox_KeyDown);
+            // 
+            // tagSearchBox
+            // 
+            this.tagSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.tagSearchBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.tagSearchBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tagSearchBox.Location = new System.Drawing.Point(271, 5);
+            this.tagSearchBox.Name = "tagSearchBox";
+            this.tagSearchBox.Size = new System.Drawing.Size(163, 22);
+            this.tagSearchBox.TabIndex = 29;
+            this.toolTip3.SetToolTip(this.tagSearchBox, "Type VN name here.");
+            this.tagSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tagSearchBox_KeyDown);
             // 
             // infoTab
             // 
@@ -1080,21 +1028,20 @@ namespace Happy_Search
             this.aboutTextBox.ReadOnly = true;
             this.aboutTextBox.Size = new System.Drawing.Size(514, 152);
             this.aboutTextBox.TabIndex = 0;
-            this.aboutTextBox.Text = resources.GetString("aboutTextBox.Text");
+            this.aboutTextBox.Text = "";
             // 
             // vnTab
             // 
-            this.vnTab.BackColor = System.Drawing.Color.Gray;
-            this.vnTab.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
+            this.vnTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.vnTab.Controls.Add(this.tagFilteringBox);
+            this.vnTab.Controls.Add(this.SearchingAndFilteringButton);
             this.vnTab.Controls.Add(this.currentListLabel);
             this.vnTab.Controls.Add(this.BlacklistToggleBox);
             this.vnTab.Controls.Add(this.UnreleasedToggleBox);
             this.vnTab.Controls.Add(this.URTToggleBox);
             this.vnTab.Controls.Add(this.updateProducerTitlesButton);
             this.vnTab.Controls.Add(this.statusLabel);
-            this.vnTab.Controls.Add(this.updateCustomFilterButton);
-            this.vnTab.Controls.Add(this.deleteCustomFilterButton);
             this.vnTab.Controls.Add(this.viewPicker);
             this.vnTab.Controls.Add(this.tileOLV);
             this.vnTab.Controls.Add(this.groupBox2);
@@ -1103,9 +1050,8 @@ namespace Happy_Search
             this.vnTab.Controls.Add(this.label15);
             this.vnTab.Controls.Add(this.yearBox);
             this.vnTab.Controls.Add(this.btnFetch);
-            this.vnTab.Controls.Add(this.customFilters);
             this.vnTab.Controls.Add(this.searchBox);
-            this.vnTab.Controls.Add(this.ProducerFilterBox);
+            this.vnTab.Controls.Add(this.ProducerListBox);
             this.vnTab.Controls.Add(this.label4);
             this.vnTab.Controls.Add(this.label14);
             this.vnTab.Controls.Add(this.ULStatusDropDown);
@@ -1114,7 +1060,6 @@ namespace Happy_Search
             this.vnTab.Controls.Add(this.quickFilter1);
             this.vnTab.Controls.Add(this.settingsBox);
             this.vnTab.Controls.Add(this.resultLabel);
-            this.vnTab.Controls.Add(this.tagFilteringBox);
             this.vnTab.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.vnTab.Location = new System.Drawing.Point(4, 22);
             this.vnTab.Name = "vnTab";
@@ -1122,6 +1067,287 @@ namespace Happy_Search
             this.vnTab.Size = new System.Drawing.Size(1410, 757);
             this.vnTab.TabIndex = 1;
             this.vnTab.Text = "Visual Novel Info";
+            // 
+            // tagFilteringBox
+            // 
+            this.tagFilteringBox.AutoScroll = true;
+            this.tagFilteringBox.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.tagFilteringBox.Controls.Add(this.label2);
+            this.tagFilteringBox.Controls.Add(this.TagFilteringHelpButton);
+            this.tagFilteringBox.Controls.Add(this.label6);
+            this.tagFilteringBox.Controls.Add(this.updateFilterResultsButton);
+            this.tagFilteringBox.Controls.Add(this.tagSearchBox);
+            this.tagFilteringBox.Controls.Add(this.filterReply);
+            this.tagFilteringBox.Controls.Add(this.checkBox10);
+            this.tagFilteringBox.Controls.Add(this.filterNameBox);
+            this.tagFilteringBox.Controls.Add(this.checkBox7);
+            this.tagFilteringBox.Controls.Add(this.checkBox8);
+            this.tagFilteringBox.Controls.Add(this.checkBox1);
+            this.tagFilteringBox.Controls.Add(this.label7);
+            this.tagFilteringBox.Controls.Add(this.clearFilterButton);
+            this.tagFilteringBox.Controls.Add(this.checkBox9);
+            this.tagFilteringBox.Controls.Add(this.deleteCustomFilterButton);
+            this.tagFilteringBox.Controls.Add(this.customFilters);
+            this.tagFilteringBox.Controls.Add(this.checkBox2);
+            this.tagFilteringBox.Controls.Add(this.tagTypeC);
+            this.tagFilteringBox.Controls.Add(this.saveCustomFilterButton);
+            this.tagFilteringBox.Controls.Add(this.checkBox4);
+            this.tagFilteringBox.Controls.Add(this.checkBox3);
+            this.tagFilteringBox.Controls.Add(this.tagTypeT);
+            this.tagFilteringBox.Controls.Add(this.mctLoadingLabel);
+            this.tagFilteringBox.Controls.Add(this.checkBox5);
+            this.tagFilteringBox.Controls.Add(this.checkBox6);
+            this.tagFilteringBox.Controls.Add(this.tagTypeS);
+            this.tagFilteringBox.Location = new System.Drawing.Point(151, 11);
+            this.tagFilteringBox.Name = "tagFilteringBox";
+            this.tagFilteringBox.Size = new System.Drawing.Size(567, 294);
+            this.tagFilteringBox.TabIndex = 92;
+            // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(440, 9);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(103, 13);
+            this.label2.TabIndex = 91;
+            this.label2.Text = "Custom Filter Name:";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // TagFilteringHelpButton
+            // 
+            this.TagFilteringHelpButton.BackColor = System.Drawing.Color.Khaki;
+            this.TagFilteringHelpButton.FlatAppearance.BorderSize = 0;
+            this.TagFilteringHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.TagFilteringHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.TagFilteringHelpButton.Location = new System.Drawing.Point(496, 263);
+            this.TagFilteringHelpButton.Name = "TagFilteringHelpButton";
+            this.TagFilteringHelpButton.Size = new System.Drawing.Size(44, 23);
+            this.TagFilteringHelpButton.TabIndex = 90;
+            this.TagFilteringHelpButton.Text = "Help";
+            this.TagFilteringHelpButton.UseVisualStyleBackColor = false;
+            this.TagFilteringHelpButton.Click += new System.EventHandler(this.Help_TagFiltering);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(3, 9);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(101, 13);
+            this.label6.TabIndex = 33;
+            this.label6.Text = "Most Common Tags";
+            // 
+            // updateFilterResultsButton
+            // 
+            this.updateFilterResultsButton.BackColor = System.Drawing.Color.MistyRose;
+            this.updateFilterResultsButton.FlatAppearance.BorderSize = 0;
+            this.updateFilterResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.updateFilterResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.updateFilterResultsButton.Location = new System.Drawing.Point(443, 167);
+            this.updateFilterResultsButton.Name = "updateFilterResultsButton";
+            this.updateFilterResultsButton.Size = new System.Drawing.Size(100, 23);
+            this.updateFilterResultsButton.TabIndex = 50;
+            this.updateFilterResultsButton.Text = "Update Results";
+            this.updateFilterResultsButton.UseVisualStyleBackColor = false;
+            this.updateFilterResultsButton.Click += new System.EventHandler(this.UpdateResults);
+            // 
+            // filterReply
+            // 
+            this.filterReply.Location = new System.Drawing.Point(443, 193);
+            this.filterReply.Name = "filterReply";
+            this.filterReply.Size = new System.Drawing.Size(100, 67);
+            this.filterReply.TabIndex = 49;
+            this.filterReply.Text = "(filterReply)";
+            this.filterReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // checkBox10
+            // 
+            this.checkBox10.Location = new System.Drawing.Point(3, 238);
+            this.checkBox10.Name = "checkBox10";
+            this.checkBox10.Size = new System.Drawing.Size(200, 17);
+            this.checkBox10.TabIndex = 9;
+            this.checkBox10.Text = "checkBox10";
+            this.checkBox10.UseVisualStyleBackColor = true;
+            this.checkBox10.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // checkBox7
+            // 
+            this.checkBox7.Location = new System.Drawing.Point(3, 169);
+            this.checkBox7.Name = "checkBox7";
+            this.checkBox7.Size = new System.Drawing.Size(200, 17);
+            this.checkBox7.TabIndex = 8;
+            this.checkBox7.Text = "checkBox7";
+            this.checkBox7.UseVisualStyleBackColor = true;
+            this.checkBox7.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // checkBox8
+            // 
+            this.checkBox8.Location = new System.Drawing.Point(3, 192);
+            this.checkBox8.Name = "checkBox8";
+            this.checkBox8.Size = new System.Drawing.Size(200, 17);
+            this.checkBox8.TabIndex = 7;
+            this.checkBox8.Text = "checkBox8";
+            this.checkBox8.UseVisualStyleBackColor = true;
+            this.checkBox8.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.Location = new System.Drawing.Point(3, 34);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(200, 17);
+            this.checkBox1.TabIndex = 0;
+            this.checkBox1.Text = "checkBox1";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(221, 9);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(44, 13);
+            this.label7.TabIndex = 34;
+            this.label7.Text = "Search:";
+            // 
+            // clearFilterButton
+            // 
+            this.clearFilterButton.BackColor = System.Drawing.Color.MistyRose;
+            this.clearFilterButton.FlatAppearance.BorderSize = 0;
+            this.clearFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.clearFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.clearFilterButton.Location = new System.Drawing.Point(443, 138);
+            this.clearFilterButton.Name = "clearFilterButton";
+            this.clearFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.clearFilterButton.TabIndex = 40;
+            this.clearFilterButton.Text = "Clear Filter";
+            this.clearFilterButton.UseVisualStyleBackColor = false;
+            this.clearFilterButton.Click += new System.EventHandler(this.ClearFilter);
+            // 
+            // checkBox9
+            // 
+            this.checkBox9.Location = new System.Drawing.Point(3, 215);
+            this.checkBox9.Name = "checkBox9";
+            this.checkBox9.Size = new System.Drawing.Size(200, 17);
+            this.checkBox9.TabIndex = 6;
+            this.checkBox9.Text = "checkBox9";
+            this.checkBox9.UseVisualStyleBackColor = true;
+            this.checkBox9.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // deleteCustomFilterButton
+            // 
+            this.deleteCustomFilterButton.BackColor = System.Drawing.Color.MistyRose;
+            this.deleteCustomFilterButton.Enabled = false;
+            this.deleteCustomFilterButton.FlatAppearance.BorderSize = 0;
+            this.deleteCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.deleteCustomFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.deleteCustomFilterButton.Location = new System.Drawing.Point(443, 109);
+            this.deleteCustomFilterButton.Name = "deleteCustomFilterButton";
+            this.deleteCustomFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.deleteCustomFilterButton.TabIndex = 78;
+            this.deleteCustomFilterButton.Text = "Delete Filter";
+            this.deleteCustomFilterButton.UseVisualStyleBackColor = false;
+            this.deleteCustomFilterButton.Click += new System.EventHandler(this.DeleteCustomFilter);
+            // 
+            // customFilters
+            // 
+            this.customFilters.BackColor = System.Drawing.Color.MistyRose;
+            this.customFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.customFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.customFilters.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.customFilters.FormattingEnabled = true;
+            this.customFilters.Items.AddRange(new object[] {
+            "Custom Filters",
+            "----------"});
+            this.customFilters.Location = new System.Drawing.Point(443, 53);
+            this.customFilters.Name = "customFilters";
+            this.customFilters.Size = new System.Drawing.Size(100, 21);
+            this.customFilters.TabIndex = 57;
+            this.customFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_Custom);
+            // 
+            // checkBox2
+            // 
+            this.checkBox2.Location = new System.Drawing.Point(3, 56);
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Size = new System.Drawing.Size(200, 17);
+            this.checkBox2.TabIndex = 1;
+            this.checkBox2.Text = "checkBox2";
+            this.checkBox2.UseVisualStyleBackColor = true;
+            this.checkBox2.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // saveCustomFilterButton
+            // 
+            this.saveCustomFilterButton.BackColor = System.Drawing.Color.MistyRose;
+            this.saveCustomFilterButton.FlatAppearance.BorderSize = 0;
+            this.saveCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.saveCustomFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.saveCustomFilterButton.Location = new System.Drawing.Point(443, 80);
+            this.saveCustomFilterButton.Name = "saveCustomFilterButton";
+            this.saveCustomFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.saveCustomFilterButton.TabIndex = 39;
+            this.saveCustomFilterButton.Text = "Save Filter";
+            this.saveCustomFilterButton.UseVisualStyleBackColor = false;
+            this.saveCustomFilterButton.Click += new System.EventHandler(this.SaveCustomFilter);
+            // 
+            // checkBox4
+            // 
+            this.checkBox4.Location = new System.Drawing.Point(3, 100);
+            this.checkBox4.Name = "checkBox4";
+            this.checkBox4.Size = new System.Drawing.Size(200, 17);
+            this.checkBox4.TabIndex = 5;
+            this.checkBox4.Text = "checkBox4";
+            this.checkBox4.UseVisualStyleBackColor = true;
+            this.checkBox4.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // checkBox3
+            // 
+            this.checkBox3.Location = new System.Drawing.Point(3, 79);
+            this.checkBox3.Name = "checkBox3";
+            this.checkBox3.Size = new System.Drawing.Size(200, 17);
+            this.checkBox3.TabIndex = 2;
+            this.checkBox3.Text = "checkBox3";
+            this.checkBox3.UseVisualStyleBackColor = true;
+            this.checkBox3.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // mctLoadingLabel
+            // 
+            this.mctLoadingLabel.AutoSize = true;
+            this.mctLoadingLabel.Location = new System.Drawing.Point(3, 258);
+            this.mctLoadingLabel.Name = "mctLoadingLabel";
+            this.mctLoadingLabel.Size = new System.Drawing.Size(94, 13);
+            this.mctLoadingLabel.TabIndex = 38;
+            this.mctLoadingLabel.Text = "(mctLoadingLabel)";
+            // 
+            // checkBox5
+            // 
+            this.checkBox5.Location = new System.Drawing.Point(3, 123);
+            this.checkBox5.Name = "checkBox5";
+            this.checkBox5.Size = new System.Drawing.Size(200, 17);
+            this.checkBox5.TabIndex = 4;
+            this.checkBox5.Text = "checkBox5";
+            this.checkBox5.UseVisualStyleBackColor = true;
+            this.checkBox5.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // checkBox6
+            // 
+            this.checkBox6.Location = new System.Drawing.Point(3, 146);
+            this.checkBox6.Name = "checkBox6";
+            this.checkBox6.Size = new System.Drawing.Size(200, 17);
+            this.checkBox6.TabIndex = 3;
+            this.checkBox6.Text = "checkBox6";
+            this.checkBox6.UseVisualStyleBackColor = true;
+            this.checkBox6.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
+            // 
+            // SearchingAndFilteringButton
+            // 
+            this.SearchingAndFilteringButton.BackColor = System.Drawing.Color.Khaki;
+            this.SearchingAndFilteringButton.FlatAppearance.BorderSize = 0;
+            this.SearchingAndFilteringButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.SearchingAndFilteringButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(674, 308);
+            this.SearchingAndFilteringButton.Name = "SearchingAndFilteringButton";
+            this.SearchingAndFilteringButton.Size = new System.Drawing.Size(44, 23);
+            this.SearchingAndFilteringButton.TabIndex = 91;
+            this.SearchingAndFilteringButton.Text = "Help";
+            this.SearchingAndFilteringButton.UseVisualStyleBackColor = false;
+            this.SearchingAndFilteringButton.Click += new System.EventHandler(this.Help_SearchingAndFiltering);
             // 
             // currentListLabel
             // 
@@ -1137,8 +1363,10 @@ namespace Happy_Search
             // 
             // BlacklistToggleBox
             // 
+            this.BlacklistToggleBox.BackColor = System.Drawing.Color.Navy;
             this.BlacklistToggleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.BlacklistToggleBox.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.BlacklistToggleBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.BlacklistToggleBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.BlacklistToggleBox.FormattingEnabled = true;
             this.BlacklistToggleBox.Items.AddRange(new object[] {
             "Show Blacklisted",
@@ -1152,8 +1380,10 @@ namespace Happy_Search
             // 
             // UnreleasedToggleBox
             // 
+            this.UnreleasedToggleBox.BackColor = System.Drawing.Color.Navy;
             this.UnreleasedToggleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.UnreleasedToggleBox.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.UnreleasedToggleBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.UnreleasedToggleBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.UnreleasedToggleBox.FormattingEnabled = true;
             this.UnreleasedToggleBox.Items.AddRange(new object[] {
             "Show Unreleased",
@@ -1167,14 +1397,16 @@ namespace Happy_Search
             // 
             // URTToggleBox
             // 
+            this.URTToggleBox.BackColor = System.Drawing.Color.Navy;
             this.URTToggleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.URTToggleBox.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.URTToggleBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.URTToggleBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.URTToggleBox.FormattingEnabled = true;
             this.URTToggleBox.Items.AddRange(new object[] {
             "Show URT",
             "Hide URT",
             "Only URT",
-            "No Finished/Dropped"});
+            "Only Unplayed"});
             this.URTToggleBox.Location = new System.Drawing.Point(956, 336);
             this.URTToggleBox.Name = "URTToggleBox";
             this.URTToggleBox.Size = new System.Drawing.Size(119, 21);
@@ -1183,11 +1415,11 @@ namespace Happy_Search
             // 
             // updateProducerTitlesButton
             // 
-            this.updateProducerTitlesButton.BackColor = System.Drawing.Color.LightCoral;
+            this.updateProducerTitlesButton.BackColor = System.Drawing.Color.SteelBlue;
             this.updateProducerTitlesButton.FlatAppearance.BorderSize = 0;
             this.updateProducerTitlesButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.updateProducerTitlesButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateProducerTitlesButton.Location = new System.Drawing.Point(897, 336);
+            this.updateProducerTitlesButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.updateProducerTitlesButton.Location = new System.Drawing.Point(607, 337);
             this.updateProducerTitlesButton.Name = "updateProducerTitlesButton";
             this.updateProducerTitlesButton.Size = new System.Drawing.Size(53, 23);
             this.updateProducerTitlesButton.TabIndex = 84;
@@ -1206,39 +1438,12 @@ namespace Happy_Search
             this.statusLabel.TabIndex = 80;
             this.statusLabel.Text = "(statusLabel)";
             // 
-            // updateCustomFilterButton
-            // 
-            this.updateCustomFilterButton.BackColor = System.Drawing.Color.LightCoral;
-            this.updateCustomFilterButton.Enabled = false;
-            this.updateCustomFilterButton.FlatAppearance.BorderSize = 0;
-            this.updateCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.updateCustomFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateCustomFilterButton.Location = new System.Drawing.Point(631, 336);
-            this.updateCustomFilterButton.Name = "updateCustomFilterButton";
-            this.updateCustomFilterButton.Size = new System.Drawing.Size(53, 23);
-            this.updateCustomFilterButton.TabIndex = 79;
-            this.updateCustomFilterButton.Text = "Update";
-            this.updateCustomFilterButton.UseVisualStyleBackColor = false;
-            this.updateCustomFilterButton.Click += new System.EventHandler(this.UpdateCustomFilter);
-            // 
-            // deleteCustomFilterButton
-            // 
-            this.deleteCustomFilterButton.BackColor = System.Drawing.Color.LightCoral;
-            this.deleteCustomFilterButton.Enabled = false;
-            this.deleteCustomFilterButton.FlatAppearance.BorderSize = 0;
-            this.deleteCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.deleteCustomFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.deleteCustomFilterButton.Location = new System.Drawing.Point(574, 336);
-            this.deleteCustomFilterButton.Name = "deleteCustomFilterButton";
-            this.deleteCustomFilterButton.Size = new System.Drawing.Size(53, 23);
-            this.deleteCustomFilterButton.TabIndex = 78;
-            this.deleteCustomFilterButton.Text = "Delete";
-            this.deleteCustomFilterButton.UseVisualStyleBackColor = false;
-            this.deleteCustomFilterButton.Click += new System.EventHandler(this.DeleteCustomFilter);
-            // 
             // viewPicker
             // 
+            this.viewPicker.BackColor = System.Drawing.Color.Navy;
             this.viewPicker.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.viewPicker.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.viewPicker.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.viewPicker.FormattingEnabled = true;
             this.viewPicker.Items.AddRange(new object[] {
             "Tile View",
@@ -1294,7 +1499,7 @@ namespace Happy_Search
             this.tileOLV.UseCompatibleStateImageBehavior = false;
             this.tileOLV.UseFiltering = true;
             this.tileOLV.View = System.Windows.Forms.View.Tile;
-            this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.ObjectList_SelectedIndexChanged);
+            this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.VisualNovelLeftClick);
             this.tileOLV.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.ShowContextMenu);
             this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatRow);
             this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
@@ -1371,13 +1576,12 @@ namespace Happy_Search
             this.groupBox2.BackColor = System.Drawing.Color.Transparent;
             this.groupBox2.Controls.Add(this.suggestProducersButton);
             this.groupBox2.Controls.Add(this.favoriteProducersHelpButton);
-            this.groupBox2.Controls.Add(this.button6);
             this.groupBox2.Controls.Add(this.getNewProducersButton);
             this.groupBox2.Controls.Add(this.prodReply);
             this.groupBox2.Controls.Add(this.addProducersButton);
             this.groupBox2.Controls.Add(this.olFavoriteProducers);
             this.groupBox2.Controls.Add(this.loadUnloadedButton);
-            this.groupBox2.Controls.Add(this.updateAllProducersButton);
+            this.groupBox2.Controls.Add(this.refreshAllProducersButton);
             this.groupBox2.Controls.Add(this.selectedProducersVNButton);
             this.groupBox2.Controls.Add(this.removeProducersButton);
             this.groupBox2.ForeColor = System.Drawing.SystemColors.ControlLightLight;
@@ -1394,27 +1598,13 @@ namespace Happy_Search
             this.favoriteProducersHelpButton.FlatAppearance.BorderSize = 0;
             this.favoriteProducersHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.favoriteProducersHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.favoriteProducersHelpButton.Location = new System.Drawing.Point(116, 260);
+            this.favoriteProducersHelpButton.Location = new System.Drawing.Point(6, 260);
             this.favoriteProducersHelpButton.Name = "favoriteProducersHelpButton";
             this.favoriteProducersHelpButton.Size = new System.Drawing.Size(44, 23);
             this.favoriteProducersHelpButton.TabIndex = 88;
             this.favoriteProducersHelpButton.Text = "Help";
             this.favoriteProducersHelpButton.UseVisualStyleBackColor = false;
             this.favoriteProducersHelpButton.Click += new System.EventHandler(this.Help_FavoriteProducers);
-            // 
-            // button6
-            // 
-            this.button6.BackColor = System.Drawing.Color.MistyRose;
-            this.button6.FlatAppearance.BorderSize = 0;
-            this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button6.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button6.Location = new System.Drawing.Point(6, 260);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(104, 23);
-            this.button6.TabIndex = 47;
-            this.button6.Text = "Test";
-            this.button6.UseVisualStyleBackColor = false;
-            this.button6.Click += new System.EventHandler(this.Test);
             // 
             // prodReply
             // 
@@ -1508,7 +1698,7 @@ namespace Happy_Search
             this.yearButton.FlatAppearance.BorderSize = 0;
             this.yearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.yearButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.yearButton.Location = new System.Drawing.Point(378, 311);
+            this.yearButton.Location = new System.Drawing.Point(382, 312);
             this.yearButton.Name = "yearButton";
             this.yearButton.Size = new System.Drawing.Size(29, 20);
             this.yearButton.TabIndex = 46;
@@ -1519,9 +1709,9 @@ namespace Happy_Search
             // replyText
             // 
             this.replyText.BackColor = System.Drawing.Color.Transparent;
-            this.replyText.Location = new System.Drawing.Point(413, 311);
+            this.replyText.Location = new System.Drawing.Point(417, 311);
             this.replyText.Name = "replyText";
-            this.replyText.Size = new System.Drawing.Size(305, 20);
+            this.replyText.Size = new System.Drawing.Size(251, 20);
             this.replyText.TabIndex = 28;
             this.replyText.Text = "(replyText)";
             this.replyText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1530,16 +1720,16 @@ namespace Happy_Search
             // 
             this.label15.AutoSize = true;
             this.label15.BackColor = System.Drawing.Color.Transparent;
-            this.label15.Location = new System.Drawing.Point(226, 314);
+            this.label15.Location = new System.Drawing.Point(238, 315);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(102, 13);
+            this.label15.Size = new System.Drawing.Size(94, 13);
             this.label15.TabIndex = 47;
-            this.label15.Text = "Load VNs from Year";
+            this.label15.Text = "Get Titles by Year:";
             this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // yearBox
             // 
-            this.yearBox.Location = new System.Drawing.Point(334, 311);
+            this.yearBox.Location = new System.Drawing.Point(338, 312);
             this.yearBox.Name = "yearBox";
             this.yearBox.Size = new System.Drawing.Size(38, 20);
             this.yearBox.TabIndex = 36;
@@ -1551,7 +1741,7 @@ namespace Happy_Search
             this.btnFetch.FlatAppearance.BorderSize = 0;
             this.btnFetch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnFetch.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnFetch.Location = new System.Drawing.Point(191, 311);
+            this.btnFetch.Location = new System.Drawing.Point(203, 311);
             this.btnFetch.Name = "btnFetch";
             this.btnFetch.Size = new System.Drawing.Size(29, 20);
             this.btnFetch.TabIndex = 27;
@@ -1559,29 +1749,15 @@ namespace Happy_Search
             this.btnFetch.UseVisualStyleBackColor = false;
             this.btnFetch.Click += new System.EventHandler(this.VNSearch);
             // 
-            // customFilters
-            // 
-            this.customFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.customFilters.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.customFilters.FormattingEnabled = true;
-            this.customFilters.Items.AddRange(new object[] {
-            "Custom Filters",
-            "----------"});
-            this.customFilters.Location = new System.Drawing.Point(447, 336);
-            this.customFilters.Name = "customFilters";
-            this.customFilters.Size = new System.Drawing.Size(121, 21);
-            this.customFilters.TabIndex = 57;
-            this.customFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_Custom);
-            // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.BackColor = System.Drawing.Color.Transparent;
             this.label4.Location = new System.Drawing.Point(10, 314);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(77, 13);
+            this.label4.Size = new System.Drawing.Size(89, 13);
             this.label4.TabIndex = 23;
-            this.label4.Text = "Search For VN";
+            this.label4.Text = "Search by Name:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label14
@@ -1589,16 +1765,18 @@ namespace Happy_Search
             this.label14.AutoSize = true;
             this.label14.BackColor = System.Drawing.Color.Transparent;
             this.label14.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label14.Location = new System.Drawing.Point(690, 341);
+            this.label14.Location = new System.Drawing.Point(364, 341);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(50, 13);
+            this.label14.Size = new System.Drawing.Size(86, 13);
             this.label14.TabIndex = 38;
-            this.label14.Text = "Producer";
+            this.label14.Text = "List by Producer:";
             // 
             // ULStatusDropDown
             // 
+            this.ULStatusDropDown.BackColor = System.Drawing.Color.SteelBlue;
             this.ULStatusDropDown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.ULStatusDropDown.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.ULStatusDropDown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ULStatusDropDown.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.ULStatusDropDown.FormattingEnabled = true;
             this.ULStatusDropDown.Items.AddRange(new object[] {
             "UL Status",
@@ -1607,7 +1785,7 @@ namespace Happy_Search
             "Playing",
             "Finished",
             "Dropped"});
-            this.ULStatusDropDown.Location = new System.Drawing.Point(320, 336);
+            this.ULStatusDropDown.Location = new System.Drawing.Point(237, 336);
             this.ULStatusDropDown.Name = "ULStatusDropDown";
             this.ULStatusDropDown.Size = new System.Drawing.Size(121, 21);
             this.ULStatusDropDown.TabIndex = 56;
@@ -1619,11 +1797,11 @@ namespace Happy_Search
             this.quickFilter4.FlatAppearance.BorderSize = 0;
             this.quickFilter4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.quickFilter4.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.quickFilter4.Location = new System.Drawing.Point(203, 336);
+            this.quickFilter4.Location = new System.Drawing.Point(179, 336);
             this.quickFilter4.Name = "quickFilter4";
-            this.quickFilter4.Size = new System.Drawing.Size(111, 23);
+            this.quickFilter4.Size = new System.Drawing.Size(52, 23);
             this.quickFilter4.TabIndex = 51;
-            this.quickFilter4.Text = "Wishlist Titles";
+            this.quickFilter4.Text = "Wishlist";
             this.quickFilter4.UseVisualStyleBackColor = false;
             this.quickFilter4.Click += new System.EventHandler(this.Filter_Wishlist);
             // 
@@ -1635,7 +1813,7 @@ namespace Happy_Search
             this.quickFilter0.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.quickFilter0.Location = new System.Drawing.Point(8, 336);
             this.quickFilter0.Name = "quickFilter0";
-            this.quickFilter0.Size = new System.Drawing.Size(75, 23);
+            this.quickFilter0.Size = new System.Drawing.Size(54, 23);
             this.quickFilter0.TabIndex = 48;
             this.quickFilter0.Text = "All Titles";
             this.quickFilter0.UseVisualStyleBackColor = false;
@@ -1647,9 +1825,9 @@ namespace Happy_Search
             this.quickFilter1.FlatAppearance.BorderSize = 0;
             this.quickFilter1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.quickFilter1.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.quickFilter1.Location = new System.Drawing.Point(89, 336);
+            this.quickFilter1.Location = new System.Drawing.Point(68, 336);
             this.quickFilter1.Name = "quickFilter1";
-            this.quickFilter1.Size = new System.Drawing.Size(110, 23);
+            this.quickFilter1.Size = new System.Drawing.Size(105, 23);
             this.quickFilter1.TabIndex = 47;
             this.quickFilter1.Text = "Favorite Producers";
             this.quickFilter1.UseVisualStyleBackColor = false;
@@ -1728,7 +1906,7 @@ namespace Happy_Search
             this.userListReply.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.userListReply.Location = new System.Drawing.Point(7, 101);
             this.userListReply.Name = "userListReply";
-            this.userListReply.Size = new System.Drawing.Size(126, 41);
+            this.userListReply.Size = new System.Drawing.Size(126, 67);
             this.userListReply.TabIndex = 28;
             this.userListReply.Text = "(userListReply)";
             this.userListReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1766,208 +1944,6 @@ namespace Happy_Search
             this.resultLabel.TabIndex = 43;
             this.resultLabel.Text = "(resultLabel)";
             this.resultLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // tagFilteringBox
-            // 
-            this.tagFilteringBox.BackColor = System.Drawing.Color.Transparent;
-            this.tagFilteringBox.Controls.Add(this.button1);
-            this.tagFilteringBox.Controls.Add(this.filterReply);
-            this.tagFilteringBox.Controls.Add(this.filterNameBox);
-            this.tagFilteringBox.Controls.Add(this.label6);
-            this.tagFilteringBox.Controls.Add(this.checkBox1);
-            this.tagFilteringBox.Controls.Add(this.button5);
-            this.tagFilteringBox.Controls.Add(this.checkBox2);
-            this.tagFilteringBox.Controls.Add(this.button2);
-            this.tagFilteringBox.Controls.Add(this.checkBox3);
-            this.tagFilteringBox.Controls.Add(this.mctLoadingLabel);
-            this.tagFilteringBox.Controls.Add(this.checkBox6);
-            this.tagFilteringBox.Controls.Add(this.tagTypeS);
-            this.tagFilteringBox.Controls.Add(this.checkBox5);
-            this.tagFilteringBox.Controls.Add(this.tagTypeT);
-            this.tagFilteringBox.Controls.Add(this.checkBox4);
-            this.tagFilteringBox.Controls.Add(this.tagTypeC);
-            this.tagFilteringBox.Controls.Add(this.checkBox9);
-            this.tagFilteringBox.Controls.Add(this.label7);
-            this.tagFilteringBox.Controls.Add(this.checkBox8);
-            this.tagFilteringBox.Controls.Add(this.checkBox7);
-            this.tagFilteringBox.Controls.Add(this.checkBox10);
-            this.tagFilteringBox.Controls.Add(this.tagSearchBox);
-            this.tagFilteringBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.tagFilteringBox.Location = new System.Drawing.Point(151, 6);
-            this.tagFilteringBox.Name = "tagFilteringBox";
-            this.tagFilteringBox.Size = new System.Drawing.Size(567, 299);
-            this.tagFilteringBox.TabIndex = 61;
-            this.tagFilteringBox.TabStop = false;
-            this.tagFilteringBox.Text = "Tag Filtering";
-            // 
-            // button1
-            // 
-            this.button1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button1.Location = new System.Drawing.Point(461, 102);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(100, 23);
-            this.button1.TabIndex = 50;
-            this.button1.Text = "Update Results";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.UpdateResults);
-            // 
-            // filterReply
-            // 
-            this.filterReply.Location = new System.Drawing.Point(461, 137);
-            this.filterReply.Name = "filterReply";
-            this.filterReply.Size = new System.Drawing.Size(100, 155);
-            this.filterReply.TabIndex = 49;
-            this.filterReply.Text = "(filterReply)";
-            this.filterReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 21);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(101, 13);
-            this.label6.TabIndex = 33;
-            this.label6.Text = "Most Common Tags";
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.Location = new System.Drawing.Point(6, 46);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(200, 17);
-            this.checkBox1.TabIndex = 0;
-            this.checkBox1.Text = "checkBox1";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // button5
-            // 
-            this.button5.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button5.Location = new System.Drawing.Point(461, 73);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(100, 23);
-            this.button5.TabIndex = 40;
-            this.button5.Text = "Clear Filter";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.ClearFilter);
-            // 
-            // checkBox2
-            // 
-            this.checkBox2.Location = new System.Drawing.Point(6, 68);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(200, 17);
-            this.checkBox2.TabIndex = 1;
-            this.checkBox2.Text = "checkBox2";
-            this.checkBox2.UseVisualStyleBackColor = true;
-            this.checkBox2.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // button2
-            // 
-            this.button2.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button2.Location = new System.Drawing.Point(461, 16);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(100, 23);
-            this.button2.TabIndex = 39;
-            this.button2.Text = "Save Filter";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.SaveCustomFilter);
-            // 
-            // checkBox3
-            // 
-            this.checkBox3.Location = new System.Drawing.Point(6, 91);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(200, 17);
-            this.checkBox3.TabIndex = 2;
-            this.checkBox3.Text = "checkBox3";
-            this.checkBox3.UseVisualStyleBackColor = true;
-            this.checkBox3.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // mctLoadingLabel
-            // 
-            this.mctLoadingLabel.AutoSize = true;
-            this.mctLoadingLabel.Location = new System.Drawing.Point(6, 270);
-            this.mctLoadingLabel.Name = "mctLoadingLabel";
-            this.mctLoadingLabel.Size = new System.Drawing.Size(94, 13);
-            this.mctLoadingLabel.TabIndex = 38;
-            this.mctLoadingLabel.Text = "(mctLoadingLabel)";
-            // 
-            // checkBox6
-            // 
-            this.checkBox6.Location = new System.Drawing.Point(6, 158);
-            this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(200, 17);
-            this.checkBox6.TabIndex = 3;
-            this.checkBox6.Text = "checkBox6";
-            this.checkBox6.UseVisualStyleBackColor = true;
-            this.checkBox6.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox5
-            // 
-            this.checkBox5.Location = new System.Drawing.Point(6, 135);
-            this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(200, 17);
-            this.checkBox5.TabIndex = 4;
-            this.checkBox5.Text = "checkBox5";
-            this.checkBox5.UseVisualStyleBackColor = true;
-            this.checkBox5.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox4
-            // 
-            this.checkBox4.Location = new System.Drawing.Point(6, 112);
-            this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(200, 17);
-            this.checkBox4.TabIndex = 5;
-            this.checkBox4.Text = "checkBox4";
-            this.checkBox4.UseVisualStyleBackColor = true;
-            this.checkBox4.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox9
-            // 
-            this.checkBox9.Location = new System.Drawing.Point(6, 227);
-            this.checkBox9.Name = "checkBox9";
-            this.checkBox9.Size = new System.Drawing.Size(200, 17);
-            this.checkBox9.TabIndex = 6;
-            this.checkBox9.Text = "checkBox9";
-            this.checkBox9.UseVisualStyleBackColor = true;
-            this.checkBox9.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(224, 21);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(34, 13);
-            this.label7.TabIndex = 34;
-            this.label7.Text = "Filters";
-            // 
-            // checkBox8
-            // 
-            this.checkBox8.Location = new System.Drawing.Point(6, 204);
-            this.checkBox8.Name = "checkBox8";
-            this.checkBox8.Size = new System.Drawing.Size(200, 17);
-            this.checkBox8.TabIndex = 7;
-            this.checkBox8.Text = "checkBox8";
-            this.checkBox8.UseVisualStyleBackColor = true;
-            this.checkBox8.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox7
-            // 
-            this.checkBox7.Location = new System.Drawing.Point(6, 181);
-            this.checkBox7.Name = "checkBox7";
-            this.checkBox7.Size = new System.Drawing.Size(200, 17);
-            this.checkBox7.TabIndex = 8;
-            this.checkBox7.Text = "checkBox7";
-            this.checkBox7.UseVisualStyleBackColor = true;
-            this.checkBox7.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox10
-            // 
-            this.checkBox10.Location = new System.Drawing.Point(6, 250);
-            this.checkBox10.Name = "checkBox10";
-            this.checkBox10.Size = new System.Drawing.Size(200, 17);
-            this.checkBox10.TabIndex = 9;
-            this.checkBox10.Text = "checkBox10";
-            this.checkBox10.UseVisualStyleBackColor = true;
-            this.checkBox10.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
             // 
             // tabControl1
             // 
@@ -2011,7 +1987,7 @@ namespace Happy_Search
             this.userlistToolStripMenuItem.Name = "userlistToolStripMenuItem";
             this.userlistToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.userlistToolStripMenuItem.Text = "Userlist";
-            this.userlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextItemClicked);
+            this.userlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextMenuVNStatusChange);
             // 
             // noneToolStripMenuItem
             // 
@@ -2060,7 +2036,7 @@ namespace Happy_Search
             this.wishlistToolStripMenuItem.Name = "wishlistToolStripMenuItem";
             this.wishlistToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.wishlistToolStripMenuItem.Text = "Wishlist";
-            this.wishlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextItemClicked);
+            this.wishlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextMenuVNStatusChange);
             // 
             // noneToolStripMenuItem1
             // 
@@ -2109,7 +2085,7 @@ namespace Happy_Search
             this.voteToolStripMenuItem.Name = "voteToolStripMenuItem";
             this.voteToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.voteToolStripMenuItem.Text = "Vote";
-            this.voteToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextItemClicked);
+            this.voteToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextMenuVNStatusChange);
             // 
             // noneToolStripMenuItem2
             // 
@@ -2196,21 +2172,6 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem.Text = "Add Producer To Favorites";
             this.addProducerToFavoritesToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddProducer);
             // 
-            // suggestProducersButton
-            // 
-            this.suggestProducersButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.suggestProducersButton.FlatAppearance.BorderSize = 0;
-            this.suggestProducersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.suggestProducersButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.suggestProducersButton.Location = new System.Drawing.Point(196, 260);
-            this.suggestProducersButton.Name = "suggestProducersButton";
-            this.suggestProducersButton.Size = new System.Drawing.Size(113, 23);
-            this.suggestProducersButton.TabIndex = 89;
-            this.suggestProducersButton.Text = "Suggest Producers";
-            this.toolTip1.SetToolTip(this.suggestProducersButton, "Search by name and add producers to list.");
-            this.suggestProducersButton.UseVisualStyleBackColor = false;
-            this.suggestProducersButton.Click += new System.EventHandler(this.SuggestProducers);
-            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2219,7 +2180,6 @@ namespace Happy_Search
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1418, 783);
             this.Controls.Add(this.tabControl1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Location = new System.Drawing.Point(50, 50);
             this.MinimumSize = new System.Drawing.Size(1280, 720);
             this.Name = "FormMain";
@@ -2233,12 +2193,12 @@ namespace Happy_Search
             this.groupBox9.ResumeLayout(false);
             this.vnTab.ResumeLayout(false);
             this.vnTab.PerformLayout();
+            this.tagFilteringBox.ResumeLayout(false);
+            this.tagFilteringBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tileOLV)).EndInit();
             this.groupBox2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).EndInit();
             this.settingsBox.ResumeLayout(false);
-            this.tagFilteringBox.ResumeLayout(false);
-            this.tagFilteringBox.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.ContextMenuVN.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -2250,7 +2210,6 @@ namespace Happy_Search
         private ToolTip toolTip1;
         private ToolTip toolTip2;
         private ToolTip toolTip3;
-        private ImageList langImages;
         private TabPage infoTab;
         private GroupBox groupBox9;
         private RichTextBox aboutTextBox;
@@ -2265,34 +2224,13 @@ namespace Happy_Search
         private TextBox searchBox;
         private Label label4;
         private TabControl tabControl1;
-        private TextBox tagSearchBox;
         private TextBox yearBox;
-        private CheckBox checkBox10;
-        private CheckBox checkBox7;
-        private CheckBox checkBox8;
-        private CheckBox checkBox9;
-        private CheckBox checkBox4;
-        private CheckBox checkBox5;
-        private CheckBox checkBox6;
-        private CheckBox checkBox3;
-        private CheckBox checkBox2;
-        private CheckBox checkBox1;
-        private Label label7;
-        private Label label6;
-        private CheckBox tagTypeS;
-        private CheckBox tagTypeT;
-        private CheckBox tagTypeC;
         private Button quickFilter1;
         private Button quickFilter0;
         private Button quickFilter4;
-        private Label mctLoadingLabel;
         private ComboBox ULStatusDropDown;
         private Label label14;
-        private TextBox ProducerFilterBox;
-        private ComboBox customFilters;
-        private Button button2;
-        private Button button5;
-        private TextBox filterNameBox;
+        private TextBox ProducerListBox;
         private ImageList vnImages;
         private GroupBox statBox;
         private Label dbs9r;
@@ -2365,8 +2303,6 @@ namespace Happy_Search
         private ToolStripMenuItem toolStripMenuItem10;
         private ToolStripMenuItem toolStripMenuItem11;
         private ToolStripMenuItem noneToolStripMenuItem2;
-        private GroupBox tagFilteringBox;
-        private Label filterReply;
         private GroupBox groupBox2;
         internal ObjectListView olFavoriteProducers;
         private OLVColumn ol2Name;
@@ -2375,7 +2311,7 @@ namespace Happy_Search
         private OLVColumn ol2Updated;
         private OLVColumn ol2ID;
         private Button loadUnloadedButton;
-        private Button updateAllProducersButton;
+        private Button refreshAllProducersButton;
         private Button selectedProducersVNButton;
         private Button removeProducersButton;
         private Button addProducersButton;
@@ -2397,9 +2333,6 @@ namespace Happy_Search
         private CheckBox nsfwToggle;
         private Button closeAllFormsButton;
         private Button getNewProducersButton;
-        private Button deleteCustomFilterButton;
-        private Button updateCustomFilterButton;
-        private Button button6;
         private Button loginButton;
         private CheckBox autoUpdateURTBox;
         private Label statusLabel;
@@ -2410,11 +2343,10 @@ namespace Happy_Search
         private GroupBox groupBox3;
         private Label logQueryLabel;
         private Label label1;
-        public RichTextBox serverR;
+        private RichTextBox serverR;
         private Label logReplyLabel;
         private Button clearLogButton;
-        public RichTextBox serverQ;
-        private Button button1;
+        private RichTextBox serverQ;
         private Button updateProducerTitlesButton;
         private ComboBox URTToggleBox;
         private ComboBox UnreleasedToggleBox;
@@ -2426,6 +2358,34 @@ namespace Happy_Search
         private ToolStripMenuItem addProducerToFavoritesToolStripMenuItem;
         private Button GetStartedHelpButton;
         private Button suggestProducersButton;
+        private Button SearchingAndFilteringButton;
+        private Panel tagFilteringBox;
+        private Button TagFilteringHelpButton;
+        private Label label6;
+        private Button updateFilterResultsButton;
+        private TextBox tagSearchBox;
+        private Label filterReply;
+        private CheckBox checkBox10;
+        private TextBox filterNameBox;
+        private CheckBox checkBox7;
+        private CheckBox checkBox8;
+        private CheckBox checkBox1;
+        private Label label7;
+        private Button clearFilterButton;
+        private CheckBox checkBox9;
+        private Button deleteCustomFilterButton;
+        private ComboBox customFilters;
+        private CheckBox checkBox2;
+        private CheckBox tagTypeC;
+        private Button saveCustomFilterButton;
+        private CheckBox checkBox4;
+        private CheckBox checkBox3;
+        private CheckBox tagTypeT;
+        private Label mctLoadingLabel;
+        private CheckBox checkBox5;
+        private CheckBox checkBox6;
+        private CheckBox tagTypeS;
+        private Label label2;
     }
 }
 

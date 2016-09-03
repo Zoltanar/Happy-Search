@@ -16,8 +16,6 @@ namespace Happy_Search
         /// <summary>
         /// Bring up dialog explaining features of the 'Favorite Producers' section.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Help_FavoriteProducers(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
@@ -26,15 +24,13 @@ namespace Happy_Search
                 WriteError(prodReply, @"Unknown Path Error");
                 return;
             }
-            var fpHelpFile = $"{Path.Combine(path, "help\\favoriteproducers.html")}";
-            new HtmlForm($"file:///{fpHelpFile}").Show();
+            var helpFile = $"{Path.Combine(path, "help\\favoriteproducers.html")}";
+            new HtmlForm($"file:///{helpFile}").Show();
         }
 
         /// <summary>
         /// Bring up Form to search/add producers into Favorite Producers list.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void AddProducers(object sender, EventArgs e)
         {
             if (UserID < 1)
@@ -68,11 +64,9 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Get new and update old titles from Favorite Producers.
+        /// Get new and refresh old titles from Favorite Producers.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void UpdateAllFavoriteProducerTitles(object sender, EventArgs e)
+        private async void RefreshAllFavoriteProducerTitles(object sender, EventArgs e)
         {
             if (olFavoriteProducers.Items.Count == 0)
             {
@@ -196,9 +190,8 @@ namespace Happy_Search
         /// </summary>
         /// <param name="producer">Producer whose titles should be found</param>
         /// <param name="replyLabel">Label that should receive reply</param>
-        /// <param name="updateAll">Should already known titles be updated as well?</param>
-        /// <returns></returns>
-        private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool updateAll = false)
+        /// <param name="refreshAll">Should already known titles be refreshed as well?</param>
+        private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
         {
             Debug.Print($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn,producers (producer={producer.ID}) {{\"results\":25}}";
@@ -235,7 +228,7 @@ namespace Happy_Search
                 }
                 moreResults = releaseMoreRoot.More;
             }
-            await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, updateAll);
+            await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, refreshAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, "Yes", DateTime.UtcNow,

@@ -15,8 +15,6 @@ namespace Happy_Search
         /// <summary>
         /// Display all Visual Novels in local database.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Filter_All(object sender, EventArgs e)
         {
             Filter_ClearOther();
@@ -25,26 +23,20 @@ namespace Happy_Search
             RefreshVNList();
         }
 
-        private void Filter_ClearOther(bool clearFilterTags = true)
+        /// <summary>
+        /// Clear other listing options.
+        /// </summary>
+        private void Filter_ClearOther()
         {
             _dontTriggerEvent = true;
-            customFilters.SelectedIndex = 0;
             ULStatusDropDown.SelectedIndex = 0;
-            if (clearFilterTags)
-            {
-                DisplayFilterTags(true);
-                deleteCustomFilterButton.Enabled = false;
-                updateCustomFilterButton.Enabled = false;
-                filterNameBox.Text = "";
-            }
-            ProducerFilterBox.Text = "";
+            ProducerListBox.Text = "";
             _dontTriggerEvent = false;
         }
+
         /// <summary>
         /// Display VNs by producers in Favorite Producers list.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Filter_FavoriteProducers(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
@@ -64,8 +56,6 @@ namespace Happy_Search
         /// <summary>
         /// Display VNs in user's wishlist.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Filter_Wishlist(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
@@ -78,8 +68,6 @@ namespace Happy_Search
         /// <summary>
         /// Display VNs with select Userlist status.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Filter_ULStatus(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
@@ -118,98 +106,17 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Display VNs matching tags in selected custom filter.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Filter_Custom(object sender, EventArgs e)
-        {
-            if (_dontTriggerEvent) return;
-            var dropdownlist = (ComboBox)sender;
-            switch (dropdownlist.SelectedIndex)
-            {
-                case 0:
-                    deleteCustomFilterButton.Enabled = false;
-                    updateCustomFilterButton.Enabled = false;
-                    Filter_All(null, null);
-                    return;
-                case 1:
-                    dropdownlist.SelectedIndex = 0;
-                    return;
-                default:
-                    deleteCustomFilterButton.Enabled = true;
-                    updateCustomFilterButton.Enabled = true;
-                    DisplayFilterTags(true);
-                    _activeFilter = new List<TagFilter>(_customFilters[dropdownlist.SelectedIndex - 2].Filters);
-                    filterNameBox.Text = _customFilters[dropdownlist.SelectedIndex - 2].Name;
-                    DisplayFilterTags();
-                    _currentList = VNMatchesFilter;
-                    currentListLabel.Text = @"List: " + $"{filterNameBox.Text} (Custom)";
-                    break;
-            }
-            var value = dropdownlist.SelectedIndex;
-            Filter_ClearOther(false);
-            _dontTriggerEvent = true;
-            dropdownlist.SelectedIndex = value;
-            _dontTriggerEvent = false;
-            RefreshVNList();
-        }
-
-        /// <summary>
-        /// Get new VNs from VNDB that match tags in custom filter.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void UpdateCustomFilter(object sender, EventArgs e)
-        {
-            if (Conn.Status != VndbConnection.APIStatus.Ready)
-            {
-                WriteWarning(replyText, "Connection busy with previous request...", true);
-                return;
-            }
-            var selectedFilter = _customFilters[customFilters.SelectedIndex - 2];
-            var message = selectedFilter.Updated != DateTime.MinValue
-                ? $"This filter was last updated {DaysSince(selectedFilter.Updated)} days ago.\n{Resources.update_custom_filter}"
-                : Resources.update_custom_filter;
-            var askBox = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (askBox != DialogResult.Yes) return;
-            await UpdateFilterResults(replyText);
-            _customFilters[customFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
-            SaveCustomFiltersXML();
-        }
-
-        /// <summary>
-        /// Delete custom filter.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void DeleteCustomFilter(object sender, EventArgs e)
-        {
-            var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (askBox != DialogResult.Yes) return;
-            var selectedFilter = customFilters.SelectedIndex;
-            customFilters.Items.RemoveAt(selectedFilter);
-            _customFilters.RemoveAt(selectedFilter - 2);
-            SaveCustomFiltersXML();
-            replyText.Text = Resources.filter_deleted;
-            FadeLabel(replyText);
-            customFilters.SelectedIndex = 0;
-        }
-
-        /// <summary>
         /// Display VNs by producer typed/selected in box.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Filter_Producer(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
-            var producerName = ProducerFilterBox.Text;
+            var producerName = ProducerListBox.Text;
             if (!producerName.Any()) return;
             Filter_ClearOther();
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
             currentListLabel.Text = @"List: " + $"{producerName} (Producer)";
-            ProducerFilterBox.Text = producerName;
+            ProducerListBox.Text = producerName;
             RefreshVNList();
         }
 
@@ -220,7 +127,7 @@ namespace Happy_Search
         /// <param name="e"></param>
         private async void UpdateProducerTitles(object sender, EventArgs e)
         {
-            var producer = ProducerFilterBox.Text;
+            var producer = ProducerListBox.Text;
             if (producer.Equals("")) return;
             var askBox = MessageBox.Show(Resources.update_custom_filter + '\n' + Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
@@ -295,7 +202,7 @@ namespace Happy_Search
                             return x => URTList.Find(y => y.VNID == x.VNID) == null;
                         case ToggleSetting.Only:
                             return x => URTList.Find(y => y.VNID == x.VNID) != null;
-                        case ToggleSetting.NoFinishedOrDropped:
+                        case ToggleSetting.OnlyUnplayed:
                             return x => !x.ULStatus.Equals("Finished") && !x.ULStatus.Equals("Dropped");
                         default: return function;
                     }
@@ -331,10 +238,10 @@ namespace Happy_Search
         /// </summary>
         private void ApplyToggleFilters()
         {
-            Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted) };
+            Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesFilter };
             tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
             objectList_ItemsChanged(null, null);
-            SaveCustomFiltersXML();
+            SaveMainXML();
         }
 
         /// <summary>
@@ -346,7 +253,6 @@ namespace Happy_Search
             URT,
             Unreleased,
             Blacklisted
-#pragma warning restore 1591
         }
 
         /// <summary>
@@ -354,12 +260,10 @@ namespace Happy_Search
         /// </summary>
         public enum ToggleSetting
         {
-#pragma warning disable 1591
             Show,
             Hide,
             Only,
-            NoFinishedOrDropped
-#pragma warning restore 1591
+            OnlyUnplayed
         }
 
         /// <summary>
@@ -377,7 +281,6 @@ namespace Happy_Search
                 UnreleasedToggleSetting = 0;
                 BlacklistToggleSetting = 0;
             }
-#pragma warning disable 1591
             public ToggleSetting URTToggleSetting { get; set; }
             public ToggleSetting UnreleasedToggleSetting { get; set; }
             public ToggleSetting BlacklistToggleSetting { get; set; }

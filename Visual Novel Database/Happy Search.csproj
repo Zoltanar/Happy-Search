@@ -88,12 +88,19 @@
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
     <Compile Include="FormMainAPIMethods.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormMainFavoriteProducers.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormMainListFilters.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMainTagFiltering.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Other Forms\HtmlForm.cs">
@@ -140,7 +147,6 @@
     </Compile>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Other Forms\HtmlForm.resx">
       <DependentUpon>HtmlForm.cs</DependentUpon>
@@ -186,6 +192,12 @@
     <None Include="Resources\38.gif" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="help\searchingandfiltering.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="help\tagfiltering.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="help\getstarted.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -1,5 +1,4 @@
-Next Milestone (1.1) == Help pages for all sections of application
-
+Next Milestone (1.2) == ???
 
 No Work
 ---------------
@@ -8,19 +7,13 @@ save general database in the internet and : send general info changes to databas
 save settings to %localappdata%
 Restart Most common tags - use dedicated thread so it can be restarted instead of overlapped
 handle abrupt exit, terminate api connection
-look at addfiltertag
 allow user to set notes
 save vn rating info
 show vn relations and screenshots/anime etc
 add 'exclude tag' filters
-turn tag filters into OLV filter instead 
 button to upgrade old vns to newest version eg before imagensfw was added
-handle resizing issues, controls anchoring and image stretching is slow
-give suggestions for favorite producers based on titles finished
 allow certain commands to go through even when throttling for a different command, eg changevnstatus
 refresh favorite producers list when throttling fav pro commands
-
-
 
 
 Incomplete
@@ -28,8 +21,6 @@ Incomplete
 make things pretty textured backgrounds
 split FormMain into partial class files
 Minimize globals by passing parameters - 'added/skipped' ushort instead of int
-help buttons on each section with info - favoriteproducers, getstarted done
-make most WriteText fade
 
 
 Completed
@@ -73,9 +64,15 @@ put favorite producers stuff into own file
 made favorite producers help file
 added "no finished/dropped titles" to urt toggle (for searching for never played titles)
 current list of vns is labeled at the bottom
-display tag scores
-display release date in vn tile, right of producer, tile color based on status-
+display tag scores in visual novel form
+display release date in vn tile, right of producer, tile color based on status
 right click vn - add producer to favorite producers list
+---
+give suggestions for favorite producers based on titles finished
+turn tag filters into OLV filter instead 
+help buttons on each section with info
+added 'only unplayed' filter in URT (doesnt show finished or dropped titles)
+
 
 Currently Not Possible
 -------------------------
