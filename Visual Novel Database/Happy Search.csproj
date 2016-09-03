@@ -109,6 +109,11 @@
     <Compile Include="Other Forms\HtmlForm.Designer.cs">
       <DependentUpon>HtmlForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="VndbConnection.cs" />
     <Compile Include="DBHelper.cs" />
     <Compile Include="Other Forms\LoginForm.cs">
@@ -159,14 +164,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <EmbeddedResource Include="Other Forms\SplashScreen.resx">
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </EmbeddedResource>
@@ -189,9 +189,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\38.gif" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="help\searchingandfiltering.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -204,15 +201,14 @@
     <Content Include="help\StyleSheet1.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="Resources\2013-06-Dark-Black-Wallpaper-Background-Dekstop.jpg" />
-    <None Include="Resources\fb darklined full.png" />
-    <None Include="Resources\no-image.bmp" />
+    <None Include="Resources\splashloading.gif" />
     <None Include="Resources\nsfw-image.png" />
     <None Include="Resources\no-image.png" />
     <Content Include="help\favoriteproducers.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Splash.JPG" />
+    <None Include="Resources\dark-striped.jpg" />
+    <Content Include="Resources\logo copy.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

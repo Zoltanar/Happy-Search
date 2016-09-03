@@ -150,24 +150,14 @@
   <data name="loaded_ul_database" xml:space="preserve">
     <value>Loaded userlist from database.</value>
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="fb-darklined-full" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\fb darklined full.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="dbstats_error" xml:space="preserve">
     <value>DBS Error while requesting information. Response: </value>
   </data>
   <data name="enter_user_id" xml:space="preserve">
     <value>Enter User ID</value>
   </data>
-  <data name="38" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\38.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="must_be_integer" xml:space="preserve">
     <value>Must be integer</value>
-  </data>
-  <data name="Splash" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Splash.JPG;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="are_you_sure" xml:space="preserve">
     <value>Are you Sure?</value>
@@ -186,9 +176,6 @@
   </data>
   <data name="ulr_query_error" xml:space="preserve">
     <value>ULR Query Error</value>
-  </data>
-  <data name="2013-06-Dark-Black-Wallpaper-Background-Dekstop" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\2013-06-Dark-Black-Wallpaper-Background-Dekstop.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="ul_received" xml:space="preserve">
     <value>Userlist received.</value>
@@ -214,6 +201,7 @@
   <data name="enter_year" xml:space="preserve">
     <value>Enter year.</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="no_image" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\no-image.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -320,5 +308,14 @@ Are you sure?</value>
   </data>
   <data name="ask_overwrite" xml:space="preserve">
     <value>Do you wish to overwrite?</value>
+  </data>
+  <data name="logo_copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\logo copy.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="dark_striped" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\dark-striped.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="splashloading" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\splashloading.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

@@ -36,6 +36,7 @@ namespace Happy_Search
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.tagTypeS2 = new System.Windows.Forms.CheckBox();
             this.tagTypeT2 = new System.Windows.Forms.CheckBox();
@@ -500,9 +501,7 @@ namespace Happy_Search
             // 
             // infoTab
             // 
-            this.infoTab.BackColor = System.Drawing.SystemColors.Control;
-            this.infoTab.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
-            this.infoTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.infoTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.infoTab.Controls.Add(this.groupBox3);
             this.infoTab.Controls.Add(this.statBox);
             this.infoTab.Controls.Add(this.groupBox1);
@@ -2180,6 +2179,7 @@ namespace Happy_Search
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1418, 783);
             this.Controls.Add(this.tabControl1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Location = new System.Drawing.Point(50, 50);
             this.MinimumSize = new System.Drawing.Size(1280, 720);
             this.Name = "FormMain";

@@ -241,7 +241,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Gray;
-            this.BackgroundImage = global::Happy_Search.Properties.Resources._2013_06_Dark_Black_Wallpaper_Background_Dekstop;
+            this.BackgroundImage = global::Happy_Search.Properties.Resources.dark_striped;
             this.ClientSize = new System.Drawing.Size(685, 455);
             this.Controls.Add(this.vnLength);
             this.Controls.Add(this.vnUserStatus);

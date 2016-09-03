@@ -61,26 +61,6 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap _2013_06_Dark_Black_Wallpaper_Background_Dekstop {
-            get {
-                object obj = ResourceManager.GetObject("2013-06-Dark-Black-Wallpaper-Background-Dekstop", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap _38 {
-            get {
-                object obj = ResourceManager.GetObject("38", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Username can only consist of alphanumeric characters..
         /// </summary>
         internal static string _username_only_alphanumeric {
@@ -189,6 +169,16 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap dark_striped {
+            get {
+                object obj = ResourceManager.GetObject("dark_striped", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown DBS Error.
         /// </summary>
         internal static string dbs_unknown_error {
@@ -257,16 +247,6 @@ namespace Happy_Search.Properties {
         internal static string error_wrong_password_or_server {
             get {
                 return ResourceManager.GetString("error_wrong_password_or_server", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap fb_darklined_full {
-            get {
-                object obj = ResourceManager.GetObject("fb-darklined-full", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -443,6 +423,16 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon logo_copy {
+            get {
+                object obj = ResourceManager.GetObject("logo_copy", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Must be integer.
         /// </summary>
         internal static string must_be_integer {
@@ -537,9 +527,9 @@ namespace Happy_Search.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Splash {
+        internal static System.Drawing.Bitmap splashloading {
             get {
-                object obj = ResourceManager.GetObject("Splash", resourceCulture);
+                object obj = ResourceManager.GetObject("splashloading", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -42,27 +42,27 @@ namespace SplashScreen
             // lblStatus
             // 
             this.lblStatus.BackColor = System.Drawing.Color.Transparent;
-            this.lblStatus.Location = new System.Drawing.Point(112, 116);
+            this.lblStatus.Location = new System.Drawing.Point(12, 143);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(279, 14);
+            this.lblStatus.Size = new System.Drawing.Size(397, 14);
             this.lblStatus.TabIndex = 0;
             this.lblStatus.DoubleClick += new System.EventHandler(this.SplashScreen_DoubleClick);
             // 
             // pnlStatus
             // 
             this.pnlStatus.BackColor = System.Drawing.Color.Transparent;
-            this.pnlStatus.Location = new System.Drawing.Point(112, 138);
+            this.pnlStatus.Location = new System.Drawing.Point(12, 165);
             this.pnlStatus.Name = "pnlStatus";
-            this.pnlStatus.Size = new System.Drawing.Size(279, 24);
+            this.pnlStatus.Size = new System.Drawing.Size(397, 24);
             this.pnlStatus.TabIndex = 1;
             this.pnlStatus.DoubleClick += new System.EventHandler(this.SplashScreen_DoubleClick);
             // 
             // lblTimeRemaining
             // 
             this.lblTimeRemaining.BackColor = System.Drawing.Color.Transparent;
-            this.lblTimeRemaining.Location = new System.Drawing.Point(112, 169);
+            this.lblTimeRemaining.Location = new System.Drawing.Point(12, 196);
             this.lblTimeRemaining.Name = "lblTimeRemaining";
-            this.lblTimeRemaining.Size = new System.Drawing.Size(279, 16);
+            this.lblTimeRemaining.Size = new System.Drawing.Size(397, 16);
             this.lblTimeRemaining.TabIndex = 2;
             this.lblTimeRemaining.Text = "Time remaining";
             this.lblTimeRemaining.DoubleClick += new System.EventHandler(this.SplashScreen_DoubleClick);
@@ -74,7 +74,7 @@ namespace SplashScreen
             // pictureBox1
             // 
             this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pictureBox1.Image = global::Happy_Search.Properties.Resources._38;
+            this.pictureBox1.Image = global::Happy_Search.Properties.Resources.splashloading;
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(421, 222);
@@ -86,7 +86,6 @@ namespace SplashScreen
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.BackColor = System.Drawing.Color.Gainsboro;
-            this.BackgroundImage = global::Happy_Search.Properties.Resources.Splash;
             this.ClientSize = new System.Drawing.Size(421, 221);
             this.Controls.Add(this.lblTimeRemaining);
             this.Controls.Add(this.pnlStatus);
