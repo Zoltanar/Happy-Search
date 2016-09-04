@@ -38,10 +38,12 @@ namespace Happy_Search
         /// <param name="imageURL">URL of VN's cover image</param>
         /// <param name="imageNSFW">Is VN's cover NSFW?</param>
         /// <param name="description">VN description</param>
+        /// <param name="popularity">Popularity of VN, percentage of most popular VN</param>
+        /// <param name="rating">Bayesian rating of VN, 1-10</param>
+        /// <param name="voteCount">Number of votes cast on VN</param>
         public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus,
-            int uladded, string ulnote,
-            int wlstatus, int wladded, int vote, int voteadded, string tags, int vnid, DateTime updatedDate,
-            string imageURL, bool imageNSFW, string description)
+            int uladded, string ulnote,int wlstatus, int wladded, int vote, int voteadded, 
+            string tags, int vnid, DateTime updatedDate,string imageURL, bool imageNSFW, string description, double popularity, double rating, int voteCount)
         {
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
@@ -62,6 +64,17 @@ namespace Happy_Search
             ImageURL = imageURL;
             ImageNSFW = imageNSFW;
             Description = description;
+            Popularity = popularity;
+            Rating = rating;
+            VoteCount = voteCount;
+        }
+
+        /// <summary>
+        /// Constructor for empty ListedVN for when null cannot be used.
+        /// </summary>
+        public ListedVN()
+        {
+            VNID = -1;
         }
 
         /// <summary>
@@ -113,6 +126,18 @@ namespace Happy_Search
         /// </summary>
         public DateTime VoteAdded { get; set; }
         /// <summary>
+        /// Popularity of VN, percentage of most popular VN
+        /// </summary>
+        public double Popularity { get; set; }
+        /// <summary>
+        /// Bayesian rating of VN, 1-10
+        /// </summary>
+        public double Rating { get; set; }
+        /// <summary>
+        /// Number of votes cast on VN
+        /// </summary>
+        public int VoteCount { get; set; }
+        /// <summary>
         /// VN's ID
         /// </summary>
         public int VNID { get; set; }
@@ -144,7 +169,7 @@ namespace Happy_Search
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={VNID}\t\tTitle={Title}";
+        public override string ToString() => $"ID={VNID} \t\tTitle={Title}";
     }
 
     /// <summary>
@@ -260,6 +285,21 @@ namespace Happy_Search
             URTTitles = urtTitles;
 
         }
+
+        /// <summary>
+        /// Convert ListedSearchedProducer to ListedProducer.
+        /// </summary>
+        /// <param name="searchedProducer">Producer to be converted</param>
+        /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
+        public static explicit operator ListedProducer(ListedSearchedProducer searchedProducer)
+        {
+            return new ListedProducer(searchedProducer.Name,-1,"No",DateTime.MinValue, searchedProducer.ID);
+        }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString() => $"ID={ID} \t\tName={Name}";
 
         /// <summary>
         /// Name of producer

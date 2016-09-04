@@ -40,7 +40,7 @@ namespace Happy_Search
         //flag: stats
         public double Popularity { get; set; }
         public double Rating { get; set; }
-        public int Votecount { get; set; }
+        public int VoteCount { get; set; }
         public List<object> Screens { get; set; } //flag: screens
 
         public bool Equals(VNItem other)
@@ -95,12 +95,13 @@ namespace Happy_Search
 
         public string GetName(List<WrittenTag> plainTags)
         {
-            return plainTags.Find(item => item.ID == ID).Name;
+            return plainTags.Find(item => item.ID == ID)?.Name;
         }
 
         public string Print(List<WrittenTag> plainTags)
         {
-            return $"{GetName(plainTags)} ({Score.ToString("0.00")})";
+            var name = GetName(plainTags);
+            return name != null ? $"{GetName(plainTags)} ({Score.ToString("0.00")})" : "Not Approved";
         }
     }
 
@@ -123,10 +124,22 @@ namespace Happy_Search
         public string Type { get; set; }
         public string Language { get; set; }
 
-        public override string ToString()
+
+        /// <summary>
+        /// Convert ListedSearchedProducer to ListedProducer.
+        /// </summary>
+        /// <param name="searchedProducer">Producer to be converted</param>
+        /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
+        public static explicit operator ListedProducer(ProducerItem searchedProducer)
         {
-            return $"ID={ID}\t \tName={Name}";
+            return new ListedProducer(searchedProducer.Name, -1, "No", DateTime.MinValue, searchedProducer.ID);
         }
+
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString() => $"ID={ID} \t\tName={Name}";
     }
 
     //object received by 'get release' command

@@ -24,7 +24,6 @@ namespace SplashScreen
             Opacity = 0.0;
             UpdateTimer.Interval = TIMER_INTERVAL;
             UpdateTimer.Start();
-            ClientSize = Happy_Search.Properties.Resources.splashloading.Size;
         }
 
         #region Member Variables

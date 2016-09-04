@@ -89,6 +89,13 @@ namespace Happy_Search
             }
             olProdSearch.SetObjects(searchedProducers);
             olProdSearch.Sort(olProdSearch.GetColumn(0), SortOrder.Ascending);
+            _parentForm.DBConn.Open();
+            foreach (var producer in searchedProducers)
+            {
+                if (_producerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                _parentForm.DBConn.InsertProducer((ListedProducer)producer);
+            }
+            _parentForm.DBConn.Close();
             prodSearchReply.Text = $"{searchedProducers.Count} producers found.";
         }
         

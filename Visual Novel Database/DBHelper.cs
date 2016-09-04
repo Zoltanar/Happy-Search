@@ -32,6 +32,22 @@ namespace Happy_Search
 
         #region Set Methods
 
+        public void UpdateVNToLatestVersion(VNItem vnItem)
+        {
+            var insertString =
+                $"UPDATE vnlist SET Popularity = {vnItem.Popularity.ToString("0.00")}, Rating = {vnItem.Rating.ToString("0.00")}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
+        public void UpdateVNTags(VNItem vnItem)
+        {
+            var tags = TagsToString(vnItem.Tags);
+            var insertString =
+                $"UPDATE vnlist SET Tags = '{tags}' WHERE VNID = {vnItem.ID};";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
         public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command)
         {
             if (command == Command.Delete)
@@ -162,8 +178,9 @@ namespace Happy_Search
             var description = item.Description != null ? Regex.Replace(item.Description, "'", "''") : "";
             int? length = item.Length ?? 0;
             var insertString =
-                "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, VNID)" +
-                $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, {length}, {item.ID});";
+                "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, Popularity, Rating, VoteCount, VNID)" +
+                $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, " +
+                $"{length}, {item.Popularity.ToString("0.00")},{item.Rating.ToString("0.00")}, {item.VoteCount}, {item.ID});";
             var command = new SQLiteCommand(insertString, DbConn);
             if (print) Debug.Print(insertString);
             command.ExecuteNonQuery();
@@ -172,6 +189,14 @@ namespace Happy_Search
         public void RemoveFavoriteProducer(int producerID, int userid)
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
+            var command = new SQLiteCommand(commandString, DbConn);
+            Debug.Print(commandString);
+            command.ExecuteNonQuery();
+        }
+
+        public void RemoveVisualNovel(int vnid)
+        {
+            var commandString = $"DELETE FROM vnlist WHERE VNID={vnid};";
             var command = new SQLiteCommand(commandString, DbConn);
             Debug.Print(commandString);
             command.ExecuteNonQuery();
@@ -341,7 +366,10 @@ namespace Happy_Search
                 DbDateTime(reader["DateUpdated"]),
                 reader["ImageURL"].ToString(),
                 GetImageStatus(reader["ImageNSFW"]),
-                reader["Description"].ToString());
+                reader["Description"].ToString(),
+                DbDouble(reader["Popularity"]),
+                DbDouble(reader["Rating"]),
+                DbInt(reader["VoteCount"]));
         }
 
         private ListedProducer GetListedProducer(SQLiteDataReader reader)
@@ -525,5 +553,6 @@ END";
         }
 
         #endregion
+
     }
 }

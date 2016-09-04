@@ -40,6 +40,7 @@ namespace Happy_Search
             }
             Debug.Print(query);
             await Conn.QueryAsync(query); //request detailed information
+            if(serverR.TextLength>10000) ClearLog(null,null);
             serverQ.Text += query + Environment.NewLine;
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type == ResponseType.Unknown)
@@ -58,14 +59,18 @@ namespace Happy_Search
                 var waitS = Conn.LastResponse.Error.Minwait * 30;
                 var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
                 string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
-                string additionalWarning = $" Added {_vnsAdded} and skipped {_vnsSkipped} so far...";
+                string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped} so far...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 WriteWarning(replyLabel, fullThrottleMessage);
                 ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
                 var waitMS = minWait * 1000;
                 var wait = Convert.ToInt32(waitMS);
                 Debug.Print($"{DateTime.UtcNow} - {fullThrottleMessage}");
-                if (refreshList) tileOLV.SetObjects(_vnList.Where(_currentList));
+                if (refreshList)
+                {
+                    ReloadLists();
+                    RefreshVNList();
+                }
                 await Task.Delay(wait);
                 ClearLog(null, null);
                 await Conn.QueryAsync(query); //request detailed information
@@ -85,10 +90,18 @@ namespace Happy_Search
         internal async Task<ListedVN> UpdateSingleVN(int vnid, LinkLabel updateLink)
         {
             ReloadLists();
-            string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
+            string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
             var result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
             if (!result) return null;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num == 0)
+            {
+                //this vn has been deleted (or something along those lines)
+                DBConn.Open();
+                DBConn.RemoveVisualNovel(vnid);
+                DBConn.Close();
+                return new ListedVN();
+            }
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem);
             var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
@@ -109,7 +122,6 @@ namespace Happy_Search
         /// <param name="forceUpdate">Should VN be updated even if it's already in VNList?</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        /// <returns></returns>
         internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false, bool additionalMessage = false, bool refreshList = false)
         {
             int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
@@ -118,12 +130,19 @@ namespace Happy_Search
                 _vnsSkipped++;
                 return;
             }
-            string singleVNQuery = $"get vn basic,details,tags (id = {vnid})";
+            string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
             var result =
                 await TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num == 0) return;
+            if (vnRoot.Num == 0)
+            {
+                //this vn has been deleted (or something along those lines)
+                DBConn.Open();
+                DBConn.RemoveVisualNovel(vnid);
+                DBConn.Close();
+                return;
+            }
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem);
             var relProducer = await GetDeveloper(vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
@@ -137,44 +156,13 @@ namespace Happy_Search
         /// <summary>
         /// Get data about multiple visual novels.
         /// </summary>
-        /// <param name="vnIDsEnumerable">List of IDs of VNs to be retrieved.</param>
+        /// <param name="vnIDs">List of visual novel IDs</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        /// <param name="updateAll">Should VNs be updated if they are already in VNList?</param>
-        /// <returns></returns>
-        internal async Task GetMultipleVNOld(IEnumerable<int> vnIDsEnumerable, Label replyLabel, bool refreshList = false, bool updateAll = false)
-        {
-            ReloadLists();
-            //Old - one by one
-            foreach (var id in vnIDsEnumerable)
-            {
-                int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
-                if (!updateAll && vnIDList.Contains(id))
-                {
-                    _vnsSkipped++;
-                    continue;
-                }
-                string singleVNQuery = $"get vn basic,details,tags (id = {id})";
-                var result = await TryQuery(singleVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                if (!result) continue;
-                var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num == 0) continue;
-                var vnItem = vnRoot.Items[0];
-                SaveImage(vnItem);
-                var relProducer = await GetDeveloper(id, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                _vnsAdded++;
-                DBConn.Open();
-                DBConn.UpsertSingleVN(vnItem, relProducer, false);
-                DBConn.Close();
-            }
-        }
-
+        /// <param name="updateAll">Should VNs be updated even if they;re already in local database?</param>
         internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
         {
-            //TODO Change to array queries
             ReloadLists();
-            //New - 25 by 25
             var vnsToGet = new List<int>();
             int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
             //remove already present vns
@@ -188,12 +176,21 @@ namespace Happy_Search
             }
             else vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
-            string first25 = '[' + string.Join(",", vnsToGet.Take(25)) + ']';
-            string multiVNQuery = $"get vn basic,details,tags (id = {first25}) {{{APIMaxResults}}}";
+            int[] current25 = vnsToGet.Take(25).ToArray();
+            string first25 = '[' + string.Join(",", current25) + ']';
+            string multiVNQuery = $"get vn basic,details,tags,stats (id = {first25}) {{{APIMaxResults}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num == 0) return;
+            if (vnRoot.Num < current25.Length)
+            {
+                //some vns were deleted, find which ones and remove them
+                var root = vnRoot;
+                IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                DBConn.Open();
+                foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+                DBConn.Close();
+            }
             foreach (var vnItem in vnRoot.Items)
             {
                 SaveImage(vnItem);
@@ -207,12 +204,21 @@ namespace Happy_Search
             int done = 25;
             while (done < vnsToGet.Count)
             {
-                string next25 = '[' + string.Join(",", vnsToGet.Skip(done).Take(25)) + ']';
+                current25 = vnsToGet.Skip(done).Take(25).ToArray();
+                string next25 = '[' + string.Join(",", current25) + ']';
                 multiVNQuery = $"get vn basic,details,tags (id = {next25}) {{{APIMaxResults}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num == 0) return;
+                if (vnRoot.Num < current25.Length)
+                {
+                    //some vns were deleted, find which ones and remove them
+                    var root = vnRoot;
+                    IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                    DBConn.Open();
+                    foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+                    DBConn.Close();
+                }
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
@@ -223,6 +229,130 @@ namespace Happy_Search
                     DBConn.UpsertSingleVN(vnItem, relProducer, false);
                     DBConn.Close();
                 }
+                done += 25;
+            }
+        }
+
+        /// <summary>
+        /// Update titles to include all fields in latest version of Happy Search.
+        /// </summary>
+        /// <param name="vnIDs">List of visual novel IDs</param>
+        internal async Task UpdateTitlesToLatestVersion(IEnumerable<int> vnIDs)
+        {
+            var replyLabel = userListReply;
+            ReloadLists();
+            _vnsAdded = 0;
+            List<int> vnsToGet = vnIDs.ToList();
+            if (!vnsToGet.Any()) return;
+            int[] current25 = vnsToGet.Take(25).ToArray();
+            string first25 = '[' + string.Join(",", current25) + ']';
+            string multiVNQuery = $"get vn stats (id = {first25}) {{{APIMaxResults}}}";
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+            if (!queryResult) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num < current25.Length)
+            {
+                //some vns were deleted, find which ones and remove them
+                var root = vnRoot;
+                IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                DBConn.Open();
+                foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+                DBConn.Close();
+            }
+            DBConn.Open();
+            foreach (var vnItem in vnRoot.Items)
+            {
+                DBConn.UpdateVNToLatestVersion(vnItem);
+                _vnsAdded++;
+            }
+            DBConn.Close();
+            int done = 25;
+            while (done < vnsToGet.Count)
+            {
+                current25 = vnsToGet.Skip(done).Take(25).ToArray();
+                string next25 = '[' + string.Join(",", current25) + ']';
+                multiVNQuery = $"get vn stats (id = {next25}) {{{APIMaxResults}}}";
+                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+                if (!queryResult) return;
+                vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                if (vnRoot.Num < current25.Length)
+                {
+                    //some vns were deleted, find which ones and remove them
+                    var root = vnRoot;
+                    IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                    DBConn.Open();
+                    foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+                    DBConn.Close();
+                }
+                DBConn.Open();
+                foreach (var vnItem in vnRoot.Items)
+                {
+                    DBConn.UpdateVNToLatestVersion(vnItem);
+                    _vnsAdded++;
+                }
+                DBConn.Close();
+                done += 25;
+            }
+        }
+
+        /// <summary>
+        /// Update tags of titles that haven't been updated in over 7 days.
+        /// </summary>
+        /// <param name="vnIDs">List of visual novel IDs</param>
+        internal async Task UpdateTitleTags(IEnumerable<int> vnIDs)
+        {
+            var replyLabel = userListReply;
+            ReloadLists();
+            _vnsAdded = 0;
+            List<int> vnsToGet = vnIDs.ToList();
+            if (!vnsToGet.Any()) return;
+            int[] current25 = vnsToGet.Take(25).ToArray();
+            string first25 = '[' + string.Join(",", current25) + ']';
+            string multiVNQuery = $"get vn tags (id = {first25}) {{{APIMaxResults}}}";
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+            if (!queryResult) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num < current25.Length)
+            {
+                //some vns were deleted, find which ones and remove them
+                var root = vnRoot;
+                IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                DBConn.Open();
+                foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+                DBConn.Close();
+            }
+            DBConn.Open();
+            foreach (var vnItem in vnRoot.Items)
+            {
+                DBConn.UpdateVNTags(vnItem);
+                _vnsAdded++;
+            }
+            DBConn.Close();
+            int done = 25;
+            while (done < vnsToGet.Count)
+            {
+                current25 = vnsToGet.Skip(done).Take(25).ToArray();
+                string next25 = '[' + string.Join(",", current25) + ']';
+                multiVNQuery = $"get vn tags (id = {next25}) {{{APIMaxResults}}}";
+                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+                if (!queryResult) return;
+                vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                if (vnRoot.Num < current25.Length)
+                {
+                    //some vns were deleted, find which ones and remove them
+                    var root = vnRoot;
+                    IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                    DBConn.Open();
+                    foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+                    DBConn.Close();
+                }
+                DBConn.Open();
+                foreach (var vnItem in vnRoot.Items)
+                {
+                    DBConn.UpdateVNTags(vnItem);
+                    _vnsAdded++;
+                }
+                DBConn.Close();
                 done += 25;
             }
         }
@@ -276,7 +406,7 @@ namespace Happy_Search
             if (!producers.Any()) return;
             var producer = producers.First();
             DBConn.Open();
-            DBConn.InsertProducer(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID));
+            DBConn.InsertProducer((ListedProducer)producer);
             DBConn.Close();
         }
 

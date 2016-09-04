@@ -29,7 +29,8 @@ namespace Happy_Search
         private void Filter_ClearOther()
         {
             _dontTriggerEvent = true;
-            ULStatusDropDown.SelectedIndex = 0;
+            ulStatusDropDown.SelectedIndex = 0;
+            wlStatusDropDown.SelectedIndex = 0;
             ProducerListBox.Text = "";
             _dontTriggerEvent = false;
         }
@@ -52,21 +53,9 @@ namespace Happy_Search
             currentListLabel.Text = @"List: " + @"Favorite Producers";
             RefreshVNList();
         }
-
+        
         /// <summary>
-        /// Display VNs in user's wishlist.
-        /// </summary>
-        private void Filter_Wishlist(object sender, EventArgs e)
-        {
-            if (_dontTriggerEvent) return;
-            Filter_ClearOther();
-            _currentList = x => !x.WLStatus.Equals("");
-            currentListLabel.Text = @"List: " + @"Wishlist";
-            RefreshVNList();
-        }
-
-        /// <summary>
-        /// Display VNs with select Userlist status.
+        /// Display VNs with selected Userlist status.
         /// </summary>
         private void Filter_ULStatus(object sender, EventArgs e)
         {
@@ -81,18 +70,26 @@ namespace Happy_Search
                     dropdownlist.SelectedIndex = 0;
                     return;
                 case 2:
+                    _currentList = x => !x.ULStatus.Equals("");
+                    currentListLabel.Text = @"List: " + @"Userlist Titles";
+                    break;
+                case 3:
                     _currentList = x => x.ULStatus.Equals("Unknown");
                     currentListLabel.Text = @"List: " + @"UL Unknown";
                     break;
-                case 3:
+                case 4:
                     _currentList = x => x.ULStatus.Equals("Playing");
                     currentListLabel.Text = @"List: " + @"UL Playing";
                     break;
-                case 4:
+                case 5:
                     _currentList = x => x.ULStatus.Equals("Finished");
                     currentListLabel.Text = @"List: " + @"UL Finished";
                     break;
-                case 5:
+                case 6:
+                    _currentList = x => x.ULStatus.Equals("Stalled");
+                    currentListLabel.Text = @"List: " + @"UL Stalled";
+                    break;
+                case 7:
                     _currentList = x => x.ULStatus.Equals("Dropped");
                     currentListLabel.Text = @"List: " + @"UL Dropped";
                     break;
@@ -100,11 +97,54 @@ namespace Happy_Search
             var value = dropdownlist.SelectedIndex;
             Filter_ClearOther();
             _dontTriggerEvent = true;
-            ULStatusDropDown.SelectedIndex = value;
+            ulStatusDropDown.SelectedIndex = value;
             _dontTriggerEvent = false;
             RefreshVNList();
         }
 
+        /// <summary>
+        /// Display VNs with selected Wishlist status.
+        /// </summary>
+        private void Filter_WLStatus(object sender, EventArgs e)
+        {
+            if (_dontTriggerEvent) return;
+            var dropdownlist = (ComboBox)sender;
+            switch (dropdownlist.SelectedIndex)
+            {
+                case 0:
+                    Filter_All(null, null);
+                    return;
+                case 1:
+                    dropdownlist.SelectedIndex = 0;
+                    return;
+                case 2:
+                    _currentList = x => !x.WLStatus.Equals("");
+                    currentListLabel.Text = @"List: " + @"Wishlist Titles";
+                    break;
+                case 3:
+                    _currentList = x => x.WLStatus.Equals("High");
+                    currentListLabel.Text = @"List: " + @"WL High";
+                    break;
+                case 4:
+                    _currentList = x => x.WLStatus.Equals("Medium");
+                    currentListLabel.Text = @"List: " + @"WL Medium";
+                    break;
+                case 5:
+                    _currentList = x => x.WLStatus.Equals("Low");
+                    currentListLabel.Text = @"List: " + @"WL Low";
+                    break;
+                case 6:
+                    _currentList = x => x.WLStatus.Equals("Blacklist");
+                    currentListLabel.Text = @"List: " + @"WL Blacklist";
+                    break;
+            }
+            var value = dropdownlist.SelectedIndex;
+            Filter_ClearOther();
+            _dontTriggerEvent = true;
+            wlStatusDropDown.SelectedIndex = value;
+            _dontTriggerEvent = false;
+            RefreshVNList();
+        }
         /// <summary>
         /// Display VNs by producer typed/selected in box.
         /// </summary>

@@ -133,10 +133,8 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Get new titles from Favorite Producers.
+        /// Get new titles from Favorite Producers, only updates if last update was over 2 days ago.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private async void GetNewFavoriteProducerTitles(object sender, EventArgs e)
         {
             if (olFavoriteProducers.Items.Count == 0)
@@ -151,11 +149,13 @@ namespace Happy_Search
             List<ListedProducer> producers =
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2).ToList();
             Debug.Print($"{producers.Count} to be updated");
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
             foreach (var producer in producers) await GetProducerTitles(producer, prodReply);
             ReloadLists();
             RefreshVNList();
             LoadFavoriteProducerList();
-            WriteText(prodReply, Resources.get_new_fp_titles_success);
+            WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.", true);
         }
 
         /// <summary>

@@ -77,7 +77,8 @@ namespace Happy_Search
             SplashScreen.SplashScreen.SetStatus("Initializing Controls...");
             {
                 _dontTriggerEvent = true;
-                ULStatusDropDown.SelectedIndex = 0;
+                ulStatusDropDown.SelectedIndex = 0;
+                wlStatusDropDown.SelectedIndex = 0;
                 customFilters.SelectedIndex = 0;
                 viewPicker.SelectedIndex = 0;
                 URTToggleBox.SelectedIndex = 0;
@@ -173,9 +174,15 @@ https://github.com/FredTheBarber/VndbClient";
                 MainXml xml = File.Exists(MainXmlFile) ? XmlHelper.FromXmlFile<MainXml>(MainXmlFile) : new MainXml();
                 _customFilters = xml.ComplexFilters;
                 foreach (var filter in _customFilters) customFilters.Items.Add(filter.Name);
+                _dontTriggerEvent = true;
                 URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleSetting;
+                Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
                 UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleSetting;
+                Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
                 BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleSetting;
+                Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
+                _dontTriggerEvent = false;
+                ApplyToggleFilters();
             }
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
             InitAPIConnection();
@@ -193,7 +200,6 @@ https://github.com/FredTheBarber/VndbClient";
             if (Settings.Default.AutoUpdateURT && UserID > 0)
             {
                 Debug.Print($"URTUpdate= {Settings.Default.URTUpdate}");
-                Console.WriteLine($"URTUpdate= {Settings.Default.URTUpdate}");
                 if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
                 {
                     Task.Run(UpdateURT);
@@ -203,7 +209,6 @@ https://github.com/FredTheBarber/VndbClient";
                 else
                 {
                     Debug.Print("Update not needed.");
-                    Console.WriteLine(@"Update not needed.");
                 }
             }
         }
@@ -643,11 +648,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async void LogQuestion(object sender, KeyPressEventArgs e) //send a command direct to server
         {
             if (e.KeyChar != (char)Keys.Enter) return;
-            e.Handled = true;
             await Conn.QueryAsync(questionBox.Text);
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
-
         private void ClearLog(object sender, EventArgs e) //clear log
         {
             serverQ.Text = "";
@@ -1009,8 +1012,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
             if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(4).Text = "";
             if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(7).Text = "";
-            if (listedVN.VoteAdded == dateTimeOffset) e.Item.GetSubItem(9).Text = "";
             if (listedVN.Vote < 1) e.Item.GetSubItem(8).Text = "";
+            e.Item.GetSubItem(9).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating.ToString("0.00")} ({listedVN.VoteCount} Votes)" : "";
+            e.Item.GetSubItem(10).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
         }
 
         /// <summary>
@@ -1973,5 +1977,36 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #endregion
 
+        /// <summary>
+        /// Update titles to include all fields in latest version of Happy Search.
+        /// </summary>
+        private async void UpdateTitlesToLatestVersionClick(object sender, EventArgs e)
+        {
+            //popularity, rating and votecount were added, check for votecount
+            int[] listOfTitlesFromOldVersions = _vnList.Where(x => x.VoteCount == -1).Select(x => x.VNID).ToArray();
+            var messageBox = 
+                MessageBox.Show($"{listOfTitlesFromOldVersions.Length} need to be updated, if this is a large number (over 2000), it may take a while, are you sure?",
+                Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            await UpdateTitlesToLatestVersion(listOfTitlesFromOldVersions);
+            ReloadLists();
+            RefreshVNList();
+            WriteText(userListReply,$"Updated {_vnsAdded} to latest version.");
+        }
+
+        /// <summary>
+        /// Update tags of titles that haven't been updated in over 7 days.
+        /// </summary>
+        private async void UpdateTitleTagsClick(object sender, EventArgs e)
+        {
+            int[] listOfTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > -1).Select(x=> x.VNID).ToArray();
+            var messageBox = MessageBox.Show($"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 2000), it may take a while, are you sure?",
+                Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            await UpdateTitleTags(listOfTitlesToUpdate);
+            ReloadLists();
+            RefreshVNList();
+            WriteText(userListReply, $"Updated tags of {_vnsAdded} titles.");
+        }
     }
 }

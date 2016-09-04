@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Happy_Search.Properties;
@@ -29,7 +30,6 @@ namespace Happy_Search
             _parentForm = parentForm;
             Text = $"{FormMain.ClientName} - {vnItem.Title}";
             InitializeComponent();
-
             SetData(vnItem);
         }
 
@@ -42,17 +42,18 @@ namespace Happy_Search
 
         private void SetData(ListedVN vnItem)
         {
+            if (vnItem.VNID == -1)
+            {
+                SetDeletedData();
+                return;
+            }
             //prepare data
             var ext = Path.GetExtension(vnItem.ImageURL);
             var imageLoc = $"vnImages\\{vnItem.VNID}{ext}";
             if (vnItem.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
             else
             {
-                List<string> taglist = new List<string>();
-                foreach (TagItem tag in FormMain.StringToTags(vnItem.Tags))
-                {
-                    taglist.Add(tag.Print(_parentForm.PlainTags));
-                }
+                List<string> taglist = FormMain.StringToTags(vnItem.Tags).Select(tag => tag.Print(_parentForm.PlainTags)).Where(printed => !printed.Equals("Not Approved")).ToList();
                 taglist.Sort();
                 vnTagCB.DataSource = taglist;
             }
@@ -85,11 +86,25 @@ namespace Happy_Search
             else pcbImages.Image = Resources.no_image;
         }
 
+        private void SetDeletedData()
+        {
+            vnName.Text = @"This VN was deleted.";
+            vnKanjiName.Text = "";
+            vnProducer.Text = "";
+            vnDate.Text = "";
+            vnUserStatus.Text = "";
+            vnLength.Text = "";
+            vnID.Text = "";
+            vnUpdateLink.Text = "";
+            pcbImages.Image = Resources.no_image;
+        }
+
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
+            if (vnUpdateLink.Text.Equals("")) return;
             var vnItem = await _parentForm.UpdateSingleVN(Convert.ToInt32(vnID.Text), vnUpdateLink);
-            if (vnItem != null) SetData(vnItem);
+            SetData(vnItem);
         }
 
         private void vnID_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
