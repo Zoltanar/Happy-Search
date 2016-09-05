@@ -14,6 +14,21 @@ namespace Happy_Search
     partial class FormMain
     {
         /// <summary>
+        /// Bring up dialog explaining features of the 'Tag Filtering' section.
+        /// </summary>
+        private void Help_TagFiltering(object sender, EventArgs e)
+        {
+            var path = Path.GetDirectoryName(Application.ExecutablePath);
+            if (path == null)
+            {
+                WriteError(filterReply, @"Unknown Path Error");
+                return;
+            }
+            var helpFile = $"{Path.Combine(path, "help\\tagfiltering.html")}";
+            new HtmlForm($"file:///{helpFile}").Show();
+        }
+
+        /// <summary>
         /// Event from checking a MostCommonTags checkbox, adds tag to list of active tag filters.
         /// </summary>
         private void TagFilterAdded(object sender, EventArgs e)
@@ -28,7 +43,7 @@ namespace Happy_Search
             _dontTriggerEvent = false;
             AddFilterTag(tagName);
         }
-        
+
         /// <summary>
         /// Event from unchecking an active tag filter's checkbox, removes tag from list of active tag filters.
         /// </summary>
@@ -261,7 +276,7 @@ namespace Happy_Search
             ApplyToggleFilters();
             WriteText(replyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.", true);
         }
-        
+
         /// <summary>
         /// Display VNs matching tags in selected custom filter.
         /// </summary>
@@ -273,7 +288,7 @@ namespace Happy_Search
             {
                 case 0:
                     deleteCustomFilterButton.Enabled = false;
-                    Filter_All(null, null);
+                    List_All(null, null);
                     return;
                 case 1:
                     dropdownlist.SelectedIndex = 0;
@@ -288,7 +303,7 @@ namespace Happy_Search
             }
             RefreshVNList();
         }
-        
+
         /// <summary>
         /// Delete custom filter.
         /// </summary>
@@ -309,18 +324,34 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Bring up dialog explaining features of the 'Tag Filtering' section.
+        /// Whether Visual Novel contains a single tag (or a subtag).
         /// </summary>
-        private void Help_TagFiltering(object sender, EventArgs e)
+        /// <param name="vn">Visual Novel to be checked</param>
+        /// <param name="tag">Tag to be checked</param>
+        /// <returns>Whether it contains the tag or a subtag.</returns>
+        private static bool VNMatchesSingleTag(ListedVN vn, TagFilter tag)
         {
-            var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
+            int[] vnTags = StringToTags(vn.Tags).Select(x => x.ID).ToArray();
+            return vnTags.Any(vntag => tag.AllIDs.Contains(vntag));
+        }
+
+        /// <summary>
+        /// Whether Visual Novel matches list of active tag filters.
+        /// </summary>
+        /// <param name="vn">Visual Novel to be checked</param>
+        /// <returns>Whether it matches</returns>
+        private bool VNMatchesFilter(ListedVN vn)
+        {
+            int[] vnTags = StringToTags(vn.Tags).Select(x => x.ID).ToArray();
+            //for each tag in list of active tag filters, add 1 to counter if vn has a tag that is either the specified tag or a subtag
+            //if counter is the same as the amount of tags in active tag filters, it means it matched all of them, thus, it matches the whole filter.
+            /*var filtersMatched = 0;
+            foreach (var filter in _activeFilter)
             {
-                WriteError(filterReply, @"Unknown Path Error");
-                return;
-            }
-            var helpFile = $"{Path.Combine(path, "help\\tagfiltering.html")}";
-            new HtmlForm($"file:///{helpFile}").Show();
+                if (vnTags.Any(vntag => filter.AllIDs.Contains(vntag))) filtersMatched++;
+            }*/
+            var filtersMatched = _activeFilter.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
+            return filtersMatched == _activeFilter.Count;
         }
 
 

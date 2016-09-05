@@ -189,6 +189,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="help\listresults.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="help\searchingandfiltering.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

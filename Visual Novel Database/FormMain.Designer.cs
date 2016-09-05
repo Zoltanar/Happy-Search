@@ -113,6 +113,18 @@ namespace Happy_Search
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.aboutTextBox = new System.Windows.Forms.RichTextBox();
             this.vnTab = new System.Windows.Forms.TabPage();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.olFavoriteProducers = new BrightIdeasSoftware.ObjectListView();
+            this.ol2Name = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2ItemCount = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2UserAverageVote = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2UserDropRate = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2Loaded = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2Updated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2ID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.favoriteProducersHelpButton = new System.Windows.Forms.Button();
+            this.prodReply = new System.Windows.Forms.Label();
+            this.listResultsButton = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.GetStartedHelpButton = new System.Windows.Forms.Button();
             this.nsfwToggle = new System.Windows.Forms.CheckBox();
@@ -145,7 +157,6 @@ namespace Happy_Search
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.SearchingAndFilteringButton = new System.Windows.Forms.Button();
-            this.currentListLabel = new System.Windows.Forms.Label();
             this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
             this.UnreleasedToggleBox = new System.Windows.Forms.ComboBox();
             this.URTToggleBox = new System.Windows.Forms.ComboBox();
@@ -166,16 +177,6 @@ namespace Happy_Search
             this.tileColumnPopularity = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnUpdated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.favoriteProducersHelpButton = new System.Windows.Forms.Button();
-            this.prodReply = new System.Windows.Forms.Label();
-            this.olFavoriteProducers = new BrightIdeasSoftware.ObjectListView();
-            this.ol2Name = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2ItemCount = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2UserAverageVote = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2UserDropRate = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2Loaded = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2Updated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2ID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.yearButton = new System.Windows.Forms.Button();
             this.replyText = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
@@ -217,21 +218,19 @@ namespace Happy_Search
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.showProducerTitlesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.button1 = new System.Windows.Forms.Button();
-            this.panel2 = new System.Windows.Forms.Panel();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.vnTab.SuspendLayout();
+            this.panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).BeginInit();
             this.panel1.SuspendLayout();
             this.tagFilteringBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tileOLV)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.ContextMenuVN.SuspendLayout();
-            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tagTypeS2
@@ -454,7 +453,7 @@ namespace Happy_Search
             this.ProducerListBox.Size = new System.Drawing.Size(119, 22);
             this.ProducerListBox.TabIndex = 39;
             this.toolTip.SetToolTip(this.ProducerListBox, "Enter producer name here");
-            this.ProducerListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Filter_Producer);
+            this.ProducerListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.List_Producer);
             // 
             // filterNameBox
             // 
@@ -521,7 +520,7 @@ namespace Happy_Search
             this.infoTab.Location = new System.Drawing.Point(4, 22);
             this.infoTab.Name = "infoTab";
             this.infoTab.Padding = new System.Windows.Forms.Padding(3);
-            this.infoTab.Size = new System.Drawing.Size(1410, 757);
+            this.infoTab.Size = new System.Drawing.Size(1410, 769);
             this.infoTab.TabIndex = 2;
             this.infoTab.Text = "Information";
             // 
@@ -1046,12 +1045,11 @@ namespace Happy_Search
             this.vnTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.vnTab.Controls.Add(this.panel2);
-            this.vnTab.Controls.Add(this.button1);
+            this.vnTab.Controls.Add(this.listResultsButton);
             this.vnTab.Controls.Add(this.panel1);
             this.vnTab.Controls.Add(this.wlStatusDropDown);
             this.vnTab.Controls.Add(this.tagFilteringBox);
             this.vnTab.Controls.Add(this.SearchingAndFilteringButton);
-            this.vnTab.Controls.Add(this.currentListLabel);
             this.vnTab.Controls.Add(this.BlacklistToggleBox);
             this.vnTab.Controls.Add(this.UnreleasedToggleBox);
             this.vnTab.Controls.Add(this.URTToggleBox);
@@ -1079,6 +1077,140 @@ namespace Happy_Search
             this.vnTab.Size = new System.Drawing.Size(1410, 769);
             this.vnTab.TabIndex = 1;
             this.vnTab.Text = "Visual Novel Info";
+            // 
+            // panel2
+            // 
+            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.suggestProducersButton);
+            this.panel2.Controls.Add(this.olFavoriteProducers);
+            this.panel2.Controls.Add(this.favoriteProducersHelpButton);
+            this.panel2.Controls.Add(this.removeProducersButton);
+            this.panel2.Controls.Add(this.getNewProducersButton);
+            this.panel2.Controls.Add(this.selectedProducersVNButton);
+            this.panel2.Controls.Add(this.prodReply);
+            this.panel2.Controls.Add(this.refreshAllProducersButton);
+            this.panel2.Controls.Add(this.addProducersButton);
+            this.panel2.Controls.Add(this.loadUnloadedButton);
+            this.panel2.Location = new System.Drawing.Point(725, 6);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(677, 299);
+            this.panel2.TabIndex = 96;
+            // 
+            // olFavoriteProducers
+            // 
+            this.olFavoriteProducers.AllColumns.Add(this.ol2Name);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2ItemCount);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2UserAverageVote);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2UserDropRate);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2Loaded);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2Updated);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2ID);
+            this.olFavoriteProducers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.olFavoriteProducers.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.ol2Name,
+            this.ol2ItemCount,
+            this.ol2UserAverageVote,
+            this.ol2UserDropRate,
+            this.ol2Loaded,
+            this.ol2Updated,
+            this.ol2ID});
+            this.olFavoriteProducers.FullRowSelect = true;
+            this.olFavoriteProducers.GridLines = true;
+            this.olFavoriteProducers.Location = new System.Drawing.Point(3, 3);
+            this.olFavoriteProducers.Name = "olFavoriteProducers";
+            this.olFavoriteProducers.ShowGroups = false;
+            this.olFavoriteProducers.Size = new System.Drawing.Size(668, 232);
+            this.olFavoriteProducers.TabIndex = 0;
+            this.olFavoriteProducers.UseCompatibleStateImageBehavior = false;
+            this.olFavoriteProducers.View = System.Windows.Forms.View.Details;
+            this.olFavoriteProducers.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatRowFavoriteProducers);
+            // 
+            // ol2Name
+            // 
+            this.ol2Name.AspectName = "Name";
+            this.ol2Name.FillsFreeSpace = true;
+            this.ol2Name.Text = "Producer";
+            this.ol2Name.Width = 306;
+            // 
+            // ol2ItemCount
+            // 
+            this.ol2ItemCount.AspectName = "NumberOfTitles";
+            this.ol2ItemCount.Text = "Titles";
+            this.ol2ItemCount.Width = 38;
+            // 
+            // ol2UserAverageVote
+            // 
+            this.ol2UserAverageVote.AspectName = "UserAverageVote";
+            this.ol2UserAverageVote.AspectToStringFormat = "";
+            this.ol2UserAverageVote.Text = "Avg Vote";
+            this.ol2UserAverageVote.ToolTipText = "Based on your votes.";
+            this.ol2UserAverageVote.Width = 57;
+            // 
+            // ol2UserDropRate
+            // 
+            this.ol2UserDropRate.AspectName = "UserDropRate";
+            this.ol2UserDropRate.AspectToStringFormat = "{0}%";
+            this.ol2UserDropRate.Text = "Drop Rate";
+            this.ol2UserDropRate.ToolTipText = "Your rate of dropped vs finished titles.";
+            this.ol2UserDropRate.Width = 63;
+            // 
+            // ol2Loaded
+            // 
+            this.ol2Loaded.AspectName = "Loaded";
+            this.ol2Loaded.Text = "Loaded?";
+            // 
+            // ol2Updated
+            // 
+            this.ol2Updated.AspectName = "Updated";
+            this.ol2Updated.AspectToStringFormat = "{0} days ago";
+            this.ol2Updated.Text = "Updated";
+            this.ol2Updated.Width = 70;
+            // 
+            // ol2ID
+            // 
+            this.ol2ID.AspectName = "ID";
+            this.ol2ID.Text = "ID";
+            this.ol2ID.Width = 49;
+            // 
+            // favoriteProducersHelpButton
+            // 
+            this.favoriteProducersHelpButton.BackColor = System.Drawing.Color.Khaki;
+            this.favoriteProducersHelpButton.FlatAppearance.BorderSize = 0;
+            this.favoriteProducersHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.favoriteProducersHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.favoriteProducersHelpButton.Location = new System.Drawing.Point(3, 241);
+            this.favoriteProducersHelpButton.Name = "favoriteProducersHelpButton";
+            this.favoriteProducersHelpButton.Size = new System.Drawing.Size(116, 23);
+            this.favoriteProducersHelpButton.TabIndex = 88;
+            this.favoriteProducersHelpButton.Text = "Favorite Producers";
+            this.favoriteProducersHelpButton.UseVisualStyleBackColor = false;
+            this.favoriteProducersHelpButton.Click += new System.EventHandler(this.Help_FavoriteProducers);
+            // 
+            // prodReply
+            // 
+            this.prodReply.Location = new System.Drawing.Point(3, 270);
+            this.prodReply.Name = "prodReply";
+            this.prodReply.Size = new System.Drawing.Size(267, 23);
+            this.prodReply.TabIndex = 32;
+            this.prodReply.Text = "(prodReply)";
+            this.prodReply.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // listResultsButton
+            // 
+            this.listResultsButton.BackColor = System.Drawing.Color.Khaki;
+            this.listResultsButton.FlatAppearance.BorderSize = 0;
+            this.listResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.listResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.listResultsButton.Location = new System.Drawing.Point(836, 338);
+            this.listResultsButton.Name = "listResultsButton";
+            this.listResultsButton.Size = new System.Drawing.Size(102, 23);
+            this.listResultsButton.TabIndex = 95;
+            this.listResultsButton.Text = "List Results";
+            this.listResultsButton.UseVisualStyleBackColor = false;
+            this.listResultsButton.Click += new System.EventHandler(this.Help_ListResults);
             // 
             // panel1
             // 
@@ -1198,7 +1330,7 @@ namespace Happy_Search
             this.wlStatusDropDown.Name = "wlStatusDropDown";
             this.wlStatusDropDown.Size = new System.Drawing.Size(108, 21);
             this.wlStatusDropDown.TabIndex = 93;
-            this.wlStatusDropDown.SelectedIndexChanged += new System.EventHandler(this.Filter_WLStatus);
+            this.wlStatusDropDown.SelectedIndexChanged += new System.EventHandler(this.List_WLStatus);
             // 
             // tagFilteringBox
             // 
@@ -1481,18 +1613,6 @@ namespace Happy_Search
             this.SearchingAndFilteringButton.UseVisualStyleBackColor = false;
             this.SearchingAndFilteringButton.Click += new System.EventHandler(this.Help_SearchingAndFiltering);
             // 
-            // currentListLabel
-            // 
-            this.currentListLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.currentListLabel.BackColor = System.Drawing.Color.Transparent;
-            this.currentListLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.currentListLabel.Location = new System.Drawing.Point(1039, 349);
-            this.currentListLabel.Name = "currentListLabel";
-            this.currentListLabel.Size = new System.Drawing.Size(205, 13);
-            this.currentListLabel.TabIndex = 88;
-            this.currentListLabel.Text = "(currentListLabel)";
-            this.currentListLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
             // BlacklistToggleBox
             // 
             this.BlacklistToggleBox.BackColor = System.Drawing.Color.Navy;
@@ -1508,7 +1628,7 @@ namespace Happy_Search
             this.BlacklistToggleBox.Name = "BlacklistToggleBox";
             this.BlacklistToggleBox.Size = new System.Drawing.Size(108, 21);
             this.BlacklistToggleBox.TabIndex = 87;
-            this.BlacklistToggleBox.SelectedIndexChanged += new System.EventHandler(this.BlacklistToggle);
+            this.BlacklistToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_Blacklist);
             // 
             // UnreleasedToggleBox
             // 
@@ -1525,7 +1645,7 @@ namespace Happy_Search
             this.UnreleasedToggleBox.Name = "UnreleasedToggleBox";
             this.UnreleasedToggleBox.Size = new System.Drawing.Size(114, 21);
             this.UnreleasedToggleBox.TabIndex = 86;
-            this.UnreleasedToggleBox.SelectedIndexChanged += new System.EventHandler(this.UnreleasedToggle);
+            this.UnreleasedToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_Unreleased);
             // 
             // URTToggleBox
             // 
@@ -1543,7 +1663,7 @@ namespace Happy_Search
             this.URTToggleBox.Name = "URTToggleBox";
             this.URTToggleBox.Size = new System.Drawing.Size(119, 21);
             this.URTToggleBox.TabIndex = 85;
-            this.URTToggleBox.SelectedIndexChanged += new System.EventHandler(this.URTToggle);
+            this.URTToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_URT);
             // 
             // updateProducerTitlesButton
             // 
@@ -1561,7 +1681,6 @@ namespace Happy_Search
             // 
             // statusLabel
             // 
-            this.statusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.statusLabel.BackColor = System.Drawing.Color.Gray;
             this.statusLabel.ForeColor = System.Drawing.SystemColors.ControlText;
             this.statusLabel.Location = new System.Drawing.Point(6, 337);
@@ -1719,106 +1838,6 @@ namespace Happy_Search
             this.tileColumnID.AspectName = "VNID";
             this.tileColumnID.Text = "VNID";
             // 
-            // favoriteProducersHelpButton
-            // 
-            this.favoriteProducersHelpButton.BackColor = System.Drawing.Color.Khaki;
-            this.favoriteProducersHelpButton.FlatAppearance.BorderSize = 0;
-            this.favoriteProducersHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.favoriteProducersHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.favoriteProducersHelpButton.Location = new System.Drawing.Point(3, 241);
-            this.favoriteProducersHelpButton.Name = "favoriteProducersHelpButton";
-            this.favoriteProducersHelpButton.Size = new System.Drawing.Size(116, 23);
-            this.favoriteProducersHelpButton.TabIndex = 88;
-            this.favoriteProducersHelpButton.Text = "Favorite Producers";
-            this.favoriteProducersHelpButton.UseVisualStyleBackColor = false;
-            this.favoriteProducersHelpButton.Click += new System.EventHandler(this.Help_FavoriteProducers);
-            // 
-            // prodReply
-            // 
-            this.prodReply.Location = new System.Drawing.Point(3, 270);
-            this.prodReply.Name = "prodReply";
-            this.prodReply.Size = new System.Drawing.Size(267, 23);
-            this.prodReply.TabIndex = 32;
-            this.prodReply.Text = "(prodReply)";
-            this.prodReply.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // olFavoriteProducers
-            // 
-            this.olFavoriteProducers.AllColumns.Add(this.ol2Name);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2ItemCount);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2UserAverageVote);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2UserDropRate);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2Loaded);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2Updated);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2ID);
-            this.olFavoriteProducers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.olFavoriteProducers.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.ol2Name,
-            this.ol2ItemCount,
-            this.ol2UserAverageVote,
-            this.ol2UserDropRate,
-            this.ol2Loaded,
-            this.ol2Updated,
-            this.ol2ID});
-            this.olFavoriteProducers.FullRowSelect = true;
-            this.olFavoriteProducers.GridLines = true;
-            this.olFavoriteProducers.Location = new System.Drawing.Point(3, 3);
-            this.olFavoriteProducers.Name = "olFavoriteProducers";
-            this.olFavoriteProducers.ShowGroups = false;
-            this.olFavoriteProducers.Size = new System.Drawing.Size(668, 232);
-            this.olFavoriteProducers.TabIndex = 0;
-            this.olFavoriteProducers.UseCompatibleStateImageBehavior = false;
-            this.olFavoriteProducers.View = System.Windows.Forms.View.Details;
-            this.olFavoriteProducers.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatRowFavoriteProducers);
-            // 
-            // ol2Name
-            // 
-            this.ol2Name.AspectName = "Name";
-            this.ol2Name.FillsFreeSpace = true;
-            this.ol2Name.Text = "Producer";
-            this.ol2Name.Width = 306;
-            // 
-            // ol2ItemCount
-            // 
-            this.ol2ItemCount.AspectName = "NumberOfTitles";
-            this.ol2ItemCount.Text = "Titles";
-            this.ol2ItemCount.Width = 38;
-            // 
-            // ol2UserAverageVote
-            // 
-            this.ol2UserAverageVote.AspectName = "UserAverageVote";
-            this.ol2UserAverageVote.AspectToStringFormat = "";
-            this.ol2UserAverageVote.Text = "Avg Vote";
-            this.ol2UserAverageVote.ToolTipText = "Based on your votes.";
-            this.ol2UserAverageVote.Width = 57;
-            // 
-            // ol2UserDropRate
-            // 
-            this.ol2UserDropRate.AspectName = "UserDropRate";
-            this.ol2UserDropRate.AspectToStringFormat = "{0}%";
-            this.ol2UserDropRate.Text = "Drop Rate";
-            this.ol2UserDropRate.ToolTipText = "Your rate of dropped vs finished titles.";
-            this.ol2UserDropRate.Width = 63;
-            // 
-            // ol2Loaded
-            // 
-            this.ol2Loaded.AspectName = "Loaded";
-            this.ol2Loaded.Text = "Loaded?";
-            // 
-            // ol2Updated
-            // 
-            this.ol2Updated.AspectName = "Updated";
-            this.ol2Updated.AspectToStringFormat = "{0} days ago";
-            this.ol2Updated.Text = "Updated";
-            this.ol2Updated.Width = 70;
-            // 
-            // ol2ID
-            // 
-            this.ol2ID.AspectName = "ID";
-            this.ol2ID.Text = "ID";
-            this.ol2ID.Width = 49;
-            // 
             // yearButton
             // 
             this.yearButton.BackColor = System.Drawing.Color.MistyRose;
@@ -1910,7 +1929,7 @@ namespace Happy_Search
             this.ulStatusDropDown.Name = "ulStatusDropDown";
             this.ulStatusDropDown.Size = new System.Drawing.Size(105, 21);
             this.ulStatusDropDown.TabIndex = 56;
-            this.ulStatusDropDown.SelectedIndexChanged += new System.EventHandler(this.Filter_ULStatus);
+            this.ulStatusDropDown.SelectedIndexChanged += new System.EventHandler(this.List_ULStatus);
             // 
             // quickFilter0
             // 
@@ -1924,7 +1943,7 @@ namespace Happy_Search
             this.quickFilter0.TabIndex = 48;
             this.quickFilter0.Text = "All Titles";
             this.quickFilter0.UseVisualStyleBackColor = false;
-            this.quickFilter0.Click += new System.EventHandler(this.Filter_All);
+            this.quickFilter0.Click += new System.EventHandler(this.List_All);
             // 
             // quickFilter1
             // 
@@ -1938,16 +1957,16 @@ namespace Happy_Search
             this.quickFilter1.TabIndex = 47;
             this.quickFilter1.Text = "Favorite Producers";
             this.quickFilter1.UseVisualStyleBackColor = false;
-            this.quickFilter1.Click += new System.EventHandler(this.Filter_FavoriteProducers);
+            this.quickFilter1.Click += new System.EventHandler(this.List_FavoriteProducers);
             // 
             // resultLabel
             // 
-            this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultLabel.BackColor = System.Drawing.Color.Transparent;
             this.resultLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.resultLabel.Location = new System.Drawing.Point(1250, 349);
+            this.resultLabel.Location = new System.Drawing.Point(1199, 349);
             this.resultLabel.Name = "resultLabel";
-            this.resultLabel.Size = new System.Drawing.Size(152, 13);
+            this.resultLabel.Size = new System.Drawing.Size(203, 13);
             this.resultLabel.TabIndex = 43;
             this.resultLabel.Text = "(resultLabel)";
             this.resultLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -1994,7 +2013,7 @@ namespace Happy_Search
             this.userlistToolStripMenuItem.Name = "userlistToolStripMenuItem";
             this.userlistToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.userlistToolStripMenuItem.Text = "Userlist";
-            this.userlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextMenuVNStatusChange);
+            this.userlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.RightClickChangeVNStatus);
             // 
             // noneToolStripMenuItem
             // 
@@ -2043,7 +2062,7 @@ namespace Happy_Search
             this.wishlistToolStripMenuItem.Name = "wishlistToolStripMenuItem";
             this.wishlistToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.wishlistToolStripMenuItem.Text = "Wishlist";
-            this.wishlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextMenuVNStatusChange);
+            this.wishlistToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.RightClickChangeVNStatus);
             // 
             // noneToolStripMenuItem1
             // 
@@ -2092,7 +2111,7 @@ namespace Happy_Search
             this.voteToolStripMenuItem.Name = "voteToolStripMenuItem";
             this.voteToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.voteToolStripMenuItem.Text = "Vote";
-            this.voteToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleContextMenuVNStatusChange);
+            this.voteToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.RightClickChangeVNStatus);
             // 
             // noneToolStripMenuItem2
             // 
@@ -2170,7 +2189,7 @@ namespace Happy_Search
             this.showProducerTitlesToolStripMenuItem.Name = "showProducerTitlesToolStripMenuItem";
             this.showProducerTitlesToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.showProducerTitlesToolStripMenuItem.Text = "Show Producer Titles";
-            this.showProducerTitlesToolStripMenuItem.Click += new System.EventHandler(this.ShowProducerTitles);
+            this.showProducerTitlesToolStripMenuItem.Click += new System.EventHandler(this.RightClickShowProducerTitles);
             // 
             // addProducerToFavoritesToolStripMenuItem
             // 
@@ -2178,37 +2197,6 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.addProducerToFavoritesToolStripMenuItem.Text = "Add Producer To Favorites";
             this.addProducerToFavoritesToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddProducer);
-            // 
-            // button1
-            // 
-            this.button1.BackColor = System.Drawing.Color.Khaki;
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button1.Location = new System.Drawing.Point(836, 338);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(102, 23);
-            this.button1.TabIndex = 95;
-            this.button1.Text = "List Results";
-            this.button1.UseVisualStyleBackColor = false;
-            // 
-            // panel2
-            // 
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.suggestProducersButton);
-            this.panel2.Controls.Add(this.olFavoriteProducers);
-            this.panel2.Controls.Add(this.favoriteProducersHelpButton);
-            this.panel2.Controls.Add(this.removeProducersButton);
-            this.panel2.Controls.Add(this.getNewProducersButton);
-            this.panel2.Controls.Add(this.selectedProducersVNButton);
-            this.panel2.Controls.Add(this.prodReply);
-            this.panel2.Controls.Add(this.refreshAllProducersButton);
-            this.panel2.Controls.Add(this.addProducersButton);
-            this.panel2.Controls.Add(this.loadUnloadedButton);
-            this.panel2.Location = new System.Drawing.Point(725, 6);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(677, 299);
-            this.panel2.TabIndex = 96;
             // 
             // FormMain
             // 
@@ -2232,14 +2220,14 @@ namespace Happy_Search
             this.groupBox9.ResumeLayout(false);
             this.vnTab.ResumeLayout(false);
             this.vnTab.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).EndInit();
             this.panel1.ResumeLayout(false);
             this.tagFilteringBox.ResumeLayout(false);
             this.tagFilteringBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tileOLV)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.ContextMenuVN.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -2387,7 +2375,6 @@ namespace Happy_Search
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem showProducerTitlesToolStripMenuItem;
         private Button favoriteProducersHelpButton;
-        private Label currentListLabel;
         private ToolStripMenuItem addProducerToFavoritesToolStripMenuItem;
         private Button GetStartedHelpButton;
         private Button suggestProducersButton;
@@ -2426,7 +2413,7 @@ namespace Happy_Search
         private Panel panel1;
         private Button updateTitleTagsButton;
         private Panel panel2;
-        private Button button1;
+        private Button listResultsButton;
     }
 }
 

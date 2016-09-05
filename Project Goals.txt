@@ -68,6 +68,9 @@ changed: 'list: wishlist titles' into dropdown list with each status = all/high/
 added: update titles to latest version of happy search
 added: update title tags (only ones that havent been updated in over 7 days);
 added: stats of vns in vn form and vn tiles
+fixed: resizing issues
+added: list results help file
+
 
 
 Currently Not Possible

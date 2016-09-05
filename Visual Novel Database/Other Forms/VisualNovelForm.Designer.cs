@@ -102,10 +102,10 @@
             this.vnDesc.BackColor = System.Drawing.Color.Black;
             this.vnDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.vnDesc.ForeColor = System.Drawing.SystemColors.Window;
-            this.vnDesc.Location = new System.Drawing.Point(75, 192);
+            this.vnDesc.Location = new System.Drawing.Point(75, 142);
             this.vnDesc.Name = "vnDesc";
             this.vnDesc.ReadOnly = true;
-            this.vnDesc.Size = new System.Drawing.Size(336, 238);
+            this.vnDesc.Size = new System.Drawing.Size(336, 288);
             this.vnDesc.TabIndex = 43;
             this.vnDesc.Text = "";
             this.vnDesc.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CloseByEscape);
@@ -222,7 +222,7 @@
             // vnUserStatus
             // 
             this.vnUserStatus.BackColor = System.Drawing.Color.Transparent;
-            this.vnUserStatus.Location = new System.Drawing.Point(75, 167);
+            this.vnUserStatus.Location = new System.Drawing.Point(72, 117);
             this.vnUserStatus.Name = "vnUserStatus";
             this.vnUserStatus.Size = new System.Drawing.Size(204, 22);
             this.vnUserStatus.TabIndex = 57;
@@ -232,7 +232,7 @@
             // vnLength
             // 
             this.vnLength.BackColor = System.Drawing.Color.Transparent;
-            this.vnLength.Location = new System.Drawing.Point(285, 167);
+            this.vnLength.Location = new System.Drawing.Point(282, 117);
             this.vnLength.Name = "vnLength";
             this.vnLength.Size = new System.Drawing.Size(126, 22);
             this.vnLength.TabIndex = 58;
