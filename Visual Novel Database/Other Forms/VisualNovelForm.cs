@@ -57,20 +57,6 @@ namespace Happy_Search
                 taglist.Sort();
                 vnTagCB.DataSource = taglist;
             }
-            string[] parts = { "", "", "" };
-            if (!vnItem.ULStatus.Equals(""))
-            {
-                parts[0] = "Userlist: ";
-                parts[1] = vnItem.ULStatus;
-            }
-            else if (!vnItem.WLStatus.Equals(""))
-            {
-                parts[0] = "Wishlist: ";
-                parts[1] = vnItem.WLStatus;
-            }
-            if (vnItem.Vote > 0) parts[2] = $" (Vote:{vnItem.Vote.ToString("#.##")})";
-            var complete = string.Join(" ", parts);
-
             //set data
             vnName.Text = vnItem.Title;
             vnID.Text = vnItem.VNID.ToString();
@@ -78,9 +64,11 @@ namespace Happy_Search
             vnProducer.Text = vnItem.Producer;
             vnDate.Text = vnItem.RelDate;
             vnDesc.Text = vnItem.Description;
-            vnUpdateLink.Text = $"Updated {vnItem.UpdatedDate} days ago. Click to update.";
+            vnRating.Text = vnItem.RatingAndVoteCount();
+            vnPopularity.Text = $"Popularity: {vnItem.Popularity.ToString("0.00")}";
             vnLength.Text = vnItem.Length;
-            vnUserStatus.Text = complete;
+            vnUserStatus.Text = vnItem.UserRelatedStatus();
+            vnUpdateLink.Text = $"Updated {vnItem.UpdatedDate} days ago. Click to update.";
             if (vnItem.ImageNSFW && !Settings.Default.ShowNSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
@@ -96,6 +84,8 @@ namespace Happy_Search
             vnLength.Text = "";
             vnID.Text = "";
             vnUpdateLink.Text = "";
+            vnRating.Text = "";
+            vnPopularity.Text = "";
             pcbImages.Image = Resources.no_image;
         }
 

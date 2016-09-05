@@ -54,6 +54,7 @@ namespace Happy_Search
         internal readonly DbHelper DBConn;
         private ushort _vnsAdded;
         private ushort _vnsSkipped;
+        //private string currentListLabelY;
         private Func<ListedVN, bool> _currentList = x => true;
         private bool _dontTriggerEvent; //used to skip indexchanged events
         internal List<WrittenTag> PlainTags; //Contains all tags as in tags.json
@@ -1686,9 +1687,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         public class VNTileRenderer : AbstractRenderer
         {
-            internal Pen BorderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
-            internal Brush HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
-            internal Brush HeaderTextBrush = Brushes.AliceBlue;
+            private Pen _borderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
+            private const int LinesOfTextAbovePicture = 1;
+            private const int LinesOfTextBelowPicture = 3;
 
             /// <summary>
             /// Render the whole item within an ObjectListView. This is only used in non-Details views.
@@ -1714,16 +1715,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 g.SmoothingMode = ObjectListView.SmoothingMode;
                 g.TextRenderingHint = ObjectListView.TextRenderingHint;
 
-                if (e.Item.Selected)
-                {
-                    BorderPen = Pens.Blue;
-                    HeaderBackBrush = new SolidBrush(olv.BackColor);
-                }
-                else
-                {
-                    BorderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
-                    HeaderBackBrush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
-                }
+                _borderPen = e.Item.Selected ? Pens.Blue : new Pen(Color.FromArgb(0x33, 0x33, 0x33));
                 DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem)e.Item);
 
                 // Finally render the buffered graphics
@@ -1752,7 +1744,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 const int spacing = 8;
                 var font = new Font("Microsoft Sans Serif", 8.25f);
                 var boldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
-                var fmt = new StringFormat(StringFormatFlags.NoWrap)
+                var fmtNear = new StringFormat(StringFormatFlags.NoWrap)
                 {
                     Trimming = StringTrimming.EllipsisCharacter,
                     Alignment = StringAlignment.Center,
@@ -1764,7 +1756,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     Alignment = StringAlignment.Far,
                     LineAlignment = StringAlignment.Far
                 };
-                var size = g.MeasureString("Wj", font, itemBounds.Width, fmt);
+                var textHeight = g.MeasureString("Wj", font).Height;
+                var dateWidth = g.MeasureString("9999-99-99", font).Width;
+                var popularityWidth = g.MeasureString("Popularity: 9.99", font).Width;
                 // Allow a border around the card
                 itemBounds.Inflate(-2, -2);
                 var vn = rowObject as ListedVN;
@@ -1799,81 +1793,48 @@ be displayed by clicking the User Related Titles (URT) filter.",
                         break;
                 }
                 g.FillPath(backBrush, path);
-                g.DrawPath(BorderPen, path);
+                g.DrawPath(_borderPen, path);
                 g.Clip = new Region(itemBounds);
+
                 // Draw the photo
-                var photoRect = itemBounds;
-                photoRect.Inflate(-spacing, -spacing);
+                var photoAreaY = itemBounds.Y + (int) textHeight*LinesOfTextAbovePicture;
+                var photoAreaHeight = itemBounds.Height - (int)textHeight*(LinesOfTextAbovePicture + LinesOfTextBelowPicture);
+                var photoArea = new Rectangle(itemBounds.X, photoAreaY, itemBounds.Width, photoAreaHeight);
+                photoArea.Inflate(-spacing, -spacing);
                 if (vn == null) return;
-                var id = vn.VNID.ToString();
                 var imageUrl = vn.ImageURL;
                 var ext = Path.GetExtension(imageUrl);
-                photoRect.Height = (int)(itemBounds.Height - 3 * size.Height - spacing * 2);
-                var rectratio = (double)photoRect.Width / photoRect.Height;
-                var photoFile = string.Format($"vnImages\\{id}{ext}");
-                if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoRect);
+                var photoFile = string.Format($"vnImages\\{vn.VNID}{ext}");
+                if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
                 else if (File.Exists(photoFile))
                 {
-                    var photo = Image.FromFile(photoFile);
-                    var photoratio = (double)photo.Width / photo.Height;
-                    //zoom in image to occupy whole area
-                    //Alternately show whole image but do not occupy whole area
-                    if (photoratio > rectratio) //if image is wider
-                    {
-                        var shrinkratio = (double)photo.Width / photoRect.Width;
-                        var newWidth = photoRect.Width;
-                        var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
-                        var newX = photoRect.X;
-                        var hny = (double)newHeight / 2;
-                        var hph = (double)photoRect.Height / 2;
-                        var newY = photoRect.Y + (int)Math.Floor(hph) - (int)Math.Floor(hny);
-                        var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
-                        g.DrawImage(photo, newPhotoRect);
-                    }
-                    else //if image is taller
-                    {
-                        var shrinkratio = (double)photo.Height / photoRect.Height;
-                        var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
-                        var newHeight = photoRect.Height;
-                        var hnx = (double)newWidth / 2;
-                        var hpw = (double)photoRect.Width / 2;
-                        var newX = photoRect.X + (int)Math.Floor(hpw) - (int)Math.Floor(hnx);
-                        var newY = photoRect.Y;
-                        var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
-                        g.DrawImage(photo, newPhotoRect);
-                    }
+                    DrawImageFitToSize(g, photoArea, photoFile);
                 }
-                else g.DrawImage(Resources.no_image, photoRect);
+                else g.DrawImage(Resources.no_image, photoArea);
+
                 // Now draw the text portion
-                RectangleF textBoxRect = photoRect;
-                textBoxRect.Y += photoRect.Height + spacing;
-                textBoxRect.Width = itemBounds.Right - textBoxRect.X - spacing;
-                // Draw the other bits of information
-                textBoxRect.Height = size.Height;
-                fmt.Alignment = StringAlignment.Near;
-                g.DrawString(vn.Title, boldFont, textBrush, textBoxRect, fmt);
-                textBoxRect.Y += size.Height;
-                g.DrawString(vn.RelDate, font, textBrush, textBoxRect, fmtFar);
+                //text above picture
+                RectangleF textBoxRect = photoArea;
+                textBoxRect.Y -= textHeight;
+                textBoxRect.Height = textHeight;
+                fmtNear.Alignment = StringAlignment.Near;
+                g.DrawString(vn.Title, boldFont, textBrush, textBoxRect, fmtNear); //line 1: vn title
+                //text below picture
+                textBoxRect.Y += textHeight + photoArea.Height;
+                textBoxRect.Width -= dateWidth;
                 var producerBrush = textBrush;
                 List<ListedProducer> producers = Application.OpenForms.OfType<FormMain>().Select(main => main.olFavoriteProducers.Objects as List<ListedProducer>).FirstOrDefault();
-                if (producers != null && producers.Exists(x => x.Name == vn.Producer)) producerBrush = Brushes.GreenYellow;
-                g.DrawString(vn.Producer, font, producerBrush, textBoxRect, fmt);
-                textBoxRect.Y += size.Height;
-                string[] parts = { "", "", "" };
-                if (!vn.ULStatus.Equals(""))
-                {
-                    parts[0] = "Userlist: ";
-                    parts[1] = vn.ULStatus;
-                }
-                else if (!vn.WLStatus.Equals(""))
-                {
-                    parts[0] = "Wishlist: ";
-                    parts[1] = vn.WLStatus;
-                }
-                if (Convert.ToInt32(vn.Vote) > 0)
-                    parts[2] = $" (Vote: {vn.Vote})";
-                var complete = string.Join(" ", parts);
-                g.DrawString(complete, font, textBrush, textBoxRect, fmt);
+                if (producers != null && producers.Exists(x => x.Name == vn.Producer)) producerBrush = Brushes.Yellow;
+                g.DrawString(vn.Producer, font, producerBrush, textBoxRect, fmtNear); //line 2 left: vn producer 
+                textBoxRect.Width = photoArea.Width;
+                g.DrawString(vn.RelDate, font, textBrush, textBoxRect, fmtFar); //line 2 right: vn release date
+                textBoxRect.Y += textHeight;
+                textBoxRect.Width -= popularityWidth;
+                g.DrawString($"Rating: {vn.RatingAndVoteCount()}", font, textBrush, textBoxRect, fmtNear); //line 3 left: rating/votecount
+                textBoxRect.Width = photoArea.Width;
+                g.DrawString($"Popularity: {vn.Popularity.ToString("0.00")}", font, textBrush, textBoxRect, fmtFar); //line 3 right: popularity
+                textBoxRect.Y += textHeight;
+                g.DrawString(vn.UserRelatedStatus(), font, textBrush, textBoxRect, fmtNear); //line 4: user-related status
             }
 
             private static GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
@@ -1891,6 +1852,38 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 path.CloseFigure();
 
                 return path;
+            }
+
+            private static void DrawImageFitToSize(Graphics g, Rectangle photoArea, string photoFile)
+            {
+                var photo = Image.FromFile(photoFile);
+                var photoAreaRatio = (double)photoArea.Width / photoArea.Height;
+                var photoRatio = (double)photo.Width / photo.Height;
+                //show whole image but do not occupy whole area
+                if (photoRatio > photoAreaRatio) //if image is wider
+                {
+                    var shrinkratio = (double)photo.Width / photoArea.Width;
+                    var newWidth = photoArea.Width;
+                    var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
+                    var newX = photoArea.X;
+                    var halfNewY = (double)newHeight / 2;
+                    var halfPhotoHeight = (double)photoArea.Height / 2;
+                    var newY = photoArea.Y + (int)Math.Floor(halfPhotoHeight) - (int)Math.Floor(halfNewY);
+                    var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
+                    g.DrawImage(photo, newPhotoRect);
+                }
+                else //if image is taller
+                {
+                    var shrinkratio = (double)photo.Height / photoArea.Height;
+                    var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
+                    var newHeight = photoArea.Height;
+                    var halfNewX = (double)newWidth / 2;
+                    var halfPhotoWidth = (double)photoArea.Width / 2;
+                    var newX = photoArea.X + (int)Math.Floor(halfPhotoWidth) - (int)Math.Floor(halfNewX);
+                    var newY = photoArea.Y;
+                    var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
+                    g.DrawImage(photo, newPhotoRect);
+                }
             }
 
             /// <summary>
@@ -2008,5 +2001,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             RefreshVNList();
             WriteText(userListReply, $"Updated tags of {_vnsAdded} titles.");
         }
+        
     }
 }

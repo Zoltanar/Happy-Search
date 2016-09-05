@@ -44,6 +44,9 @@
             this.button1 = new System.Windows.Forms.Button();
             this.vnUserStatus = new System.Windows.Forms.Label();
             this.vnLength = new System.Windows.Forms.Label();
+            this.vnPopularity = new System.Windows.Forms.Label();
+            this.vnRating = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.SuspendLayout();
             // 
@@ -99,10 +102,10 @@
             this.vnDesc.BackColor = System.Drawing.Color.Black;
             this.vnDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.vnDesc.ForeColor = System.Drawing.SystemColors.Window;
-            this.vnDesc.Location = new System.Drawing.Point(75, 120);
+            this.vnDesc.Location = new System.Drawing.Point(75, 192);
             this.vnDesc.Name = "vnDesc";
             this.vnDesc.ReadOnly = true;
-            this.vnDesc.Size = new System.Drawing.Size(336, 310);
+            this.vnDesc.Size = new System.Drawing.Size(336, 238);
             this.vnDesc.TabIndex = 43;
             this.vnDesc.Text = "";
             this.vnDesc.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CloseByEscape);
@@ -219,7 +222,7 @@
             // vnUserStatus
             // 
             this.vnUserStatus.BackColor = System.Drawing.Color.Transparent;
-            this.vnUserStatus.Location = new System.Drawing.Point(75, 95);
+            this.vnUserStatus.Location = new System.Drawing.Point(75, 167);
             this.vnUserStatus.Name = "vnUserStatus";
             this.vnUserStatus.Size = new System.Drawing.Size(204, 22);
             this.vnUserStatus.TabIndex = 57;
@@ -229,12 +232,43 @@
             // vnLength
             // 
             this.vnLength.BackColor = System.Drawing.Color.Transparent;
-            this.vnLength.Location = new System.Drawing.Point(285, 95);
+            this.vnLength.Location = new System.Drawing.Point(285, 167);
             this.vnLength.Name = "vnLength";
             this.vnLength.Size = new System.Drawing.Size(126, 22);
             this.vnLength.TabIndex = 58;
             this.vnLength.Text = "(vnLength)";
             this.vnLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // vnPopularity
+            // 
+            this.vnPopularity.BackColor = System.Drawing.Color.Transparent;
+            this.vnPopularity.Location = new System.Drawing.Point(279, 95);
+            this.vnPopularity.Name = "vnPopularity";
+            this.vnPopularity.Size = new System.Drawing.Size(132, 22);
+            this.vnPopularity.TabIndex = 59;
+            this.vnPopularity.Text = "(vnPopularity)";
+            this.vnPopularity.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // vnRating
+            // 
+            this.vnRating.BackColor = System.Drawing.Color.Transparent;
+            this.vnRating.Location = new System.Drawing.Point(75, 95);
+            this.vnRating.Name = "vnRating";
+            this.vnRating.Size = new System.Drawing.Size(198, 22);
+            this.vnRating.TabIndex = 60;
+            this.vnRating.Text = "(vnRating)";
+            this.vnRating.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label4
+            // 
+            this.label4.BackColor = System.Drawing.Color.Transparent;
+            this.label4.ForeColor = System.Drawing.Color.Lavender;
+            this.label4.Location = new System.Drawing.Point(9, 95);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(60, 22);
+            this.label4.TabIndex = 61;
+            this.label4.Text = "Rating";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // VisualNovelForm
             // 
@@ -243,6 +277,9 @@
             this.BackColor = System.Drawing.Color.Gray;
             this.BackgroundImage = global::Happy_Search.Properties.Resources.dark_striped;
             this.ClientSize = new System.Drawing.Size(685, 455);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.vnRating);
+            this.Controls.Add(this.vnPopularity);
             this.Controls.Add(this.vnLength);
             this.Controls.Add(this.vnUserStatus);
             this.Controls.Add(this.button1);
@@ -288,5 +325,8 @@
         private System.Windows.Forms.Button button1;
         internal System.Windows.Forms.Label vnUserStatus;
         internal System.Windows.Forms.Label vnLength;
+        internal System.Windows.Forms.Label vnPopularity;
+        internal System.Windows.Forms.Label vnRating;
+        internal System.Windows.Forms.Label label4;
     }
 }

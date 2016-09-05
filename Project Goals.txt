@@ -1,4 +1,4 @@
-Next Milestone (1.2) == more vn info like rating/popularity/relations/anime etc
+Next Milestone (1.2) == more vn info like rating/popularity/relations/anime etc, more information in vn tiles
 
 No Work
 ---------------
@@ -12,6 +12,9 @@ show vn relations and screenshots/anime etc
 add 'exclude tag' filters
 button to upgrade old vns to newest version eg before imagensfw was added
 refresh favorite producers list when throttling fav pro commands
+more information in vn tiles
+backup sqlite database!
+merge currentlistlabel and resultslabel
 
 
 Incomplete
@@ -59,11 +62,12 @@ display release date in vn tile, right of producer, tile color based on status
 give suggestions for favorite producers based on titles finished
 help buttons on each section with info
 -1.1 above-
-added:: stats of VNs (popularity, rating, votecount)
-added:: safeguarding against deleted VNs
-changed:: 'list: wishlist titles' into dropdown list with each status : all/high/medium/low/blacklist, also added all to Userlist dropdown
+added: stats of VNs (popularity, rating, votecount)
+added: safeguarding against deleted VNs
+changed: 'list: wishlist titles' into dropdown list with each status = all/high/medium/low/blacklist, also added all to Userlist dropdown
 added: update titles to latest version of happy search
 added: update title tags (only ones that havent been updated in over 7 days);
+added: stats of vns in vn form and vn tiles
 
 
 Currently Not Possible

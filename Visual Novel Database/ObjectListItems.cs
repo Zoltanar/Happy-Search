@@ -170,6 +170,37 @@ namespace Happy_Search
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
         public override string ToString() => $"ID={VNID} \t\tTitle={Title}";
+
+        /// <summary>
+        /// Get VN's User-related status as a string.
+        /// </summary>
+        /// <returns>User-related status</returns>
+        public string UserRelatedStatus()
+        {
+                string[] parts = {"", "", ""};
+            if (!ULStatus.Equals(""))
+            {
+                parts[0] = "Userlist: ";
+                parts[1] = ULStatus;
+            }
+            else if (!WLStatus.Equals(""))
+            {
+                parts[0] = "Wishlist: ";
+                parts[1] = WLStatus;
+            }
+            if (Vote > 0) parts[2] = $" (Vote:{Vote.ToString("0.00")})";
+            return string.Join(" ", parts);
+        }
+
+
+        /// <summary>
+        /// Get VN's rating, votecount and popularity as a string.
+        /// </summary>
+        /// <returns>Rating, votecount and popularity</returns>
+        public string RatingAndVoteCount()
+        {
+            return $"{Rating.ToString("0.00")} ({VoteCount} votes)";
+        }
     }
 
     /// <summary>
