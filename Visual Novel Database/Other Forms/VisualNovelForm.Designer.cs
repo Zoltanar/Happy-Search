@@ -47,6 +47,9 @@
             this.vnPopularity = new System.Windows.Forms.Label();
             this.vnRating = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.vnRelationsCB = new System.Windows.Forms.ComboBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.picturePanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.SuspendLayout();
             // 
@@ -102,10 +105,10 @@
             this.vnDesc.BackColor = System.Drawing.Color.Black;
             this.vnDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.vnDesc.ForeColor = System.Drawing.SystemColors.Window;
-            this.vnDesc.Location = new System.Drawing.Point(75, 142);
+            this.vnDesc.Location = new System.Drawing.Point(75, 169);
             this.vnDesc.Name = "vnDesc";
             this.vnDesc.ReadOnly = true;
-            this.vnDesc.Size = new System.Drawing.Size(336, 288);
+            this.vnDesc.Size = new System.Drawing.Size(336, 261);
             this.vnDesc.TabIndex = 43;
             this.vnDesc.Text = "";
             this.vnDesc.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CloseByEscape);
@@ -222,7 +225,7 @@
             // vnUserStatus
             // 
             this.vnUserStatus.BackColor = System.Drawing.Color.Transparent;
-            this.vnUserStatus.Location = new System.Drawing.Point(72, 117);
+            this.vnUserStatus.Location = new System.Drawing.Point(75, 144);
             this.vnUserStatus.Name = "vnUserStatus";
             this.vnUserStatus.Size = new System.Drawing.Size(204, 22);
             this.vnUserStatus.TabIndex = 57;
@@ -232,7 +235,7 @@
             // vnLength
             // 
             this.vnLength.BackColor = System.Drawing.Color.Transparent;
-            this.vnLength.Location = new System.Drawing.Point(282, 117);
+            this.vnLength.Location = new System.Drawing.Point(285, 144);
             this.vnLength.Name = "vnLength";
             this.vnLength.Size = new System.Drawing.Size(126, 22);
             this.vnLength.TabIndex = 58;
@@ -270,13 +273,46 @@
             this.label4.Text = "Rating";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // vnRelationsCB
+            // 
+            this.vnRelationsCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.vnRelationsCB.FormattingEnabled = true;
+            this.vnRelationsCB.Location = new System.Drawing.Point(75, 120);
+            this.vnRelationsCB.Name = "vnRelationsCB";
+            this.vnRelationsCB.Size = new System.Drawing.Size(336, 21);
+            this.vnRelationsCB.TabIndex = 62;
+            this.vnRelationsCB.SelectedIndexChanged += new System.EventHandler(this.RelationSelected);
+            // 
+            // label6
+            // 
+            this.label6.BackColor = System.Drawing.Color.Transparent;
+            this.label6.ForeColor = System.Drawing.Color.Lavender;
+            this.label6.Location = new System.Drawing.Point(9, 118);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(60, 22);
+            this.label6.TabIndex = 63;
+            this.label6.Text = "Relations";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // picturePanel
+            // 
+            this.picturePanel.AutoScroll = true;
+            this.picturePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.picturePanel.Location = new System.Drawing.Point(679, 7);
+            this.picturePanel.Name = "picturePanel";
+            this.picturePanel.Size = new System.Drawing.Size(773, 439);
+            this.picturePanel.TabIndex = 64;
+            // 
             // VisualNovelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Gray;
             this.BackgroundImage = global::Happy_Search.Properties.Resources.dark_striped;
-            this.ClientSize = new System.Drawing.Size(685, 455);
+            this.ClientSize = new System.Drawing.Size(1464, 455);
+            this.Controls.Add(this.picturePanel);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.vnRelationsCB);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.vnRating);
             this.Controls.Add(this.vnPopularity);
@@ -328,5 +364,8 @@
         internal System.Windows.Forms.Label vnPopularity;
         internal System.Windows.Forms.Label vnRating;
         internal System.Windows.Forms.Label label4;
+        internal System.Windows.Forms.ComboBox vnRelationsCB;
+        internal System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Panel picturePanel;
     }
 }

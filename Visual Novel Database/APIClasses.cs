@@ -35,13 +35,13 @@ namespace Happy_Search
         public string Image { get; set; }
         public bool Image_Nsfw { get; set; }
         public List<object> Anime { get; set; } //flag: anime
-        public List<object> Relations { get; set; } //flag: relations
+        public List<RelationsItem> Relations { get; set; } //flag: relations
         public List<TagItem> Tags { get; set; } //flag: tags
         //flag: stats
         public double Popularity { get; set; }
         public double Rating { get; set; }
         public int VoteCount { get; set; }
-        public List<object> Screens { get; set; } //flag: screens
+        public List<ScreenItem> Screens { get; set; } //flag: screens
 
         public bool Equals(VNItem other)
         {
@@ -49,7 +49,7 @@ namespace Happy_Search
         }
 
 
-        public override string ToString() => $"ID={ID}\t\tTitle={Title}";
+        public override string ToString() => $"ID={ID} Title={Title}";
 
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
@@ -57,6 +57,47 @@ namespace Happy_Search
             var hashID = ID == -1 ? 0 : ID.GetHashCode();
             return hashID;
         }
+    }
+
+    public class ScreenItem
+    {
+        /// <summary>
+        /// URL of screenshot 
+        /// </summary>
+        public string Image { get; set; }
+        public int RID { get; set; }
+        public bool Nsfw { get; set; }
+        public int Height { get; set; }
+        public int Width { get; set; }
+    }
+
+    //object contained in VNItem.Relations
+    public class RelationsItem
+    {
+        public int ID { get; set; }
+        public string Relation { get; set; }
+        public string Title { get; set; }
+        public string Original { get; set; }
+
+        private readonly Dictionary<string,string> relationDict = new Dictionary<string, string>
+        {
+            { "seq", "Sequel"},
+            { "preq", "Prequel"},
+            { "set", "Same Setting"},
+            { "alt", "Alternative Version"},
+            { "char", "Shares Characters"},
+            { "side", "Side Story"},
+            { "par", "Parent Story"},
+            { "ser", "Same Series"},
+            { "fan", "Fandisc"},
+            { "orig", "Original Game"}
+        };
+
+        public string Print() => $"{relationDict[Relation]} - {Title} - {ID}";
+
+        public override string ToString() => $"ID={ID} Title={Title}";
+        
+
     }
 
     //object contained in VNItem
@@ -139,7 +180,7 @@ namespace Happy_Search
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={ID} \t\tName={Name}";
+        public override string ToString() => $"ID={ID} Name={Name}";
     }
 
     //object received by 'get release' command
@@ -292,10 +333,10 @@ namespace Happy_Search
         public bool Meta { get; set; }
 
 
-        public override string ToString()
-        {
-            return $"{ID} - {Name}";
-        }
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString() => $"ID={ID} Name={Name}";
     }
 
 }

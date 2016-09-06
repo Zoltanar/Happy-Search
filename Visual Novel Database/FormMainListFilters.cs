@@ -72,6 +72,7 @@ namespace Happy_Search
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
             _currentListLabel = $"{searchBox.Text} (Search)";
+            ReloadLists();
             RefreshVNList();
         }
 

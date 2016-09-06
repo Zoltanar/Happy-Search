@@ -28,6 +28,7 @@ namespace Happy_Search
     {
         //constants / definables
         private const string VNImagesFolder = "vnImages\\";
+        internal const string VNScreensFolder = "vnScreens\\";
         private const string DBStatsXml = "dbs.xml";
         private const string TagsJsonGz = "tags.json.gz";
         private const string TagsJson = "tags.json";
@@ -605,14 +606,37 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.Image == null || vn.Image.Equals("")) return;
             var ext = Path.GetExtension(vn.Image);
-            string imageLoc = $"vnImages\\{vn.ID}{ext}";
+            string imageLoc = $"{VNImagesFolder}{vn.ID}{ext}";
             if (File.Exists(imageLoc)) return;
             var requestPic = WebRequest.Create(vn.Image);
-            var responsePic = requestPic.GetResponse();
-            var stream = responsePic.GetResponseStream();
-            if (stream == null) return;
-            var webImage = Image.FromStream(stream);
-            webImage.Save(imageLoc);
+            using (var responsePic = requestPic.GetResponse())
+            {
+                using (var stream = responsePic.GetResponseStream())
+                {
+                    if (stream == null) return;
+                    Image webImage = Image.FromStream(stream);
+                    webImage.Save(imageLoc);
+                }
+            }
+        }
+
+        internal static void SaveScreenshot(string imageUrl, string savedLocation)
+        {
+            if (!Directory.Exists(VNScreensFolder)) Directory.CreateDirectory(VNScreensFolder);
+            string[] urlSplit = imageUrl.Split('/');
+            if (!Directory.Exists($"{VNScreensFolder}\\{urlSplit[urlSplit.Length-2]}")) Directory.CreateDirectory($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}");
+            if (imageUrl.Equals("")) return;
+            if (File.Exists(savedLocation)) return;
+            var requestPic = WebRequest.Create(imageUrl);
+            using (var responsePic = requestPic.GetResponse())
+            {
+                using (var stream = responsePic.GetResponseStream())
+                {
+                    if (stream == null) return;
+                    var webImage = Image.FromStream(stream);
+                    webImage.Save(savedLocation);
+                }
+            }
         }
 
         /// <summary>
