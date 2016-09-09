@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Xml.Serialization;
 #pragma warning disable 1591
 
@@ -34,7 +35,7 @@ namespace Happy_Search
         public Links Links { get; set; }
         public string Image { get; set; }
         public bool Image_Nsfw { get; set; }
-        public List<object> Anime { get; set; } //flag: anime
+        public List<AnimeItem> Anime { get; set; } //flag: anime
         public List<RelationsItem> Relations { get; set; } //flag: relations
         public List<TagItem> Tags { get; set; } //flag: tags
         //flag: stats
@@ -56,6 +57,28 @@ namespace Happy_Search
         {
             var hashID = ID == -1 ? 0 : ID.GetHashCode();
             return hashID;
+        }
+    }
+
+    public class AnimeItem
+    {
+        public int ID { get; set; }
+        public int Ann_ID { get; set; }
+        public string Nfo_ID { get; set; }
+        public string Title_Romaji { get; set; }
+        public string Title_Kanji { get; set; }
+        public int Year { get; set; }
+        public string Type { get; set; }
+
+        public string Print()
+        {
+            var sb = new StringBuilder();
+            if (Title_Romaji != null) sb.Append(Title_Romaji);
+            else if (Title_Kanji != null) sb.Append(Title_Kanji);
+            else sb.Append(ID);
+            if (Year > 0) sb.Append($" ({Year})");
+            if (Type!= null) sb.Append($" ({Type})");
+            return sb.ToString();
         }
     }
 

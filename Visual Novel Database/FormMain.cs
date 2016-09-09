@@ -926,16 +926,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             return DateTime.MaxValue;
         }
 
-        /// <summary>
-        /// Convert list of tags to JSON-formatted string.
-        /// </summary>
-        /// <param name="tags">List of tags</param>
-        /// <returns>JSON-formatted string</returns>
-        internal static string TagsToString(List<TagItem> tags)
-        {
-            //var tagstring = string.Join(",", tags.Select(v => string.Join(",", v.ToArray())).Select(vstring => '[' + vstring + ']').ToArray());
-            return '[' + string.Join(",", tags.Select(v => v.ToString())) + ']';
-        }
 
         /// <summary>
         /// Convert JSON-formatted string to list of tags.

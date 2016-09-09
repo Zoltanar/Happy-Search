@@ -41,9 +41,13 @@ namespace Happy_Search
         /// <param name="popularity">Popularity of VN, percentage of most popular VN</param>
         /// <param name="rating">Bayesian rating of VN, 1-10</param>
         /// <param name="voteCount">Number of votes cast on VN</param>
+        /// <param name="relations">JSON Array string containing List of Relation Items</param>
+        /// <param name="screens">JSON Array string containing List of Screenshot Items</param>
+        /// <param name="anime">JSON Array string containing List of Anime Items</param>
         public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus,
             int uladded, string ulnote,int wlstatus, int wladded, int vote, int voteadded, 
-            string tags, int vnid, DateTime updatedDate,string imageURL, bool imageNSFW, string description, double popularity, double rating, int voteCount)
+            string tags, int vnid, DateTime updatedDate,string imageURL, bool imageNSFW, string description,
+            double popularity, double rating, int voteCount, string relations, string screens, string anime)
         {
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
@@ -67,6 +71,9 @@ namespace Happy_Search
             Popularity = popularity;
             Rating = rating;
             VoteCount = voteCount;
+            Relations = relations;
+            Screens = screens;
+            Anime = anime;
         }
 
         /// <summary>
@@ -165,11 +172,26 @@ namespace Happy_Search
         /// </summary>
         [OLVIgnore]
         public string Description { get; set; }
+        /// <summary>
+        /// JSON Array string containing List of Relation Items
+        /// </summary>
+        [OLVIgnore]
+        public string Relations { get; set; }
+        /// <summary>
+        /// JSON Array string containing List of Screenshot Items
+        /// </summary>
+        [OLVIgnore]
+        public string Screens { get; set; }
+        /// <summary>
+        /// JSON Array string containing List of Anime Items
+        /// </summary>
+        [OLVIgnore]
+        public string Anime { get; set; }
 
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={VNID} \t\tTitle={Title}";
+        public override string ToString() => $"ID={VNID} Title={Title}";
 
         /// <summary>
         /// Get VN's User-related status as a string.

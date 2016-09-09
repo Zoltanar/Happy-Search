@@ -11,10 +11,9 @@ handle abrupt exit, terminate api connection
 allow user to set notes
 show vn relations and screenshots/anime etc
 add 'exclude tag' filters
-button to upgrade old vns to newest version eg before imagensfw was added
 refresh favorite producers list when throttling fav pro commands
-more information in vn tiles
 backup sqlite database!
+save relations to database as json array
 
 
 

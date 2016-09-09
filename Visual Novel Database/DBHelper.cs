@@ -5,7 +5,9 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using static Happy_Search.FormMain;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -31,6 +33,35 @@ namespace Happy_Search
         }
 
         #region Set Methods
+
+        public void AddRelationsToVN(int vnid, List<RelationsItem> relations)
+        {
+            var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";
+            relationsString = Regex.Replace(relationsString, "'", "''");
+            var insertString =
+                $"UPDATE vnlist SET Relations = '{relationsString}' WHERE VNID = {vnid};";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
+        public void AddScreensToVN(int vnid, List<ScreenItem> screens)
+        {
+            var screensString = screens.Any() ? ListToJsonArray(new List<object>(screens)) : "Empty";
+            var insertString =
+                $"UPDATE vnlist SET Screens = '{screensString}' WHERE VNID = {vnid};";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
+        public void AddAnimeToVN(int vnid, List<AnimeItem> anime)
+        {
+            var animeString = anime.Any() ? ListToJsonArray(new List<object>(anime)) : "Empty";
+            animeString = Regex.Replace(animeString, "'", "''");
+            var insertString =
+                $"UPDATE vnlist SET Anime = '{animeString}' WHERE VNID = {vnid};";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
 
         public void UpdateVNToLatestVersion(VNItem vnItem)
         {
@@ -369,7 +400,10 @@ namespace Happy_Search
                 reader["Description"].ToString(),
                 DbDouble(reader["Popularity"]),
                 DbDouble(reader["Rating"]),
-                DbInt(reader["VoteCount"]));
+                DbInt(reader["VoteCount"]),
+                reader["Relations"].ToString(),
+                reader["Screens"].ToString(),
+                reader["Anime"].ToString());
         }
 
         private ListedProducer GetListedProducer(SQLiteDataReader reader)
@@ -447,21 +481,25 @@ namespace Happy_Search
         private static void CreateVNListTable()
         {
             var createCommand =
-                @"CREATE TABLE `vnlist` (
-	`VNID`	INTEGER NOT NULL UNIQUE,
-	`Title`	TEXT,
-	`KanjiTitle`	TEXT,
-	`RelDate`	TEXT,
-	`ProducerID`	INTEGER,
-	`Tags`	TEXT,
-	`DateUpdated`	DATE DEFAULT CURRENT_TIMESTAMP,
-	`ImageURL`	TEXT,
-	`ImageNSFW`	INTEGER,
-	`Description`	TEXT,
-	`LengthTime`	INTEGER,
-	PRIMARY KEY(VNID),
-	FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID`
-)";
+                @"CREATE TABLE ""vnlist"" ( `VNID` INTEGER NOT NULL UNIQUE,
+`Title` TEXT,
+`KanjiTitle` TEXT,
+`RelDate` TEXT,
+`ProducerID` INTEGER,
+`Tags` TEXT,
+`DateUpdated` DATE DEFAULT CURRENT_TIMESTAMP,
+`ImageURL` TEXT,
+`ImageNSFW` INTEGER,
+`Description` TEXT,
+`LengthTime` INTEGER,
+`Popularity` NUMERIC,
+`Rating` NUMERIC,
+`VoteCount` INTEGER,
+`Relations` TEXT,
+`Screens` TEXT,
+`Anime` TEXT,
+PRIMARY KEY(`VNID`),
+FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
             var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
         }
@@ -537,8 +575,7 @@ END";
             var command2 = new SQLiteCommand(createCommand2, DbConn);
             command2.ExecuteNonQuery();
         }
-
-
+        
         private static int SetImageStatus(bool imageNSFW)
         {
             var i = imageNSFW ? 1 : 0;
@@ -550,6 +587,22 @@ END";
             int i;
             if (!int.TryParse(imageNSFW.ToString(), out i)) return false;
             return i == 1;
+        }
+
+
+        /// <summary>
+        /// Convert list of tags to JSON-formatted string.
+        /// </summary>
+        /// <param name="tags">List of tags</param>
+        /// <returns>JSON-formatted string</returns>
+        private static string TagsToString(List<TagItem> tags)
+        {
+            return '[' + string.Join(",", tags.Select(v => v.ToString())) + ']';
+        }
+
+        private string ListToJsonArray(List<object> objects)
+        {
+            return JsonConvert.SerializeObject(objects);
         }
 
         #endregion
