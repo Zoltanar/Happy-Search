@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
+
 #pragma warning disable 1591
 
 // ReSharper disable InconsistentNaming
@@ -318,10 +322,25 @@ namespace Happy_Search
 
     public class CharacterItem
     {
-        public int Id { get; set; }
+        public int ID { get; set; }
         public string Description { get; set; }
         public string Aliases { get; set; }
+        public List<TraitItem> Traits { get; set; }
         public string Image { get; set; }
+        public List<CharacterVNItem> VNs { get; set; }
+
+        public bool CharacterIsInVN(int vnid)
+        {
+            IEnumerable<int> listOfVNIDs = VNs.Select(x => x.ID);
+            return listOfVNIDs.Contains(vnid);
+        }
+
+        public bool ContainsTraits(IEnumerable<int> traitIDs)
+        {
+            //remove all numbers in traits from traitIDs, if nothing is left then it matched all
+            IEnumerable<int> traits = Traits.Select(x => x.ID);
+            return !traitIDs.Except(traits).Any();
+        }
     }
 
     public class CharacterRoot
@@ -329,6 +348,44 @@ namespace Happy_Search
         public List<CharacterItem> Items { get; set; }
         public bool More { get; set; }
         public int Num { get; set; }
+    }
+
+    public class TraitItem : List<int>
+    {
+        public int ID
+        {
+            get { return this[0]; }
+            set { this[0] = value; }
+        }
+        public int Spoiler
+        {
+            get { return this[1]; }
+            set { this[1] = value; }
+        }
+    }
+
+    public class CharacterVNItem : List<object>
+    {
+        public int ID
+        {
+            get { return Convert.ToInt32(this[0]); }
+            set { this[0] = value; }
+        }
+        public int RID
+        {
+            get { return Convert.ToInt32(this[1]); }
+            set { this[1] = value; }
+        }
+        public int Spoiler
+        {
+            get { return Convert.ToInt32(this[2]); }
+            set { this[2] = value; }
+        }
+        public string Role
+        {
+            get { return Convert.ToString(this[3]); }
+            set { this[3] = value; }
+        }
     }
 
     //object for error response possibly received from any command
@@ -362,4 +419,44 @@ namespace Happy_Search
         public override string ToString() => $"ID={ID} Name={Name}";
     }
 
+
+    //These class is used to read the 'trait-dump'
+    //object contained in trait dump
+    public class WrittenTrait
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public bool Meta { get; set; }
+        public int Chars { get; set; }
+        public List<object> Aliases { get; set; }
+        public List<int> Parents { get; set; }
+
+        public int TopmostParent { get; set; }
+        public string TopmostParentName { get; set; }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString() => $"ID={ID} Name={Name}";
+
+        public string Print() => $"{TopmostParentName} > {Name}";
+
+        public void SetTopmostParent(List<WrittenTrait> plainTraits )
+        {
+            if (Parents.Count == 0)
+            {
+                TopmostParent = ID;
+                return;
+            }
+            var idOfParent = Parents.First();
+            while (plainTraits.Find(x => x.ID == idOfParent).Parents.Count > 0)
+            {
+                List<int> parents = plainTraits.Find(x => x.ID == idOfParent).Parents;
+                idOfParent = parents.First();
+            }
+            TopmostParent = idOfParent;
+            TopmostParentName = plainTraits.Find(x => x.ID == TopmostParent).Name;
+        }
+    }
 }

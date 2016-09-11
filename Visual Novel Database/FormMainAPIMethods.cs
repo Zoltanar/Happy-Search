@@ -14,7 +14,7 @@ namespace Happy_Search
     partial class FormMain
     {
         /// <summary>
-        /// Sending query through API Connection.
+        /// Send query through API Connection.
         /// </summary>
         /// <param name="query">Command to be sent</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
@@ -79,6 +79,80 @@ namespace Happy_Search
             }
             ChangeAPIStatus(VndbConnection.APIStatus.Ready);
             return true;
+        }
+
+        /// <summary>
+        /// Get character data about multiple visual novels.
+        /// </summary>
+        /// <param name="vnIDs">List of VNs</param>
+        /// <param name="replyLabel">Where reply will be shown</param>
+        internal async Task GetCharactersForMultipleVN(List<int> vnIDs, Label replyLabel)
+        {
+            ReloadLists();
+            if (!vnIDs.Any()) return;
+            int[] current25 = vnIDs.Take(25).ToArray();
+            string first25 = '[' + string.Join(",", current25) + ']';
+            string charsForVNQuery = $"get character traits,vns (vn = {first25}) {{{APIMaxResults}}}";
+            var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+            if (!queryResult) return;
+            var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
+            foreach (var character in charRoot.Items)
+            {
+                DBConn.Open();
+                DBConn.UpsertSingleCharacter(character);
+                DBConn.Close();
+            }
+            bool moreResults = charRoot.More;
+            int pageNo = 1;
+            while (moreResults)
+            {
+                pageNo++;
+                charsForVNQuery = $"get character traits,vns (vn = {first25}) {{{APIMaxResults}, \"page\":{pageNo}}}";
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+                if (!queryResult) return;
+                charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
+                foreach (var character in charRoot.Items)
+                {
+                    DBConn.Open();
+                    DBConn.UpsertSingleCharacter(character);
+                    DBConn.Close();
+                }
+                moreResults = charRoot.More;
+            }
+            int done = 25;
+            while (done < vnIDs.Count)
+            {
+                current25 = vnIDs.Skip(done).Take(25).ToArray();
+                string next25 = '[' + string.Join(",", current25) + ']';
+                charsForVNQuery = $"get character traits,vns (vn = {next25}) {{{APIMaxResults}}}";
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+                if (!queryResult) return;
+                charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
+                foreach (var character in charRoot.Items)
+                {
+                    DBConn.Open();
+                    DBConn.UpsertSingleCharacter(character);
+                    DBConn.Close();
+                }
+                moreResults = charRoot.More;
+                pageNo = 1;
+                while (moreResults)
+                {
+                    pageNo++;
+                    charsForVNQuery = $"get character traits,vns (vn = {next25}) {{{APIMaxResults}, \"page\":{pageNo}}}";
+                    queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+                    if (!queryResult) return;
+                    charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
+                    foreach (var character in charRoot.Items)
+                    {
+                        DBConn.Open();
+                        DBConn.UpsertSingleCharacter(character);
+                        DBConn.Close();
+                    }
+                    moreResults = charRoot.More;
+                }
+                done += 25;
+            }
         }
 
         /// <summary>
@@ -147,6 +221,7 @@ namespace Happy_Search
             SaveImage(vnItem);
             var relProducer = await GetDeveloper(vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             await GetProducer(relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
+            await GetCharactersForMultipleVN(new List<int>(vnid), replyLabel);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer, false);
             DBConn.Close();
@@ -201,6 +276,7 @@ namespace Happy_Search
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();
             }
+            await GetCharactersForMultipleVN(current25.ToList(), replyLabel);
             int done = 25;
             while (done < vnsToGet.Count)
             {
@@ -229,6 +305,7 @@ namespace Happy_Search
                     DBConn.UpsertSingleVN(vnItem, relProducer, false);
                     DBConn.Close();
                 }
+                await GetCharactersForMultipleVN(current25.ToList(), replyLabel);
                 done += 25;
             }
         }

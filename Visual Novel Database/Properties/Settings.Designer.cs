@@ -122,12 +122,12 @@ namespace Happy_Search.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1970-01-01")]
-        public global::System.DateTime TagdumpUpdate {
+        public global::System.DateTime DumpfilesUpdate {
             get {
-                return ((global::System.DateTime)(this["TagdumpUpdate"]));
+                return ((global::System.DateTime)(this["DumpfilesUpdate"]));
             }
             set {
-                this["TagdumpUpdate"] = value;
+                this["DumpfilesUpdate"] = value;
             }
         }
         

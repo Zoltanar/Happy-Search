@@ -12,7 +12,8 @@ show vn relations and screenshots/anime etc
 add 'exclude tag' filters
 refresh favorite producers list when throttling fav pro commands
 backup sqlite database!
-save relations to database as json array
+--
+control types of tags displayed in vn form
 
 
 
@@ -49,7 +50,7 @@ VN Context Menu (right click)
 	Add producer to favorite producers
 	Show titles by producer
 Update Button on Single VN and display date of last update
-download/decompress tags.json.gz if it doesnt exist or is corrupt
+download/decompress dump files if they dont exist or are corrupt
 button to close all open visual novel forms
 automatic = keep up to date tagdump (2 days)
 save user credentials (login/pass)
@@ -71,6 +72,11 @@ fixed: resizing issues
 added: list results help file
 added: vn relations on vn form load (uses api)
 added: vn screenshots on vn form load (uses api, saves to disk)
+added: vn anime on vn form load (uses api)
+-1.2 above-
+added: get characters vns/traits upon first vn fetch
+added: trait filtering system, filter by direct trait (no subtraits yet)
+added: download/decompress and keep updated trait dump file
 
 
 

@@ -30,17 +30,19 @@ namespace Happy_Search
         private const string VNImagesFolder = "vnImages\\";
         internal const string VNScreensFolder = "vnScreens\\";
         private const string DBStatsXml = "dbs.xml";
+        private const string TagsURL = "http://vndb.org/api/tags.json.gz";
         private const string TagsJsonGz = "tags.json.gz";
         private const string TagsJson = "tags.json";
+        private const string TraitsURL = "http://vndb.org/api/traits.json.gz";
+        private const string TraitsJsonGz = "traits.json.gz";
+        private const string TraitsJson = "traits.json";
         private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
-        private const string FilterLabel = "filterLabel";
         internal const string ClientName = "Happy Search By Zolty";
         internal const string ClientVersion = "1.2";
         internal const string APIVersion = "2.25";
         private const string APIMaxResults = "\"results\":25";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
-        private const string TagsURL = "http://vndb.org/api/tags.json.gz";
         private const string MainXmlFile = "saved_objects.xml";
         private static readonly Color ErrorColor = Color.Red;
         internal static readonly Color NormalColor = SystemColors.ControlLightLight;
@@ -50,15 +52,18 @@ namespace Happy_Search
         private readonly List<ComplexFilter> _customFilters;
         internal readonly VndbConnection Conn = new VndbConnection();
         internal readonly DbHelper DBConn;
-        private List<TagFilter> _activeFilter = new List<TagFilter>();
+        private List<TagFilter> _activeTagFilter = new List<TagFilter>();
+        private List<WrittenTrait> _activeTraitFilter = new List<WrittenTrait>();
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
         private bool _dontTriggerEvent; //used to skip indexchanged events
         private List<ListedProducer> _producerList; //contains all producers in local database
+        private List<CharacterItem> _characterList; //contains all producers in local database
         private List<ListedVN> _vnList; //contains all vns in local database
         private ushort _vnsAdded;
         private ushort _vnsSkipped;
         internal List<WrittenTag> PlainTags; //Contains all tags as in tags.json
+        internal List<WrittenTrait> PlainTraits; //Contains all tags as in tags.json
         internal List<ListedVN> URTList; //contains all user-related vns
         internal int UserID; //id of current user
 
@@ -92,7 +97,7 @@ namespace Happy_Search
                 resultLabel.Text = "";
                 loginReply.Text = "";
                 prodReply.Text = "";
-                filterReply.Text = "";
+                tagReply.Text = "";
                 mctLoadingLabel.Text = "";
                 checkBox1.Visible = false;
                 checkBox2.Visible = false;
@@ -130,16 +135,29 @@ https://github.com/FredTheBarber/VndbClient";
                 autoUpdateURTBox.Checked = Settings.Default.AutoUpdateURT;
                 yearLimitBox.Checked = Settings.Default.Limit10Years;
             }
-            SplashScreen.SplashScreen.SetStatus("Loading Tagdump...");
+            SplashScreen.SplashScreen.SetStatus("Loading Tag and Trait files...");
             {
                 Debug.Print(
-                    $"Tagdump Update = {Settings.Default.TagdumpUpdate}, days since = {DaysSince(Settings.Default.TagdumpUpdate)}");
-                if (DaysSince(Settings.Default.TagdumpUpdate) > 2 || DaysSince(Settings.Default.TagdumpUpdate) == -1)
+                    $"Tagdump Update = {Settings.Default.DumpfilesUpdate}, days since = {DaysSince(Settings.Default.DumpfilesUpdate)}");
+                if (DaysSince(Settings.Default.DumpfilesUpdate) > 2 || DaysSince(Settings.Default.DumpfilesUpdate) == -1)
+                {
                     GetNewTagdump();
-                else LoadTagdump();
-                var acSource = new AutoCompleteStringCollection();
-                acSource.AddRange(PlainTags.Select(v => v.Name).ToArray());
-                tagSearchBox.AutoCompleteCustomSource = acSource;
+                    GetNewTraitdump();
+                }
+                else
+                {
+                    LoadTagdump();
+                    LoadTraitdump();
+                }
+                var tagSource = new AutoCompleteStringCollection();
+                tagSource.AddRange(PlainTags.Select(v => v.Name).ToArray());
+                tagSearchBox.AutoCompleteCustomSource = tagSource;
+                var traitRootIDs = PlainTraits.Select(x => x.TopmostParent).Distinct();
+                var traitRoots = PlainTraits.Where(x => traitRootIDs.Contains(x.ID));
+                foreach (var writtenTrait in traitRoots)
+                {
+                    traitRootsDropdown.Items.Add(writtenTrait.Name);
+                }
             }
             SplashScreen.SplashScreen.SetStatus("Connecting to SQLite Database...");
             {
@@ -151,10 +169,12 @@ https://github.com/FredTheBarber/VndbClient";
                 DBConn.Open();
                 _vnList = DBConn.GetAllTitles(UserID);
                 _producerList = DBConn.GetAllProducers();
+                _characterList = DBConn.GetAllCharacters();
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
                 Debug.Print("VN Items= " + _vnList.Count);
                 Debug.Print("Producers= " + _producerList.Count);
+                Debug.Print("Characters= " + _characterList.Count);
                 Debug.Print("UserRelated Items= " + URTList.Count);
                 var producerFilterSource = new AutoCompleteStringCollection();
                 producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
@@ -176,14 +196,14 @@ https://github.com/FredTheBarber/VndbClient";
                 _customFilters = xml.ComplexFilters;
                 foreach (var filter in _customFilters) customFilters.Items.Add(filter.Name);
                 _dontTriggerEvent = true;
-                URTToggleBox.SelectedIndex = (int) xml.XmlToggles.URTToggleSetting;
-                Toggles.URTToggleSetting = (ToggleSetting) URTToggleBox.SelectedIndex;
-                UnreleasedToggleBox.SelectedIndex = (int) xml.XmlToggles.UnreleasedToggleSetting;
-                Toggles.UnreleasedToggleSetting = (ToggleSetting) UnreleasedToggleBox.SelectedIndex;
-                BlacklistToggleBox.SelectedIndex = (int) xml.XmlToggles.BlacklistToggleSetting;
-                Toggles.BlacklistToggleSetting = (ToggleSetting) BlacklistToggleBox.SelectedIndex;
+                URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleSetting;
+                Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
+                UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleSetting;
+                Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
+                BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleSetting;
+                Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
                 _dontTriggerEvent = false;
-                ApplyToggleFilters();
+                ApplyListFilters();
             }
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
             InitAPIConnection();
@@ -276,6 +296,16 @@ https://github.com/FredTheBarber/VndbClient";
             await UpdateTitlesToLatestVersion(listOfTitlesFromOldVersions);
             ReloadLists();
             RefreshVNList();
+            var messageBox2 =
+                MessageBox.Show(
+                    @"Do you wish to get character data about all VNs?
+You only need to this once and only if you used Happy Search prior to version 1.3
+This will take a long time if you have a lot of titles in your local database.",
+                    Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox2 == DialogResult.Yes)
+            {
+                await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToList(), userListReply);
+            }
             WriteText(userListReply, $"Updated {_vnsAdded} to latest version.");
         }
 
@@ -344,7 +374,7 @@ https://github.com/FredTheBarber/VndbClient";
         }
 
         #endregion
-        
+
         #region Get User-Related Titles
 
         //Get user's user/wish/votelists from VNDB
@@ -399,12 +429,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userDropRate = finishedCount + droppedCount != 0
-                        ? (double) droppedCount/(droppedCount + finishedCount)
+                        ? (double)droppedCount / (droppedCount + finishedCount)
                         : -1;
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 }
                 favprolist.Add(new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded,
-                    DateTime.UtcNow, producer.ID, userAverageVote, (int) Math.Round(userDropRate*100)));
+                    DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             DBConn.Open();
             DBConn.InsertFavoriteProducers(favprolist, UserID);
@@ -556,7 +586,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             ulstatsul.Text = ulCount.ToString();
             ulstatswl.Text = wlCount.ToString();
             ulstatsvl.Text = vlCount.ToString();
-            ulstatsavs.Text = (cumulativeScore/vlCount).ToString("#.##");
+            ulstatsavs.Text = (cumulativeScore / vlCount).ToString("#.##");
             DisplayCommonTagsULStats(null, null);
         }
 
@@ -572,6 +602,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
             _producerList = DBConn.GetAllProducers();
+            _characterList = DBConn.GetAllCharacters();
             URTList = DBConn.GetUserRelatedTitles(UserID);
             DBConn.Close();
         }
@@ -681,7 +712,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <param name="tLabel">Label to delete text in</param>
         internal static void FadeLabel(Label tLabel)
         {
-            var fadeTimer = new Timer {Interval = LabelFadeTime};
+            var fadeTimer = new Timer { Interval = LabelFadeTime };
             fadeTimer.Tick += (sender, e) =>
             {
                 tLabel.Text = "";
@@ -698,7 +729,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             //TODO use one predefined thread, so that this only occurs once at a time instead of overlapping eachother
             if (sender != null)
             {
-                var checkBox = (CheckBox) sender;
+                var checkBox = (CheckBox)sender;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
@@ -721,7 +752,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 return;
             }
             List<KeyValuePair<int, int>> toptentags = null;
-            var bw = new BackgroundWorker {WorkerReportsProgress = true, WorkerSupportsCancellation = true};
+            var bw = new BackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
             bw.DoWork += delegate
             {
                 //vn list - most common tags
@@ -729,11 +760,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 var vnNo = 1;
                 foreach (var vn in vnlist)
                 {
-                    var progressPercent = (double) vnNo/vnCount*100;
+                    var progressPercent = (double)vnNo / vnCount * 100;
                     vnNo++;
                     try
                     {
-                        bw.ReportProgress((int) Math.Floor(progressPercent));
+                        bw.ReportProgress((int)Math.Floor(progressPercent));
                     }
                     catch
                     {
@@ -749,7 +780,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                         if (tagtag.Cat.Equals("cont") && Settings.Default.TagTypeC == false) continue;
                         if (tagtag.Cat.Equals("ero") && Settings.Default.TagTypeS == false) continue;
                         if (tagtag.Cat.Equals("tech") && Settings.Default.TagTypeT == false) continue;
-                        if (_activeFilter.Find(x => x.ID == tagtag.ID) != null) continue;
+                        if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
                         if (taglist.ContainsKey(tag.ID))
                         {
                             taglist[tag.ID] = taglist[tag.ID] + 1;
@@ -765,7 +796,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 toptentags = prodlistlist.Take(10).ToList();
             };
             bw.ProgressChanged +=
-                delegate(object o, ProgressChangedEventArgs args)
+                delegate (object o, ProgressChangedEventArgs args)
                 {
                     mctLoadingLabel.Text = $"{args.ProgressPercentage}% Completed";
                 };
@@ -777,7 +808,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 {
                     var mctIndex = mctNo - 1;
                     var name = TagTypeAll + mctNo;
-                    var cb = (CheckBox) Controls.Find(name, true).First();
+                    var cb = (CheckBox)Controls.Find(name, true).First();
                     var tagName = PlainTags.Find(item => item.ID == toptentags[mctIndex].Key).Name;
                     cb.Text = $"{tagName} ({toptentags[mctIndex].Value})";
                     cb.Checked = false;
@@ -801,7 +832,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 while (labelCount <= 10)
                 {
                     var name = TagTypeUrt + labelCount;
-                    var mctULLabel = (Label) Controls.Find(name, true).First();
+                    var mctULLabel = (Label)Controls.Find(name, true).First();
                     mctULLabel.Visible = false;
                     labelCount++;
                 }
@@ -810,7 +841,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             //userlist stats - most common tags
             if (sender != null)
             {
-                var checkBox = (CheckBox) sender;
+                var checkBox = (CheckBox)sender;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC2":
@@ -832,7 +863,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 while (labelCount <= 10)
                 {
                     var name = TagTypeUrt + labelCount;
-                    var mctULLabel = (Label) Controls.Find(name, true).First();
+                    var mctULLabel = (Label)Controls.Find(name, true).First();
                     mctULLabel.Visible = false;
                     labelCount++;
                 }
@@ -869,7 +900,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             while (p < max)
             {
                 var name = TagTypeUrt + p;
-                var mctULLabel = (Label) Controls.Find(name, true).First();
+                var mctULLabel = (Label)Controls.Find(name, true).First();
                 var tagName = PlainTags.Find(item => item.ID == ulProdlistlist[p - 1].Key).Name;
                 mctULLabel.Text = $"{tagName} ({ulProdlistlist[p - 1].Value})";
                 mctULLabel.Visible = true;
@@ -878,7 +909,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             while (max <= 10)
             {
                 var name = TagTypeUrt + max;
-                var mctULLabel = (Label) Controls.Find(name, true).First();
+                var mctULLabel = (Label)Controls.Find(name, true).First();
                 mctULLabel.Visible = false;
                 max++;
             }
@@ -1062,7 +1093,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             GZipDecompress(TagsJsonGz, TagsJson);
             File.Delete(TagsJsonGz);
-            Settings.Default.TagdumpUpdate = DateTime.UtcNow;
+            Settings.Default.DumpfilesUpdate = DateTime.UtcNow;
             Settings.Default.Save();
             LoadTagdump();
         }
@@ -1085,6 +1116,53 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     Debug.Print($"{TagsJson} could not be read, deleting it and getting new one.");
                     File.Delete(TagsJson);
                     GetNewTagdump();
+                }
+        }
+
+        /// <summary>
+        ///     Get new Trait dump file from VNDB.org
+        /// </summary>
+        private void GetNewTraitdump()
+        {
+            //TODO
+            if (!File.Exists(TraitsJsonGz))
+            {
+                SplashScreen.SplashScreen.SetStatus("Downloading new Traitdump file...");
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(TraitsURL, TraitsJsonGz);
+                }
+            }
+            GZipDecompress(TraitsJsonGz, TraitsJson);
+            File.Delete(TraitsJsonGz);
+            Settings.Default.DumpfilesUpdate = DateTime.UtcNow;
+            Settings.Default.Save();
+            LoadTraitdump();
+        }
+
+        /// <summary>
+        ///     Load Traits from Trait dump file.
+        /// </summary>
+        private void LoadTraitdump()
+        {
+            if (!File.Exists(TraitsJson))
+                GetNewTraitdump();
+            else
+                try
+                {
+                    PlainTraits = JsonConvert.DeserializeObject<List<WrittenTrait>>(File.ReadAllText(TraitsJson));
+                    foreach (var writtenTrait in PlainTraits)
+                    {
+                        writtenTrait.SetTopmostParent(PlainTraits);
+                    }
+
+                }
+                catch (JsonReaderException e)
+                {
+                    Debug.Print(e.Message);
+                    Debug.Print($"{TraitsJson} could not be read, deleting it and getting new one.");
+                    File.Delete(TraitsJson);
+                    GetNewTraitdump();
                 }
         }
 
@@ -1154,7 +1232,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private async void LogQuestion(object sender, KeyPressEventArgs e) //send a command direct to server
         {
-            if (e.KeyChar != (char) Keys.Enter) return;
+            if (e.KeyChar != (char)Keys.Enter) return;
             await Conn.QueryAsync(questionBox.Text);
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
@@ -1174,13 +1252,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (e.KeyCode != Keys.Enter) return;
             if (tagSearchBox.Text == "") //check if box is empty
             {
-                replyText.ForeColor = Color.Red;
-                replyText.Text = Resources.enter_user_id;
+                WriteError(tagReply,"Enter tag name.", true);
                 return;
             }
             var tagName = tagSearchBox.Text;
             AddFilterTag(tagName);
-            var s = (Control) sender;
+            var s = (Control)sender;
             s.Text = "";
         }
 
@@ -1191,11 +1268,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
         {
-            if (e.KeyChar == (char) Keys.Enter)
-            {
-                e.Handled = true;
-                VNSearch(sender, e);
-            }
+            if (e.KeyChar != (char) Keys.Enter) return;
+            e.Handled = true;
+            VNSearch(sender, e);
         }
 
         private void yearBox_KeyDown(object sender, KeyEventArgs e) //press enter on get year titles box
@@ -1265,7 +1340,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 Name = name;
                 Titles = titles;
                 Children = children;
-                AllIDs = children.Union(new[] {id}).ToArray();
+                AllIDs = children.Union(new[] { id }).ToArray();
             }
 
             /// <summary>
@@ -1355,7 +1430,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 g.TextRenderingHint = ObjectListView.TextRenderingHint;
 
                 _borderPen = e.Item.Selected ? Pens.Blue : new Pen(Color.FromArgb(0x33, 0x33, 0x33));
-                DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem) e.Item);
+                DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem)e.Item);
 
                 // Finally render the buffered graphics
                 buffered.Render();
@@ -1436,9 +1511,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 g.Clip = new Region(itemBounds);
 
                 // Draw the photo
-                var photoAreaY = itemBounds.Y + (int) textHeight*LinesOfTextAbovePicture;
+                var photoAreaY = itemBounds.Y + (int)textHeight * LinesOfTextAbovePicture;
                 var photoAreaHeight = itemBounds.Height -
-                                      (int) textHeight*(LinesOfTextAbovePicture + LinesOfTextBelowPicture);
+                                      (int)textHeight * (LinesOfTextAbovePicture + LinesOfTextBelowPicture);
                 var photoArea = new Rectangle(itemBounds.X, photoAreaY, itemBounds.Width, photoAreaHeight);
                 photoArea.Inflate(-spacing, -spacing);
                 if (vn == null) return;
@@ -1474,13 +1549,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 textBoxRect.Y += textHeight;
                 textBoxRect.Width -= popularityWidth;
                 g.DrawString($"Rating: {vn.RatingAndVoteCount()}", font, textBrush, textBoxRect, fmtNear);
-                    //line 3 left: rating/votecount
+                //line 3 left: rating/votecount
                 textBoxRect.Width = photoArea.Width;
                 g.DrawString($"Popular: {vn.Popularity.ToString("0.00")}", font, textBrush, textBoxRect, fmtFar);
-                    //line 3 right: popularity
+                //line 3 right: popularity
                 textBoxRect.Y += textHeight;
                 g.DrawString(vn.UserRelatedStatus(), font, textBrush, textBoxRect, fmtNear);
-                    //line 4: user-related status
+                //line 4: user-related status
             }
 
             private static GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
@@ -1503,29 +1578,29 @@ be displayed by clicking the User Related Titles (URT) filter.",
             private static void DrawImageFitToSize(Graphics g, Rectangle photoArea, string photoFile)
             {
                 var photo = Image.FromFile(photoFile);
-                var photoAreaRatio = (double) photoArea.Width/photoArea.Height;
-                var photoRatio = (double) photo.Width/photo.Height;
+                var photoAreaRatio = (double)photoArea.Width / photoArea.Height;
+                var photoRatio = (double)photo.Width / photo.Height;
                 //show whole image but do not occupy whole area
                 if (photoRatio > photoAreaRatio) //if image is wider
                 {
-                    var shrinkratio = (double) photo.Width/photoArea.Width;
+                    var shrinkratio = (double)photo.Width / photoArea.Width;
                     var newWidth = photoArea.Width;
-                    var newHeight = (int) Math.Floor(photo.Height/shrinkratio);
+                    var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
                     var newX = photoArea.X;
-                    var halfNewY = (double) newHeight/2;
-                    var halfPhotoHeight = (double) photoArea.Height/2;
-                    var newY = photoArea.Y + (int) Math.Floor(halfPhotoHeight) - (int) Math.Floor(halfNewY);
+                    var halfNewY = (double)newHeight / 2;
+                    var halfPhotoHeight = (double)photoArea.Height / 2;
+                    var newY = photoArea.Y + (int)Math.Floor(halfPhotoHeight) - (int)Math.Floor(halfNewY);
                     var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
                     g.DrawImage(photo, newPhotoRect);
                 }
                 else //if image is taller
                 {
-                    var shrinkratio = (double) photo.Height/photoArea.Height;
-                    var newWidth = (int) Math.Floor(photo.Width/shrinkratio);
+                    var shrinkratio = (double)photo.Height / photoArea.Height;
+                    var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
                     var newHeight = photoArea.Height;
-                    var halfNewX = (double) newWidth/2;
-                    var halfPhotoWidth = (double) photoArea.Width/2;
-                    var newX = photoArea.X + (int) Math.Floor(halfPhotoWidth) - (int) Math.Floor(halfNewX);
+                    var halfNewX = (double)newWidth / 2;
+                    var halfPhotoWidth = (double)photoArea.Width / 2;
+                    var newX = photoArea.X + (int)Math.Floor(halfPhotoWidth) - (int)Math.Floor(halfNewX);
                     var newY = photoArea.Y;
                     var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
                     g.DrawImage(photo, newPhotoRect);
@@ -1541,12 +1616,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
             /// <returns>Scaled image</returns>
             public static Image ScaleImage(Image image, int maxWidth, int maxHeight)
             {
-                var ratioX = (double) maxWidth/image.Width;
-                var ratioY = (double) maxHeight/image.Height;
+                var ratioX = (double)maxWidth / image.Width;
+                var ratioY = (double)maxHeight / image.Height;
                 var ratio = Math.Min(ratioX, ratioY);
 
-                var newWidth = (int) (image.Width*ratio);
-                var newHeight = (int) (image.Height*ratio);
+                var newWidth = (int)(image.Width * ratio);
+                var newHeight = (int)(image.Height * ratio);
 
                 var newImage = new Bitmap(newWidth, newHeight);
 
@@ -1615,5 +1690,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
+        
     }
 }

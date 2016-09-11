@@ -201,6 +201,15 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
+
+        public void UpsertSingleCharacter(CharacterItem character)
+        {
+            var insertString =
+                $"INSERT OR REPLACE INTO charlist (CharacterID, Traits, VNs) VALUES ('{character.ID}', '{ListToJsonArray(new List<object>(character.Traits))}','{ListToJsonArray(new List<object>(character.VNs))}');";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
         public void UpsertSingleVN(VNItem item, int producerid, bool print = true)
         {
             var tags = TagsToString(item.Tags);
@@ -345,6 +354,19 @@ namespace Happy_Search
             return readerList;
         }
 
+
+        public List<CharacterItem> GetAllCharacters()
+        {
+            var readerList = new List<CharacterItem>();
+            var selectString =
+                $"SELECT * FROM charlist;";
+            if (PrintGetMethods) Debug.Print(selectString);
+            var command = new SQLiteCommand(selectString, DbConn);
+            var reader = command.ExecuteReader();
+            while (reader.Read()) readerList.Add(GetCharacterItem(reader));
+            return readerList;
+        }
+
         /// <summary>
         /// Get titles developed by Producer given.
         /// </summary>
@@ -376,6 +398,16 @@ namespace Happy_Search
         #endregion
 
         #region Other
+
+        private CharacterItem GetCharacterItem(SQLiteDataReader reader)
+        {
+            return new CharacterItem
+            {
+                ID = DbInt(reader["CharacterID"]),
+                Traits = JsonConvert.DeserializeObject<List<TraitItem>>(reader["Traits"].ToString()),
+                VNs = JsonConvert.DeserializeObject<List<CharacterVNItem>>(reader["VNs"].ToString())
+            };
+        }
 
         private ListedVN GetListedVN(SQLiteDataReader reader)
         {
@@ -432,7 +464,6 @@ namespace Happy_Search
         {
             if (DbConn.State == ConnectionState.Closed)
             {
-                //Debug.Print("Opening Database");
                 DbConn.Open();
             }
             else Debug.Print("Tried to open database, it was already opened.");
@@ -440,7 +471,6 @@ namespace Happy_Search
 
         public void Close()
         {
-            //Debug.Print("Closing Database");
             DbConn.Close();
         }
 

@@ -320,7 +320,7 @@ namespace Happy_Search
         {
             if (_dontTriggerEvent) return;
             Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
-            ApplyToggleFilters();
+            ApplyListFilters();
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace Happy_Search
         {
             if (_dontTriggerEvent) return;
             Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
-            ApplyToggleFilters();
+            ApplyListFilters();
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace Happy_Search
         {
             if (_dontTriggerEvent) return;
             Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
-            ApplyToggleFilters();
+            ApplyListFilters();
         }
 
         /// <summary>
@@ -400,9 +400,9 @@ namespace Happy_Search
         /// <summary>
         /// Apply toggle filters to list.
         /// </summary>
-        private void ApplyToggleFilters()
+        private void ApplyListFilters()
         {
-            Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesFilter };
+            Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesTagFilter, _traitFunction };
             tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
             objectList_ItemsChanged(null, null);
             SaveMainXML();
