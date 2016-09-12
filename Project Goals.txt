@@ -78,6 +78,8 @@ added: vn anime on vn form load (uses api)
 added: get characters vns/traits upon first vn fetch
 added: trait filtering system, filter by trait (not yet completed)
 added: download/decompress and keep updated trait dump file
+added: character info in vn form
+added: relation field 'official' in vn form
 
 
 

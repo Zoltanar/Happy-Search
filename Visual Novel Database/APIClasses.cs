@@ -104,8 +104,9 @@ namespace Happy_Search
         public string Relation { get; set; }
         public string Title { get; set; }
         public string Original { get; set; }
+        public bool Official { get; set; }
 
-        private readonly Dictionary<string, string> relationDict = new Dictionary<string, string>
+        public static readonly Dictionary<string, string> relationDict = new Dictionary<string, string>
         {
             { "seq", "Sequel"},
             { "preq", "Prequel"},
@@ -119,7 +120,12 @@ namespace Happy_Search
             { "orig", "Original Game"}
         };
 
-        public string Print() => $"{relationDict[Relation]} - {Title} - {ID}";
+        public string Print() => $"{OfficialStatus()}{relationDict[Relation]} - {Title} - {ID}";
+
+        public string OfficialStatus()
+        {
+            return Official ? "" : "[Unofficial] ";
+        }
 
         public override string ToString() => $"ID={ID} Title={Title}";
 
@@ -478,7 +484,7 @@ namespace Happy_Search
         {
 
             int[] children = Enumerable.Empty<int>().ToArray();
-            Debug.Print($"Getting children for {this}");
+            //Debug.Print($"Getting children for {this}");
             //new
             int[] childrenForThisRound = list.Where(x => x.Parents.Contains(ID)).Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
             var difference = childrenForThisRound.Length;

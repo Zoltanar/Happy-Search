@@ -119,13 +119,13 @@ namespace Happy_Search
         private void DisplayVNCharacterTraits(ListedVN vnItem)
         {
             var vnCharacters = _parentForm.CharacterList.Where(x => x.CharacterIsInVN(vnItem.VNID)).ToArray();
-            var stringList = new List<string> {$"{vnCharacters.Length} Characters"};
+            var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
             foreach (var characterItem in vnCharacters)
             {
                 stringList.Add($"Character {characterItem.ID}");
                 foreach (var trait in characterItem.Traits)
                 {
-                    stringList.Add(_parentForm.PlainTraits.Find(x=>x.ID == trait.ID).Print());
+                    stringList.Add(_parentForm.PlainTraits.Find(x => x.ID == trait.ID).Print());
                 }
                 stringList.Add("---------------");
             }
@@ -245,10 +245,7 @@ namespace Happy_Search
             if (!vnItem.Relations.Equals(""))
             {
                 var loadedRelations = JsonConvert.DeserializeObject<List<RelationsItem>>(vnItem.Relations);
-                var titleString = loadedRelations.Count == 1 ? "1 Relation" : $"{loadedRelations.Count} Relations";
-                var relationsList = new List<string> { titleString, "--------------" };
-                relationsList.AddRange(loadedRelations.Select(relation => relation.Print()));
-                vnRelationsCB.DataSource =  relationsList;
+                DisplayRelations(loadedRelations);
                 return true;
             }
             //relations haven't been fetched before
@@ -266,18 +263,30 @@ namespace Happy_Search
             _parentForm.DBConn.Open();
             _parentForm.DBConn.AddRelationsToVN(vnItem.VNID, relations);
             _parentForm.DBConn.Close();
-            int relationsCount = relations.Count;
-            if (relationsCount > 0)
-            {
-                var relationsList = new List<string> { $"{relationsCount} Relations", "--------------" };
-                relationsList.AddRange(relations.Select(relation => relation.Print()));
-                vnRelationsCB.DataSource = relationsList;
-                return true;
-            }
-            vnRelationsCB.DataSource = new List<string> { "No relations found." };
+            DisplayRelations(relations);
             return true;
         }
 
+        private void DisplayRelations(List<RelationsItem> relationList)
+        {
+            var relationCount = relationList.Count;
+            if (relationCount == 0)
+            {
+
+                vnRelationsCB.DataSource = new List<string> { "No relations found." };
+                return;
+            }
+            var titleString = relationList.Count == 1 ? "1 Relation" : $"{relationList.Count} Relations";
+            var stringList = new List<string> { titleString, "--------------" };
+            IEnumerable<IGrouping<string, RelationsItem>> groups = relationList.GroupBy(x => x.Relation);
+            foreach (IGrouping<string, RelationsItem> group in groups)
+            {
+                //stringList.Add(RelationsItem.relationDict[group.Key]);
+                stringList.AddRange(group.Select(relation => relation.Print()));
+                stringList.Add("--------------");
+            }
+            vnRelationsCB.DataSource = stringList;
+        }
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;

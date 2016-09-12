@@ -306,6 +306,8 @@ This will take a long time if you have a lot of titles in your local database.",
             {
                 await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToList(), userListReply);
             }
+            ReloadLists();
+            RefreshVNList();
             WriteText(userListReply, $"Updated {_vnsAdded} to latest version.");
         }
 
