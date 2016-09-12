@@ -63,7 +63,7 @@ namespace Happy_Search
                 traitFilteringBox.Controls.Add(traitLabel);
             }
             
-            IEnumerable<CharacterItem> traitCharacters = _characterList.Where(x => x.ContainsTraits(_activeTraitFilter));
+            IEnumerable<CharacterItem> traitCharacters = CharacterList.Where(x => x.ContainsTraits(_activeTraitFilter));
             var characterVNs = new List<int>();
             foreach (var characterItem in traitCharacters)
             {

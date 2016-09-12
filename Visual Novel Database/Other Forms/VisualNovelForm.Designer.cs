@@ -52,6 +52,8 @@
             this.picturePanel = new System.Windows.Forms.Panel();
             this.vnAnimeCB = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.vnTraitsCB = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.SuspendLayout();
             // 
@@ -107,10 +109,10 @@
             this.vnDesc.BackColor = System.Drawing.Color.Black;
             this.vnDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.vnDesc.ForeColor = System.Drawing.SystemColors.Window;
-            this.vnDesc.Location = new System.Drawing.Point(75, 203);
+            this.vnDesc.Location = new System.Drawing.Point(75, 227);
             this.vnDesc.Name = "vnDesc";
             this.vnDesc.ReadOnly = true;
-            this.vnDesc.Size = new System.Drawing.Size(336, 227);
+            this.vnDesc.Size = new System.Drawing.Size(336, 203);
             this.vnDesc.TabIndex = 43;
             this.vnDesc.Text = "";
             this.vnDesc.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CloseByEscape);
@@ -227,7 +229,7 @@
             // vnUserStatus
             // 
             this.vnUserStatus.BackColor = System.Drawing.Color.Transparent;
-            this.vnUserStatus.Location = new System.Drawing.Point(75, 178);
+            this.vnUserStatus.Location = new System.Drawing.Point(75, 202);
             this.vnUserStatus.Name = "vnUserStatus";
             this.vnUserStatus.Size = new System.Drawing.Size(204, 22);
             this.vnUserStatus.TabIndex = 57;
@@ -237,7 +239,7 @@
             // vnLength
             // 
             this.vnLength.BackColor = System.Drawing.Color.Transparent;
-            this.vnLength.Location = new System.Drawing.Point(285, 178);
+            this.vnLength.Location = new System.Drawing.Point(285, 202);
             this.vnLength.Name = "vnLength";
             this.vnLength.Size = new System.Drawing.Size(126, 22);
             this.vnLength.TabIndex = 58;
@@ -325,6 +327,26 @@
             this.label7.Text = "Anime";
             this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // label8
+            // 
+            this.label8.BackColor = System.Drawing.Color.Transparent;
+            this.label8.ForeColor = System.Drawing.Color.Lavender;
+            this.label8.Location = new System.Drawing.Point(9, 172);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(60, 33);
+            this.label8.TabIndex = 67;
+            this.label8.Text = "Character Traits";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // vnTraitsCB
+            // 
+            this.vnTraitsCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.vnTraitsCB.FormattingEnabled = true;
+            this.vnTraitsCB.Location = new System.Drawing.Point(75, 178);
+            this.vnTraitsCB.Name = "vnTraitsCB";
+            this.vnTraitsCB.Size = new System.Drawing.Size(336, 21);
+            this.vnTraitsCB.TabIndex = 68;
+            // 
             // VisualNovelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -332,6 +354,8 @@
             this.BackColor = System.Drawing.Color.Gray;
             this.BackgroundImage = global::Happy_Search.Properties.Resources.dark_striped;
             this.ClientSize = new System.Drawing.Size(1386, 455);
+            this.Controls.Add(this.vnTraitsCB);
+            this.Controls.Add(this.label8);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.vnAnimeCB);
             this.Controls.Add(this.picturePanel);
@@ -393,5 +417,7 @@
         private System.Windows.Forms.Panel picturePanel;
         internal System.Windows.Forms.ComboBox vnAnimeCB;
         internal System.Windows.Forms.Label label7;
+        internal System.Windows.Forms.Label label8;
+        internal System.Windows.Forms.ComboBox vnTraitsCB;
     }
 }

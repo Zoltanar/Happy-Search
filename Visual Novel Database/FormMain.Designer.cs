@@ -117,7 +117,6 @@ namespace Happy_Search
             this.vnTab = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tagFilteringBox = new System.Windows.Forms.TabPage();
-            this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.TagFilteringHelpButton = new System.Windows.Forms.Button();
@@ -1130,7 +1129,6 @@ namespace Happy_Search
             // 
             this.tagFilteringBox.AutoScroll = true;
             this.tagFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            this.tagFilteringBox.Controls.Add(this.button1);
             this.tagFilteringBox.Controls.Add(this.label2);
             this.tagFilteringBox.Controls.Add(this.label6);
             this.tagFilteringBox.Controls.Add(this.TagFilteringHelpButton);
@@ -1163,20 +1161,6 @@ namespace Happy_Search
             this.tagFilteringBox.Size = new System.Drawing.Size(564, 273);
             this.tagFilteringBox.TabIndex = 0;
             this.tagFilteringBox.Text = "Tag Filtering";
-            // 
-            // button1
-            // 
-            this.button1.BackColor = System.Drawing.Color.Khaki;
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button1.Location = new System.Drawing.Point(430, 209);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(116, 23);
-            this.button1.TabIndex = 90;
-            this.button1.Text = "Test";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.Test);
             // 
             // label2
             // 
@@ -2621,7 +2605,6 @@ namespace Happy_Search
         private Label traitReply;
         private TextBox traitSearchBox;
         private Label label3;
-        private Button button1;
         private Label label5;
         private Button traitFilteringHelpButton;
         private TextBox textBox1;

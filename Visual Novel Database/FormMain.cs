@@ -58,7 +58,7 @@ namespace Happy_Search
         private string _currentListLabel;
         private bool _dontTriggerEvent; //used to skip indexchanged events
         private List<ListedProducer> _producerList; //contains all producers in local database
-        private List<CharacterItem> _characterList; //contains all producers in local database
+        internal List<CharacterItem> CharacterList; //contains all producers in local database
         private List<ListedVN> _vnList; //contains all vns in local database
         private ushort _vnsAdded;
         private ushort _vnsSkipped;
@@ -169,12 +169,12 @@ https://github.com/FredTheBarber/VndbClient";
                 DBConn.Open();
                 _vnList = DBConn.GetAllTitles(UserID);
                 _producerList = DBConn.GetAllProducers();
-                _characterList = DBConn.GetAllCharacters();
+                CharacterList = DBConn.GetAllCharacters();
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
                 Debug.Print("VN Items= " + _vnList.Count);
                 Debug.Print("Producers= " + _producerList.Count);
-                Debug.Print("Characters= " + _characterList.Count);
+                Debug.Print("Characters= " + CharacterList.Count);
                 Debug.Print("UserRelated Items= " + URTList.Count);
                 var producerFilterSource = new AutoCompleteStringCollection();
                 producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
@@ -602,7 +602,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
             _producerList = DBConn.GetAllProducers();
-            _characterList = DBConn.GetAllCharacters();
+            CharacterList = DBConn.GetAllCharacters();
             URTList = DBConn.GetUserRelatedTitles(UserID);
             DBConn.Close();
         }

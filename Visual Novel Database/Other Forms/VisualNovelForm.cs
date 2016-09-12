@@ -72,6 +72,7 @@ namespace Happy_Search
                 taglist.Sort();
                 vnTagCB.DataSource = taglist;
             }
+            DisplayVNCharacterTraits(vnItem);
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             var taskResult = await GetVNRelations(vnItem);
             if (!taskResult) return;
@@ -113,6 +114,22 @@ namespace Happy_Search
             vnAnimeCB.DataSource = null;
             picturePanel.Controls.Clear();
             pcbImages.Image = Resources.no_image;
+        }
+
+        private void DisplayVNCharacterTraits(ListedVN vnItem)
+        {
+            var vnCharacters = _parentForm.CharacterList.Where(x => x.CharacterIsInVN(vnItem.VNID)).ToArray();
+            var stringList = new List<string> {$"{vnCharacters.Length} Characters"};
+            foreach (var characterItem in vnCharacters)
+            {
+                stringList.Add($"Character {characterItem.ID}");
+                foreach (var trait in characterItem.Traits)
+                {
+                    stringList.Add(_parentForm.PlainTraits.Find(x=>x.ID == trait.ID).Print());
+                }
+                stringList.Add("---------------");
+            }
+            vnTraitsCB.DataSource = stringList;
         }
 
         private async Task<bool> GetVNAnime(ListedVN vnItem)

@@ -440,6 +440,10 @@ namespace Happy_Search
         /// <filterpriority>2</filterpriority>
         public override string ToString() => $"ID={ID} Name={Name}";
 
+        /// <summary>
+        /// Returns name of tag in the form of Root > Trait (e.g. Hair > Green)
+        /// </summary>
+        /// <returns>Name of tag in the form of Root > Trait</returns>
         public string Print() => $"{TopmostParentName} > {Name}";
 
         public void SetTopmostParent(List<WrittenTrait> plainTraits)
