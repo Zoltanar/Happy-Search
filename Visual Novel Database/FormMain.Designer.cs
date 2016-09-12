@@ -61,6 +61,7 @@ namespace Happy_Search
             this.updateToLatestVersionButton = new System.Windows.Forms.Button();
             this.updateTitleTagsButton = new System.Windows.Forms.Button();
             this.traitSearchBox = new System.Windows.Forms.TextBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.serverR = new System.Windows.Forms.RichTextBox();
@@ -116,6 +117,7 @@ namespace Happy_Search
             this.vnTab = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tagFilteringBox = new System.Windows.Forms.TabPage();
+            this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.TagFilteringHelpButton = new System.Windows.Forms.Button();
@@ -138,6 +140,12 @@ namespace Happy_Search
             this.deleteCustomFilterButton = new System.Windows.Forms.Button();
             this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.traitFilteringBox = new System.Windows.Forms.TabPage();
+            this.label5 = new System.Windows.Forms.Label();
+            this.traitFilteringHelpButton = new System.Windows.Forms.Button();
+            this.button4 = new System.Windows.Forms.Button();
+            this.customTraitFilters = new System.Windows.Forms.ComboBox();
+            this.button5 = new System.Windows.Forms.Button();
+            this.button6 = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.traitReply = new System.Windows.Forms.Label();
             this.traitRootsDropdown = new System.Windows.Forms.ComboBox();
@@ -529,6 +537,16 @@ namespace Happy_Search
             this.traitSearchBox.TabIndex = 99;
             this.toolTip.SetToolTip(this.traitSearchBox, "Enter trait name here");
             this.traitSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.traitSearchBox_KeyDown);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Enabled = false;
+            this.textBox1.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBox1.Location = new System.Drawing.Point(442, 19);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(100, 22);
+            this.textBox1.TabIndex = 103;
+            this.toolTip.SetToolTip(this.textBox1, "Enter Custom Filter name here");
             // 
             // infoTab
             // 
@@ -1112,6 +1130,7 @@ namespace Happy_Search
             // 
             this.tagFilteringBox.AutoScroll = true;
             this.tagFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.tagFilteringBox.Controls.Add(this.button1);
             this.tagFilteringBox.Controls.Add(this.label2);
             this.tagFilteringBox.Controls.Add(this.label6);
             this.tagFilteringBox.Controls.Add(this.TagFilteringHelpButton);
@@ -1144,6 +1163,20 @@ namespace Happy_Search
             this.tagFilteringBox.Size = new System.Drawing.Size(564, 273);
             this.tagFilteringBox.TabIndex = 0;
             this.tagFilteringBox.Text = "Tag Filtering";
+            // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.Khaki;
+            this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button1.Location = new System.Drawing.Point(430, 209);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(116, 23);
+            this.button1.TabIndex = 90;
+            this.button1.Text = "Test";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.Test);
             // 
             // label2
             // 
@@ -1350,7 +1383,7 @@ namespace Happy_Search
             this.clearFilterButton.TabIndex = 40;
             this.clearFilterButton.Text = "Clear Filter";
             this.clearFilterButton.UseVisualStyleBackColor = false;
-            this.clearFilterButton.Click += new System.EventHandler(this.ClearFilter);
+            this.clearFilterButton.Click += new System.EventHandler(this.ClearTagFilter);
             // 
             // deleteCustomFilterButton
             // 
@@ -1379,7 +1412,15 @@ namespace Happy_Search
             // 
             // traitFilteringBox
             // 
+            this.traitFilteringBox.AutoScroll = true;
             this.traitFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.traitFilteringBox.Controls.Add(this.label5);
+            this.traitFilteringBox.Controls.Add(this.traitFilteringHelpButton);
+            this.traitFilteringBox.Controls.Add(this.textBox1);
+            this.traitFilteringBox.Controls.Add(this.button4);
+            this.traitFilteringBox.Controls.Add(this.customTraitFilters);
+            this.traitFilteringBox.Controls.Add(this.button5);
+            this.traitFilteringBox.Controls.Add(this.button6);
             this.traitFilteringBox.Controls.Add(this.traitSearchBox);
             this.traitFilteringBox.Controls.Add(this.label3);
             this.traitFilteringBox.Controls.Add(this.traitReply);
@@ -1390,6 +1431,88 @@ namespace Happy_Search
             this.traitFilteringBox.Size = new System.Drawing.Size(564, 273);
             this.traitFilteringBox.TabIndex = 1;
             this.traitFilteringBox.Text = "Trait Filtering Box";
+            // 
+            // label5
+            // 
+            this.label5.Enabled = false;
+            this.label5.Location = new System.Drawing.Point(439, 3);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(103, 13);
+            this.label5.TabIndex = 109;
+            this.label5.Text = "Custom Filter Name:";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // traitFilteringHelpButton
+            // 
+            this.traitFilteringHelpButton.BackColor = System.Drawing.Color.Khaki;
+            this.traitFilteringHelpButton.Enabled = false;
+            this.traitFilteringHelpButton.FlatAppearance.BorderSize = 0;
+            this.traitFilteringHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.traitFilteringHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.traitFilteringHelpButton.Location = new System.Drawing.Point(442, 249);
+            this.traitFilteringHelpButton.Name = "traitFilteringHelpButton";
+            this.traitFilteringHelpButton.Size = new System.Drawing.Size(100, 23);
+            this.traitFilteringHelpButton.TabIndex = 108;
+            this.traitFilteringHelpButton.Text = "Trait Filtering";
+            this.traitFilteringHelpButton.UseVisualStyleBackColor = false;
+            // 
+            // button4
+            // 
+            this.button4.BackColor = System.Drawing.Color.MistyRose;
+            this.button4.Enabled = false;
+            this.button4.FlatAppearance.BorderSize = 0;
+            this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button4.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button4.Location = new System.Drawing.Point(442, 74);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(100, 23);
+            this.button4.TabIndex = 101;
+            this.button4.Text = "Save Filter";
+            this.button4.UseVisualStyleBackColor = false;
+            // 
+            // customTraitFilters
+            // 
+            this.customTraitFilters.BackColor = System.Drawing.Color.MistyRose;
+            this.customTraitFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.customTraitFilters.Enabled = false;
+            this.customTraitFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.customTraitFilters.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.customTraitFilters.FormattingEnabled = true;
+            this.customTraitFilters.Items.AddRange(new object[] {
+            "Custom Filters",
+            "----------"});
+            this.customTraitFilters.Location = new System.Drawing.Point(442, 47);
+            this.customTraitFilters.Name = "customTraitFilters";
+            this.customTraitFilters.Size = new System.Drawing.Size(100, 21);
+            this.customTraitFilters.TabIndex = 106;
+            // 
+            // button5
+            // 
+            this.button5.BackColor = System.Drawing.Color.MistyRose;
+            this.button5.FlatAppearance.BorderSize = 0;
+            this.button5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button5.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button5.Location = new System.Drawing.Point(442, 132);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(100, 23);
+            this.button5.TabIndex = 102;
+            this.button5.Text = "Clear Filter";
+            this.button5.UseVisualStyleBackColor = false;
+            this.button5.Click += new System.EventHandler(this.ClearTraitFilter);
+            // 
+            // button6
+            // 
+            this.button6.BackColor = System.Drawing.Color.MistyRose;
+            this.button6.Enabled = false;
+            this.button6.FlatAppearance.BorderSize = 0;
+            this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button6.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button6.Location = new System.Drawing.Point(442, 103);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(100, 23);
+            this.button6.TabIndex = 107;
+            this.button6.Text = "Delete Filter";
+            this.button6.UseVisualStyleBackColor = false;
             // 
             // label3
             // 
@@ -1403,12 +1526,12 @@ namespace Happy_Search
             // traitReply
             // 
             this.traitReply.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.traitReply.Location = new System.Drawing.Point(354, 6);
+            this.traitReply.Location = new System.Drawing.Point(442, 158);
             this.traitReply.Name = "traitReply";
-            this.traitReply.Size = new System.Drawing.Size(188, 21);
+            this.traitReply.Size = new System.Drawing.Size(100, 88);
             this.traitReply.TabIndex = 92;
             this.traitReply.Text = "(traitReply)";
-            this.traitReply.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.traitReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // traitRootsDropdown
             // 
@@ -2498,6 +2621,14 @@ namespace Happy_Search
         private Label traitReply;
         private TextBox traitSearchBox;
         private Label label3;
+        private Button button1;
+        private Label label5;
+        private Button traitFilteringHelpButton;
+        private TextBox textBox1;
+        private Button button4;
+        private ComboBox customTraitFilters;
+        private Button button5;
+        private Button button6;
     }
 }
 

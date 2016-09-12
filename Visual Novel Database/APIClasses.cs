@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using Newtonsoft.Json;
 
 #pragma warning disable 1591
 
@@ -81,7 +80,7 @@ namespace Happy_Search
             else if (Title_Kanji != null) sb.Append(Title_Kanji);
             else sb.Append(ID);
             if (Year > 0) sb.Append($" ({Year})");
-            if (Type!= null) sb.Append($" ({Type})");
+            if (Type != null) sb.Append($" ({Type})");
             return sb.ToString();
         }
     }
@@ -106,7 +105,7 @@ namespace Happy_Search
         public string Title { get; set; }
         public string Original { get; set; }
 
-        private readonly Dictionary<string,string> relationDict = new Dictionary<string, string>
+        private readonly Dictionary<string, string> relationDict = new Dictionary<string, string>
         {
             { "seq", "Sequel"},
             { "preq", "Prequel"},
@@ -123,7 +122,7 @@ namespace Happy_Search
         public string Print() => $"{relationDict[Relation]} - {Title} - {ID}";
 
         public override string ToString() => $"ID={ID} Title={Title}";
-        
+
 
     }
 
@@ -335,11 +334,16 @@ namespace Happy_Search
             return listOfVNIDs.Contains(vnid);
         }
 
-        public bool ContainsTraits(IEnumerable<int> traitIDs)
+        public bool ContainsTraits(List<WrittenTrait> traitFilters)
         {
             //remove all numbers in traits from traitIDs, if nothing is left then it matched all
-            IEnumerable<int> traits = Traits.Select(x => x.ID);
-            return !traitIDs.Except(traits).Any();
+            int[] traits = Traits.Select(x => x.ID).ToArray();
+            var traitsToMatch = new List<WrittenTrait>(traitFilters);
+            foreach (var writtenTrait in traitsToMatch)
+            {
+                if (!traits.Any(characterTrait => writtenTrait.AllIDs.Contains(characterTrait))) return false;
+            }
+            return true;
         }
     }
 
@@ -401,15 +405,13 @@ namespace Happy_Search
 
     //These class is used to read the 'tag-dump'
     //object contained in tag dump
-    public class WrittenTag
+    public class WrittenTag : ItemWithParents
     {
         public List<object> Aliases { get; set; }
         public int VNs { get; set; }
-        public int ID { get; set; }
         public string Description { get; set; }
         public string Name { get; set; }
         public string Cat { get; set; }
-        public List<int> Parents { get; set; }
         public bool Meta { get; set; }
 
 
@@ -422,15 +424,13 @@ namespace Happy_Search
 
     //These class is used to read the 'trait-dump'
     //object contained in trait dump
-    public class WrittenTrait
+    public class WrittenTrait : ItemWithParents
     {
-        public int ID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public bool Meta { get; set; }
         public int Chars { get; set; }
         public List<object> Aliases { get; set; }
-        public List<int> Parents { get; set; }
 
         public int TopmostParent { get; set; }
         public string TopmostParentName { get; set; }
@@ -442,7 +442,7 @@ namespace Happy_Search
 
         public string Print() => $"{TopmostParentName} > {Name}";
 
-        public void SetTopmostParent(List<WrittenTrait> plainTraits )
+        public void SetTopmostParent(List<WrittenTrait> plainTraits)
         {
             if (Parents.Count == 0)
             {
@@ -458,5 +458,48 @@ namespace Happy_Search
             TopmostParent = idOfParent;
             TopmostParentName = plainTraits.Find(x => x.ID == TopmostParent).Name;
         }
+
+
+
     }
+
+    public class ItemWithParents
+    {
+        public int ID { get; set; }
+        public List<int> Parents { get; set; }
+        public int[] Children { get; set; }
+        public int[] AllIDs { get; set; }
+
+        internal void SetItemChildren(List<ItemWithParents> list)
+        {
+
+            int[] children = Enumerable.Empty<int>().ToArray();
+            Debug.Print($"Getting children for {this}");
+            //new
+            int[] childrenForThisRound = list.Where(x => x.Parents.Contains(ID)).Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
+            var difference = childrenForThisRound.Length;
+            while (difference > 0)
+            {
+                var initial = children.Length;
+                //debug printout
+                //IEnumerable<ItemWithParents> debuglist = childrenForThisRound.Select(childID => list.Find(x => x.ID == childID));
+                //Debug.WriteLine(string.Join(", ", debuglist));
+                //
+                children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
+                difference = children.Length - initial;
+                var tmp = new List<int>();
+                foreach (var child in childrenForThisRound)
+                {
+                    IEnumerable<int> childsChildren = list.Where(x => x.Parents.Contains(child)).Select(x => x.ID);
+                    //Debug.Print($"{child} has {childsChildren.Count()}");
+                    tmp.AddRange(childsChildren);
+                }
+                childrenForThisRound = tmp.ToArray();
+            }
+            Children = children;
+            AllIDs = children.Union(new[] { ID }).ToArray();
+        }
+    }
+
+
 }

@@ -1109,6 +1109,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 try
                 {
                     PlainTags = JsonConvert.DeserializeObject<List<WrittenTag>>(File.ReadAllText(TagsJson));
+                    List<ItemWithParents> baseList = PlainTags.Cast<ItemWithParents>().ToList();
+                    foreach (var writtenTag in PlainTags)
+                    {
+                        writtenTag.SetItemChildren(baseList);
+                    }
                 }
                 catch (JsonReaderException e)
                 {
@@ -1124,7 +1129,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         private void GetNewTraitdump()
         {
-            //TODO
             if (!File.Exists(TraitsJsonGz))
             {
                 SplashScreen.SplashScreen.SetStatus("Downloading new Traitdump file...");
@@ -1151,9 +1155,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 try
                 {
                     PlainTraits = JsonConvert.DeserializeObject<List<WrittenTrait>>(File.ReadAllText(TraitsJson));
+                    List<ItemWithParents> baseList = PlainTraits.Cast<ItemWithParents>().ToList();
                     foreach (var writtenTrait in PlainTraits)
                     {
                         writtenTrait.SetTopmostParent(PlainTraits);
+                        writtenTrait.SetItemChildren(baseList);
                     }
 
                 }
@@ -1690,6 +1696,5 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
-        
     }
 }

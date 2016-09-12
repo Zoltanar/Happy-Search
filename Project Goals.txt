@@ -13,7 +13,8 @@ add 'exclude tag' filters
 refresh favorite producers list when throttling fav pro commands
 backup sqlite database!
 --
-control types of tags displayed in vn form
+control types of tags displayed in vn form (cst)
+light switches next to toggle filters to indicate if tag or trait filtering is in use
 
 
 
@@ -75,7 +76,7 @@ added: vn screenshots on vn form load (uses api, saves to disk)
 added: vn anime on vn form load (uses api)
 -1.2 above-
 added: get characters vns/traits upon first vn fetch
-added: trait filtering system, filter by direct trait (no subtraits yet)
+added: trait filtering system, filter by trait (not yet completed)
 added: download/decompress and keep updated trait dump file
 
 

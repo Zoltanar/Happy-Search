@@ -102,7 +102,7 @@ namespace Happy_Search
         /// <summary>
         /// Clear list of active tag filters (Does not change custom filters).
         /// </summary>
-        private void ClearFilter(object sender, EventArgs e)
+        private void ClearTagFilter(object sender, EventArgs e)
         {
             DisplayFilterTags(true);
             customFilters.SelectedIndex = 0;

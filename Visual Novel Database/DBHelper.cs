@@ -358,8 +358,7 @@ namespace Happy_Search
         public List<CharacterItem> GetAllCharacters()
         {
             var readerList = new List<CharacterItem>();
-            var selectString =
-                $"SELECT * FROM charlist;";
+            var selectString ="SELECT * FROM charlist;";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();

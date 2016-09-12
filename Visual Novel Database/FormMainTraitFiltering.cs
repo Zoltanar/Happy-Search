@@ -11,6 +11,16 @@ namespace Happy_Search
         private const string TraitLabel = "traitFilterLabel";
         private Func<ListedVN,bool> _traitFunction = x => true;
 
+
+        private void ClearTraitFilter(object sender, EventArgs e)
+        {
+
+            DisplayFilterTraits(true);
+            customTraitFilters.SelectedIndex = 0;
+            ApplyListFilters();
+            WriteText(traitReply, "Trait filter cleared.", true);
+        }
+
         /// <summary>
         /// Display or clear list of active trait filters.
         /// </summary>
@@ -42,7 +52,7 @@ namespace Happy_Search
                     AutoSize = false,
                     Location = new Point(6, 33 + count * 22),
                     Name = TraitLabel + count,
-                    Size = new Size(200, 17),
+                    Size = new Size(342, 17),
                     Text = $"{trait.Print()}",
                     Checked = true,
                     AutoEllipsis = true
@@ -53,7 +63,7 @@ namespace Happy_Search
                 traitFilteringBox.Controls.Add(traitLabel);
             }
             
-            IEnumerable<CharacterItem> traitCharacters = _characterList.Where(x => x.ContainsTraits(_activeTraitFilter.Select(trait => trait.ID)));
+            IEnumerable<CharacterItem> traitCharacters = _characterList.Where(x => x.ContainsTraits(_activeTraitFilter));
             var characterVNs = new List<int>();
             foreach (var characterItem in traitCharacters)
             {
