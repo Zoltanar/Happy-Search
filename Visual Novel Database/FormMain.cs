@@ -39,7 +39,7 @@ namespace Happy_Search
         private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
         internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "1.2";
+        internal const string ClientVersion = "1.3";
         internal const string APIVersion = "2.25";
         private const string APIMaxResults = "\"results\":25";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
@@ -49,11 +49,8 @@ namespace Happy_Search
         internal static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
         private static readonly Color WarningColor = Color.DarkKhaki;
 
-        private readonly List<ComplexFilter> _customFilters;
         internal readonly VndbConnection Conn = new VndbConnection();
         internal readonly DbHelper DBConn;
-        private List<TagFilter> _activeTagFilter = new List<TagFilter>();
-        private List<WrittenTrait> _activeTraitFilter = new List<WrittenTrait>();
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
         private bool _dontTriggerEvent; //used to skip indexchanged events
@@ -86,7 +83,7 @@ namespace Happy_Search
                 _dontTriggerEvent = true;
                 ulStatusDropDown.SelectedIndex = 0;
                 wlStatusDropDown.SelectedIndex = 0;
-                customFilters.SelectedIndex = 0;
+                customTagFilters.SelectedIndex = 0;
                 viewPicker.SelectedIndex = 0;
                 URTToggleBox.SelectedIndex = 0;
                 UnreleasedToggleBox.SelectedIndex = 0;
@@ -193,8 +190,10 @@ https://github.com/FredTheBarber/VndbClient";
             SplashScreen.SplashScreen.SetStatus("Loading Custom Filters...");
             {
                 var xml = File.Exists(MainXmlFile) ? XmlHelper.FromXmlFile<MainXml>(MainXmlFile) : new MainXml();
-                _customFilters = xml.ComplexFilters;
-                foreach (var filter in _customFilters) customFilters.Items.Add(filter.Name);
+                _customTagFilters = xml.CustomTagFilters;
+                foreach (var filter in _customTagFilters) customTagFilters.Items.Add(filter.Name);
+                _customTraitFilters = xml.CustomTraitFilters;
+                foreach (var filter in _customTraitFilters) customTraitFilters.Items.Add(filter.Name);
                 _dontTriggerEvent = true;
                 URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleSetting;
                 Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
@@ -1179,7 +1178,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         private void SaveMainXML()
         {
-            XmlHelper.ToXmlFile(new MainXml(_customFilters, Toggles), MainXmlFile);
+            XmlHelper.ToXmlFile(new MainXml(_customTagFilters, _customTraitFilters, Toggles), MainXmlFile);
         }
 
         /// <summary>
@@ -1255,25 +1254,16 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Press Enter On Text Boxes
 
-        private void tagSearchBox_KeyDown(object sender, KeyEventArgs e) //press enter on tag search
+
+        private void EnterCustomTagFilterName(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode != Keys.Enter) return;
-            if (tagSearchBox.Text == "") //check if box is empty
-            {
-                WriteError(tagReply,"Enter tag name.", true);
-                return;
-            }
-            var tagName = tagSearchBox.Text;
-            AddFilterTag(tagName);
-            var s = (Control)sender;
-            s.Text = "";
+            if (e.KeyCode == Keys.Enter) SaveCustomTagFilter(sender, e);
         }
 
-        private void filterNameBox_KeyDown(object sender, KeyEventArgs e)
+        private void EnterCustomTraitFilterName(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter) SaveCustomFilter(sender, e);
+            if (e.KeyCode == Keys.Enter) SaveCustomTraitFilter(sender, e);
         }
-
         private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
         {
             if (e.KeyChar != (char) Keys.Enter) return;
@@ -1289,120 +1279,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #endregion
 
         #region Classes/Enums
-
-        /// <summary>
-        ///     Holds details of user-created custom filter
-        /// </summary>
-        [Serializable, XmlRoot("ComplexFilter")]
-        public class ComplexFilter
-        {
-            /// <summary>
-            ///     Constructor for ComplexFilter (Custom Filter).
-            /// </summary>
-            /// <param name="name">User-set name of filter</param>
-            /// <param name="filters">List of Tags in filter</param>
-            public ComplexFilter(string name, List<TagFilter> filters)
-            {
-                Name = name;
-                Filters = filters;
-            }
-
-            /// <summary>
-            ///     Empty Constructor needed for XML.
-            /// </summary>
-            public ComplexFilter()
-            {
-            }
-
-            /// <summary>
-            ///     User-set name of custom filter
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            ///     List of tags in custom filter
-            /// </summary>
-            public List<TagFilter> Filters { get; set; }
-
-            /// <summary>
-            ///     Date of last update to custom filter
-            /// </summary>
-            public DateTime Updated { get; set; }
-        }
-
-        /// <summary>
-        ///     Holds details of a VNDB Tag and its subtags
-        /// </summary>
-        [Serializable, XmlRoot("TagFilter")]
-        public class TagFilter
-        {
-            /// <summary>
-            /// </summary>
-            /// <param name="id"></param>
-            /// <param name="name"></param>
-            /// <param name="titles"></param>
-            /// <param name="children"></param>
-            public TagFilter(int id, string name, int titles, int[] children)
-            {
-                ID = id;
-                Name = name;
-                Titles = titles;
-                Children = children;
-                AllIDs = children.Union(new[] { id }).ToArray();
-            }
-
-            /// <summary>
-            ///     Empty Constructor needed for XML.
-            /// </summary>
-            public TagFilter()
-            {
-            }
-
-            /// <summary>
-            ///     ID of tag.
-            /// </summary>
-            public int ID { get; set; }
-
-            /// <summary>
-            ///     Name of tag.
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            ///     Number of titles with tag.
-            /// </summary>
-            public int Titles { get; set; }
-
-            /// <summary>
-            ///     Subtag IDs of tag.
-            /// </summary>
-            public int[] Children { get; set; }
-
-            /// <summary>
-            ///     Tag ID and subtag IDs
-            /// </summary>
-            public int[] AllIDs { get; set; }
-
-
-            /// <summary>
-            ///     Check if given tag is a child tag of TagFilter
-            /// </summary>
-            /// <param name="tag">Tag to be checked</param>
-            /// <returns>Whether tag is child of TagFilter</returns>
-            public bool HasChild(int tag)
-            {
-                return Children.Contains(tag);
-            }
-
-
-            /// <summary>Returns a string that represents the current object.</summary>
-            /// <returns>A string that represents the current object.</returns>
-            /// <filterpriority>2</filterpriority>
-            public override string ToString()
-            {
-                return $"{ID} - {Name}";
-            }
-        }
 
         /// <summary>
         ///     Class for drawing individual tiles in ObjectListView
@@ -1651,25 +1527,33 @@ be displayed by clicking the User Related Titles (URT) filter.",
             /// </summary>
             public MainXml()
             {
-                ComplexFilters = new List<ComplexFilter>();
+                CustomTagFilters = new List<CustomTagFilter>();
+                CustomTraitFilters = new List<CustomTraitFilter>();
                 XmlToggles = new ToggleArray();
             }
 
             /// <summary>
             ///     Constructor For Main XML File.
             /// </summary>
-            /// <param name="customFilters">List of user-set custom filters</param>
+            /// <param name="customTagFilters">List of user-set custom tag filters</param>
+            /// <param name="customTraitFilters">List of user-set custom trait filters</param>
             /// <param name="xmlToggleArray">Current list toggle settings</param>
-            public MainXml(List<ComplexFilter> customFilters, ToggleArray xmlToggleArray)
+            public MainXml(List<CustomTagFilter> customTagFilters, List<CustomTraitFilter> customTraitFilters, ToggleArray xmlToggleArray)
             {
-                ComplexFilters = customFilters;
+                CustomTagFilters = customTagFilters;
+                CustomTraitFilters = customTraitFilters;
                 XmlToggles = xmlToggleArray;
             }
 
             /// <summary>
             ///     List of User-created custom filters.
             /// </summary>
-            public List<ComplexFilter> ComplexFilters { get; set; }
+            public List<CustomTagFilter> CustomTagFilters { get; set; }
+
+            /// <summary>
+            ///     List of User-created custom filters.
+            /// </summary>
+            public List<CustomTraitFilter> CustomTraitFilters { get; set; }
 
             /// <summary>
             ///     Current state of list filters.
@@ -1697,6 +1581,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Vote
         }
 
+
         #endregion
+
     }
 }

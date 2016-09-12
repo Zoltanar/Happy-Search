@@ -55,13 +55,13 @@ namespace Happy_Search
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.searchBox = new System.Windows.Forms.TextBox();
             this.ProducerListBox = new System.Windows.Forms.TextBox();
-            this.filterNameBox = new System.Windows.Forms.TextBox();
+            this.customTagFilterNameBox = new System.Windows.Forms.TextBox();
             this.tagSearchBox = new System.Windows.Forms.TextBox();
             this.yearBox = new System.Windows.Forms.TextBox();
             this.updateToLatestVersionButton = new System.Windows.Forms.Button();
             this.updateTitleTagsButton = new System.Windows.Forms.Button();
             this.traitSearchBox = new System.Windows.Forms.TextBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.serverR = new System.Windows.Forms.RichTextBox();
@@ -134,9 +134,9 @@ namespace Happy_Search
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.customFilters = new System.Windows.Forms.ComboBox();
+            this.customTagFilters = new System.Windows.Forms.ComboBox();
             this.clearFilterButton = new System.Windows.Forms.Button();
-            this.deleteCustomFilterButton = new System.Windows.Forms.Button();
+            this.deleteCustomTagFilterButton = new System.Windows.Forms.Button();
             this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.traitFilteringBox = new System.Windows.Forms.TabPage();
             this.label5 = new System.Windows.Forms.Label();
@@ -144,7 +144,7 @@ namespace Happy_Search
             this.button4 = new System.Windows.Forms.Button();
             this.customTraitFilters = new System.Windows.Forms.ComboBox();
             this.button5 = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
+            this.deleteCustomTraitFilterButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.traitReply = new System.Windows.Forms.Label();
             this.traitRootsDropdown = new System.Windows.Forms.ComboBox();
@@ -470,15 +470,15 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.ProducerListBox, "Enter producer name here");
             this.ProducerListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.List_Producer);
             // 
-            // filterNameBox
+            // customTagFilterNameBox
             // 
-            this.filterNameBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.filterNameBox.Location = new System.Drawing.Point(446, 19);
-            this.filterNameBox.Name = "filterNameBox";
-            this.filterNameBox.Size = new System.Drawing.Size(100, 22);
-            this.filterNameBox.TabIndex = 41;
-            this.toolTip.SetToolTip(this.filterNameBox, "Enter Custom Filter name here");
-            this.filterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.filterNameBox_KeyDown);
+            this.customTagFilterNameBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.customTagFilterNameBox.Location = new System.Drawing.Point(446, 19);
+            this.customTagFilterNameBox.Name = "customTagFilterNameBox";
+            this.customTagFilterNameBox.Size = new System.Drawing.Size(100, 22);
+            this.customTagFilterNameBox.TabIndex = 41;
+            this.toolTip.SetToolTip(this.customTagFilterNameBox, "Enter Custom Filter name here");
+            this.customTagFilterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EnterCustomTagFilterName);
             // 
             // tagSearchBox
             // 
@@ -490,7 +490,7 @@ namespace Happy_Search
             this.tagSearchBox.Size = new System.Drawing.Size(163, 22);
             this.tagSearchBox.TabIndex = 29;
             this.toolTip.SetToolTip(this.tagSearchBox, "Enter tag name here");
-            this.tagSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tagSearchBox_KeyDown);
+            this.tagSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddTagBySearch);
             // 
             // yearBox
             // 
@@ -535,17 +535,17 @@ namespace Happy_Search
             this.traitSearchBox.Size = new System.Drawing.Size(163, 22);
             this.traitSearchBox.TabIndex = 99;
             this.toolTip.SetToolTip(this.traitSearchBox, "Enter trait name here");
-            this.traitSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.traitSearchBox_KeyDown);
+            this.traitSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddTraitBySearch);
             // 
-            // textBox1
+            // customTraitFilterNameBox
             // 
-            this.textBox1.Enabled = false;
-            this.textBox1.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox1.Location = new System.Drawing.Point(442, 19);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 22);
-            this.textBox1.TabIndex = 103;
-            this.toolTip.SetToolTip(this.textBox1, "Enter Custom Filter name here");
+            this.customTraitFilterNameBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.customTraitFilterNameBox.Location = new System.Drawing.Point(442, 19);
+            this.customTraitFilterNameBox.Name = "customTraitFilterNameBox";
+            this.customTraitFilterNameBox.Size = new System.Drawing.Size(100, 22);
+            this.customTraitFilterNameBox.TabIndex = 103;
+            this.toolTip.SetToolTip(this.customTraitFilterNameBox, "Enter Custom Filter name here");
+            this.customTraitFilterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EnterCustomTraitFilterName);
             // 
             // infoTab
             // 
@@ -1142,7 +1142,7 @@ namespace Happy_Search
             this.tagFilteringBox.Controls.Add(this.tagTypeT);
             this.tagFilteringBox.Controls.Add(this.checkBox10);
             this.tagFilteringBox.Controls.Add(this.checkBox3);
-            this.tagFilteringBox.Controls.Add(this.filterNameBox);
+            this.tagFilteringBox.Controls.Add(this.customTagFilterNameBox);
             this.tagFilteringBox.Controls.Add(this.checkBox4);
             this.tagFilteringBox.Controls.Add(this.checkBox7);
             this.tagFilteringBox.Controls.Add(this.saveCustomFilterButton);
@@ -1151,9 +1151,9 @@ namespace Happy_Search
             this.tagFilteringBox.Controls.Add(this.checkBox1);
             this.tagFilteringBox.Controls.Add(this.checkBox2);
             this.tagFilteringBox.Controls.Add(this.label7);
-            this.tagFilteringBox.Controls.Add(this.customFilters);
+            this.tagFilteringBox.Controls.Add(this.customTagFilters);
             this.tagFilteringBox.Controls.Add(this.clearFilterButton);
-            this.tagFilteringBox.Controls.Add(this.deleteCustomFilterButton);
+            this.tagFilteringBox.Controls.Add(this.deleteCustomTagFilterButton);
             this.tagFilteringBox.Controls.Add(this.checkBox9);
             this.tagFilteringBox.Location = new System.Drawing.Point(4, 22);
             this.tagFilteringBox.Name = "tagFilteringBox";
@@ -1298,7 +1298,7 @@ namespace Happy_Search
             this.saveCustomFilterButton.TabIndex = 39;
             this.saveCustomFilterButton.Text = "Save Filter";
             this.saveCustomFilterButton.UseVisualStyleBackColor = false;
-            this.saveCustomFilterButton.Click += new System.EventHandler(this.SaveCustomFilter);
+            this.saveCustomFilterButton.Click += new System.EventHandler(this.SaveCustomTagFilter);
             // 
             // checkBox8
             // 
@@ -1339,21 +1339,21 @@ namespace Happy_Search
             this.label7.TabIndex = 34;
             this.label7.Text = "Search:";
             // 
-            // customFilters
+            // customTagFilters
             // 
-            this.customFilters.BackColor = System.Drawing.Color.MistyRose;
-            this.customFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.customFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.customFilters.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.customFilters.FormattingEnabled = true;
-            this.customFilters.Items.AddRange(new object[] {
+            this.customTagFilters.BackColor = System.Drawing.Color.MistyRose;
+            this.customTagFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.customTagFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.customTagFilters.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.customTagFilters.FormattingEnabled = true;
+            this.customTagFilters.Items.AddRange(new object[] {
             "Custom Filters",
             "----------"});
-            this.customFilters.Location = new System.Drawing.Point(446, 47);
-            this.customFilters.Name = "customFilters";
-            this.customFilters.Size = new System.Drawing.Size(100, 21);
-            this.customFilters.TabIndex = 57;
-            this.customFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_Custom);
+            this.customTagFilters.Location = new System.Drawing.Point(446, 47);
+            this.customTagFilters.Name = "customTagFilters";
+            this.customTagFilters.Size = new System.Drawing.Size(100, 21);
+            this.customTagFilters.TabIndex = 57;
+            this.customTagFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTags);
             // 
             // clearFilterButton
             // 
@@ -1369,20 +1369,20 @@ namespace Happy_Search
             this.clearFilterButton.UseVisualStyleBackColor = false;
             this.clearFilterButton.Click += new System.EventHandler(this.ClearTagFilter);
             // 
-            // deleteCustomFilterButton
+            // deleteCustomTagFilterButton
             // 
-            this.deleteCustomFilterButton.BackColor = System.Drawing.Color.MistyRose;
-            this.deleteCustomFilterButton.Enabled = false;
-            this.deleteCustomFilterButton.FlatAppearance.BorderSize = 0;
-            this.deleteCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.deleteCustomFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.deleteCustomFilterButton.Location = new System.Drawing.Point(446, 103);
-            this.deleteCustomFilterButton.Name = "deleteCustomFilterButton";
-            this.deleteCustomFilterButton.Size = new System.Drawing.Size(100, 23);
-            this.deleteCustomFilterButton.TabIndex = 78;
-            this.deleteCustomFilterButton.Text = "Delete Filter";
-            this.deleteCustomFilterButton.UseVisualStyleBackColor = false;
-            this.deleteCustomFilterButton.Click += new System.EventHandler(this.DeleteCustomFilter);
+            this.deleteCustomTagFilterButton.BackColor = System.Drawing.Color.MistyRose;
+            this.deleteCustomTagFilterButton.Enabled = false;
+            this.deleteCustomTagFilterButton.FlatAppearance.BorderSize = 0;
+            this.deleteCustomTagFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.deleteCustomTagFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.deleteCustomTagFilterButton.Location = new System.Drawing.Point(446, 103);
+            this.deleteCustomTagFilterButton.Name = "deleteCustomTagFilterButton";
+            this.deleteCustomTagFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.deleteCustomTagFilterButton.TabIndex = 78;
+            this.deleteCustomTagFilterButton.Text = "Delete Filter";
+            this.deleteCustomTagFilterButton.UseVisualStyleBackColor = false;
+            this.deleteCustomTagFilterButton.Click += new System.EventHandler(this.DeleteCustomTagFilter);
             // 
             // checkBox9
             // 
@@ -1400,11 +1400,11 @@ namespace Happy_Search
             this.traitFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.traitFilteringBox.Controls.Add(this.label5);
             this.traitFilteringBox.Controls.Add(this.traitFilteringHelpButton);
-            this.traitFilteringBox.Controls.Add(this.textBox1);
+            this.traitFilteringBox.Controls.Add(this.customTraitFilterNameBox);
             this.traitFilteringBox.Controls.Add(this.button4);
             this.traitFilteringBox.Controls.Add(this.customTraitFilters);
             this.traitFilteringBox.Controls.Add(this.button5);
-            this.traitFilteringBox.Controls.Add(this.button6);
+            this.traitFilteringBox.Controls.Add(this.deleteCustomTraitFilterButton);
             this.traitFilteringBox.Controls.Add(this.traitSearchBox);
             this.traitFilteringBox.Controls.Add(this.label3);
             this.traitFilteringBox.Controls.Add(this.traitReply);
@@ -1418,7 +1418,6 @@ namespace Happy_Search
             // 
             // label5
             // 
-            this.label5.Enabled = false;
             this.label5.Location = new System.Drawing.Point(439, 3);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(103, 13);
@@ -1429,7 +1428,6 @@ namespace Happy_Search
             // traitFilteringHelpButton
             // 
             this.traitFilteringHelpButton.BackColor = System.Drawing.Color.Khaki;
-            this.traitFilteringHelpButton.Enabled = false;
             this.traitFilteringHelpButton.FlatAppearance.BorderSize = 0;
             this.traitFilteringHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.traitFilteringHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -1439,11 +1437,11 @@ namespace Happy_Search
             this.traitFilteringHelpButton.TabIndex = 108;
             this.traitFilteringHelpButton.Text = "Trait Filtering";
             this.traitFilteringHelpButton.UseVisualStyleBackColor = false;
+            this.traitFilteringHelpButton.Click += new System.EventHandler(this.Help_TraitFiltering);
             // 
             // button4
             // 
             this.button4.BackColor = System.Drawing.Color.MistyRose;
-            this.button4.Enabled = false;
             this.button4.FlatAppearance.BorderSize = 0;
             this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button4.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -1453,12 +1451,12 @@ namespace Happy_Search
             this.button4.TabIndex = 101;
             this.button4.Text = "Save Filter";
             this.button4.UseVisualStyleBackColor = false;
+            this.button4.Click += new System.EventHandler(this.SaveCustomTraitFilter);
             // 
             // customTraitFilters
             // 
             this.customTraitFilters.BackColor = System.Drawing.Color.MistyRose;
             this.customTraitFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.customTraitFilters.Enabled = false;
             this.customTraitFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.customTraitFilters.ForeColor = System.Drawing.SystemColors.ControlText;
             this.customTraitFilters.FormattingEnabled = true;
@@ -1469,6 +1467,7 @@ namespace Happy_Search
             this.customTraitFilters.Name = "customTraitFilters";
             this.customTraitFilters.Size = new System.Drawing.Size(100, 21);
             this.customTraitFilters.TabIndex = 106;
+            this.customTraitFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTraits);
             // 
             // button5
             // 
@@ -1484,19 +1483,20 @@ namespace Happy_Search
             this.button5.UseVisualStyleBackColor = false;
             this.button5.Click += new System.EventHandler(this.ClearTraitFilter);
             // 
-            // button6
+            // deleteCustomTraitFilterButton
             // 
-            this.button6.BackColor = System.Drawing.Color.MistyRose;
-            this.button6.Enabled = false;
-            this.button6.FlatAppearance.BorderSize = 0;
-            this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button6.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button6.Location = new System.Drawing.Point(442, 103);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(100, 23);
-            this.button6.TabIndex = 107;
-            this.button6.Text = "Delete Filter";
-            this.button6.UseVisualStyleBackColor = false;
+            this.deleteCustomTraitFilterButton.BackColor = System.Drawing.Color.MistyRose;
+            this.deleteCustomTraitFilterButton.Enabled = false;
+            this.deleteCustomTraitFilterButton.FlatAppearance.BorderSize = 0;
+            this.deleteCustomTraitFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.deleteCustomTraitFilterButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.deleteCustomTraitFilterButton.Location = new System.Drawing.Point(442, 103);
+            this.deleteCustomTraitFilterButton.Name = "deleteCustomTraitFilterButton";
+            this.deleteCustomTraitFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.deleteCustomTraitFilterButton.TabIndex = 107;
+            this.deleteCustomTraitFilterButton.Text = "Delete Filter";
+            this.deleteCustomTraitFilterButton.UseVisualStyleBackColor = false;
+            this.deleteCustomTraitFilterButton.Click += new System.EventHandler(this.DeleteCustomTraitFilter);
             // 
             // label3
             // 
@@ -2570,15 +2570,15 @@ namespace Happy_Search
         private TextBox tagSearchBox;
         private Label tagReply;
         private CheckBox checkBox10;
-        private TextBox filterNameBox;
+        private TextBox customTagFilterNameBox;
         private CheckBox checkBox7;
         private CheckBox checkBox8;
         private CheckBox checkBox1;
         private Label label7;
         private Button clearFilterButton;
         private CheckBox checkBox9;
-        private Button deleteCustomFilterButton;
-        private ComboBox customFilters;
+        private Button deleteCustomTagFilterButton;
+        private ComboBox customTagFilters;
         private CheckBox checkBox2;
         private CheckBox tagTypeC;
         private Button saveCustomFilterButton;
@@ -2607,11 +2607,11 @@ namespace Happy_Search
         private Label label3;
         private Label label5;
         private Button traitFilteringHelpButton;
-        private TextBox textBox1;
+        private TextBox customTraitFilterNameBox;
         private Button button4;
         private ComboBox customTraitFilters;
         private Button button5;
-        private Button button6;
+        private Button deleteCustomTraitFilterButton;
     }
 }
 

@@ -198,6 +198,9 @@
     <Content Include="help\searchingandfiltering.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="help\traitfiltering.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="help\tagfiltering.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

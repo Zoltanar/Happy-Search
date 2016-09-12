@@ -69,17 +69,17 @@ changed: 'list: wishlist titles' into dropdown list with each status = all/high/
 added: update titles to latest version of happy search
 added: update title tags (only ones that havent been updated in over 7 days);
 added: stats of vns in vn form and vn tiles
-fixed: resizing issues
 added: list results help file
 added: vn relations on vn form load (uses api)
 added: vn screenshots on vn form load (uses api, saves to disk)
 added: vn anime on vn form load (uses api)
 -1.2 above-
 added: get characters vns/traits upon first vn fetch
-added: trait filtering system, filter by trait (not yet completed)
+added: trait filtering system, filter by trait
 added: download/decompress and keep updated trait dump file
 added: character info in vn form
 added: relation field 'official' in vn form
+-1.3 above-
 
 
 

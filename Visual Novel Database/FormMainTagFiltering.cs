@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
 
@@ -13,8 +14,9 @@ namespace Happy_Search
 {
     partial class FormMain
     {
-
         private const string TagLabel = "tagFilterLabel";
+        private readonly List<CustomTagFilter> _customTagFilters;
+        private List<TagFilter> _activeTagFilter = new List<TagFilter>();
 
         /// <summary>
         /// Bring up dialog explaining features of the 'Tag Filtering' section.
@@ -41,8 +43,8 @@ namespace Happy_Search
             var indexOfLastBracket = checkbox.Text.LastIndexOf('(');
             var tagName = checkbox.Text.Substring(0, indexOfLastBracket).Trim();
             _dontTriggerEvent = true;
-            customFilters.SelectedIndex = 0;
-            deleteCustomFilterButton.Enabled = false;
+            customTagFilters.SelectedIndex = 0;
+            deleteCustomTagFilterButton.Enabled = false;
             _dontTriggerEvent = false;
             AddFilterTag(tagName);
         }
@@ -62,8 +64,8 @@ namespace Happy_Search
             var filterNo = Convert.ToInt32(checkbox.Name.Remove(0, TagLabel.Length));
             _activeTagFilter.RemoveAt(filterNo);
             _dontTriggerEvent = true;
-            customFilters.SelectedIndex = 0;
-            deleteCustomFilterButton.Enabled = false;
+            customTagFilters.SelectedIndex = 0;
+            deleteCustomTagFilterButton.Enabled = false;
             _dontTriggerEvent = false;
             DisplayFilterTags();
         }
@@ -71,16 +73,16 @@ namespace Happy_Search
         /// <summary>
         /// Save list of active tag filters to file as a custom filter with user-entered name.
         /// </summary>
-        private void SaveCustomFilter(object sender, EventArgs e)
+        private void SaveCustomTagFilter(object sender, EventArgs e)
         {
-            var filterName = filterNameBox.Text;
+            var filterName = customTagFilterNameBox.Text;
             if (filterName.Length == 0)
             {
                 WriteText(tagReply, "Enter name of filter.", true);
                 return;
             }
             //Ask to overwrite if name entered is already in use
-            var customFilter = _customFilters.Find(x => x.Name.Equals(filterName));
+            var customFilter = _customTagFilters.Find(x => x.Name.Equals(filterName));
             if (customFilter != null)
             {
                 var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?", Resources.ask_overwrite, MessageBoxButtons.YesNo);
@@ -89,14 +91,14 @@ namespace Happy_Search
                 customFilter.Updated = DateTime.UtcNow;
                 SaveMainXML();
                 WriteText(tagReply, Resources.filter_saved, true);
-                customFilters.SelectedIndex = customFilters.Items.IndexOf(filterName);
+                customTagFilters.SelectedIndex = customTagFilters.Items.IndexOf(filterName);
                 return;
             }
-            customFilters.Items.Add(filterName);
-            _customFilters.Add(new ComplexFilter(filterName, new List<TagFilter>(_activeTagFilter)));
+            customTagFilters.Items.Add(filterName);
+            _customTagFilters.Add(new CustomTagFilter(filterName, new List<TagFilter>(_activeTagFilter)));
             SaveMainXML();
             WriteText(tagReply, Resources.filter_saved, true);
-            customFilters.SelectedIndex = customFilters.Items.Count - 1;
+            customTagFilters.SelectedIndex = customTagFilters.Items.Count - 1;
         }
 
         /// <summary>
@@ -105,7 +107,7 @@ namespace Happy_Search
         private void ClearTagFilter(object sender, EventArgs e)
         {
             DisplayFilterTags(true);
-            customFilters.SelectedIndex = 0;
+            customTagFilters.SelectedIndex = 0;
             ApplyListFilters();
             WriteText(tagReply, Resources.filter_cleared, true);
         }
@@ -187,7 +189,7 @@ namespace Happy_Search
             if (clear)
             {
                 _activeTagFilter = new List<TagFilter>();
-                filterNameBox.Text = "";
+                customTagFilterNameBox.Text = "";
                 return;
             }
             //add labels
@@ -223,16 +225,16 @@ namespace Happy_Search
                 WriteWarning(tagReply, "Connection busy with previous request...", true);
                 return;
             }
-            if (customFilters.SelectedIndex > 1)
+            if (customTagFilters.SelectedIndex > 1)
             {
-                var selectedFilter = _customFilters[customFilters.SelectedIndex - 2];
+                var selectedFilter = _customTagFilters[customTagFilters.SelectedIndex - 2];
                 var message = selectedFilter.Updated != DateTime.MinValue
                     ? $"This filter was last updated {DaysSince(selectedFilter.Updated)} days ago.\n{Resources.update_custom_filter}"
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
                 await UpdateFilterResults(tagReply);
-                _customFilters[customFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
+                _customTagFilters[customTagFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
                 SaveMainXML();
             }
             else
@@ -282,23 +284,23 @@ namespace Happy_Search
         /// <summary>
         /// Display VNs matching tags in selected custom filter.
         /// </summary>
-        private void Filter_Custom(object sender, EventArgs e)
+        private void Filter_CustomTags(object sender, EventArgs e)
         {
             if (_dontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {
                 case 0:
-                    deleteCustomFilterButton.Enabled = false;
+                    deleteCustomTagFilterButton.Enabled = false;
                     return;
                 case 1:
                     dropdownlist.SelectedIndex = 0;
                     return;
                 default:
-                    deleteCustomFilterButton.Enabled = true;
+                    deleteCustomTagFilterButton.Enabled = true;
                     DisplayFilterTags(true);
-                    _activeTagFilter = new List<TagFilter>(_customFilters[dropdownlist.SelectedIndex - 2].Filters);
-                    filterNameBox.Text = _customFilters[dropdownlist.SelectedIndex - 2].Name;
+                    _activeTagFilter = new List<TagFilter>(_customTagFilters[dropdownlist.SelectedIndex - 2].Filters);
+                    customTagFilterNameBox.Text = _customTagFilters[dropdownlist.SelectedIndex - 2].Name;
                     DisplayFilterTags();
                     break;
             }
@@ -306,22 +308,20 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Delete custom filter.
+        /// Delete custom tag filter.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void DeleteCustomFilter(object sender, EventArgs e)
+        private void DeleteCustomTagFilter(object sender, EventArgs e)
         {
-            if (customFilters.SelectedIndex < 2) return; //shouldnt happen
+            if (customTagFilters.SelectedIndex < 2) return; //shouldnt happen
             var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var selectedFilter = customFilters.SelectedIndex;
-            customFilters.Items.RemoveAt(selectedFilter);
-            _customFilters.RemoveAt(selectedFilter - 2);
+            var selectedFilter = customTagFilters.SelectedIndex;
+            customTagFilters.Items.RemoveAt(selectedFilter);
+            _customTagFilters.RemoveAt(selectedFilter - 2);
             SaveMainXML();
-            WriteText(replyText, Resources.filter_deleted, true);
-            filterNameBox.Text = "";
-            customFilters.SelectedIndex = 0;
+            WriteText(tagReply, Resources.filter_deleted, true);
+            customTagFilterNameBox.Text = "";
+            customTagFilters.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -354,6 +354,137 @@ namespace Happy_Search
             var filtersMatched = _activeTagFilter.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
             return filtersMatched == _activeTagFilter.Count;
         }
+
+        /// <summary>
+        /// Add tag with name entered by user.
+        /// </summary>
+        private void AddTagBySearch(object sender, KeyEventArgs e) //press enter on tag search
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            if (tagSearchBox.Text == "") //check if box is empty
+            {
+                WriteError(tagReply, "Enter tag name.", true);
+                return;
+            }
+            var tagName = tagSearchBox.Text;
+            AddFilterTag(tagName);
+            tagSearchBox.Text = "";
+        }
+
+        /// <summary>
+        ///     Holds details of user-created custom filter
+        /// </summary>
+        [Serializable, XmlRoot("CustomTagFilter")]
+        public class CustomTagFilter
+        {
+            /// <summary>
+            ///     Constructor for Custom Tag Filter.
+            /// </summary>
+            /// <param name="name">User-set name of filter</param>
+            /// <param name="filters">List of Tags in filter</param>
+            public CustomTagFilter(string name, List<TagFilter> filters)
+            {
+                Name = name;
+                Filters = filters;
+            }
+
+            /// <summary>
+            ///     Empty Constructor needed for XML.
+            /// </summary>
+            public CustomTagFilter()
+            {
+            }
+
+            /// <summary>
+            ///     User-set name of custom filter
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            ///     List of tags in custom filter
+            /// </summary>
+            public List<TagFilter> Filters { get; set; }
+
+            /// <summary>
+            ///     Date of last update to custom filter
+            /// </summary>
+            public DateTime Updated { get; set; }
+        }
+
+        /// <summary>
+        ///     Holds details of a VNDB Tag and its subtags
+        /// </summary>
+        [Serializable, XmlRoot("TagFilter")]
+        public class TagFilter
+        {
+            /// <summary>
+            /// </summary>
+            /// <param name="id"></param>
+            /// <param name="name"></param>
+            /// <param name="titles"></param>
+            /// <param name="children"></param>
+            public TagFilter(int id, string name, int titles, int[] children)
+            {
+                ID = id;
+                Name = name;
+                Titles = titles;
+                Children = children;
+                AllIDs = children.Union(new[] { id }).ToArray();
+            }
+
+            /// <summary>
+            ///     Empty Constructor needed for XML.
+            /// </summary>
+            public TagFilter()
+            {
+            }
+
+            /// <summary>
+            ///     ID of tag.
+            /// </summary>
+            public int ID { get; set; }
+
+            /// <summary>
+            ///     Name of tag.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            ///     Number of titles with tag.
+            /// </summary>
+            public int Titles { get; set; }
+
+            /// <summary>
+            ///     Subtag IDs of tag.
+            /// </summary>
+            public int[] Children { get; set; }
+
+            /// <summary>
+            ///     Tag ID and subtag IDs
+            /// </summary>
+            public int[] AllIDs { get; set; }
+
+
+            /// <summary>
+            ///     Check if given tag is a child tag of TagFilter
+            /// </summary>
+            /// <param name="tag">Tag to be checked</param>
+            /// <returns>Whether tag is child of TagFilter</returns>
+            public bool HasChild(int tag)
+            {
+                return Children.Contains(tag);
+            }
+
+
+            /// <summary>Returns a string that represents the current object.</summary>
+            /// <returns>A string that represents the current object.</returns>
+            /// <filterpriority>2</filterpriority>
+            public override string ToString()
+            {
+                return $"{ID} - {Name}";
+            }
+        }
+
 
 
     }
