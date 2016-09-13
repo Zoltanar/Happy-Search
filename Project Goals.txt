@@ -1,5 +1,29 @@
 Next Milestone == ??
 
+Changelog
+---------
+added: control tags shown in vn form
+-1.3 released-
+added: relation field 'official' in vn form
+added: character info in vn form
+added: download/decompress and keep updated trait dump file
+added: trait filtering system, filter by trait
+added: get characters vns/traits upon first vn fetch
+-1.2 released-
+added: vn anime on vn form load (uses api)
+added: vn screenshots on vn form load (uses api, saves to disk)
+added: vn relations on vn form load (uses api)
+added: list results help file
+added: stats of vns in vn form and vn tiles
+added: update title tags (only ones that havent been updated in over 7 days);
+added: update titles to latest version of happy search
+changed: 'list: wishlist titles' into dropdown list with each status = all/high/medium/low/blacklist, also added all to Userlist dropdown
+added: safeguarding against deleted VNs
+added: stats of VNs (popularity, rating, votecount)
+-1.1 released-
+
+
+
 No Work
 ---------------
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
@@ -12,19 +36,19 @@ show vn relations and screenshots/anime etc
 add 'exclude tag' filters
 refresh favorite producers list when throttling fav pro commands
 backup sqlite database!
---
 light switches next to toggle filters to indicate if tag or trait filtering is in use
+favorite producers - show overall average rating
+change 'update title tags' to 'update tags and traits'
 
 
 
 Incomplete
 ---------------
-make things pretty textured backgrounds
 split FormMain into partial class files
 Minimize globals by passing parameters - 'added/skipped' ushort instead of int
 
 
-Completed (Over time, this will only show "features", rather than a ton of bugfixes and whatnot)
+Completed (Feature List)
 ---------------
 Searching:	
 	vns by tag(s)
@@ -41,49 +65,48 @@ Quick Filtering:
 	unreleased
 	blacklisted
 	custom tag filters
+	custom trait filters
+Filtering
+	Filter by vn's tags by adding a tag at a time
+	Save list of active tag filters as a custom filter for re-use
+	Filter by traits in vn's characters by adding a trait at a time
+	Save list of active trait filters as a custom filter for re-use
 User-settings:
-	toggle for nsfw images and "this image is NSFW" image
+	toggle for nsfw images
 	auto update urt every 2 days
 	limit all api queries to 10 years (e.g. only get titles under 10 years old, excludes searching by name and favorite producers)
 VN Context Menu (right click)
 	Change Userlist/Wishlist/Vote status
 	Add producer to favorite producers
 	Show titles by producer
-Update Button on Single VN and display date of last update
-download/decompress dump files if they dont exist or are corrupt
-button to close all open visual novel forms
-automatic = keep up to date tagdump (2 days)
-save user credentials (login/pass)
-favorite producer average vote and average drop rate
-producerfilter case insensitive
-XML = Custom filters and list filter settings are saved to MainXML file
-display tag scores in visual novel form
-display release date in vn tile, right of producer, tile color based on status
-give suggestions for favorite producers based on titles finished
-help buttons on each section with info
--1.1 above-
-added: stats of VNs (popularity, rating, votecount)
-added: safeguarding against deleted VNs
-changed: 'list: wishlist titles' into dropdown list with each status = all/high/medium/low/blacklist, also added all to Userlist dropdown
-added: update titles to latest version of happy search
-added: update title tags (only ones that havent been updated in over 7 days);
-added: stats of vns in vn form and vn tiles
-added: list results help file
-added: vn relations on vn form load (uses api)
-added: vn screenshots on vn form load (uses api, saves to disk)
-added: vn anime on vn form load (uses api)
--1.2 above-
-added: get characters vns/traits upon first vn fetch
-added: trait filtering system, filter by trait
-added: download/decompress and keep updated trait dump file
-added: character info in vn form
-added: relation field 'official' in vn form
--1.3 above-
-added: control tags shown in vn form
+VN Window (Left click a title in result list)
+	Show all information stored about the title
+	Update data with a single click
+	Open browser with VNDB page of title
+	Screenshots are saved to disk
+	All windows can be closed with a button in the main window
+Automatic File Downloading
+	Tags and traits dump files are downloaded and decompressed automatically
+	They will be automatically redownloaded if they are exist or corrupt
+	They are kept up to date automatically (2 days)
+Persistent Data
+	User credentials incl. username/password
+	User-settings
+	Custom filters
+Favorite Producers
+	Show user's average vote and average drop rate
+	Give suggestions based on titles finished
+VN Tile
+	Displays VN's title, producer, release date, user-related status, rating and popularity, also displays VN's cover image (saved to disk)
+	Producer name will be yellow if it is a favorite producer
+	Tile color is based on user-related status
+Help Buttons
+	Each section has a yellow help button to explain that section's functions
 
 
 
 Currently Not Possible
 -------------------------
-add search by artist or search by voice actor (staff)
+add search by artist or search by voice actor (staff database not in api)
 show "list not public" error if list is hidden (it can only happen if user is not logged in with username/pass)
+make things pretty textured backgrounds (slows down loading form)

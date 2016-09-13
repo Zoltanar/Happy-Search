@@ -21,7 +21,7 @@ namespace Happy_Search
         private const string DbFile = "VNDBPC-database.sqlite";
 
         private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
-            //Pooling=True;Max Pool Size=100;
+        //Pooling=True;Max Pool Size=100;
 
         private const bool PrintGetMethods = false;
         public static SQLiteConnection DbConn;
@@ -79,6 +79,7 @@ namespace Happy_Search
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
         }
+
         public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command)
         {
             if (command == Command.Delete)
@@ -358,7 +359,7 @@ namespace Happy_Search
         public List<CharacterItem> GetAllCharacters()
         {
             var readerList = new List<CharacterItem>();
-            var selectString ="SELECT * FROM charlist;";
+            var selectString = "SELECT * FROM charlist;";
             if (PrintGetMethods) Debug.Print(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
@@ -367,7 +368,7 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Get titles developed by Producer given.
+        ///     Get titles developed by Producer given.
         /// </summary>
         /// <param name="userID">ID of current user</param>
         /// <param name="producerID">ID of producer</param>
@@ -501,6 +502,7 @@ namespace Happy_Search
             //must be in this order
             CreateProducerListTable();
             CreateVNListTable();
+            CreateCharacterListTable();
             CreateUserlistTable();
             CreateUserProdListTable();
             CreateTriggers();
@@ -548,20 +550,34 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
             command.ExecuteNonQuery();
         }
 
+        private static void CreateCharacterListTable()
+        {
+            var createCommand = @"CREATE TABLE ""charlist"" ( 
+`CharacterID` INTEGER NOT NULL UNIQUE, 
+`Name` TEXT, 
+`Image` TEXT, 
+`Traits` TEXT, 
+`VNs` TEXT, 
+`DateUpdated` INTEGER, 
+PRIMARY KEY(`CharacterID`) )";
+            var command = new SQLiteCommand(createCommand, DbConn);
+            command.ExecuteNonQuery();
+        }
+
         private static void CreateUserlistTable()
         {
             var createCommand =
                 @"CREATE TABLE `userlist` (
-	`VNID`	INTEGER,
-	`UserID`	INTEGER,
-	`ULStatus`	INTEGER,
-	`ULAdded`	INTEGER,
-	`ULNote`	TEXT,
-	`WLStatus`	INTEGER,
-	`WLAdded`	INTEGER,
-	`Vote`	INTEGER,
-	`VoteAdded`	INTEGER,
-	PRIMARY KEY(VNID,UserID)
+ `VNID`	INTEGER,
+ `UserID`	INTEGER,
+ `ULStatus`	INTEGER,
+ `ULAdded`	INTEGER,
+ `ULNote`	TEXT,
+ `WLStatus`	INTEGER,
+ `WLAdded`	INTEGER,
+ `Vote`	INTEGER,
+ `VoteAdded`	INTEGER,
+ PRIMARY KEY(VNID,UserID)
 )";
             var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
@@ -599,12 +615,21 @@ BEGIN
 	SET Updated=CURRENT_TIMESTAMP
 	WHERE ProducerID=OLD.ProducerID;
 END";
+            var createCommand3 =
+                @"CREATE TRIGGER [UpdateTimestampCharacterList] 
+AFTER UPDATE ON charlist FOR EACH ROW 
+BEGIN 
+UPDATE charlist SET DateUpdated=CURRENT_TIMESTAMP 
+WHERE CharacterID=OLD.CharacterID; 
+END";
             var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
             var command2 = new SQLiteCommand(createCommand2, DbConn);
             command2.ExecuteNonQuery();
+            var command3 = new SQLiteCommand(createCommand3, DbConn);
+            command3.ExecuteNonQuery();
         }
-        
+
         private static int SetImageStatus(bool imageNSFW)
         {
             var i = imageNSFW ? 1 : 0;
@@ -620,7 +645,7 @@ END";
 
 
         /// <summary>
-        /// Convert list of tags to JSON-formatted string.
+        ///     Convert list of tags to JSON-formatted string.
         /// </summary>
         /// <param name="tags">List of tags</param>
         /// <returns>JSON-formatted string</returns>
@@ -635,6 +660,5 @@ END";
         }
 
         #endregion
-
     }
 }
