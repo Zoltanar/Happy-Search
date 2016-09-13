@@ -147,9 +147,6 @@
   <data name="visual_novel_information" xml:space="preserve">
     <value>Visual Novel Information</value>
   </data>
-  <data name="loaded_ul_database" xml:space="preserve">
-    <value>Loaded userlist from database.</value>
-  </data>
   <data name="dbstats_error" xml:space="preserve">
     <value>DBS Error while requesting information. Response: </value>
   </data>
@@ -160,13 +157,10 @@
     <value>Must be integer</value>
   </data>
   <data name="are_you_sure" xml:space="preserve">
-    <value>Are you Sure?</value>
+    <value>Are you sure?</value>
   </data>
   <data name="query_error" xml:space="preserve">
     <value>Query Error</value>
-  </data>
-  <data name="yes" xml:space="preserve">
-    <value>Yes</value>
   </data>
   <data name="log_in_failure" xml:space="preserve">
     <value>Failed Log In</value>
@@ -176,9 +170,6 @@
   </data>
   <data name="ulr_query_error" xml:space="preserve">
     <value>ULR Query Error</value>
-  </data>
-  <data name="ul_received" xml:space="preserve">
-    <value>Userlist received.</value>
   </data>
   <data name="gul_query_error" xml:space="preserve">
     <value>GetUserList Query Error</value>
@@ -245,12 +236,6 @@ Are you sure?</value>
   </data>
   <data name="about_text" xml:space="preserve">
     <value>"{0} (Version {1}, for VNDB API {2})\nBy Zoltanar (https://vndb.org/u47063/)\nBuilt from onkelsam's app \"Visual Novel Database\" https://vndb.org/t3599.48 \nwho used fredthebarber's app for handling connection and queries https://vndb.org/t3599.41"</value>
-  </data>
-  <data name="about_line1" xml:space="preserve">
-    <value>Built from onkelsam's app "Visual Novel Database" https://vndb.org/t3599.48</value>
-  </data>
-  <data name="about_line2" xml:space="preserve">
-    <value>which used fredthebarber's app for handling connection and queries https://vndb.org/t3599.41</value>
   </data>
   <data name="cus_query_error" xml:space="preserve">
     <value>ChangeUserlistStatus Query Error</value>

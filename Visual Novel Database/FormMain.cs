@@ -38,6 +38,9 @@ namespace Happy_Search
         private const string TraitsJson = "traits.json";
         private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
+        internal const string ContentTag = "cont";
+        internal const string SexualTag = "ero";
+        internal const string TechnicalTag = "tech";
         internal const string ClientName = "Happy Search By Zolty";
         internal const string ClientVersion = "1.3";
         internal const string APIVersion = "2.25";
@@ -53,7 +56,7 @@ namespace Happy_Search
         internal readonly DbHelper DBConn;
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
-        private bool _dontTriggerEvent; //used to skip indexchanged events
+        internal bool DontTriggerEvent; //used to skip indexchanged events
         private List<ListedProducer> _producerList; //contains all producers in local database
         internal List<CharacterItem> CharacterList; //contains all producers in local database
         private List<ListedVN> _vnList; //contains all vns in local database
@@ -80,7 +83,7 @@ namespace Happy_Search
             InitializeComponent();
             SplashScreen.SplashScreen.SetStatus("Initializing Controls...");
             {
-                _dontTriggerEvent = true;
+                DontTriggerEvent = true;
                 ulStatusDropDown.SelectedIndex = 0;
                 wlStatusDropDown.SelectedIndex = 0;
                 customTagFilters.SelectedIndex = 0;
@@ -88,7 +91,7 @@ namespace Happy_Search
                 URTToggleBox.SelectedIndex = 0;
                 UnreleasedToggleBox.SelectedIndex = 0;
                 BlacklistToggleBox.SelectedIndex = 0;
-                _dontTriggerEvent = false;
+                DontTriggerEvent = false;
                 replyText.Text = "";
                 userListReply.Text = "";
                 resultLabel.Text = "";
@@ -125,9 +128,9 @@ https://github.com/FredTheBarber/VndbClient";
                 tagTypeC.Checked = Settings.Default.TagTypeC;
                 tagTypeS.Checked = Settings.Default.TagTypeS;
                 tagTypeT.Checked = Settings.Default.TagTypeT;
-                tagTypeC2.Checked = Settings.Default.TagTypeC2;
-                tagTypeS2.Checked = Settings.Default.TagTypeS2;
-                tagTypeT2.Checked = Settings.Default.TagTypeT2;
+                tagTypeC2.Checked = Settings.Default.TagTypeC;
+                tagTypeS2.Checked = Settings.Default.TagTypeS;
+                tagTypeT2.Checked = Settings.Default.TagTypeT;
                 nsfwToggle.Checked = Settings.Default.ShowNSFWImages;
                 autoUpdateURTBox.Checked = Settings.Default.AutoUpdateURT;
                 yearLimitBox.Checked = Settings.Default.Limit10Years;
@@ -194,14 +197,14 @@ https://github.com/FredTheBarber/VndbClient";
                 foreach (var filter in _customTagFilters) customTagFilters.Items.Add(filter.Name);
                 _customTraitFilters = xml.CustomTraitFilters;
                 foreach (var filter in _customTraitFilters) customTraitFilters.Items.Add(filter.Name);
-                _dontTriggerEvent = true;
+                DontTriggerEvent = true;
                 URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleSetting;
                 Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
                 UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleSetting;
                 Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
                 BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleSetting;
                 Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
-                _dontTriggerEvent = false;
+                DontTriggerEvent = false;
                 ApplyListFilters();
             }
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
@@ -568,7 +571,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 ulstatswl.Text = @"-";
                 ulstatsvl.Text = @"-";
                 ulstatsavs.Text = @"-";
-                DisplayCommonTagsULStats(null, null);
+                DisplayCommonTagsURT(null, null);
                 return;
             }
             var ulCount = 0;
@@ -588,7 +591,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             ulstatswl.Text = wlCount.ToString();
             ulstatsvl.Text = vlCount.ToString();
             ulstatsavs.Text = (cumulativeScore / vlCount).ToString("#.##");
-            DisplayCommonTagsULStats(null, null);
+            DisplayCommonTagsURT(null, null);
         }
 
         #endregion
@@ -725,25 +728,47 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Display ten most common tags in the current list. Takes time when list contains over 9000 titles.
         /// </summary>
-        private void DisplayCommonTags(object sender, EventArgs e)
+        internal void DisplayCommonTags(object sender, EventArgs e)
         {
             //TODO use one predefined thread, so that this only occurs once at a time instead of overlapping eachother
-            if (sender != null)
+            if (sender != null && !DontTriggerEvent)
             {
                 var checkBox = (CheckBox)sender;
+                DontTriggerEvent = true;
+                IEnumerable<VisualNovelForm> vnForms = Application.OpenForms.OfType<VisualNovelForm>();
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
                         Settings.Default.TagTypeC = checkBox.Checked;
+                        tagTypeC2.Checked = checkBox.Checked;
+                        foreach (var vnForm in vnForms)
+                        {
+                            vnForm.tagTypeC.Checked = checkBox.Checked;
+                            vnForm.DisplayTags(null, null);
+                        }
                         break;
                     case "tagTypeS":
                         Settings.Default.TagTypeS = checkBox.Checked;
+                        tagTypeS2.Checked = checkBox.Checked;
+                        foreach (var vnForm in vnForms)
+                        {
+                            vnForm.tagTypeC.Checked = checkBox.Checked;
+                            vnForm.DisplayTags(null, null);
+                        }
                         break;
                     case "tagTypeT":
                         Settings.Default.TagTypeT = checkBox.Checked;
+                        tagTypeT2.Checked = checkBox.Checked;
+                        foreach (var vnForm in vnForms)
+                        {
+                            vnForm.tagTypeC.Checked = checkBox.Checked;
+                            vnForm.DisplayTags(null, null);
+                        }
                         break;
                 }
+                DontTriggerEvent = false;
                 Settings.Default.Save();
+                DisplayCommonTagsURT(null, null);
             }
             List<ListedVN> vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToList();
             var vnCount = vnlist.Count;
@@ -778,9 +803,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     {
                         var tagtag = PlainTags.Find(item => item.ID == tag.ID);
                         if (tagtag == null) continue;
-                        if (tagtag.Cat.Equals("cont") && Settings.Default.TagTypeC == false) continue;
-                        if (tagtag.Cat.Equals("ero") && Settings.Default.TagTypeS == false) continue;
-                        if (tagtag.Cat.Equals("tech") && Settings.Default.TagTypeT == false) continue;
+                        if (tagtag.Cat.Equals(ContentTag) && Settings.Default.TagTypeC == false) continue;
+                        if (tagtag.Cat.Equals(SexualTag) && Settings.Default.TagTypeS == false) continue;
+                        if (tagtag.Cat.Equals(TechnicalTag) && Settings.Default.TagTypeT == false) continue;
                         if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
                         if (taglist.ContainsKey(tag.ID))
                         {
@@ -825,7 +850,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Display ten most common tags in user related titles.
         /// </summary>
-        private void DisplayCommonTagsULStats(object sender, EventArgs e)
+        internal void DisplayCommonTagsURT(object sender, EventArgs e)
         {
             if (!URTList.Any())
             {
@@ -840,22 +865,28 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 return;
             }
             //userlist stats - most common tags
-            if (sender != null)
+            if (sender != null && !DontTriggerEvent)
             {
                 var checkBox = (CheckBox)sender;
+                DontTriggerEvent = true;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC2":
-                        Settings.Default.TagTypeC2 = checkBox.Checked;
+                        Settings.Default.TagTypeC = checkBox.Checked;
+                        tagTypeC.Checked = checkBox.Checked;
                         break;
                     case "tagTypeS2":
-                        Settings.Default.TagTypeS2 = checkBox.Checked;
+                        Settings.Default.TagTypeS = checkBox.Checked;
+                        tagTypeS.Checked = checkBox.Checked;
                         break;
                     case "tagTypeT2":
-                        Settings.Default.TagTypeT2 = checkBox.Checked;
+                        Settings.Default.TagTypeT = checkBox.Checked;
+                        tagTypeT.Checked = checkBox.Checked;
                         break;
                 }
+                DontTriggerEvent = false;
                 Settings.Default.Save();
+                DisplayCommonTags(null, null);
             }
 
             if (tagTypeC2.Checked == false && tagTypeS2.Checked == false && tagTypeT2.Checked == false)
@@ -880,9 +911,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 {
                     var tagtag = PlainTags.Find(item => item.ID == tag.ID);
                     if (tagtag == null) continue;
-                    if (tagtag.Cat.Equals("cont") && tagTypeC2.Checked == false) continue;
-                    if (tagtag.Cat.Equals("ero") && tagTypeS2.Checked == false) continue;
-                    if (tagtag.Cat.Equals("tech") && tagTypeT2.Checked == false) continue;
+                    if (tagtag.Cat.Equals(ContentTag) && tagTypeC2.Checked == false) continue;
+                    if (tagtag.Cat.Equals(SexualTag) && tagTypeS2.Checked == false) continue;
+                    if (tagtag.Cat.Equals(TechnicalTag) && tagTypeT2.Checked == false) continue;
                     if (ulTagList.ContainsKey(tag.ID))
                     {
                         ulTagList[tag.ID] = ulTagList[tag.ID] + 1;

@@ -54,6 +54,9 @@
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.vnTraitsCB = new System.Windows.Forms.ComboBox();
+            this.tagTypeS = new System.Windows.Forms.CheckBox();
+            this.tagTypeT = new System.Windows.Forms.CheckBox();
+            this.tagTypeC = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.SuspendLayout();
             // 
@@ -89,7 +92,7 @@
             this.vnTagCB.FormattingEnabled = true;
             this.vnTagCB.Location = new System.Drawing.Point(75, 51);
             this.vnTagCB.Name = "vnTagCB";
-            this.vnTagCB.Size = new System.Drawing.Size(336, 21);
+            this.vnTagCB.Size = new System.Drawing.Size(219, 21);
             this.vnTagCB.TabIndex = 48;
             // 
             // label5
@@ -347,6 +350,45 @@
             this.vnTraitsCB.Size = new System.Drawing.Size(336, 21);
             this.vnTraitsCB.TabIndex = 68;
             // 
+            // tagTypeS
+            // 
+            this.tagTypeS.AutoSize = true;
+            this.tagTypeS.BackColor = System.Drawing.Color.Transparent;
+            this.tagTypeS.Checked = true;
+            this.tagTypeS.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tagTypeS.Location = new System.Drawing.Point(339, 53);
+            this.tagTypeS.Name = "tagTypeS";
+            this.tagTypeS.Size = new System.Drawing.Size(33, 17);
+            this.tagTypeS.TabIndex = 71;
+            this.tagTypeS.Text = "S";
+            this.tagTypeS.UseVisualStyleBackColor = false;
+            // 
+            // tagTypeT
+            // 
+            this.tagTypeT.AutoSize = true;
+            this.tagTypeT.BackColor = System.Drawing.Color.Transparent;
+            this.tagTypeT.Checked = true;
+            this.tagTypeT.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tagTypeT.Location = new System.Drawing.Point(378, 53);
+            this.tagTypeT.Name = "tagTypeT";
+            this.tagTypeT.Size = new System.Drawing.Size(33, 17);
+            this.tagTypeT.TabIndex = 70;
+            this.tagTypeT.Text = "T";
+            this.tagTypeT.UseVisualStyleBackColor = false;
+            // 
+            // tagTypeC
+            // 
+            this.tagTypeC.AutoSize = true;
+            this.tagTypeC.BackColor = System.Drawing.Color.Transparent;
+            this.tagTypeC.Checked = true;
+            this.tagTypeC.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tagTypeC.Location = new System.Drawing.Point(300, 53);
+            this.tagTypeC.Name = "tagTypeC";
+            this.tagTypeC.Size = new System.Drawing.Size(33, 17);
+            this.tagTypeC.TabIndex = 69;
+            this.tagTypeC.Text = "C";
+            this.tagTypeC.UseVisualStyleBackColor = false;
+            // 
             // VisualNovelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -354,6 +396,9 @@
             this.BackColor = System.Drawing.Color.Gray;
             this.BackgroundImage = global::Happy_Search.Properties.Resources.dark_striped;
             this.ClientSize = new System.Drawing.Size(1386, 455);
+            this.Controls.Add(this.tagTypeS);
+            this.Controls.Add(this.tagTypeT);
+            this.Controls.Add(this.tagTypeC);
             this.Controls.Add(this.vnTraitsCB);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label7);
@@ -388,6 +433,7 @@
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveWindowLeftclick);
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -419,5 +465,8 @@
         internal System.Windows.Forms.Label label7;
         internal System.Windows.Forms.Label label8;
         internal System.Windows.Forms.ComboBox vnTraitsCB;
+        private System.Windows.Forms.CheckBox tagTypeS;
+        private System.Windows.Forms.CheckBox tagTypeT;
+        internal System.Windows.Forms.CheckBox tagTypeC;
     }
 }

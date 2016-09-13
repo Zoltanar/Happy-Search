@@ -259,7 +259,7 @@ namespace Happy_Search
             this.tagTypeS2.TabIndex = 63;
             this.tagTypeS2.Text = "S";
             this.tagTypeS2.UseVisualStyleBackColor = true;
-            this.tagTypeS2.Click += new System.EventHandler(this.DisplayCommonTagsULStats);
+            this.tagTypeS2.Click += new System.EventHandler(this.DisplayCommonTagsURT);
             // 
             // tagTypeT2
             // 
@@ -272,7 +272,7 @@ namespace Happy_Search
             this.tagTypeT2.TabIndex = 62;
             this.tagTypeT2.Text = "T";
             this.tagTypeT2.UseVisualStyleBackColor = true;
-            this.tagTypeT2.Click += new System.EventHandler(this.DisplayCommonTagsULStats);
+            this.tagTypeT2.Click += new System.EventHandler(this.DisplayCommonTagsURT);
             // 
             // tagTypeC2
             // 
@@ -285,7 +285,7 @@ namespace Happy_Search
             this.tagTypeC2.TabIndex = 61;
             this.tagTypeC2.Text = "C";
             this.tagTypeC2.UseVisualStyleBackColor = true;
-            this.tagTypeC2.Click += new System.EventHandler(this.DisplayCommonTagsULStats);
+            this.tagTypeC2.Click += new System.EventHandler(this.DisplayCommonTagsURT);
             // 
             // getNewProducersButton
             // 
@@ -2469,9 +2469,9 @@ namespace Happy_Search
         private Label mctULLabel3;
         private Label mctULLabel2;
         private Label mctULLabel1;
-        private CheckBox tagTypeS2;
-        private CheckBox tagTypeT2;
-        private CheckBox tagTypeC2;
+        internal CheckBox tagTypeS2;
+        internal CheckBox tagTypeT2;
+        internal CheckBox tagTypeC2;
         private Label label13;
         private Label ulstatsavs;
         private Label label12;
@@ -2580,15 +2580,15 @@ namespace Happy_Search
         private Button deleteCustomTagFilterButton;
         private ComboBox customTagFilters;
         private CheckBox checkBox2;
-        private CheckBox tagTypeC;
+        internal CheckBox tagTypeC;
         private Button saveCustomFilterButton;
         private CheckBox checkBox4;
         private CheckBox checkBox3;
-        private CheckBox tagTypeT;
+        internal CheckBox tagTypeT;
         private Label mctLoadingLabel;
         private CheckBox checkBox5;
         private CheckBox checkBox6;
-        private CheckBox tagTypeS;
+        internal CheckBox tagTypeS;
         private Label label2;
         private Button updateToLatestVersionButton;
         private OLVColumn tileColumnRating;

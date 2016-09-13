@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 
 namespace Happy_Search
 {
+
     //object received by 'get vn' command
     public class VNRoot
     {
@@ -170,6 +171,16 @@ namespace Happy_Search
             return plainTags.Find(item => item.ID == ID)?.Name;
         }
 
+        public string GetCategory(List<WrittenTag> plainTags)
+        {
+            return plainTags.Find(item => item.ID == ID)?.Cat;
+        }
+
+        /// <summary>
+        /// Return string with Tag name and score, if tag isn't found in list, "Not Approved" is returned.
+        /// </summary>
+        /// <param name="plainTags">List of tags from tagdump</param>
+        /// <returns>String with tag name and score</returns>
         public string Print(List<WrittenTag> plainTags)
         {
             var name = GetName(plainTags);
@@ -509,6 +520,6 @@ namespace Happy_Search
             AllIDs = children.Union(new[] { ID }).ToArray();
         }
     }
-
+    
 
 }

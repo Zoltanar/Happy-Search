@@ -73,42 +73,6 @@ namespace Happy_Search.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool TagTypeC2 {
-            get {
-                return ((bool)(this["TagTypeC2"]));
-            }
-            set {
-                this["TagTypeC2"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool TagTypeS2 {
-            get {
-                return ((bool)(this["TagTypeS2"]));
-            }
-            set {
-                this["TagTypeS2"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool TagTypeT2 {
-            get {
-                return ((bool)(this["TagTypeT2"]));
-            }
-            set {
-                this["TagTypeT2"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ShowNSFWImages {
             get {

@@ -147,11 +147,11 @@ namespace Happy_Search
         /// </summary>
         private void List_ClearOther()
         {
-            _dontTriggerEvent = true;
+            DontTriggerEvent = true;
             ulStatusDropDown.SelectedIndex = 0;
             wlStatusDropDown.SelectedIndex = 0;
             ProducerListBox.Text = "";
-            _dontTriggerEvent = false;
+            DontTriggerEvent = false;
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Happy_Search
         /// </summary>
         private void List_FavoriteProducers(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             List_ClearOther();
             if (olFavoriteProducers.Items.Count == 0)
             {
@@ -178,7 +178,7 @@ namespace Happy_Search
         /// </summary>
         private void List_ULStatus(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {
@@ -215,9 +215,9 @@ namespace Happy_Search
             }
             var value = dropdownlist.SelectedIndex;
             List_ClearOther();
-            _dontTriggerEvent = true;
+            DontTriggerEvent = true;
             ulStatusDropDown.SelectedIndex = value;
-            _dontTriggerEvent = false;
+            DontTriggerEvent = false;
             RefreshVNList();
         }
 
@@ -226,7 +226,7 @@ namespace Happy_Search
         /// </summary>
         private void List_WLStatus(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {
@@ -259,9 +259,9 @@ namespace Happy_Search
             }
             var value = dropdownlist.SelectedIndex;
             List_ClearOther();
-            _dontTriggerEvent = true;
+            DontTriggerEvent = true;
             wlStatusDropDown.SelectedIndex = value;
-            _dontTriggerEvent = false;
+            DontTriggerEvent = false;
             RefreshVNList();
         }
 
@@ -318,7 +318,7 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_URT(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
             ApplyListFilters();
         }
@@ -330,7 +330,7 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_Unreleased(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
             ApplyListFilters();
         }
@@ -342,7 +342,7 @@ namespace Happy_Search
         /// <param name="e"></param>
         private void Filter_Blacklist(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
             ApplyListFilters();
         }
@@ -650,7 +650,7 @@ namespace Happy_Search
         /// </summary>
         private void OLVChangeView(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             var cb = (ComboBox)sender;
             switch (cb.SelectedIndex)
             {

@@ -1,4 +1,4 @@
-Next Milestone (1.3) == search vn by character traits (eg. get all vns with characters with twin tails)
+Next Milestone == ??
 
 No Work
 ---------------
@@ -13,7 +13,6 @@ add 'exclude tag' filters
 refresh favorite producers list when throttling fav pro commands
 backup sqlite database!
 --
-control types of tags displayed in vn form (cst)
 light switches next to toggle filters to indicate if tag or trait filtering is in use
 
 
@@ -80,6 +79,7 @@ added: download/decompress and keep updated trait dump file
 added: character info in vn form
 added: relation field 'official' in vn form
 -1.3 above-
+added: control tags shown in vn form
 
 
 

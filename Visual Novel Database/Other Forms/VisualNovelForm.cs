@@ -23,6 +23,7 @@ namespace Happy_Search
         private const int HT_CAPTION = 0x2;
         private readonly FormMain _parentForm;
         private const int ScreenshotPadding = 10;
+        private ListedVN displayedVN;
 
         /// <summary>
         /// Load VN form with specified Visual Novel.
@@ -34,7 +35,71 @@ namespace Happy_Search
             _parentForm = parentForm;
             Text = $"{FormMain.ClientName} - {vnItem.Title}";
             InitializeComponent();
+            tagTypeC.Checked = Settings.Default.TagTypeC;
+            tagTypeS.Checked = Settings.Default.TagTypeS;
+            tagTypeT.Checked = Settings.Default.TagTypeT;
+            tagTypeC.CheckedChanged += DisplayTags;
+            tagTypeS.CheckedChanged += DisplayTags;
+            tagTypeT.CheckedChanged += DisplayTags;
             SetData(vnItem);
+        }
+
+        internal void DisplayTags(object sender, EventArgs e)
+        {
+            if (sender != null && !_parentForm.DontTriggerEvent)
+            {
+
+                var checkBox = (CheckBox)sender;
+                _parentForm.DontTriggerEvent = true;
+                switch (checkBox.Name)
+                {
+                    case "tagTypeC":
+                        Settings.Default.TagTypeC = checkBox.Checked;
+                        _parentForm.tagTypeC.Checked = checkBox.Checked;
+                        _parentForm.tagTypeC2.Checked = checkBox.Checked;
+                        break;
+                    case "tagTypeS":
+                        Settings.Default.TagTypeS = checkBox.Checked;
+                        _parentForm.tagTypeS.Checked = checkBox.Checked;
+                        _parentForm.tagTypeS2.Checked = checkBox.Checked;
+                        break;
+                    case "tagTypeT":
+                        Settings.Default.TagTypeT = checkBox.Checked;
+                        _parentForm.tagTypeT.Checked = checkBox.Checked;
+                        _parentForm.tagTypeT2.Checked = checkBox.Checked;
+                        break;
+                }
+                _parentForm.DontTriggerEvent = false;
+                _parentForm.DisplayCommonTags(null, null);
+                _parentForm.DisplayCommonTagsURT(null, null);
+                Settings.Default.Save();
+            }
+            if (displayedVN == null || displayedVN.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
+            else
+            {
+                List<TagItem> allTags = FormMain.StringToTags(displayedVN.Tags);
+                var visibleTags = new List<TagItem>();
+                foreach (var tag in allTags)
+                {
+                    var cat = tag.GetCategory(_parentForm.PlainTags);
+                    switch (cat)
+                    {
+                        case FormMain.ContentTag:
+                            if (!tagTypeC.Checked) continue;
+                            break;
+                        case FormMain.SexualTag:
+                            if (!tagTypeS.Checked) continue;
+                            break;
+                        case FormMain.TechnicalTag:
+                            if (!tagTypeT.Checked) continue;
+                            break;
+                    }
+                    visibleTags.Add(tag);
+                }
+                List<string> stringList = visibleTags.Select(x => x.Print(_parentForm.PlainTags)).ToList();
+                stringList.Sort();
+                vnTagCB.DataSource = stringList;
+            }
         }
 
         /// <returns>The text associated with this control.</returns>
@@ -63,15 +128,10 @@ namespace Happy_Search
         private async void SetData(ListedVN vnItem)
         {
             //prepare data
+            displayedVN = vnItem;
             var ext = Path.GetExtension(vnItem.ImageURL);
             var imageLoc = $"vnImages\\{vnItem.VNID}{ext}";
-            if (vnItem.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
-            else
-            {
-                List<string> taglist = FormMain.StringToTags(vnItem.Tags).Select(tag => tag.Print(_parentForm.PlainTags)).Where(printed => !printed.Equals("Not Approved")).ToList();
-                taglist.Sort();
-                vnTagCB.DataSource = taglist;
-            }
+            DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             var taskResult = await GetVNRelations(vnItem);
@@ -99,6 +159,7 @@ namespace Happy_Search
 
         private void SetDeletedData()
         {
+            displayedVN = null;
             vnName.Text = @"This VN was deleted.";
             vnKanjiName.Text = "";
             vnProducer.Text = "";

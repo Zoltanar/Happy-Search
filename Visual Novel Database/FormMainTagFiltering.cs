@@ -42,10 +42,10 @@ namespace Happy_Search
             if (!checkbox.Checked) return;
             var indexOfLastBracket = checkbox.Text.LastIndexOf('(');
             var tagName = checkbox.Text.Substring(0, indexOfLastBracket).Trim();
-            _dontTriggerEvent = true;
+            DontTriggerEvent = true;
             customTagFilters.SelectedIndex = 0;
             deleteCustomTagFilterButton.Enabled = false;
-            _dontTriggerEvent = false;
+            DontTriggerEvent = false;
             AddFilterTag(tagName);
         }
 
@@ -63,10 +63,10 @@ namespace Happy_Search
             //Filter Removed
             var filterNo = Convert.ToInt32(checkbox.Name.Remove(0, TagLabel.Length));
             _activeTagFilter.RemoveAt(filterNo);
-            _dontTriggerEvent = true;
+            DontTriggerEvent = true;
             customTagFilters.SelectedIndex = 0;
             deleteCustomTagFilterButton.Enabled = false;
-            _dontTriggerEvent = false;
+            DontTriggerEvent = false;
             DisplayFilterTags();
         }
 
@@ -286,7 +286,7 @@ namespace Happy_Search
         /// </summary>
         private void Filter_CustomTags(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {

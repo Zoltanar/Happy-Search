@@ -14,19 +14,10 @@
     <Setting Name="TagTypeT" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="TagTypeC2" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="TagTypeS2" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="TagTypeT2" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="ShowNSFWImages" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="TagdumpUpdate" Type="System.DateTime" Scope="User">
+    <Setting Name="DumpfilesUpdate" Type="System.DateTime" Scope="User">
       <Value Profile="(Default)">1970-01-01</Value>
     </Setting>
     <Setting Name="DBStatsUpdate" Type="System.DateTime" Scope="User">

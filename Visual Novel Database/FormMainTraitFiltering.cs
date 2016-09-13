@@ -53,7 +53,7 @@ namespace Happy_Search
         /// </summary>
         private void Filter_CustomTraits(object sender, EventArgs e)
         {
-            if (_dontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             switch (customTraitFilters.SelectedIndex)
             {
                 case 0:

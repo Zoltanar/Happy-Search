@@ -70,24 +70,6 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Built from onkelsam&apos;s app &quot;Visual Novel Database&quot; https://vndb.org/t3599.48.
-        /// </summary>
-        internal static string about_line1 {
-            get {
-                return ResourceManager.GetString("about_line1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to which used fredthebarber&apos;s app for handling connection and queries https://vndb.org/t3599.41.
-        /// </summary>
-        internal static string about_line2 {
-            get {
-                return ResourceManager.GetString("about_line2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &quot;{0} (Version {1}, for VNDB API {2})\nBy Zoltanar (https://vndb.org/u47063/)\nBuilt from onkelsam&apos;s app \&quot;Visual Novel Database\&quot; https://vndb.org/t3599.48 \nwho used fredthebarber&apos;s app for handling connection and queries https://vndb.org/t3599.41&quot;.
         /// </summary>
         internal static string about_text {
@@ -106,7 +88,7 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Are you Sure?.
+        ///   Looks up a localized string similar to Are you sure?.
         /// </summary>
         internal static string are_you_sure {
             get {
@@ -378,15 +360,6 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Loaded userlist from database..
-        /// </summary>
-        internal static string loaded_ul_database {
-            get {
-                return ResourceManager.GetString("loaded_ul_database", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Loading....
         /// </summary>
         internal static string loading {
@@ -544,15 +517,6 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Userlist received..
-        /// </summary>
-        internal static string ul_received {
-            get {
-                return ResourceManager.GetString("ul_received", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ULR Query Error.
         /// </summary>
         internal static string ulr_query_error {
@@ -649,15 +613,6 @@ namespace Happy_Search.Properties {
         internal static string vn_updated {
             get {
                 return ResourceManager.GetString("vn_updated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Yes.
-        /// </summary>
-        internal static string yes {
-            get {
-                return ResourceManager.GetString("yes", resourceCulture);
             }
         }
     }
