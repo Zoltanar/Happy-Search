@@ -92,9 +92,9 @@ namespace Happy_Search
         {
             ReloadLists();
             if (!vnIDs.Any()) return;
-            int[] current25 = vnIDs.Take(25).ToArray();
-            string first25 = '[' + string.Join(",", current25) + ']';
-            string charsForVNQuery = $"get character traits,vns (vn = {first25}) {{{APIMaxResults}}}";
+            int[] currentArray = vnIDs.Take(APIMaxResults).ToArray();
+            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
+            string charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
             if (!queryResult) return;
             var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
@@ -109,7 +109,7 @@ namespace Happy_Search
             while (moreResults)
             {
                 pageNo++;
-                charsForVNQuery = $"get character traits,vns (vn = {first25}) {{{APIMaxResults}, \"page\":{pageNo}}}";
+                charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
@@ -121,12 +121,12 @@ namespace Happy_Search
                 }
                 moreResults = charRoot.More;
             }
-            int done = 25;
+            int done = APIMaxResults;
             while (done < vnIDs.Length)
             {
-                current25 = vnIDs.Skip(done).Take(25).ToArray();
-                string next25 = '[' + string.Join(",", current25) + ']';
-                charsForVNQuery = $"get character traits,vns (vn = {next25}) {{{APIMaxResults}}}";
+                currentArray = vnIDs.Skip(done).Take(APIMaxResults).ToArray();
+                currentArrayString = '[' + string.Join(",", currentArray) + ']';
+                charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
@@ -141,7 +141,7 @@ namespace Happy_Search
                 while (moreResults)
                 {
                     pageNo++;
-                    charsForVNQuery = $"get character traits,vns (vn = {next25}) {{{APIMaxResults}, \"page\":{pageNo}}}";
+                    charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                     queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                     if (!queryResult) return;
                     charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
@@ -153,7 +153,7 @@ namespace Happy_Search
                     }
                     moreResults = charRoot.More;
                 }
-                done += 25;
+                done += APIMaxResults;
             }
         }
 
@@ -253,17 +253,17 @@ namespace Happy_Search
             }
             else vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
-            int[] current25 = vnsToGet.Take(25).ToArray();
-            string first25 = '[' + string.Join(",", current25) + ']';
-            string multiVNQuery = $"get vn basic,details,tags,stats (id = {first25}) {{{APIMaxResults}}}";
+            int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
+            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
+            string multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num < current25.Length)
+            if (vnRoot.Num < currentArray.Length)
             {
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
-                IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
                 DBConn.Open();
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                 DBConn.Close();
@@ -278,21 +278,21 @@ namespace Happy_Search
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();
             }
-            await GetCharactersForMultipleVN(current25, replyLabel);
-            int done = 25;
+            await GetCharactersForMultipleVN(currentArray, replyLabel);
+            int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
-                current25 = vnsToGet.Skip(done).Take(25).ToArray();
-                string next25 = '[' + string.Join(",", current25) + ']';
-                multiVNQuery = $"get vn basic,details,tags (id = {next25}) {{{APIMaxResults}}}";
+                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
+                currentArrayString = '[' + string.Join(",", currentArray) + ']';
+                multiVNQuery = $"get vn basic,details,tags (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num < current25.Length)
+                if (vnRoot.Num < currentArray.Length)
                 {
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
-                    IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                    IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
                     DBConn.Open();
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                     DBConn.Close();
@@ -307,8 +307,8 @@ namespace Happy_Search
                     DBConn.UpsertSingleVN(vnItem, relProducer, false);
                     DBConn.Close();
                 }
-                await GetCharactersForMultipleVN(current25, replyLabel);
-                done += 25;
+                await GetCharactersForMultipleVN(currentArray, replyLabel);
+                done += APIMaxResults;
             }
         }
 
@@ -323,17 +323,17 @@ namespace Happy_Search
             _vnsAdded = 0;
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
-            int[] current25 = vnsToGet.Take(25).ToArray();
-            string first25 = '[' + string.Join(",", current25) + ']';
-            string multiVNQuery = $"get vn stats (id = {first25}) {{{APIMaxResults}}}";
+            int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
+            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
+            string multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num < current25.Length)
+            if (vnRoot.Num < currentArray.Length)
             {
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
-                IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
                 DBConn.Open();
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                 DBConn.Close();
@@ -345,20 +345,20 @@ namespace Happy_Search
                 _vnsAdded++;
             }
             DBConn.Close();
-            int done = 25;
+            int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
-                current25 = vnsToGet.Skip(done).Take(25).ToArray();
-                string next25 = '[' + string.Join(",", current25) + ']';
-                multiVNQuery = $"get vn stats (id = {next25}) {{{APIMaxResults}}}";
+                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
+                currentArrayString = '[' + string.Join(",", currentArray) + ']';
+                multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num < current25.Length)
+                if (vnRoot.Num < currentArray.Length)
                 {
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
-                    IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                    IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
                     DBConn.Open();
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                     DBConn.Close();
@@ -370,7 +370,7 @@ namespace Happy_Search
                     _vnsAdded++;
                 }
                 DBConn.Close();
-                done += 25;
+                done += APIMaxResults;
             }
         }
 
@@ -385,17 +385,17 @@ namespace Happy_Search
             _vnsAdded = 0;
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
-            int[] current25 = vnsToGet.Take(25).ToArray();
-            string first25 = '[' + string.Join(",", current25) + ']';
-            string multiVNQuery = $"get vn tags (id = {first25}) {{{APIMaxResults}}}";
+            int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
+            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
+            string multiVNQuery = $"get vn tags (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num < current25.Length)
+            if (vnRoot.Num < currentArray.Length)
             {
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
-                IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
                 DBConn.Open();
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                 DBConn.Close();
@@ -407,21 +407,21 @@ namespace Happy_Search
                 _vnsAdded++;
             }
             DBConn.Close();
-            await GetCharactersForMultipleVN(current25, replyLabel, true, true);
-            int done = 25;
+            await GetCharactersForMultipleVN(currentArray, replyLabel, true, true);
+            int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
-                current25 = vnsToGet.Skip(done).Take(25).ToArray();
-                string next25 = '[' + string.Join(",", current25) + ']';
-                multiVNQuery = $"get vn tags (id = {next25}) {{{APIMaxResults}}}";
+                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
+                currentArrayString = '[' + string.Join(",", currentArray) + ']';
+                multiVNQuery = $"get vn tags (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num < current25.Length)
+                if (vnRoot.Num < currentArray.Length)
                 {
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
-                    IEnumerable<int> deletedVNs = current25.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+                    IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
                     DBConn.Open();
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                     DBConn.Close();
@@ -433,8 +433,8 @@ namespace Happy_Search
                     _vnsAdded++;
                 }
                 DBConn.Close();
-                await GetCharactersForMultipleVN(current25, replyLabel, true, true);
-                done += 25;
+                await GetCharactersForMultipleVN(currentArray, replyLabel, true, true);
+                done += APIMaxResults;
             }
         }
 
@@ -449,7 +449,7 @@ namespace Happy_Search
         /// <returns></returns>
         internal async Task<int> GetDeveloper(int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
-            string developerQuery = $"get release basic,producers (vn =\"{vnid}\") {{{APIMaxResults}}}";
+            string developerQuery = $"get release basic,producers (vn =\"{vnid}\") {{{MaxResultsString}}}";
             var releaseResult =
                 await TryQuery(developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
             if (!releaseResult) return -1;

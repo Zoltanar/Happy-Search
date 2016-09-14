@@ -42,7 +42,8 @@ namespace Happy_Search
         internal const string ClientName = "Happy Search By Zolty";
         internal const string ClientVersion = "1.3";
         internal const string APIVersion = "2.25";
-        private const string APIMaxResults = "\"results\":25";
+        private const int APIMaxResults = 25;
+        internal static readonly string MaxResultsString = $"\"results\":{APIMaxResults}";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         private const string MainXmlFile = "saved_objects.xml";
         private static readonly Color ErrorColor = Color.Red;

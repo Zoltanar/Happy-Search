@@ -49,7 +49,7 @@ namespace Happy_Search
             }
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            string vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}}}";
+            string vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{MaxResultsString}}}";
             var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -60,7 +60,7 @@ namespace Happy_Search
             while (moreResults)
             {
                 pageNo++;
-                vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{APIMaxResults}, \"page\":{pageNo}}}";
+                vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -101,7 +101,7 @@ namespace Happy_Search
             _vnsAdded = 0;
             _vnsSkipped = 0;
             string vnInfoQuery =
-                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{APIMaxResults}}}";
+                $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}}}";
             var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -113,7 +113,7 @@ namespace Happy_Search
             {
                 pageNo++;
                 string vnInfoMoreQuery =
-                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{APIMaxResults}, \"page\":{pageNo}}}";
+                    $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true, true);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);

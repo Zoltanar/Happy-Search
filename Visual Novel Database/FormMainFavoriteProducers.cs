@@ -194,7 +194,7 @@ namespace Happy_Search
         private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
         {
             Debug.Print($"Getting Titles for Producer {producer.Name}");
-            string prodReleaseQuery = $"get release vn,producers (producer={producer.ID}) {{\"results\":25}}";
+            string prodReleaseQuery = $"get release vn,producers (producer={producer.ID}) {{{MaxResultsString}}}";
             var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
@@ -214,7 +214,7 @@ namespace Happy_Search
             {
                 pageNo++;
                 string prodReleaseMoreQuery =
-                    $"get release vn,producers (producer={producer.ID}) {{\"results\":25, \"page\":{pageNo}}}";
+                    $"get release vn,producers (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
                 if (!moreResult) return;
                 var releaseMoreRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);

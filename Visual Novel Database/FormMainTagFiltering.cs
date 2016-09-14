@@ -255,7 +255,7 @@ namespace Happy_Search
             _vnsSkipped = 0;
             IEnumerable<string> betterTags = _activeTagFilter.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
-            string tagQuery = $"get vn basic ({tags}) {{{APIMaxResults}}}";
+            string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
             var result = await TryQuery(tagQuery, "UCF Query Error", replyLabel, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -267,7 +267,7 @@ namespace Happy_Search
             while (moreResults)
             {
                 pageNo++;
-                string moreTagQuery = $"get vn basic ({tags}) {{{APIMaxResults}, \"page\":{pageNo}}}";
+                string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyLabel, true, true);
                 if (!moreResult) return;
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
