@@ -59,7 +59,7 @@ namespace Happy_Search
             this.tagSearchBox = new System.Windows.Forms.TextBox();
             this.yearBox = new System.Windows.Forms.TextBox();
             this.updateToLatestVersionButton = new System.Windows.Forms.Button();
-            this.updateTitleTagsButton = new System.Windows.Forms.Button();
+            this.updateTagsAndTraitsButton = new System.Windows.Forms.Button();
             this.traitSearchBox = new System.Windows.Forms.TextBox();
             this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
             this.infoTab = new System.Windows.Forms.TabPage();
@@ -153,6 +153,7 @@ namespace Happy_Search
             this.ol2Name = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2ItemCount = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2UserAverageVote = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2GeneralRating = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2UserDropRate = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2Loaded = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2Updated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -513,17 +514,17 @@ namespace Happy_Search
             this.updateToLatestVersionButton.UseVisualStyleBackColor = true;
             this.updateToLatestVersionButton.Click += new System.EventHandler(this.UpdateTitlesToLatestVersionClick);
             // 
-            // updateTitleTagsButton
+            // updateTagsAndTraitsButton
             // 
-            this.updateTitleTagsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateTitleTagsButton.Location = new System.Drawing.Point(3, 123);
-            this.updateTitleTagsButton.Name = "updateTitleTagsButton";
-            this.updateTitleTagsButton.Size = new System.Drawing.Size(131, 23);
-            this.updateTitleTagsButton.TabIndex = 91;
-            this.updateTitleTagsButton.Text = "Update Title Tags";
-            this.toolTip.SetToolTip(this.updateTitleTagsButton, "Update tags of titles that haven\'t been updated in over 7 days");
-            this.updateTitleTagsButton.UseVisualStyleBackColor = true;
-            this.updateTitleTagsButton.Click += new System.EventHandler(this.UpdateTitleTagsClick);
+            this.updateTagsAndTraitsButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 123);
+            this.updateTagsAndTraitsButton.Name = "updateTagsAndTraitsButton";
+            this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(131, 23);
+            this.updateTagsAndTraitsButton.TabIndex = 91;
+            this.updateTagsAndTraitsButton.Text = "Update Tags And Traits";
+            this.toolTip.SetToolTip(this.updateTagsAndTraitsButton, "Update tags of titles that haven\'t been updated in over 7 days");
+            this.updateTagsAndTraitsButton.UseVisualStyleBackColor = true;
+            this.updateTagsAndTraitsButton.Click += new System.EventHandler(this.UpdateTagsAndTraitsClick);
             // 
             // traitSearchBox
             // 
@@ -1551,8 +1552,9 @@ namespace Happy_Search
             // 
             this.olFavoriteProducers.AllColumns.Add(this.ol2Name);
             this.olFavoriteProducers.AllColumns.Add(this.ol2ItemCount);
-            this.olFavoriteProducers.AllColumns.Add(this.ol2UserAverageVote);
             this.olFavoriteProducers.AllColumns.Add(this.ol2UserDropRate);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2UserAverageVote);
+            this.olFavoriteProducers.AllColumns.Add(this.ol2GeneralRating);
             this.olFavoriteProducers.AllColumns.Add(this.ol2Loaded);
             this.olFavoriteProducers.AllColumns.Add(this.ol2Updated);
             this.olFavoriteProducers.AllColumns.Add(this.ol2ID);
@@ -1561,8 +1563,9 @@ namespace Happy_Search
             this.olFavoriteProducers.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.ol2Name,
             this.ol2ItemCount,
-            this.ol2UserAverageVote,
             this.ol2UserDropRate,
+            this.ol2UserAverageVote,
+            this.ol2GeneralRating,
             this.ol2Loaded,
             this.ol2Updated,
             this.ol2ID});
@@ -1582,7 +1585,7 @@ namespace Happy_Search
             this.ol2Name.AspectName = "Name";
             this.ol2Name.FillsFreeSpace = true;
             this.ol2Name.Text = "Producer";
-            this.ol2Name.Width = 306;
+            this.ol2Name.Width = 279;
             // 
             // ol2ItemCount
             // 
@@ -1593,15 +1596,24 @@ namespace Happy_Search
             // ol2UserAverageVote
             // 
             this.ol2UserAverageVote.AspectName = "UserAverageVote";
-            this.ol2UserAverageVote.AspectToStringFormat = "";
-            this.ol2UserAverageVote.Text = "Avg Vote";
-            this.ol2UserAverageVote.ToolTipText = "Based on your votes.";
-            this.ol2UserAverageVote.Width = 57;
+            this.ol2UserAverageVote.DisplayIndex = 2;
+            this.ol2UserAverageVote.Text = "Your Score";
+            this.ol2UserAverageVote.ToolTipText = "Average score given by you to this producer\'s titles.";
+            this.ol2UserAverageVote.Width = 66;
+            // 
+            // ol2GeneralRating
+            // 
+            this.ol2GeneralRating.AspectName = "GeneralRating";
+            this.ol2GeneralRating.DisplayIndex = 3;
+            this.ol2GeneralRating.Text = "Rating";
+            this.ol2GeneralRating.ToolTipText = "Average score given by all users to this producer\'s titles.";
+            this.ol2GeneralRating.Width = 49;
             // 
             // ol2UserDropRate
             // 
             this.ol2UserDropRate.AspectName = "UserDropRate";
             this.ol2UserDropRate.AspectToStringFormat = "{0}%";
+            this.ol2UserDropRate.DisplayIndex = 4;
             this.ol2UserDropRate.Text = "Drop Rate";
             this.ol2UserDropRate.ToolTipText = "Your rate of dropped vs finished titles.";
             this.ol2UserDropRate.Width = 63;
@@ -1667,7 +1679,7 @@ namespace Happy_Search
             this.panel1.Controls.Add(this.yearLimitBox);
             this.panel1.Controls.Add(this.GetStartedHelpButton);
             this.panel1.Controls.Add(this.autoUpdateURTBox);
-            this.panel1.Controls.Add(this.updateTitleTagsButton);
+            this.panel1.Controls.Add(this.updateTagsAndTraitsButton);
             this.panel1.Controls.Add(this.nsfwToggle);
             this.panel1.Controls.Add(this.closeAllFormsButton);
             this.panel1.Controls.Add(this.updateToLatestVersionButton);
@@ -2510,7 +2522,7 @@ namespace Happy_Search
         private ToolStripMenuItem toolStripMenuItem10;
         private ToolStripMenuItem toolStripMenuItem11;
         private ToolStripMenuItem noneToolStripMenuItem2;
-        private ObjectListView olFavoriteProducers;
+        internal ObjectListView olFavoriteProducers;
         private OLVColumn ol2Name;
         private OLVColumn ol2ItemCount;
         private OLVColumn ol2Loaded;
@@ -2595,7 +2607,7 @@ namespace Happy_Search
         private OLVColumn tileColumnPopularity;
         private ComboBox wlStatusDropDown;
         private Panel panel1;
-        private Button updateTitleTagsButton;
+        private Button updateTagsAndTraitsButton;
         private Panel panel2;
         private Button listResultsButton;
         private TabControl tabControl2;
@@ -2612,6 +2624,7 @@ namespace Happy_Search
         private ComboBox customTraitFilters;
         private Button button5;
         private Button deleteCustomTraitFilterButton;
+        private OLVColumn ol2GeneralRating;
     }
 }
 

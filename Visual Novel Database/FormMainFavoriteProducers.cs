@@ -170,7 +170,7 @@ namespace Happy_Search
                 if (listedProducers?.Find(x => x.Name.Equals(producer.Name)) != null) continue;
                 int finishedTitles = URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
                 int urtTitles = URTList.Count(x => x.Producer == producer.Name);
-                if (finishedTitles > 2) suggestions.Add(new ListedSearchedProducer(producer.Name,"No",producer.ID,finishedTitles,urtTitles), finishedTitles);
+                if (finishedTitles > 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles), finishedTitles);
             }
             Debug.Print("Finished adding suggestions");
             IOrderedEnumerable<KeyValuePair<ListedSearchedProducer, int>> sortedSuggestions = from entry in suggestions orderby entry.Value descending select entry;
@@ -244,9 +244,48 @@ namespace Happy_Search
         {
             if (UserID < 1) return;
             DBConn.Open();
-            olFavoriteProducers.SetObjects(DBConn.GetFavoriteProducersForUser(UserID));
+            List<ListedProducer> favoriteProducers = DBConn.GetFavoriteProducersForUser(UserID);
             DBConn.Close();
+            foreach (var favoriteProducer in favoriteProducers)
+            {
+                favoriteProducer.GeneralRating = Math.Round(_vnList.Where(x => x.Producer.Equals(favoriteProducer.Name)).Select(x => x.Rating).Average(), 2);
+            }
+            olFavoriteProducers.SetObjects(favoriteProducers);
             olFavoriteProducers.Sort(0);
+        }
+
+        private void UpdateFavoriteProducerForURTChange(string producerName)
+        {
+            var favoriteProducers = olFavoriteProducers.Objects as List<ListedProducer>;
+            if (favoriteProducers?.Find(x => x.Name.Equals(producerName)) == null)
+            {
+                ReloadLists();
+                RefreshVNList();
+                return;
+            }
+                ReloadLists();
+            var producer = _producerList.Find(x => x.Name == producerName);
+            ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+            double userDropRate = -1;
+            double userAverageVote = -1;
+            if (producerVNs.Any())
+            {
+                var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
+                var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
+                userDropRate = finishedCount + droppedCount != 0
+                    ? (double)droppedCount / (droppedCount + finishedCount)
+                    : -1;
+                userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
+            }
+            producer = new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded, DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100));
+            DBConn.Open();
+            DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, UserID);
+            DBConn.Close();
+            UpdateUserStats();
+            ReloadLists();
+            RefreshVNList();
+            LoadFavoriteProducerList();
         }
 
         /// <summary>
@@ -257,9 +296,9 @@ namespace Happy_Search
         private void FormatRowFavoriteProducers(object sender, FormatRowEventArgs e)
         {
             var listedProducer = (ListedProducer)e.Model;
-            if (listedProducer.UserAverageVote < 1) e.Item.GetSubItem(2).Text = "";
-            if (listedProducer.UserDropRate < 0) e.Item.GetSubItem(3).Text = "";
-            if (listedProducer.NumberOfTitles == -1) e.Item.GetSubItem(1).Text = "";
+            e.Item.GetSubItem(ol2UserAverageVote.Index).Text = listedProducer.UserAverageVote > 0 ? listedProducer.UserAverageVote.ToString("0.00") : "";
+            e.Item.GetSubItem(ol2UserDropRate.Index).Text = listedProducer.UserDropRate < 0 ? "" : $"{listedProducer.UserDropRate}%";
+            if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
         }
 
     }

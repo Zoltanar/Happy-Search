@@ -480,7 +480,7 @@ namespace Happy_Search
             e.Item.GetSubItem(9).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating.ToString("0.00")} ({listedVN.VoteCount} Votes)" : "";
             e.Item.GetSubItem(10).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
         }
-        
+
         /// <summary>
         /// Display Context Menu on right clicking a visual novel.
         /// </summary>
@@ -559,7 +559,7 @@ namespace Happy_Search
 
             return ContextMenuVN;
         }
-        
+
         /// <summary>
         /// Handle VN status change via context menu.
         /// </summary>
@@ -579,25 +579,37 @@ namespace Happy_Search
             switch (nitem.OwnerItem.Text)
             {
                 case "Userlist":
+                    if (vn.ULStatus.Equals(nitem.Text))
+                    {
+                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.", true);
+                        return;
+                    }
                     statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
                     success = await ChangeVNStatus(vn, ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
+                    if (vn.WLStatus.Equals(nitem.Text))
+                    {
+                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.", true);
+                        return;
+                    }
                     statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
                     success = await ChangeVNStatus(vn, ChangeType.WL, statusInt);
                     break;
                 case "Vote":
+                    if (Math.Abs(vn.Vote - Convert.ToInt32(nitem.Text)) < 0.001)
+                    {
+                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.", true);
+                        return;
+                    }
                     if (!nitem.Text.Equals("(None)")) statusInt = Convert.ToInt32(nitem.Text);
                     success = await ChangeVNStatus(vn, ChangeType.Vote, statusInt);
                     break;
                 default:
-                    success = false;
-                    break;
+                    return;
             }
             if (!success) return;
-            ReloadLists();
-            RefreshVNList();
-            WriteText(replyText, $"ID={vn.VNID}, status changed.", true);
+            WriteText(replyText, $"{TruncateString(vn.Title, 20)} status changed.", true);
         }
 
         private void RightClickShowProducerTitles(object sender, EventArgs e)
@@ -677,7 +689,7 @@ namespace Happy_Search
             resultLabel.Text = $"List: {_currentListLabel} {itemCountString}";
             DisplayCommonTags(null, null);
         }
-        
+
         /// <summary>
         /// Adjust tile size on OLV resize to avoid empty spaces.
         /// </summary>

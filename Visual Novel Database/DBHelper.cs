@@ -73,7 +73,7 @@ namespace Happy_Search
 
         public void UpdateVNTags(VNItem vnItem)
         {
-            var tags = TagsToString(vnItem.Tags);
+            var tags = ListToJsonArray(new List<object>(vnItem.Tags));
             var insertString =
                 $"UPDATE vnlist SET Tags = '{tags}' WHERE VNID = {vnItem.ID};";
             var command = new SQLiteCommand(insertString, DbConn);
@@ -213,7 +213,7 @@ namespace Happy_Search
 
         public void UpsertSingleVN(VNItem item, int producerid, bool print = true)
         {
-            var tags = TagsToString(item.Tags);
+            var tags = ListToJsonArray(new List<object>(item.Tags));
             var title = Regex.Replace(item.Title, "'", "''");
             var kanjiTitle = item.Original != null ? Regex.Replace(item.Original, "'", "''") : "";
             var description = item.Description != null ? Regex.Replace(item.Description, "'", "''") : "";
@@ -354,8 +354,7 @@ namespace Happy_Search
             while (reader.Read()) readerList.Add(GetListedVN(reader));
             return readerList;
         }
-
-
+        
         public List<CharacterItem> GetAllCharacters()
         {
             var readerList = new List<CharacterItem>();
@@ -511,8 +510,7 @@ namespace Happy_Search
 
         private static void CreateVNListTable()
         {
-            var createCommand =
-                @"CREATE TABLE ""vnlist"" ( `VNID` INTEGER NOT NULL UNIQUE,
+            const string createCommand = @"CREATE TABLE ""vnlist"" ( `VNID` INTEGER NOT NULL UNIQUE,
 `Title` TEXT,
 `KanjiTitle` TEXT,
 `RelDate` TEXT,
@@ -537,8 +535,7 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
 
         private static void CreateProducerListTable()
         {
-            var createCommand =
-                @"CREATE TABLE `producerlist` (
+            const string createCommand = @"CREATE TABLE `producerlist` (
 	`ProducerID`	INTEGER NOT NULL,
 	`Name`	TEXT,
 	`Titles`	INTEGER,
@@ -566,8 +563,7 @@ PRIMARY KEY(`CharacterID`) )";
 
         private static void CreateUserlistTable()
         {
-            var createCommand =
-                @"CREATE TABLE `userlist` (
+            const string createCommand = @"CREATE TABLE `userlist` (
  `VNID`	INTEGER,
  `UserID`	INTEGER,
  `ULStatus`	INTEGER,
@@ -585,8 +581,7 @@ PRIMARY KEY(`CharacterID`) )";
 
         private static void CreateUserProdListTable()
         {
-            var createCommand =
-                @"CREATE TABLE `userprodlist`(
+            const string createCommand = @"CREATE TABLE `userprodlist`(
 	`ProducerID`	INTEGER NOT NULL,
 	`UserID`	INTEGER NOT NULL,
 	`UserAverageVote`	NUMERIC,
@@ -599,24 +594,21 @@ PRIMARY KEY(`CharacterID`) )";
 
         private static void CreateTriggers()
         {
-            var createCommand =
-                @"CREATE TRIGGER [UpdateTimestamp]
+            const string createCommand = @"CREATE TRIGGER [UpdateTimestamp]
     AFTER UPDATE    ON vnlist    FOR EACH ROW
 BEGIN
     UPDATE vnlist 
 	SET DateUpdated=CURRENT_TIMESTAMP
 	WHERE VNID=OLD.VNID;
 END";
-            var createCommand2 =
-                @"CREATE TRIGGER [UpdateTimestampProducerList]
+            const string createCommand2 = @"CREATE TRIGGER [UpdateTimestampProducerList]
     AFTER UPDATE    ON producerlist    FOR EACH ROW
 BEGIN
     UPDATE producerlist 
 	SET Updated=CURRENT_TIMESTAMP
 	WHERE ProducerID=OLD.ProducerID;
 END";
-            var createCommand3 =
-                @"CREATE TRIGGER [UpdateTimestampCharacterList] 
+            const string createCommand3 = @"CREATE TRIGGER [UpdateTimestampCharacterList] 
 AFTER UPDATE ON charlist FOR EACH ROW 
 BEGIN 
 UPDATE charlist SET DateUpdated=CURRENT_TIMESTAMP 
@@ -643,18 +635,13 @@ END";
             return i == 1;
         }
 
-
+        
         /// <summary>
-        ///     Convert list of tags to JSON-formatted string.
+        /// Convert list of objects to JSON array string.
         /// </summary>
-        /// <param name="tags">List of tags</param>
-        /// <returns>JSON-formatted string</returns>
-        private static string TagsToString(List<TagItem> tags)
-        {
-            return '[' + string.Join(",", tags.Select(v => v.ToString())) + ']';
-        }
-
-        private string ListToJsonArray(List<object> objects)
+        /// <param name="objects">List of objects</param>
+        /// <returns>JSON array string</returns>
+        private static string ListToJsonArray(List<object> objects)
         {
             return JsonConvert.SerializeObject(objects);
         }

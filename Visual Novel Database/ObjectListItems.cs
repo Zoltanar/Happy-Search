@@ -1,5 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using BrightIdeasSoftware;
+using Happy_Search.Properties;
 
 namespace Happy_Search
 {
@@ -221,7 +228,7 @@ namespace Happy_Search
         /// <returns>Rating, votecount and popularity</returns>
         public string RatingAndVoteCount()
         {
-            return $"{Rating.ToString("0.00")} ({VoteCount} votes)";
+            return VoteCount == 0 ? "No votes yet." : $"{Rating.ToString("0.00")} ({VoteCount} votes)";
         }
     }
 
@@ -231,7 +238,7 @@ namespace Happy_Search
     public class ListedProducer
     {
         /// <summary>
-        /// Constructor for ListedProducer.
+        /// Constructor for ListedProducer, not favorite producers.
         /// </summary>
         /// <param name="name">Producer Name</param>
         /// <param name="numberOfTitles">Number of Producer's titles</param>
@@ -248,7 +255,7 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// 
+        /// Constructor for ListedProducer for favorite producers.
         /// </summary>
         /// <param name="name">Producer Name</param>
         /// <param name="numberOfTitles">Number of Producer's titles</param>
@@ -297,6 +304,10 @@ namespace Happy_Search
         /// User's average drop rate on Producer titles. (Dropped / (Finished+Dropped)
         /// </summary>
         public int UserDropRate { get; set; }
+        /// <summary>
+        /// Bayesian average score of votes by all users.
+        /// </summary>
+        public double GeneralRating { get; set; }
 
         /// <summary>
         /// Get Days passed since date of last update.
@@ -375,4 +386,236 @@ namespace Happy_Search
         /// </summary>
         public int URTTitles { get; set; }
     }
+
+
+    /// <summary>
+    ///     Class for drawing individual tiles in ObjectListView
+    /// </summary>
+    public class VNTileRenderer : AbstractRenderer
+    {
+        private const int LinesOfTextAbovePicture = 1;
+        private const int LinesOfTextBelowPicture = 3;
+        private Pen _borderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
+
+        /// <summary>
+        ///     Render the whole item within an ObjectListView. This is only used in non-Details views.
+        /// </summary>
+        /// <param name="e">The event</param>
+        /// <param name="g">A Graphics for rendering</param>
+        /// <param name="itemBounds">The bounds of the item</param>
+        /// <param name="rowObject">The model object to be drawn</param>
+        /// <returns>Return true to indicate that the event was handled and no further processing is needed.</returns>
+        public override bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds,
+            object rowObject)
+        {
+            // If we're in any other view than Tile, return false to say that we haven't done
+            // the renderering and the default process should do it's stuff
+            var olv = e.Item.ListView as ObjectListView;
+            if (olv == null || olv.View != View.Tile)
+                return false;
+
+            // Use buffered graphics to kill flickers
+            var buffered = BufferedGraphicsManager.Current.Allocate(g, itemBounds);
+            g = buffered.Graphics;
+            g.Clear(olv.BackColor);
+            g.SmoothingMode = ObjectListView.SmoothingMode;
+            g.TextRenderingHint = ObjectListView.TextRenderingHint;
+
+            _borderPen = e.Item.Selected ? Pens.Blue : new Pen(Color.FromArgb(0x33, 0x33, 0x33));
+            DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem)e.Item);
+
+            // Finally render the buffered graphics
+            buffered.Render();
+            buffered.Dispose();
+
+            // Return true to say that we've handled the drawing
+            return true;
+        }
+
+        /// <summary>
+        ///     Draw Visual Novel Tile, displayed in Visual Novels Object List View.
+        /// </summary>
+        /// <param name="g">A Graphics for rendering</param>
+        /// <param name="itemBounds">The bounds of the item</param>
+        /// <param name="rowObject">The model object to be drawn</param>
+        /// <param name="olv">OLV where tile is drawn.</param>
+        /// <param name="item">OLV Item</param>
+        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv,
+            OLVListItem item)
+        {
+            Brush textBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
+            var backBrush = Brushes.LightBlue;
+            //tile size 230,375
+            //image 230-spacing, 300-spacing
+            const int spacing = 8;
+            var font = new Font("Microsoft Sans Serif", 8.25f);
+            var boldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
+            var fmtNear = new StringFormat(StringFormatFlags.NoWrap)
+            {
+                Trimming = StringTrimming.EllipsisCharacter,
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Near
+            };
+            var fmtFar = new StringFormat(StringFormatFlags.NoWrap)
+            {
+                Trimming = StringTrimming.EllipsisCharacter,
+                Alignment = StringAlignment.Far,
+                LineAlignment = StringAlignment.Far
+            };
+            var textHeight = g.MeasureString("Wj", font).Height;
+            var dateWidth = g.MeasureString("9999-99-99", font).Width;
+            // Allow a border around the card
+            itemBounds.Inflate(-2, -2);
+            var vn = rowObject as ListedVN;
+            // Draw card background
+            const int rounding = 20;
+            var path = GetRoundedRect(itemBounds, rounding);
+            switch (vn?.WLStatus)
+            {
+                case "High":
+                    backBrush = Brushes.DeepPink;
+                    break;
+                case "Medium":
+                    backBrush = Brushes.Pink;
+                    break;
+                case "Low":
+                    backBrush = Brushes.LightPink;
+                    break;
+            }
+            switch (vn?.ULStatus)
+            {
+                case "Finished":
+                    backBrush = Brushes.LightGreen;
+                    break;
+                case "Stalled":
+                    backBrush = Brushes.LightYellow;
+                    break;
+                case "Dropped":
+                    backBrush = Brushes.DarkOrange;
+                    break;
+                case "Unknown":
+                    backBrush = Brushes.Gray;
+                    break;
+            }
+            g.FillPath(backBrush, path);
+            g.DrawPath(_borderPen, path);
+            g.Clip = new Region(itemBounds);
+
+            // Draw the photo
+            var photoAreaY = itemBounds.Y + (int)textHeight * LinesOfTextAbovePicture;
+            var photoAreaHeight = itemBounds.Height -
+                                  (int)textHeight * (LinesOfTextAbovePicture + LinesOfTextBelowPicture);
+            var photoArea = new Rectangle(itemBounds.X, photoAreaY, itemBounds.Width, photoAreaHeight);
+            photoArea.Inflate(-spacing, -spacing);
+            if (vn == null) return;
+            var imageUrl = vn.ImageURL;
+            var ext = Path.GetExtension(imageUrl);
+            var photoFile = string.Format($"vnImages\\{vn.VNID}{ext}");
+            if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
+            else if (File.Exists(photoFile))
+            {
+                DrawImageFitToSize(g, photoArea, photoFile);
+            }
+            else g.DrawImage(Resources.no_image, photoArea);
+
+            // Now draw the text portion
+            //text above picture
+            RectangleF textBoxRect = photoArea;
+            textBoxRect.Y -= textHeight;
+            textBoxRect.Height = textHeight;
+            fmtNear.Alignment = StringAlignment.Near;
+            g.DrawString(vn.Title, boldFont, textBrush, textBoxRect, fmtNear); //line 1: vn title
+                                                                               //text below picture
+            textBoxRect.Y += textHeight + photoArea.Height;
+            var producerBrush = textBrush;
+            List<ListedProducer> producers =
+                Application.OpenForms.OfType<FormMain>()
+                    .Select(main => main.olFavoriteProducers.Objects as List<ListedProducer>)
+                    .FirstOrDefault();
+            if (producers != null && producers.Exists(x => x.Name == vn.Producer)) producerBrush = Brushes.Yellow;
+            g.DrawString(vn.Producer, font, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 
+            textBoxRect.Y += textHeight;
+            textBoxRect.Width -= dateWidth;
+            g.DrawString($"Rating: {vn.RatingAndVoteCount()}", font, textBrush, textBoxRect, fmtNear);//line 3 left: rating/votecount
+            textBoxRect.Width = photoArea.Width;
+            g.DrawString(vn.RelDate, font, textBrush, textBoxRect, fmtFar); //line 3 right: vn release date
+            textBoxRect.Y += textHeight;
+            g.DrawString(vn.UserRelatedStatus(), font, textBrush, textBoxRect, fmtNear);
+            //line 4: user-related status
+        }
+
+        private static GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
+        {
+            var path = new GraphicsPath();
+
+            var arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
+            path.AddArc(arc, 180, 90);
+            arc.X = rect.Right - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = rect.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = rect.Left;
+            path.AddArc(arc, 90, 90);
+            path.CloseFigure();
+
+            return path;
+        }
+
+        private static void DrawImageFitToSize(Graphics g, Rectangle photoArea, string photoFile)
+        {
+            var photo = Image.FromFile(photoFile);
+            var photoAreaRatio = (double)photoArea.Width / photoArea.Height;
+            var photoRatio = (double)photo.Width / photo.Height;
+            //show whole image but do not occupy whole area
+            if (photoRatio > photoAreaRatio) //if image is wider
+            {
+                var shrinkratio = (double)photo.Width / photoArea.Width;
+                var newWidth = photoArea.Width;
+                var newHeight = (int)Math.Floor(photo.Height / shrinkratio);
+                var newX = photoArea.X;
+                var halfNewY = (double)newHeight / 2;
+                var halfPhotoHeight = (double)photoArea.Height / 2;
+                var newY = photoArea.Y + (int)Math.Floor(halfPhotoHeight) - (int)Math.Floor(halfNewY);
+                var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
+                g.DrawImage(photo, newPhotoRect);
+            }
+            else //if image is taller
+            {
+                var shrinkratio = (double)photo.Height / photoArea.Height;
+                var newWidth = (int)Math.Floor(photo.Width / shrinkratio);
+                var newHeight = photoArea.Height;
+                var halfNewX = (double)newWidth / 2;
+                var halfPhotoWidth = (double)photoArea.Width / 2;
+                var newX = photoArea.X + (int)Math.Floor(halfPhotoWidth) - (int)Math.Floor(halfNewX);
+                var newY = photoArea.Y;
+                var newPhotoRect = new Rectangle(newX, newY, newWidth, newHeight);
+                g.DrawImage(photo, newPhotoRect);
+            }
+        }
+
+        /// <summary>
+        ///     Scales an Image to fit the given dimensions.
+        /// </summary>
+        /// <param name="image">Image to be scaled</param>
+        /// <param name="maxWidth">Maximum width</param>
+        /// <param name="maxHeight">Maximum height</param>
+        /// <returns>Scaled image</returns>
+        public static Image ScaleImage(Image image, int maxWidth, int maxHeight)
+        {
+            var ratioX = (double)maxWidth / image.Width;
+            var ratioY = (double)maxHeight / image.Height;
+            var ratio = Math.Min(ratioX, ratioY);
+
+            var newWidth = (int)(image.Width * ratio);
+            var newHeight = (int)(image.Height * ratio);
+
+            var newImage = new Bitmap(newWidth, newHeight);
+
+            using (var graphics = Graphics.FromImage(newImage))
+                graphics.DrawImage(image, 0, 0, newWidth, newHeight);
+
+            return newImage;
+        }
+    }
+
 }

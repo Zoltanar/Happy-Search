@@ -186,7 +186,7 @@ namespace Happy_Search
                 stringList.Add($"Character {characterItem.ID}");
                 foreach (var trait in characterItem.Traits)
                 {
-                    stringList.Add(_parentForm.PlainTraits.Find(x => x.ID == trait.ID).Print());
+                    stringList.Add(_parentForm.PlainTraits.Find(x => x.ID == trait.ID)?.Print());
                 }
                 stringList.Add("---------------");
             }
@@ -212,7 +212,7 @@ namespace Happy_Search
             }
             //anime hasn't been fetched before
             await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
-            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload,new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
             if (root.Num == 0)
             {
                 _parentForm.DBConn.Open();

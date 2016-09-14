@@ -40,7 +40,7 @@ namespace Happy_Search
             }
             Debug.Print(query);
             await Conn.QueryAsync(query); //request detailed information
-            if(serverR.TextLength>10000) ClearLog(null,null);
+            if (serverR.TextLength > 10000) ClearLog(null, null);
             serverQ.Text += query + Environment.NewLine;
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type == ResponseType.Unknown)
@@ -86,14 +86,16 @@ namespace Happy_Search
         /// </summary>
         /// <param name="vnIDs">List of VNs</param>
         /// <param name="replyLabel">Where reply will be shown</param>
-        internal async Task GetCharactersForMultipleVN(List<int> vnIDs, Label replyLabel)
+        /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
+        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        internal async Task GetCharactersForMultipleVN(int[] vnIDs, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             ReloadLists();
             if (!vnIDs.Any()) return;
             int[] current25 = vnIDs.Take(25).ToArray();
             string first25 = '[' + string.Join(",", current25) + ']';
             string charsForVNQuery = $"get character traits,vns (vn = {first25}) {{{APIMaxResults}}}";
-            var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+            var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
             if (!queryResult) return;
             var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
             foreach (var character in charRoot.Items)
@@ -108,7 +110,7 @@ namespace Happy_Search
             {
                 pageNo++;
                 charsForVNQuery = $"get character traits,vns (vn = {first25}) {{{APIMaxResults}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
                 foreach (var character in charRoot.Items)
@@ -120,12 +122,12 @@ namespace Happy_Search
                 moreResults = charRoot.More;
             }
             int done = 25;
-            while (done < vnIDs.Count)
+            while (done < vnIDs.Length)
             {
                 current25 = vnIDs.Skip(done).Take(25).ToArray();
                 string next25 = '[' + string.Join(",", current25) + ']';
                 charsForVNQuery = $"get character traits,vns (vn = {next25}) {{{APIMaxResults}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
                 foreach (var character in charRoot.Items)
@@ -140,7 +142,7 @@ namespace Happy_Search
                 {
                     pageNo++;
                     charsForVNQuery = $"get character traits,vns (vn = {next25}) {{{APIMaxResults}, \"page\":{pageNo}}}";
-                    queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel);
+                    queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                     if (!queryResult) return;
                     charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
                     foreach (var character in charRoot.Items)
@@ -221,7 +223,7 @@ namespace Happy_Search
             SaveImage(vnItem);
             var relProducer = await GetDeveloper(vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             await GetProducer(relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            await GetCharactersForMultipleVN(new List<int>(vnid), replyLabel);
+            await GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer, false);
             DBConn.Close();
@@ -276,7 +278,7 @@ namespace Happy_Search
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();
             }
-            await GetCharactersForMultipleVN(current25.ToList(), replyLabel);
+            await GetCharactersForMultipleVN(current25, replyLabel);
             int done = 25;
             while (done < vnsToGet.Count)
             {
@@ -305,7 +307,7 @@ namespace Happy_Search
                     DBConn.UpsertSingleVN(vnItem, relProducer, false);
                     DBConn.Close();
                 }
-                await GetCharactersForMultipleVN(current25.ToList(), replyLabel);
+                await GetCharactersForMultipleVN(current25, replyLabel);
                 done += 25;
             }
         }
@@ -376,7 +378,7 @@ namespace Happy_Search
         /// Update tags of titles that haven't been updated in over 7 days.
         /// </summary>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task UpdateTitleTags(IEnumerable<int> vnIDs)
+        internal async Task UpdateTagsAndTraits(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
             ReloadLists();
@@ -405,6 +407,7 @@ namespace Happy_Search
                 _vnsAdded++;
             }
             DBConn.Close();
+            await GetCharactersForMultipleVN(current25, replyLabel, true, true);
             int done = 25;
             while (done < vnsToGet.Count)
             {
@@ -430,6 +433,7 @@ namespace Happy_Search
                     _vnsAdded++;
                 }
                 DBConn.Close();
+                await GetCharactersForMultipleVN(current25, replyLabel, true, true);
                 done += 25;
             }
         }
@@ -572,6 +576,7 @@ namespace Happy_Search
                     break;
             }
             DBConn.Close();
+            UpdateFavoriteProducerForURTChange(vn.Producer);
             return true;
         }
 
