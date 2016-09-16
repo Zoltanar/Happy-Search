@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -42,8 +41,8 @@ namespace Happy_Search
                 }
                 catch (IOException e)
                 {
-                    Debug.Print(e.StackTrace);
-                    Debug.Print("Conn Open Error");
+                    FormMain.LogToFile(e.StackTrace);
+                    FormMain.LogToFile("Conn Open Error");
                 }
             }
         }
@@ -62,13 +61,13 @@ namespace Happy_Search
             if (username != null && password != null)
             {
                 loginBuffer =
-                    $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":{clientVersion},\"username\":\"{username}\",\"password\":\"{new string(password)}\"}}";
+                    $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":\"{clientVersion}\",\"username\":\"{username}\",\"password\":\"{new string(password)}\"}}";
                 Query(loginBuffer);
                 if (LastResponse.Type == ResponseType.Ok) LogIn = LogInStatus.YesWithCredentials;
             }
             else
             {
-                loginBuffer = $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":{clientVersion}}}";
+                loginBuffer = $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":\"{clientVersion}\"}}";
                 Query(loginBuffer);
                 if (LastResponse.Type == ResponseType.Ok) LogIn = LogInStatus.Yes;
             }

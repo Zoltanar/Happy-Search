@@ -150,7 +150,7 @@ namespace Happy_Search
                     Location = new Point(6, 33 + count*22),
                     Name = TraitLabel + count,
                     Size = new Size(342, 17),
-                    Text = $"{trait.Print()}",
+                    Text = trait.Print(),
                     Checked = true,
                     AutoEllipsis = true
                 };

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -33,7 +32,7 @@ namespace Happy_Search
         }
 
         #region Set Methods
-
+        
         public void AddRelationsToVN(int vnid, List<RelationsItem> relations)
         {
             var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";
@@ -66,7 +65,7 @@ namespace Happy_Search
         public void UpdateVNToLatestVersion(VNItem vnItem)
         {
             var insertString =
-                $"UPDATE vnlist SET Popularity = {vnItem.Popularity.ToString("0.00")}, Rating = {vnItem.Rating.ToString("0.00")}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
+                $"UPDATE vnlist SET Popularity = {vnItem.Popularity:0.00}, Rating = {vnItem.Rating:0.00}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
         }
@@ -85,7 +84,7 @@ namespace Happy_Search
             if (command == Command.Delete)
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
-                Debug.Print(deleteString);
+                LogToFile(deleteString);
                 var cmd = new SQLiteCommand(deleteString, DbConn);
                 cmd.ExecuteNonQuery();
                 return;
@@ -137,7 +136,7 @@ namespace Happy_Search
                     break;
             }
             if (commandString.Equals("")) return;
-            Debug.Print(commandString);
+            LogToFile(commandString);
             var cmd2 = new SQLiteCommand(commandString, DbConn);
             cmd2.ExecuteNonQuery();
         }
@@ -149,7 +148,7 @@ namespace Happy_Search
                 var insertString =
                     $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote}, {item.UserDropRate});";
                 var command = new SQLiteCommand(insertString, DbConn);
-                Debug.Print(insertString);
+                LogToFile(insertString);
                 command.ExecuteNonQuery();
             }
         }
@@ -159,7 +158,7 @@ namespace Happy_Search
             var name = Regex.Replace(producer.Name, "'", "''");
             var insertString =
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles, Loaded) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles}, '{producer.Loaded}');";
-            Debug.Print(insertString);
+            LogToFile(insertString);
             var cmd = new SQLiteCommand(insertString, DbConn);
             cmd.ExecuteNonQuery();
         }
@@ -174,7 +173,7 @@ namespace Happy_Search
                 $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote) VALUES ({item.VN},{userid},'{item.Status}', '{item.Added}', '{note}');";
             if (!update) commandString = insertString;
             var command = new SQLiteCommand(commandString, DbConn);
-            Debug.Print(commandString);
+            LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -186,7 +185,7 @@ namespace Happy_Search
                 $"INSERT INTO userlist (VNID, WLStatus, WLAdded, UserID) VALUES ('{item.VN}','{item.Priority}','{item.Added}', '{userid}');";
             if (!update) commandString = insertString;
             var command = new SQLiteCommand(commandString, DbConn);
-            Debug.Print(commandString);
+            LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -198,7 +197,7 @@ namespace Happy_Search
                 $"INSERT INTO userlist (VNID, Vote, VoteAdded, UserID) VALUES ('{item.VN}','{item.Vote}','{item.Added}', '{userid}');";
             if (!update) commandString = insertString;
             var command = new SQLiteCommand(commandString, DbConn);
-            Debug.Print(commandString);
+            LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -221,9 +220,9 @@ namespace Happy_Search
             var insertString =
                 "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, Popularity, Rating, VoteCount, VNID)" +
                 $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, " +
-                $"{length}, {item.Popularity.ToString("0.00")},{item.Rating.ToString("0.00")}, {item.VoteCount}, {item.ID});";
+                $"{length}, {item.Popularity:0.00},{item.Rating:0.00}, {item.VoteCount}, {item.ID});";
             var command = new SQLiteCommand(insertString, DbConn);
-            if (print) Debug.Print(insertString);
+            if (print) LogToFile(insertString);
             command.ExecuteNonQuery();
         }
 
@@ -231,7 +230,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
             var command = new SQLiteCommand(commandString, DbConn);
-            Debug.Print(commandString);
+            LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -239,7 +238,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM vnlist WHERE VNID={vnid};";
             var command = new SQLiteCommand(commandString, DbConn);
-            Debug.Print(commandString);
+            LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -252,7 +251,7 @@ namespace Happy_Search
             var selectString =
                 $"SELECT VNID FROM userlist WHERE VNID NOT IN (SELECT VNID FROM vnlist) AND UserID = {userid};";
             var list = new List<int>();
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) list.Add(DbInt(reader["VNID"]));
@@ -263,7 +262,7 @@ namespace Happy_Search
         {
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID={vnid};";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             ListedVN vn = null;
@@ -289,7 +288,7 @@ namespace Happy_Search
         {
             var list = new List<ListedProducer>();
             var selectString = "SELECT * FROM producerlist;";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read())
@@ -324,7 +323,7 @@ namespace Happy_Search
         {
             var readerList = new List<int>();
             var selectString = $"SELECT VNID FROM userlist WHERE UserID = {userid};";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(DbInt(reader["VNID"]));
@@ -336,7 +335,7 @@ namespace Happy_Search
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist, userlist  LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID = userlist.VNID AND UserID = {userid};";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
@@ -348,7 +347,7 @@ namespace Happy_Search
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE Title NOT NULL;";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
@@ -359,7 +358,7 @@ namespace Happy_Search
         {
             var readerList = new List<CharacterItem>();
             var selectString = "SELECT * FROM charlist;";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetCharacterItem(reader));
@@ -377,7 +376,7 @@ namespace Happy_Search
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userID} WHERE vnlist.ProducerID={producerID};";
-            if (PrintGetMethods) Debug.Print(selectString);
+            if (PrintGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
@@ -465,7 +464,7 @@ namespace Happy_Search
             {
                 DbConn.Open();
             }
-            else Debug.Print("Tried to open database, it was already opened.");
+            else LogToFile("Tried to open database, it was already opened.");
         }
 
         public void Close()

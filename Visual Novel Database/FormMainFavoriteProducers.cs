@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,7 +74,8 @@ namespace Happy_Search
             }
             var vnCount = olFavoriteProducers.Objects.Cast<ListedProducer>().Sum(producer => producer.NumberOfTitles);
             var askBox =
-                MessageBox.Show($"Are you sure you wish to reload {vnCount}+ VNs?\nThis may take a while...",
+                MessageBox.Show($@"Are you sure you wish to reload {vnCount}+ VNs?
+This may take a while...",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
             ReloadLists();
@@ -148,7 +148,7 @@ namespace Happy_Search
             ReloadLists();
             List<ListedProducer> producers =
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2).ToList();
-            Debug.Print($"{producers.Count} to be updated");
+            LogToFile($"{producers.Count} to be updated");
             _vnsAdded = 0;
             _vnsSkipped = 0;
             foreach (var producer in producers) await GetProducerTitles(producer, prodReply);
@@ -172,12 +172,12 @@ namespace Happy_Search
                 int urtTitles = URTList.Count(x => x.Producer == producer.Name);
                 if (finishedTitles > 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles), finishedTitles);
             }
-            Debug.Print("Finished adding suggestions");
+            LogToFile("Finished adding suggestions");
             IOrderedEnumerable<KeyValuePair<ListedSearchedProducer, int>> sortedSuggestions = from entry in suggestions orderby entry.Value descending select entry;
             var listForForm = new List<ListedSearchedProducer>();
             foreach (KeyValuePair<ListedSearchedProducer, int> suggestion in sortedSuggestions)
             {
-                Debug.Print($"{suggestion.Key.Name} = Finished {suggestion.Value} titles.");
+                LogToFile($"{suggestion.Key.Name} = Finished {suggestion.Value} titles.");
                 listForForm.Add(suggestion.Key);
             }
 
@@ -193,7 +193,7 @@ namespace Happy_Search
         /// <param name="refreshAll">Should already known titles be refreshed as well?</param>
         private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
         {
-            Debug.Print($"Getting Titles for Producer {producer.Name}");
+            LogToFile($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn,producers (producer={producer.ID}) {{{MaxResultsString}}}";
             var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
             if (!result) return;
@@ -234,7 +234,7 @@ namespace Happy_Search
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, "Yes", DateTime.UtcNow,
                 producer.ID));
             DBConn.Close();
-            Debug.Print($"Finished getting titles for Producer= {producer}, {producerTitles.Count} titles.");
+            LogToFile($"Finished getting titles for Producer= {producer}, {producerTitles.Count} titles.");
         }
 
         /// <summary>

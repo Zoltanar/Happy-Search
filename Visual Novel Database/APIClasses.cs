@@ -49,6 +49,7 @@ namespace Happy_Search
 
         public bool Equals(VNItem other)
         {
+            // ReSharper disable once PossibleNullReferenceException
             return ID == other.ID;
         }
 
@@ -184,7 +185,7 @@ namespace Happy_Search
         public string Print(List<WrittenTag> plainTags)
         {
             var name = GetName(plainTags);
-            return name != null ? $"{GetName(plainTags)} ({Score.ToString("0.00")})" : "Not Approved";
+            return name != null ? $"{GetName(plainTags)} ({Score:0.00})" : "Not Approved";
         }
     }
 
@@ -494,7 +495,7 @@ namespace Happy_Search
         {
 
             int[] children = Enumerable.Empty<int>().ToArray();
-            //Debug.Print($"Getting children for {this}");
+            //LogToFile($"Getting children for {this}");
             //new
             int[] childrenForThisRound = list.Where(x => x.Parents.Contains(ID)).Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
             var difference = childrenForThisRound.Length;
@@ -511,7 +512,7 @@ namespace Happy_Search
                 foreach (var child in childrenForThisRound)
                 {
                     IEnumerable<int> childsChildren = list.Where(x => x.Parents.Contains(child)).Select(x => x.ID);
-                    //Debug.Print($"{child} has {childsChildren.Count()}");
+                    //LogToFile($"{child} has {childsChildren.Count()}");
                     tmp.AddRange(childsChildren);
                 }
                 childrenForThisRound = tmp.ToArray();

@@ -477,7 +477,7 @@ namespace Happy_Search
             if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(4).Text = "";
             if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(7).Text = "";
             if (listedVN.Vote < 1) e.Item.GetSubItem(8).Text = "";
-            e.Item.GetSubItem(9).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating.ToString("0.00")} ({listedVN.VoteCount} Votes)" : "";
+            e.Item.GetSubItem(9).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
             e.Item.GetSubItem(10).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
         }
 
@@ -686,7 +686,7 @@ namespace Happy_Search
             string itemCountString = tileOLV.ModelFilter != null
                 ? $"{count}/{totalcount} items."
                 : $"{tileOLV.Items.Count} items.";
-            resultLabel.Text = $"List: {_currentListLabel} {itemCountString}";
+            resultLabel.Text = $@"List: {_currentListLabel} {itemCountString}";
             DisplayCommonTags(null, null);
         }
 

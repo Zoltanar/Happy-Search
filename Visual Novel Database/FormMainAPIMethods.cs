@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -38,7 +37,7 @@ namespace Happy_Search
             {
                 query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
             }
-            Debug.Print(query);
+            LogToFile(query);
             await Conn.QueryAsync(query); //request detailed information
             if (serverR.TextLength > 10000) ClearLog(null, null);
             serverQ.Text += query + Environment.NewLine;
@@ -65,7 +64,7 @@ namespace Happy_Search
                 ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
                 var waitMS = minWait * 1000;
                 var wait = Convert.ToInt32(waitMS);
-                Debug.Print($"{DateTime.UtcNow} - {fullThrottleMessage}");
+                LogToFile($"{DateTime.UtcNow} - {fullThrottleMessage}");
                 if (refreshList)
                 {
                     ReloadLists();
@@ -278,7 +277,7 @@ namespace Happy_Search
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();
             }
-            await GetCharactersForMultipleVN(currentArray, replyLabel);
+            await GetCharactersForMultipleVN(currentArray, replyLabel,true,refreshList);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
@@ -307,7 +306,7 @@ namespace Happy_Search
                     DBConn.UpsertSingleVN(vnItem, relProducer, false);
                     DBConn.Close();
                 }
-                await GetCharactersForMultipleVN(currentArray, replyLabel);
+                await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
                 done += APIMaxResults;
             }
         }

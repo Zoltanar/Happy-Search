@@ -96,7 +96,7 @@ namespace Happy_Search
                 _parentForm.DBConn.InsertProducer((ListedProducer)producer);
             }
             _parentForm.DBConn.Close();
-            prodSearchReply.Text = $"{searchedProducers.Count} producers found.";
+            prodSearchReply.Text = $@"{searchedProducers.Count} producers found.";
         }
         
         /// <summary>
@@ -158,7 +158,7 @@ namespace Happy_Search
             _parentForm.DBConn.InsertFavoriteProducers(addProducerList, _parentForm.UserID);
             _parentForm.DBConn.Close();
             _producerList.AddRange(addProducerList);
-            prodSearchReply.Text = $"{addProducerList.Count} added.";
+            prodSearchReply.Text = $@"{addProducerList.Count} added.";
         }
 
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -130,13 +129,13 @@ namespace Happy_Search
                 if (!filter.HasChild(writtenTag.ID)) continue;
                 //this happens when tag added is more precise than a present tag, eg transfer student heroine is more precise than student heroine
                 _activeTagFilter.Remove(filter);
-                Debug.Print($"{writtenTag.Name} Tag Displaced {filter.Name} Tag.");
+                LogToFile($"{writtenTag.Name} Tag Displaced {filter.Name} Tag.");
                 break;
             }
             //save tag as tag and children
             //var children = new List<int>();
             int[] children = Enumerable.Empty<int>().ToArray();
-            Debug.Print($"Getting Child Tags for {tagName}");
+            LogToFile($"Getting Child Tags for {tagName}");
             var difference = 1;
             //new
             int[] childrenForThisRound = PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
@@ -145,8 +144,8 @@ namespace Happy_Search
             {
                 var initial = children.Length;
                 //debug printout
-                IEnumerable<WrittenTag> debuglist = childrenForThisRound.Select(childID => PlainTags.Find(x => x.ID == childID));
-                Debug.WriteLine(string.Join(", ", debuglist));
+                //IEnumerable<WrittenTag> debuglist = childrenForThisRound.Select(childID => PlainTags.Find(x => x.ID == childID));
+                //Debug.WriteLine(string.Join(", ", debuglist));
                 //
                 children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
                 difference = children.Length - initial;
@@ -162,7 +161,7 @@ namespace Happy_Search
             foreach (var filter in _activeTagFilter)
             {
                 if (!newFilter.HasChild(filter.ID)) continue;
-                Debug.Print($"{writtenTag.Name} not necessary, {filter.Name} is already included");
+                LogToFile($"{writtenTag.Name} not necessary, {filter.Name} is already included");
                 notNeeded = true;
                 break;
             }
@@ -202,7 +201,7 @@ namespace Happy_Search
                     Location = new Point(264, 34 + count * 22),
                     Name = TagLabel + count,
                     Size = new Size(173, 17),
-                    Text = $"{filter.Name} (Total: {filter.Titles})",
+                    Text = $@"{filter.Name} (Total: {filter.Titles})",
                     //MaximumSize = new Size(173, 17),
                     Checked = true,
                     AutoEllipsis = true

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -84,7 +83,7 @@ you will also need to enter your Username and Password";
                 FormMain.FadeLabel(replyLabel);
                 return;
             }
-            Debug.Print("Login Credentials Validated");
+            FormMain.LogToFile("Login Credentials Validated");
             if (rememberBox.Checked) FormMain.SaveCredentials(username, password);
             //
             _parentForm.UserID = userID;

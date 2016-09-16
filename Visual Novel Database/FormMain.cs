@@ -28,6 +28,7 @@ namespace Happy_Search
         private const string VNImagesFolder = "vnImages\\";
         internal const string VNScreensFolder = "vnScreens\\";
         private const string DBStatsXml = "dbs.xml";
+        private const string LogFile = "message.log";
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
         private const string TagsJsonGz = "tags.json.gz";
         private const string TagsJson = "tags.json";
@@ -40,7 +41,7 @@ namespace Happy_Search
         internal const string SexualTag = "ero";
         internal const string TechnicalTag = "tech";
         internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "1.3";
+        internal const string ClientVersion = "1.3.2";
         internal const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         internal static readonly string MaxResultsString = $"\"results\":{APIMaxResults}";
@@ -110,6 +111,7 @@ namespace Happy_Search
                 checkBox9.Visible = false;
                 checkBox10.Visible = false;
                 tileOLV.ItemRenderer = new VNTileRenderer();
+                File.Create(LogFile).Close();
                 aboutTextBox.Text =
                     $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
 VNDB API Client for filtering/organizing and finding visual novels.
@@ -137,7 +139,7 @@ https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SplashScreen.SetStatus("Loading Tag and Trait files...");
             {
-                Debug.Print(
+                LogToFile(
                     $"Tagdump Update = {Settings.Default.DumpfilesUpdate}, days since = {DaysSince(Settings.Default.DumpfilesUpdate)}");
                 if (DaysSince(Settings.Default.DumpfilesUpdate) > 2 || DaysSince(Settings.Default.DumpfilesUpdate) == -1)
                 {
@@ -172,10 +174,10 @@ https://github.com/FredTheBarber/VndbClient";
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
                 LoadFavoriteProducerList();
-                Debug.Print("VN Items= " + _vnList.Count);
-                Debug.Print("Producers= " + _producerList.Count);
-                Debug.Print("Characters= " + CharacterList.Count);
-                Debug.Print("UserRelated Items= " + URTList.Count);
+                LogToFile("VN Items= " + _vnList.Count);
+                LogToFile("Producers= " + _producerList.Count);
+                LogToFile("Characters= " + CharacterList.Count);
+                LogToFile("UserRelated Items= " + URTList.Count);
                 var producerFilterSource = new AutoCompleteStringCollection();
                 producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
                 ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
@@ -212,27 +214,26 @@ https://github.com/FredTheBarber/VndbClient";
 
             SplashScreen.SplashScreen.SetStatus("Loading DBStats...");
             {
-                Debug.Print(
+                LogToFile(
                     $"dbstats Update = {Settings.Default.DBStatsUpdate}, days since = {DaysSince(Settings.Default.DBStatsUpdate)}");
                 if (DaysSince(Settings.Default.DBStatsUpdate) > 2 || DaysSince(Settings.Default.DBStatsUpdate) == -1)
                     GetNewDBStats();
                 else LoadDBStats();
             }
             SplashScreen.SplashScreen.CloseForm();
-            Debug.Print("Updating User Related Titles...");
-            if (Settings.Default.AutoUpdateURT && UserID > 0)
+            if (!Settings.Default.AutoUpdateURT || UserID <= 0) return;
+            LogToFile("Checking if URT Update is due...");
+            LogToFile($"URTUpdate= {Settings.Default.URTUpdate}, days since = {DaysSince(Settings.Default.URTUpdate)}");
+            if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
             {
-                Debug.Print($"URTUpdate= {Settings.Default.URTUpdate}");
-                if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
-                {
-                    Task.Run(UpdateURT);
-                    Settings.Default.URTUpdate = DateTime.UtcNow;
-                    Settings.Default.Save();
-                }
-                else
-                {
-                    Debug.Print("Update not needed.");
-                }
+                LogToFile("Updating User Related Titles...");
+                Task.Run(UpdateURT);
+                Settings.Default.URTUpdate = DateTime.UtcNow;
+                Settings.Default.Save();
+            }
+            else
+            {
+                LogToFile("Update not needed.");
             }
         }
 
@@ -263,7 +264,6 @@ https://github.com/FredTheBarber/VndbClient";
         private void LogInDialog(object sender, EventArgs e)
         {
             DialogResult = new LoginForm(this).ShowDialog();
-            Debug.Print(DialogResult.ToString());
             if (DialogResult != DialogResult.OK) return;
             Settings.Default.UserID = UserID;
             Settings.Default.Save();
@@ -357,7 +357,7 @@ This will take a long time if you have a lot of titles in your local database.",
             for (var i = Application.OpenForms.Count - 1; i >= 0; i--)
             {
                 if (Application.OpenForms[i].Name == "FormMain") continue;
-                Debug.Print($"Closing {Application.OpenForms[i].Name}, {i}");
+                LogToFile($"Closing {Application.OpenForms[i].Name}, {i}");
                 Application.OpenForms[i].Close();
             }
         }
@@ -411,7 +411,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async Task UpdateURT()
         {
             if (UserID < 1) return;
-            Debug.Print($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
+            LogToFile($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
             ReloadLists();
             List<int> userIDList = URTList.Select(x => x.VNID).ToList();
             userIDList = await GetUserList(userIDList);
@@ -459,7 +459,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <returns>list of title IDs (avoids duplicate fetching)</returns>
         private async Task<List<int>> GetUserList(List<int> userIDList)
         {
-            Debug.Print("Starting GetUserList");
+            LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
             var result = await TryQuery(userListQuery, Resources.gul_query_error, userListReply);
@@ -491,7 +491,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private async Task<List<int>> GetWishList(List<int> userIDList)
         {
-            Debug.Print("Starting GetWishList");
+            LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {UserID} ) {{\"results\":100}}";
             var result = await TryQuery(wishListQuery, Resources.gwl_query_error, userListReply);
             if (!result) return userIDList;
@@ -522,7 +522,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private async Task<List<int>> GetVoteList(List<int> userIDList)
         {
-            Debug.Print("Starting GetVoteList");
+            LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {UserID} ) {{\"results\":100}}";
             var result = await TryQuery(voteListQuery, Resources.gvl_query_error, userListReply);
             if (!result) return userIDList;
@@ -553,7 +553,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private async Task GetRemainingTitles()
         {
-            Debug.Print("Starting GetRemainingTitles");
+            LogToFile("Starting GetRemainingTitles");
             DBConn.Open();
             List<int> unfetchedTitles = DBConn.GetUnfetchedUserRelatedTitles(UserID);
             DBConn.Close();
@@ -598,6 +598,16 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #endregion
 
         #region Other/General
+
+        public static void LogToFile(string message)
+        {
+            //TODO
+            Debug.Print(message);
+            using (var writer = new StreamWriter(LogFile,true))
+            {
+                writer.WriteLine(message);
+            }
+        }
 
         /// <summary>
         ///     Loads lists from local database.
@@ -795,7 +805,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     }
                     catch
                     {
-                        Debug.Print("Closed while Updating Most Common Tags");
+                        LogToFile("Closed while Updating Most Common Tags");
                         return;
                     }
                     if (!vn.Tags.Any()) continue;
@@ -1002,7 +1012,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     }
                     catch (ArgumentOutOfRangeException)
                     {
-                        Debug.Print(
+                        LogToFile(
                             $"Date: {dateArray[0]}-{dateArray[1]}-{dateArray[2] - tryCount} is invalid, trying again one day earlier");
                         tryCount++;
                     }
@@ -1150,8 +1160,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 }
                 catch (JsonReaderException e)
                 {
-                    Debug.Print(e.Message);
-                    Debug.Print($"{TagsJson} could not be read, deleting it and getting new one.");
+                    LogToFile(e.Message);
+                    LogToFile($"{TagsJson} could not be read, deleting it and getting new one.");
                     File.Delete(TagsJson);
                     GetNewTagdump();
                 }
@@ -1198,8 +1208,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 }
                 catch (JsonReaderException e)
                 {
-                    Debug.Print(e.Message);
-                    Debug.Print($"{TraitsJson} could not be read, deleting it and getting new one.");
+                    LogToFile(e.Message);
+                    LogToFile($"{TraitsJson} could not be read, deleting it and getting new one.");
                     File.Delete(TraitsJson);
                     GetNewTraitdump();
                 }
@@ -1247,7 +1257,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             key.SetValue("Cred2", ciphertext);
             key.SetValue("RNG", entropy);
             key.Close();
-            Debug.Print("Saved Login Credentials");
+            LogToFile("Saved Login Credentials");
         }
 
         /// <summary>
@@ -1265,7 +1275,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             key.Close();
             if (username == null || password == null || entropy == null) return new KeyValuePair<string, char[]>();
             byte[] vv = ProtectedData.Unprotect(password, entropy, DataProtectionScope.CurrentUser);
-            Debug.Print("Loaded Login Credentials");
+            LogToFile("Loaded Login Credentials");
             return new KeyValuePair<string, char[]>(username, Encoding.UTF8.GetChars(vv));
         }
 

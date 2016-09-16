@@ -217,7 +217,7 @@ namespace Happy_Search
                 parts[0] = "Wishlist: ";
                 parts[1] = WLStatus;
             }
-            if (Vote > 0) parts[2] = $" (Vote:{Vote.ToString("0.00")})";
+            if (Vote > 0) parts[2] = $" (Vote:{Vote:0.00})";
             return string.Join(" ", parts);
         }
 
@@ -228,7 +228,7 @@ namespace Happy_Search
         /// <returns>Rating, votecount and popularity</returns>
         public string RatingAndVoteCount()
         {
-            return VoteCount == 0 ? "No votes yet." : $"{Rating.ToString("0.00")} ({VoteCount} votes)";
+            return VoteCount == 0 ? "No votes yet." : $"{Rating:0.00} ({VoteCount} votes)";
         }
     }
 

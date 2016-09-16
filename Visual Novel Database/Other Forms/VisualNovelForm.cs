@@ -33,7 +33,6 @@ namespace Happy_Search
         public VisualNovelForm(ListedVN vnItem, FormMain parentForm)
         {
             _parentForm = parentForm;
-            Text = $"{FormMain.ClientName} - {vnItem.Title}";
             InitializeComponent();
             tagTypeC.Checked = Settings.Default.TagTypeC;
             tagTypeS.Checked = Settings.Default.TagTypeS;
@@ -127,6 +126,7 @@ namespace Happy_Search
 
         private async void SetData(ListedVN vnItem)
         {
+            Text = $@"{FormMain.ClientName} - {vnItem.Title}";
             //prepare data
             displayedVN = vnItem;
             var ext = Path.GetExtension(vnItem.ImageURL);
@@ -148,10 +148,10 @@ namespace Happy_Search
             vnDate.Text = vnItem.RelDate;
             vnDesc.Text = vnItem.Description;
             vnRating.Text = vnItem.RatingAndVoteCount();
-            vnPopularity.Text = $"Popularity: {vnItem.Popularity.ToString("0.00")}";
+            vnPopularity.Text = $@"Popularity: {vnItem.Popularity:0.00}";
             vnLength.Text = vnItem.Length;
             vnUserStatus.Text = vnItem.UserRelatedStatus();
-            vnUpdateLink.Text = $"Updated {vnItem.UpdatedDate} days ago. Click to update.";
+            vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
             if (vnItem.ImageNSFW && !Settings.Default.ShowNSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
@@ -159,6 +159,7 @@ namespace Happy_Search
 
         private void SetDeletedData()
         {
+            Text = $@"{FormMain.ClientName} - (Deleted Title)";
             displayedVN = null;
             vnName.Text = @"This VN was deleted.";
             vnKanjiName.Text = "";
