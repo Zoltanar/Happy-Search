@@ -59,7 +59,7 @@ namespace Happy_Search
                 var waitS = Conn.LastResponse.Error.Minwait * 30;
                 var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
                 string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
-                string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped} so far...";
+                string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped}...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 WriteWarning(replyLabel, fullThrottleMessage);
                 ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
@@ -626,7 +626,7 @@ namespace Happy_Search
                 case ResponseType.Ok:
                     ChangeAPIStatus(Conn.Status);
                     loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = $"Logged in as {credentials.Key}.";
+                    loginReply.Text = $@"Logged in as {credentials.Key}.";
                     return;
                 case ResponseType.Error:
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))

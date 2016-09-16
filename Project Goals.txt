@@ -2,6 +2,7 @@ Next Milestone == ??
 
 Changelog
 ---------
+fixed: refresh list while updating urt list
 removed: popularity from vn tiles
 fixed: null strings in anime json object
 added: general rating to favorite producers (as opposed to the user's average rating)
@@ -36,8 +37,11 @@ save settings to %localappdata%
 Restart Most common tags - use dedicated thread so it can be restarted instead of overlapped
 handle abrupt exit, terminate api connection
 allow user to set notes
-add 'exclude tag' filters
+add 'exclude tag' filters ? not so sure if needed
 backup sqlite database!
+add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
+group sql commands? seems slow in remote desktop win 7 compared to win 10? send commands in groups of APIMAXRESULTS probably
+
 
 
 

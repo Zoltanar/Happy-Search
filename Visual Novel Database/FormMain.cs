@@ -292,7 +292,7 @@ https://github.com/FredTheBarber/VndbClient";
             int[] listOfTitlesFromOldVersions = _vnList.Where(x => x.VoteCount == -1).Select(x => x.VNID).ToArray();
             var messageBox =
                 MessageBox.Show(
-                    $"{listOfTitlesFromOldVersions.Length} need to be updated, if this is a large number (over 2000), it may take a while, are you sure?",
+                    $@"{listOfTitlesFromOldVersions.Length} need to be updated, if this is a large number (over 2000), it may take a while, are you sure?",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             await UpdateTitlesToLatestVersion(listOfTitlesFromOldVersions);
@@ -321,7 +321,7 @@ This will take a long time if you have a lot of titles in your local database.",
             int[] listOfTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > 7).Select(x => x.VNID).ToArray();
             var messageBox =
                 MessageBox.Show(
-                    $"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?",
+                    $@"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             await UpdateTagsAndTraits(listOfTitlesToUpdate);
@@ -448,7 +448,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             RefreshVNList();
             UpdateUserStats();
             if (URTList.Count > 0) WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
-            else WriteError(userListReply, Resources.no_results);
+            else WriteError(userListReply, Resources.no_results, true);
         }
 
 
@@ -558,8 +558,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
             List<int> unfetchedTitles = DBConn.GetUnfetchedUserRelatedTitles(UserID);
             DBConn.Close();
             if (!unfetchedTitles.Any()) return;
-            await GetMultipleVN(unfetchedTitles, userListReply);
-            WriteText(userListReply, Resources.updated_urt);
+            await GetMultipleVN(unfetchedTitles, userListReply,true);
+            WriteText(userListReply, Resources.updated_urt, true);
             ReloadLists();
         }
 
@@ -825,7 +825,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             bw.ProgressChanged +=
                 delegate (object o, ProgressChangedEventArgs args)
                 {
-                    mctLoadingLabel.Text = $"{args.ProgressPercentage}% Completed";
+                    mctLoadingLabel.Text = $@"{args.ProgressPercentage}% Completed";
                 };
             bw.RunWorkerCompleted += delegate
             {
@@ -837,7 +837,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     var name = TagTypeAll + mctNo;
                     var cb = (CheckBox)Controls.Find(name, true).First();
                     var tagName = PlainTags.Find(item => item.ID == toptentags[mctIndex].Key).Name;
-                    cb.Text = $"{tagName} ({toptentags[mctIndex].Value})";
+                    cb.Text = $@"{tagName} ({toptentags[mctIndex].Value})";
                     cb.Checked = false;
                     cb.Visible = true;
                     mctNo++;
@@ -935,7 +935,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 var name = TagTypeUrt + p;
                 var mctULLabel = (Label)Controls.Find(name, true).First();
                 var tagName = PlainTags.Find(item => item.ID == ulProdlistlist[p - 1].Key).Name;
-                mctULLabel.Text = $"{tagName} ({ulProdlistlist[p - 1].Value})";
+                mctULLabel.Text = $@"{tagName} ({ulProdlistlist[p - 1].Value})";
                 mctULLabel.Visible = true;
                 p++;
             }
@@ -1056,7 +1056,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     using (var decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
                     {
                         decompressionStream.CopyTo(decompressedFileStream);
-                        Console.WriteLine($"Decompressed: {fileToDecompress}");
+                        Console.WriteLine($@"Decompressed: {fileToDecompress}");
                     }
                 }
             }
