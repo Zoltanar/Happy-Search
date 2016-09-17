@@ -52,6 +52,12 @@ you will also need to enter your Username and Password";
                     _parentForm.Conn.Close();
                 }
                 _parentForm.Conn.Open();
+                if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
+                {
+                    _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+                    DialogResult = DialogResult.OK;
+                    return;
+                }
                 _parentForm.APILogin();
             }
             else
@@ -92,6 +98,12 @@ you will also need to enter your Username and Password";
                 _parentForm.Conn.Close();
             }
             _parentForm.Conn.Open();
+            if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
+            {
+                _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+                DialogResult = DialogResult.OK;
+                return;
+            }
             _parentForm.APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password));
             DialogResult = DialogResult.OK;
         }

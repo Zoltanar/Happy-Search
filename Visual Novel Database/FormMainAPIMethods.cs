@@ -277,7 +277,7 @@ namespace Happy_Search
                 DBConn.UpsertSingleVN(vnItem, relProducer, false);
                 DBConn.Close();
             }
-            await GetCharactersForMultipleVN(currentArray, replyLabel,true,refreshList);
+            await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
@@ -494,26 +494,35 @@ namespace Happy_Search
         /// Change text and color of API Status label based on status.
         /// </summary>
         /// <param name="apiStatus">Status of API Connection</param>
-        private void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
+        internal void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
         {
             switch (apiStatus)
             {
                 case VndbConnection.APIStatus.Ready:
                     statusLabel.Text = @"Ready";
+                    statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
                     statusLabel.Text = @"Busy";
+                    statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Throttled:
                     statusLabel.Text = @"Throttled";
+                    statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Error:
                     statusLabel.Text = @"Error";
+                    statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.Red;
                     Conn.Close();
+                    break;
+                case VndbConnection.APIStatus.Closed:
+                    statusLabel.Text = @"Closed";
+                    statusLabel.ForeColor = Color.White;
+                    statusLabel.BackColor = Color.Black;
                     break;
             }
         }

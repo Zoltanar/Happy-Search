@@ -27,24 +27,34 @@ namespace Happy_Search
         /// </summary>
         public void Open()
         {
+            FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort}");
             var complete = false;
-            while (!complete)
+            var retries = 0;
+            while (!complete && retries < 5)
             {
                 try
                 {
+                    retries++;
                     _tcpClient = new TcpClient();
                     _tcpClient.Connect(VndbHost, VndbPort);
+                    FormMain.LogToFile("TCP Client connection made...");
                     var sslStream = new SslStream(_tcpClient.GetStream());
+                    FormMain.LogToFile("SSL Stream received...");
                     sslStream.AuthenticateAsClient(VndbHost);
+                    FormMain.LogToFile("SSL Stream authenticated...");
                     _stream = sslStream;
                     complete = true;
+                    FormMain.LogToFile($"Connected after {retries} tries.");
                 }
                 catch (IOException e)
                 {
-                    FormMain.LogToFile(e.StackTrace);
                     FormMain.LogToFile("Conn Open Error");
+                    FormMain.LogToFile(e.StackTrace);
                 }
             }
+            if (retries != 5) return;
+            FormMain.LogToFile($"Failed to connect after {retries} tries.");
+            Status = APIStatus.Error;
         }
 
         /// <summary>
@@ -75,6 +85,7 @@ namespace Happy_Search
 
         internal void Query(string command)
         {
+            if (Status == APIStatus.Error || Status == APIStatus.Closed) return;
             Status = APIStatus.Busy;
             byte[] encoded = Encoding.UTF8.GetBytes(command);
             var requestBuffer = new byte[encoded.Length + 1];

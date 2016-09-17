@@ -211,7 +211,6 @@ https://github.com/FredTheBarber/VndbClient";
             }
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
             InitAPIConnection();
-
             SplashScreen.SplashScreen.SetStatus("Loading DBStats...");
             {
                 LogToFile(
@@ -242,6 +241,11 @@ https://github.com/FredTheBarber/VndbClient";
             SplashScreen.SplashScreen.SetStatus("Logging into VNDB API...");
             {
                 Conn.Open();
+                if (Conn.Status == VndbConnection.APIStatus.Error)
+                {
+                    ChangeAPIStatus(Conn.Status);
+                    return;
+                }
                 //login with credentials if setting is enabled and credentials exist, otherwise login without credentials
                 if (Settings.Default.RememberCredentials)
                 {
@@ -607,7 +611,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <param name="message">Message to be written</param>
         public static void LogToFile(string message)
         {
-            //TODO
             Debug.Print(message);
             using (var writer = new StreamWriter(LogFile,true))
             {
@@ -1095,6 +1098,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         private void GetNewDBStats()
         {
+            if (Conn.Status != VndbConnection.APIStatus.Ready) return;
             Conn.Query("dbstats");
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type != ResponseType.DBStats)
