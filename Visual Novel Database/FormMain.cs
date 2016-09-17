@@ -245,6 +245,7 @@ https://github.com/FredTheBarber/VndbClient";
                 //login with credentials if setting is enabled and credentials exist, otherwise login without credentials
                 if (Settings.Default.RememberCredentials)
                 {
+                    LogToFile("Attempting log in with credentials");
                     KeyValuePair<string, char[]> credentials = LoadCredentials();
                     if (credentials.Value != null)
                     {
@@ -254,6 +255,7 @@ https://github.com/FredTheBarber/VndbClient";
                     APILogin();
                     return;
                 }
+                LogToFile("Attempting log in without credentials");
                 APILogin();
             }
         }
@@ -599,6 +601,10 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Other/General
 
+        /// <summary>
+        /// Print message to Debug and write it to log file.
+        /// </summary>
+        /// <param name="message">Message to be written</param>
         public static void LogToFile(string message)
         {
             //TODO
@@ -1066,7 +1072,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     using (var decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
                     {
                         decompressionStream.CopyTo(decompressedFileStream);
-                        Console.WriteLine($@"Decompressed: {fileToDecompress}");
+                        LogToFile($@"Decompressed: {fileToDecompress}");
                     }
                 }
             }

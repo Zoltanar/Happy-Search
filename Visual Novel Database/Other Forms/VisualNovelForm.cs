@@ -212,8 +212,16 @@ namespace Happy_Search
                 return true;
             }
             //anime hasn't been fetched before
+            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                vnAnimeCB.DataSource = new List<string>
+                {
+                    "Anime cannot be fetched unttil API connection is ready."
+                };
+                return true;
+            }
             await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
-            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload,new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
+            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
                 _parentForm.DBConn.Open();
@@ -251,6 +259,18 @@ namespace Happy_Search
             //screenshots haven't been fetched yet
             else
             {
+                if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
+                {
+                    picturePanel.Controls.Add(new Label
+                    {
+                        Text = @"Screenshots can't be fetched until API connection is ready.",
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        Location = new Point(0, 0),
+                        Size = new Size(picturePanel.Size.Width, picturePanel.Size.Height),
+                        Font = new Font(DefaultFont.FontFamily, DefaultFont.SizeInPoints * 1.8f)
+                    });
+                    return true;
+                }
                 await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnUpdateLink);
                 var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
                 if (root.Num == 0)
@@ -311,6 +331,14 @@ namespace Happy_Search
                 return true;
             }
             //relations haven't been fetched before
+            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                vnRelationsCB.DataSource = new List<string>
+                {
+                    "Relations cannot be fetched unttil API connection is ready."
+                };
+                return true;
+            }
             await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)

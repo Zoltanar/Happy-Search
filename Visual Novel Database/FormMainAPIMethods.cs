@@ -590,7 +590,6 @@ namespace Happy_Search
                 case ResponseType.Ok:
                     loginReply.ForeColor = Color.LightGreen;
                     loginReply.Text = UserID > 0 ? $"Connected with ID {UserID}." : "Connected without ID.";
-                    Console.WriteLine(loginReply.Text);
                     ChangeAPIStatus(Conn.Status);
                     return;
                 case ResponseType.Error:
