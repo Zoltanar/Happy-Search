@@ -96,7 +96,7 @@ namespace Happy_Search
 
         internal void Query(string command)
         {
-            if (Status == APIStatus.Error || Status == APIStatus.Closed) return;
+            if (Status == APIStatus.Error) return;
             Status = APIStatus.Busy;
             byte[] encoded = Encoding.UTF8.GetBytes(command);
             var requestBuffer = new byte[encoded.Length + 1];
