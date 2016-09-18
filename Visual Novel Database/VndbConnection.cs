@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -50,6 +51,16 @@ namespace Happy_Search
                 {
                     FormMain.LogToFile("Conn Open Error");
                     FormMain.LogToFile(e.StackTrace);
+                }
+                catch (AuthenticationException e)
+                {
+                    FormMain.LogToFile("Conn Authentication Error");
+                    FormMain.LogToFile(e.StackTrace);
+                }
+                catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
+                {
+                    FormMain.LogToFile("Conn Other Error");
+                    FormMain.LogToFile(ex.StackTrace);
                 }
             }
             if (retries != 5) return;
