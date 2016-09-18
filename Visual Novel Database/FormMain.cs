@@ -379,7 +379,7 @@ This will take a long time if you have a lot of titles in your local database.",
                 WriteError(prodReply, @"Unknown Path Error");
                 return;
             }
-            var helpFile = $"{Path.Combine(path, "help\\getstarted.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\getstarted.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
@@ -417,6 +417,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async Task UpdateURT()
         {
             if (UserID < 1) return;
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                WriteError(userListReply,"API Connection isn't ready.");
+                return;
+            }
             LogToFile($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
             ReloadLists();
             List<int> userIDList = URTList.Select(x => x.VNID).ToList();

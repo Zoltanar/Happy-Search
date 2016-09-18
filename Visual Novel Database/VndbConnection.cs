@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -17,6 +17,7 @@ namespace Happy_Search
     {
         private const string VndbHost = "api.vndb.org";
         private const ushort VndbPort = 19535; // always use TLS, because why not.
+        private const string CertificateFile = "Program Data\\Certificates\\isrgrootx1.pem";
         private const byte EndOfStreamByte = 0x04;
         private Stream _stream;
         private TcpClient _tcpClient;
@@ -29,6 +30,7 @@ namespace Happy_Search
         /// </summary>
         public void Open()
         {
+            //TODO simulate failed connection
             FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort}");
             var complete = false;
             var retries = 0;
@@ -43,14 +45,25 @@ namespace Happy_Search
                     FormMain.LogToFile("TCP Client connection made...");
                     var sslStream = new SslStream(_tcpClient.GetStream());
                     FormMain.LogToFile("SSL Stream received...");
-                    //temporary unsafe part
-                    if (retries > 2)
+                    if (File.Exists(CertificateFile))
                     {
-                        ServicePointManager.ServerCertificateValidationCallback =
-                            (s, certificate, chain, sslPolicyErrors) => true;
+                        var certs = new X509CertificateCollection { X509Certificate.CreateFromCertFile(CertificateFile) };
+                        foreach (var cert in certs)
+                        {
+                            FormMain.LogToFile("Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                            FormMain.LogToFile(cert.Subject);
+                            FormMain.LogToFile(cert.Issuer);
+                            FormMain.LogToFile(cert.GetFormat());
+                            FormMain.LogToFile(cert.GetEffectiveDateString());
+                            FormMain.LogToFile(cert.GetExpirationDateString());
+                            sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
+                        }
                     }
-                    //end of temporary unsafe part
-                    sslStream.AuthenticateAsClient(VndbHost);
+                    else
+                    {
+                        FormMain.LogToFile("Certificate not found, trying without it...");
+                        sslStream.AuthenticateAsClient(VndbHost);
+                    }
                     FormMain.LogToFile("SSL Stream authenticated...");
                     _stream = sslStream;
                     complete = true;
@@ -67,6 +80,9 @@ namespace Happy_Search
                     FormMain.LogToFile("Conn Authentication Error");
                     FormMain.LogToFile(e.Message);
                     FormMain.LogToFile(e.StackTrace);
+                    if (e.InnerException == null) continue;
+                    FormMain.LogToFile(e.InnerException.Message);
+                    FormMain.LogToFile(e.InnerException.StackTrace);
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
@@ -124,7 +140,7 @@ namespace Happy_Search
                 totalRead += currentRead;
                 if (IsCompleteMessage(responseBuffer, totalRead)) break;
                 if (totalRead != responseBuffer.Length) continue;
-                var biggerBadderBuffer = new byte[responseBuffer.Length*2];
+                var biggerBadderBuffer = new byte[responseBuffer.Length * 2];
                 Buffer.BlockCopy(responseBuffer, 0, biggerBadderBuffer, 0, responseBuffer.Length);
                 responseBuffer = biggerBadderBuffer;
             }
@@ -148,7 +164,7 @@ namespace Happy_Search
                 totalRead += currentRead;
                 if (IsCompleteMessage(responseBuffer, totalRead)) break;
                 if (totalRead != responseBuffer.Length) continue;
-                var biggerBadderBuffer = new byte[responseBuffer.Length*2];
+                var biggerBadderBuffer = new byte[responseBuffer.Length * 2];
                 Buffer.BlockCopy(responseBuffer, 0, biggerBadderBuffer, 0, responseBuffer.Length);
                 responseBuffer = biggerBadderBuffer;
             }
@@ -174,8 +190,17 @@ namespace Happy_Search
         /// </summary>
         public void Close()
         {
-            _tcpClient.GetStream().Close();
-            _tcpClient.Close();
+            try
+            {
+                _tcpClient.GetStream().Close();
+                _tcpClient.Close();
+            }
+            catch (ObjectDisposedException e)
+            {
+                FormMain.LogToFile("Failed to close connection.");
+                FormMain.LogToFile(e.Message);
+                FormMain.LogToFile(e.StackTrace);
+            }
             Status = APIStatus.Closed;
         }
 

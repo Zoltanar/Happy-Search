@@ -28,7 +28,7 @@ namespace Happy_Search
                 WriteError(tagReply, @"Unknown Path Error");
                 return;
             }
-            var helpFile = $"{Path.Combine(path, "help\\tagfiltering.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\tagfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 

@@ -23,7 +23,7 @@ namespace Happy_Search
                 WriteError(prodReply, @"Unknown Path Error");
                 return;
             }
-            var helpFile = $"{Path.Combine(path, "help\\favoriteproducers.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\favoriteproducers.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 

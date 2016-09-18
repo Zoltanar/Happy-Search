@@ -216,7 +216,7 @@ namespace Happy_Search
             {
                 vnAnimeCB.DataSource = new List<string>
                 {
-                    "Anime cannot be fetched unttil API connection is ready."
+                    "Anime cannot be fetched until API connection is ready."
                 };
                 return true;
             }

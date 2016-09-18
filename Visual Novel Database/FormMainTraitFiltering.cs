@@ -27,7 +27,7 @@ namespace Happy_Search
                 WriteError(traitReply, @"Unknown Path Error");
                 return;
             }
-            var helpFile = $"{Path.Combine(path, "help\\traitfiltering.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\traitfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
@@ -85,7 +85,6 @@ namespace Happy_Search
                 WriteText(traitReply, "Enter name of filter.", true);
                 return;
             }
-            //TODO
             //Ask to overwrite if name entered is already in use
             var customFilter = _customTraitFilters.Find(x => x.Name.Equals(filterName));
             if (customFilter != null)
@@ -95,7 +94,7 @@ namespace Happy_Search
                 if (askBox != DialogResult.Yes) return;
                 customFilter.Filters = new List<WrittenTrait>(_activeTraitFilter);
                 customFilter.Updated = DateTime.UtcNow;
-                SaveMainXML(); //TODO
+                SaveMainXML();
                 WriteText(traitReply, Resources.filter_saved, true);
                 customTraitFilters.SelectedIndex = customTraitFilters.Items.IndexOf(filterName);
                 return;

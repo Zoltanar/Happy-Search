@@ -26,7 +26,7 @@ namespace Happy_Search
                 WriteError(replyText, @"Unknown Path Error");
                 return;
             }
-            var helpFile = $"{Path.Combine(path, "help\\searchingandfiltering.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\searchingandfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
@@ -294,7 +294,6 @@ namespace Happy_Search
             var producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
             if (producerItem == null)
             {
-                //TODO
                 WriteError(replyText, "NYI (Producer not in local db)", true);
                 return;
             }
@@ -421,7 +420,7 @@ namespace Happy_Search
                 WriteError(replyText, @"Unknown Path Error");
                 return;
             }
-            var helpFile = $"{Path.Combine(path, "help\\listresults.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listresults.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
