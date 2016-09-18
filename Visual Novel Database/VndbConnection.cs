@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -36,11 +38,19 @@ namespace Happy_Search
                 try
                 {
                     retries++;
+                    FormMain.LogToFile($"Trying for the {retries}'th time...");
                     _tcpClient = new TcpClient();
                     _tcpClient.Connect(VndbHost, VndbPort);
                     FormMain.LogToFile("TCP Client connection made...");
                     var sslStream = new SslStream(_tcpClient.GetStream());
                     FormMain.LogToFile("SSL Stream received...");
+                    //temporary unsafe part
+                    if (retries > 2)
+                    {
+                        ServicePointManager.ServerCertificateValidationCallback =
+                            (s, certificate, chain, sslPolicyErrors) => true;
+                    }
+                    //end of temporary unsafe part
                     sslStream.AuthenticateAsClient(VndbHost);
                     FormMain.LogToFile("SSL Stream authenticated...");
                     _stream = sslStream;
@@ -50,16 +60,19 @@ namespace Happy_Search
                 catch (IOException e)
                 {
                     FormMain.LogToFile("Conn Open Error");
+                    FormMain.LogToFile(e.Message);
                     FormMain.LogToFile(e.StackTrace);
                 }
                 catch (AuthenticationException e)
                 {
                     FormMain.LogToFile("Conn Authentication Error");
+                    FormMain.LogToFile(e.Message);
                     FormMain.LogToFile(e.StackTrace);
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
                     FormMain.LogToFile("Conn Other Error");
+                    FormMain.LogToFile(ex.Message);
                     FormMain.LogToFile(ex.StackTrace);
                 }
             }
