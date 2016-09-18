@@ -30,7 +30,6 @@ namespace Happy_Search
         /// </summary>
         public void Open()
         {
-            //TODO simulate failed connection
             FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort}");
             var complete = false;
             var retries = 0;
@@ -50,7 +49,7 @@ namespace Happy_Search
                         var certs = new X509CertificateCollection { X509Certificate.CreateFromCertFile(CertificateFile) };
                         foreach (var cert in certs)
                         {
-                            FormMain.LogToFile("Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                            FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
                             FormMain.LogToFile(cert.Subject);
                             FormMain.LogToFile(cert.Issuer);
                             FormMain.LogToFile(cert.GetFormat());
@@ -65,6 +64,22 @@ namespace Happy_Search
                         sslStream.AuthenticateAsClient(VndbHost);
                     }
                     FormMain.LogToFile("SSL Stream authenticated...");
+                    if (sslStream.RemoteCertificate != null)
+                    {
+                        FormMain.LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                        var subject = sslStream.RemoteCertificate.Subject;
+                        FormMain.LogToFile(subject);
+                        FormMain.LogToFile(sslStream.RemoteCertificate.Issuer);
+                        FormMain.LogToFile(sslStream.RemoteCertificate.GetFormat());
+                        FormMain.LogToFile(sslStream.RemoteCertificate.GetEffectiveDateString());
+                        FormMain.LogToFile(sslStream.RemoteCertificate.GetExpirationDateString());
+                        if (!subject.Substring(3).Equals(VndbHost))
+                        {
+                            FormMain.LogToFile($"Certificate received isn't for {VndbHost} so connection is closed");
+                            Status = APIStatus.Error;
+                            return;
+                        }
+                    }
                     _stream = sslStream;
                     complete = true;
                     FormMain.LogToFile($"Connected after {retries} tries.");
