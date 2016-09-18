@@ -32,7 +32,7 @@ namespace Happy_Search
         }
 
         #region Set Methods
-        
+
         public void AddRelationsToVN(int vnid, List<RelationsItem> relations)
         {
             var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";
@@ -126,11 +126,11 @@ namespace Happy_Search
                     {
                         case Command.New:
                             commandString =
-                                $"INSERT OR REPLACE  INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt*10}, {statusDate});";
+                                $"INSERT OR REPLACE  INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt * 10}, {statusDate});";
                             break;
                         case Command.Update:
                             commandString =
-                                $"UPDATE userlist SET Vote = {statusInt*10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
+                                $"UPDATE userlist SET Vote = {statusInt * 10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;
@@ -163,39 +163,57 @@ namespace Happy_Search
             cmd.ExecuteNonQuery();
         }
 
-        public void UpsertUserList(int userid, UserListItem item, bool update)
+        public void UpsertUserList(int userid, UserListItem item)
         {
             if (item.Notes == null) item.Notes = "";
             var note = Regex.Replace(item.Notes, "'", "''");
             var commandString =
-                $"UPDATE userlist SET ULStatus = '{item.Status}', ULAdded = '{item.Added}', ULNote = '{note}' WHERE VNID = {item.VN} AND UserID = {userid};";
-            var insertString =
-                $"INSERT INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote) VALUES ({item.VN},{userid},'{item.Status}', '{item.Added}', '{note}');";
-            if (!update) commandString = insertString;
+                "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded) " +
+                $"VALUES ({item.VN}," +
+                $"{userid}," +
+                $"{item.Status}," +
+                $"{item.Added}," +
+                $"'{note}', " +
+                $"(SELECT WLStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT WLAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             var command = new SQLiteCommand(commandString, DbConn);
             LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
-        public void UpsertWishList(int userid, WishListItem item, bool update)
+        public void UpsertWishList(int userid, WishListItem item)
         {
             var commandString =
-                $"UPDATE userlist SET WLStatus = '{item.Priority}', WLAdded = '{item.Added}' WHERE VNID = '{item.VN}' AND UserID = '{userid}';";
-            var insertString =
-                $"INSERT INTO userlist (VNID, WLStatus, WLAdded, UserID) VALUES ('{item.VN}','{item.Priority}','{item.Added}', '{userid}');";
-            if (!update) commandString = insertString;
+                "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded) " +
+                $"VALUES ({item.VN}," +
+                $"{userid}," +
+                $"(SELECT ULStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT ULAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT ULNote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}), " +
+                $"{item.Priority}," +
+                $"{item.Added}," +
+                $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             var command = new SQLiteCommand(commandString, DbConn);
             LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
-        public void UpsertVoteList(int userid, VoteListItem item, bool update)
+        public void UpsertVoteList(int userid, VoteListItem item)
         {
             var commandString =
-                $"UPDATE userlist SET Vote = '{item.Vote}', VoteAdded = '{item.Added}' WHERE VNID = '{item.VN}' AND UserID = '{userid}';";
-            var insertString =
-                $"INSERT INTO userlist (VNID, Vote, VoteAdded, UserID) VALUES ('{item.VN}','{item.Vote}','{item.Added}', '{userid}');";
-            if (!update) commandString = insertString;
+                "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded) " +
+                $"VALUES ({item.VN}," +
+                $"{userid}," +
+                $"(SELECT ULStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT ULAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT ULNote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}), " +
+                $"(SELECT WLStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"(SELECT WLAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
+                $"{item.Vote}," +
+                $"{item.Added});";
             var command = new SQLiteCommand(commandString, DbConn);
             LogToFile(commandString);
             command.ExecuteNonQuery();
@@ -353,7 +371,7 @@ namespace Happy_Search
             while (reader.Read()) readerList.Add(GetListedVN(reader));
             return readerList;
         }
-        
+
         public List<CharacterItem> GetAllCharacters()
         {
             var readerList = new List<CharacterItem>();
@@ -634,7 +652,7 @@ END";
             return i == 1;
         }
 
-        
+
         /// <summary>
         /// Convert list of objects to JSON array string.
         /// </summary>

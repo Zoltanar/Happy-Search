@@ -488,7 +488,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             foreach (var item in ulList)
             {
-                DBConn.UpsertUserList(UserID, item, userIDList.Contains(item.VN));
+                DBConn.UpsertUserList(UserID, item);
                 if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
             DBConn.Close();
@@ -519,7 +519,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             foreach (var item in wlList)
             {
-                DBConn.UpsertWishList(UserID, item, userIDList.Contains(item.VN));
+                DBConn.UpsertWishList(UserID, item);
                 if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
             DBConn.Close();
@@ -550,7 +550,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             foreach (var item in vlList)
             {
-                DBConn.UpsertVoteList(UserID, item, userIDList.Contains(item.VN));
+                DBConn.UpsertVoteList(UserID, item);
                 if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
             DBConn.Close();
