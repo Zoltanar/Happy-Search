@@ -16,6 +16,7 @@ using System.Xml.Serialization;
 using Happy_Search.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Timer = System.Windows.Forms.Timer;
 
 namespace Happy_Search
 {
@@ -66,6 +67,8 @@ namespace Happy_Search
         internal List<WrittenTrait> PlainTraits; //Contains all tags as in tags.json
         internal List<ListedVN> URTList; //contains all user-related vns
         internal int UserID; //id of current user
+        private List<KeyValuePair<int, int>> _toptentags;
+        private byte _mctCount = 250;
 
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
@@ -755,7 +758,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         internal void DisplayCommonTags(object sender, EventArgs e)
         {
-            //TODO use one predefined thread, so that this only occurs once at a time instead of overlapping eachother
             if (sender != null && !DontTriggerEvent)
             {
                 var checkBox = (CheckBox)sender;
@@ -795,81 +797,105 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 Settings.Default.Save();
                 DisplayCommonTagsURT(null, null);
             }
-            List<ListedVN> vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToList();
-            var vnCount = vnlist.Count;
+            _mctCount++;
+            var bw = new IdentifiableBackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true, ID = _mctCount };
+            bw.DoWork += RunBackgroundWork;
+            bw.ProgressChanged +=delegate (object o, ProgressChangedEventArgs args)
+                {
+                    mctLoadingLabel.Text = $@"{args.ProgressPercentage}% Completed";
+                };
+            bw.RunWorkerCompleted += OnBackgroundWorkCompleted;
+            bw.RunWorkerAsync();
+        }
+
+        private void OnBackgroundWorkCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            var bw = (IdentifiableBackgroundWorker) sender;
+            Debug.Print($"Executing onCompletion bw code for id={bw.ID}");
+            if (bw.ID != _mctCount)
+            {
+                Debug.Print($"Skipping OnBWCompleted for id={bw.ID}because thread was aborted.");
+                return;
+            }
+            if (_toptentags == null || !_toptentags.Any()) return;
+            var mctNo = 1;
+            while (mctNo < _toptentags.Count)
+            {
+                var mctIndex = mctNo - 1;
+                var name = TagTypeAll + mctNo;
+                var cb = (CheckBox) Controls.Find(name, true).First();
+                var tagName = PlainTags.Find(item => item.ID == _toptentags[mctIndex].Key).Name;
+                cb.Text = $@"{tagName} ({_toptentags[mctIndex].Value})";
+                cb.Checked = false;
+                cb.Visible = true;
+                mctNo++;
+            }
+            ClearCommonTags(TagTypeAll, 10 - _toptentags.Count);
+            FadeLabel(mctLoadingLabel);
+            Debug.Print($"Finished executing onCompletion bw code for id={bw.ID}");
+        }
+
+        private void RunBackgroundWork(object sender1, DoWorkEventArgs e1)
+        {
+            var bw = (IdentifiableBackgroundWorker)sender1;
+            Debug.Print($"Started DoWork {bw.ID}");
+            ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
+            var vnCount = vnlist.Length;
             if (vnCount == 0)
             {
                 ClearCommonTags(TagTypeAll, 10);
                 return;
             }
-            List<KeyValuePair<int, int>> toptentags = null;
-            var bw = new BackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            bw.DoWork += delegate
+            //vn list - most common tags
+            var taglist = new Dictionary<int, int>();
+            var vnNo = 1;
+            foreach (var vn in vnlist)
             {
-                //vn list - most common tags
-                var taglist = new Dictionary<int, int>();
-                var vnNo = 1;
-                foreach (var vn in vnlist)
+                if (bw.ID != _mctCount)
                 {
-                    var progressPercent = (double)vnNo / vnCount * 100;
-                    vnNo++;
-                    try
+                    Debug.Print($"Skipping RunBWWork for id={bw.ID} because thread was aborted.");
+                    return;
+                }
+                var progressPercent = (double)vnNo / vnCount * 100;
+                vnNo++;
+                try
+                {
+                    ((IdentifiableBackgroundWorker)sender1).ReportProgress((int)Math.Floor(progressPercent));
+                }
+                catch
+                {
+                    LogToFile("Closed while Updating Most Common Tags");
+                    return;
+                }
+                if (!vn.Tags.Any()) continue;
+                List<TagItem> tags = StringToTags(vn.Tags);
+                foreach (var tag in tags)
+                {
+                    if (bw.ID != _mctCount)
                     {
-                        bw.ReportProgress((int)Math.Floor(progressPercent));
-                    }
-                    catch
-                    {
-                        LogToFile("Closed while Updating Most Common Tags");
+                        Debug.Print($"Skipping RunBWWork for id={bw.ID} because thread was aborted.");
                         return;
                     }
-                    if (!vn.Tags.Any()) continue;
-                    List<TagItem> tags = StringToTags(vn.Tags);
-                    foreach (var tag in tags)
+                    var tagtag = PlainTags.Find(item => item.ID == tag.ID);
+                    if (tagtag == null) continue;
+                    if (tagtag.Cat.Equals(ContentTag) && Settings.Default.TagTypeC == false) continue;
+                    if (tagtag.Cat.Equals(SexualTag) && Settings.Default.TagTypeS == false) continue;
+                    if (tagtag.Cat.Equals(TechnicalTag) && Settings.Default.TagTypeT == false) continue;
+                    if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
+                    if (taglist.ContainsKey(tag.ID))
                     {
-                        var tagtag = PlainTags.Find(item => item.ID == tag.ID);
-                        if (tagtag == null) continue;
-                        if (tagtag.Cat.Equals(ContentTag) && Settings.Default.TagTypeC == false) continue;
-                        if (tagtag.Cat.Equals(SexualTag) && Settings.Default.TagTypeS == false) continue;
-                        if (tagtag.Cat.Equals(TechnicalTag) && Settings.Default.TagTypeT == false) continue;
-                        if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
-                        if (taglist.ContainsKey(tag.ID))
-                        {
-                            taglist[tag.ID] = taglist[tag.ID] + 1;
-                        }
-                        else
-                        {
-                            taglist.Add(tag.ID, 1);
-                        }
+                        taglist[tag.ID] = taglist[tag.ID] + 1;
+                    }
+                    else
+                    {
+                        taglist.Add(tag.ID, 1);
                     }
                 }
-                List<KeyValuePair<int, int>> prodlistlist = taglist.ToList();
-                prodlistlist.Sort((x, y) => y.Value.CompareTo(x.Value));
-                toptentags = prodlistlist.Take(10).ToList();
-            };
-            bw.ProgressChanged +=
-                delegate (object o, ProgressChangedEventArgs args)
-                {
-                    mctLoadingLabel.Text = $@"{args.ProgressPercentage}% Completed";
-                };
-            bw.RunWorkerCompleted += delegate
-            {
-                if (!toptentags.Any()) return;
-                var mctNo = 1;
-                while (mctNo < toptentags.Count)
-                {
-                    var mctIndex = mctNo - 1;
-                    var name = TagTypeAll + mctNo;
-                    var cb = (CheckBox)Controls.Find(name, true).First();
-                    var tagName = PlainTags.Find(item => item.ID == toptentags[mctIndex].Key).Name;
-                    cb.Text = $@"{tagName} ({toptentags[mctIndex].Value})";
-                    cb.Checked = false;
-                    cb.Visible = true;
-                    mctNo++;
-                }
-                ClearCommonTags(TagTypeAll, 10 - toptentags.Count);
-                FadeLabel(mctLoadingLabel);
-            };
-            bw.RunWorkerAsync();
+            }
+            List<KeyValuePair<int, int>> prodlistlist = taglist.ToList();
+            prodlistlist.Sort((x, y) => y.Value.CompareTo(x.Value));
+            _toptentags = prodlistlist.Take(10).ToList();
+            Debug.Print($"Completed DoWork {bw.ID}");
         }
 
         /// <summary>
@@ -1049,8 +1075,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             return DateTime.MaxValue;
         }
-
-
+        
         /// <summary>
         ///     Convert JSON-formatted string to list of tags.
         /// </summary>
@@ -1340,6 +1365,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #endregion
 
         #region Classes/Enums
+        
+        private class IdentifiableBackgroundWorker : BackgroundWorker
+        {
+            public int ID { get; set; }
+            
+        }
 
         /// <summary>
         ///     Class For XML File, holding saved objects.
