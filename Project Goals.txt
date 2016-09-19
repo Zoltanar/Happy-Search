@@ -49,7 +49,6 @@ add 'exclude tag' filters ? not so sure if needed
 backup sqlite database!
 add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
-add maximum tries to get dump files and use default ones if it fails
 
 
 

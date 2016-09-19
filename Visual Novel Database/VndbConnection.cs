@@ -6,6 +6,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Newtonsoft.Json;
 
 namespace Happy_Search
@@ -16,8 +17,8 @@ namespace Happy_Search
     public class VndbConnection
     {
         private const string VndbHost = "api.vndb.org";
-        private const ushort VndbPort = 19535; // always use TLS, because why not.
-        private const string CertificateFile = "Program Data\\Certificates\\isrgrootx1.pem";
+        private const ushort VndbPort = 19534;
+        private const ushort VndbPortTLS = 19535;
         private const byte EndOfStreamByte = 0x04;
         private Stream _stream;
         private TcpClient _tcpClient;
@@ -30,7 +31,7 @@ namespace Happy_Search
         /// </summary>
         public void Open()
         {
-            FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort}");
+            FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
             var complete = false;
             var retries = 0;
             while (!complete && retries < 5)
@@ -40,36 +41,29 @@ namespace Happy_Search
                     retries++;
                     FormMain.LogToFile($"Trying for the {retries}'th time...");
                     _tcpClient = new TcpClient();
-                    _tcpClient.Connect(VndbHost, VndbPort);
+                    _tcpClient.Connect(VndbHost, VndbPortTLS);
                     FormMain.LogToFile("TCP Client connection made...");
                     var sslStream = new SslStream(_tcpClient.GetStream());
                     FormMain.LogToFile("SSL Stream received...");
-                    if (File.Exists(CertificateFile))
+                    var certs = new X509CertificateCollection();
+                    var certFiles = Directory.GetFiles("Program Data\\Certificates");
+                    foreach (var certFile in certFiles)
                     {
-                        var certs = new X509CertificateCollection();
-                        var certFiles = Directory.GetFiles("Program Data\\Certificates");
-                        foreach (var certFile in certFiles)
-                        {
-                            certs.Add(X509Certificate.CreateFromCertFile(certFile));
-                        }
-                        foreach (var cert in certs)
-                        {
-                            FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-                            FormMain.LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
-                        }
-                        sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
+                        certs.Add(X509Certificate.CreateFromCertFile(certFile));
                     }
-                    else
+                    FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                    foreach (var cert in certs)
                     {
-                        FormMain.LogToFile("Certificate not found, trying without it...");
-                        sslStream.AuthenticateAsClient(VndbHost);
+                        FormMain.LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
                     }
+                    sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
+                    //sslStream.AuthenticateAsClient(VndbHost);
                     FormMain.LogToFile("SSL Stream authenticated...");
                     if (sslStream.RemoteCertificate != null)
                     {
                         FormMain.LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
                         var subject = sslStream.RemoteCertificate.Subject;
-                        FormMain.LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t"+ 
+                        FormMain.LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
                             sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
@@ -80,6 +74,7 @@ namespace Happy_Search
                     }
                     _stream = sslStream;
                     complete = true;
+                    //
                     FormMain.LogToFile($"Connected after {retries} tries.");
                 }
                 catch (IOException e)
@@ -104,7 +99,55 @@ namespace Happy_Search
                     FormMain.LogToFile(ex.StackTrace);
                 }
             }
-            if (retries != 5) return;
+            if (_stream != null  && _stream.CanRead) return;
+            FormMain.LogToFile($"Failed to connect after {retries} tries.");
+            Status = APIStatus.Error;
+            AskForNonSsl();
+        }
+
+        private void AskForNonSsl()
+        {
+            var messageResult = MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
+                @"Connection Failed", MessageBoxButtons.YesNo);
+            if (messageResult != DialogResult.Yes) return;
+            FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
+            Status = APIStatus.Closed;
+            var complete = false;
+            var retries = 0;
+            while (!complete && retries < 5)
+            {
+                try
+                {
+                    retries++;
+                    FormMain.LogToFile($"Trying for the {retries}'th time...");
+                    _tcpClient = new TcpClient();
+                    _tcpClient.Connect(VndbHost, VndbPort);
+                    FormMain.LogToFile("TCP Client connection made...");
+                    _stream = _tcpClient.GetStream();
+                    FormMain.LogToFile("Stream received...");
+                    FormMain.LogToFile($"Connected after {retries} tries.");
+                    complete = true;
+                }
+                catch (IOException e)
+                {
+                    FormMain.LogToFile("Conn Open Error");
+                    FormMain.LogToFile(e.Message);
+                    FormMain.LogToFile(e.StackTrace);
+                }
+                catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
+                {
+                    FormMain.LogToFile("Conn Other Error");
+                    FormMain.LogToFile(ex.Message);
+                    FormMain.LogToFile(ex.StackTrace);
+                }
+                catch (Exception otherXException)
+                {
+                    FormMain.LogToFile("Conn Other2 Error");
+                    FormMain.LogToFile(otherXException.Message);
+                    FormMain.LogToFile(otherXException.StackTrace);
+                }
+            }
+            if (_stream != null && _stream.CanRead) return;
             FormMain.LogToFile($"Failed to connect after {retries} tries.");
             Status = APIStatus.Error;
         }
