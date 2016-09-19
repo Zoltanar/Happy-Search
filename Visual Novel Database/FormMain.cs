@@ -44,7 +44,7 @@ namespace Happy_Search
         internal const string SexualTag = "ero";
         internal const string TechnicalTag = "tech";
         internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "1.3.4";
+        internal const string ClientVersion = "1.3.5";
         internal const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         internal static readonly string MaxResultsString = $"\"results\":{APIMaxResults}";

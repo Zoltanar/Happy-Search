@@ -2,6 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
+-1.3.5 released-
+changed: maximum 5 tries to get dump files, otherwise use default.
 changed: DisplayCommonTags now doesn't run on top of itself (new instance stops the previous one)
 added: check if certificate received is for api.vndb.org
 added: certificates to authenticate connection
