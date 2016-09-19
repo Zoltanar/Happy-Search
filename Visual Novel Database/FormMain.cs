@@ -128,6 +128,7 @@ http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
 http://www.codeproject.com/Articles/5454/A-Pretty-Good-Splash-Screen-in-C
 (reasonably modified) VndbClient by FredTheBarber
 https://github.com/FredTheBarber/VndbClient";
+                LogToFile($"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})");
             }
             SplashScreen.SplashScreen.SetStatus("Loading User Settings...");
             {
@@ -1091,7 +1092,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 }
             }
             //load default file if new one couldnt be received or for some reason doesn't exist.
-            if (!complete || !File.Exists(TraitsJsonGz)) LoadTraitdump(true);
+            if (!complete || !File.Exists(TraitsJson)) LoadTraitdump(true);
             else
             {
                 Settings.Default.DumpfilesUpdate = DateTime.UtcNow;
