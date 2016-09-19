@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -369,6 +370,140 @@ namespace Happy_Search
             AddFilterTag(tagName);
             tagSearchBox.Text = "";
         }
+
+
+        /// <summary>
+        ///     Display ten most common tags in the current list. Takes time when list contains over 9000 titles.
+        /// </summary>
+        internal void DisplayCommonTags(object sender, EventArgs e)
+        {
+            if (sender != null && !DontTriggerEvent)
+            {
+                var checkBox = (CheckBox)sender;
+                DontTriggerEvent = true;
+                IEnumerable<VisualNovelForm> vnForms = Application.OpenForms.OfType<VisualNovelForm>();
+                switch (checkBox.Name)
+                {
+                    case "tagTypeC":
+                        Settings.Default.TagTypeC = checkBox.Checked;
+                        tagTypeC2.Checked = checkBox.Checked;
+                        foreach (var vnForm in vnForms)
+                        {
+                            vnForm.tagTypeC.Checked = checkBox.Checked;
+                            vnForm.DisplayTags(null, null);
+                        }
+                        break;
+                    case "tagTypeS":
+                        Settings.Default.TagTypeS = checkBox.Checked;
+                        tagTypeS2.Checked = checkBox.Checked;
+                        foreach (var vnForm in vnForms)
+                        {
+                            vnForm.tagTypeC.Checked = checkBox.Checked;
+                            vnForm.DisplayTags(null, null);
+                        }
+                        break;
+                    case "tagTypeT":
+                        Settings.Default.TagTypeT = checkBox.Checked;
+                        tagTypeT2.Checked = checkBox.Checked;
+                        foreach (var vnForm in vnForms)
+                        {
+                            vnForm.tagTypeC.Checked = checkBox.Checked;
+                            vnForm.DisplayTags(null, null);
+                        }
+                        break;
+                }
+                DontTriggerEvent = false;
+                Settings.Default.Save();
+                DisplayCommonTagsURT(null, null);
+            }
+            _mctCount++;
+            var bw = new IdentifiableBackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true, ID = _mctCount };
+            bw.DoWork += RunBackgroundWork;
+            bw.ProgressChanged += delegate (object o, ProgressChangedEventArgs args)
+            {
+                mctLoadingLabel.Text = $@"{args.ProgressPercentage}% Completed";
+            };
+            bw.RunWorkerCompleted += OnBackgroundWorkCompleted;
+            bw.RunWorkerAsync();
+        }
+
+        private void OnBackgroundWorkCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            var bw = (IdentifiableBackgroundWorker)sender;
+            //abort if current mct id is different
+            if (bw.ID != _mctCount) return;
+            if (_toptentags == null || !_toptentags.Any()) return;
+            var mctNo = 1;
+            while (mctNo < _toptentags.Count)
+            {
+                var mctIndex = mctNo - 1;
+                var name = TagTypeAll + mctNo;
+                var cb = (CheckBox)Controls.Find(name, true).First();
+                var tagName = PlainTags.Find(item => item.ID == _toptentags[mctIndex].Key).Name;
+                cb.Text = $@"{tagName} ({_toptentags[mctIndex].Value})";
+                cb.Checked = false;
+                cb.Visible = true;
+                mctNo++;
+            }
+            ClearCommonTags(TagTypeAll, 10 - _toptentags.Count);
+            FadeLabel(mctLoadingLabel);
+        }
+
+        private void RunBackgroundWork(object sender1, DoWorkEventArgs e1)
+        {
+            var bw = (IdentifiableBackgroundWorker)sender1;
+            ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
+            var vnCount = vnlist.Length;
+            if (vnCount == 0)
+            {
+                ClearCommonTags(TagTypeAll, 10);
+                return;
+            }
+            //vn list - most common tags
+            var taglist = new Dictionary<int, int>();
+            var vnNo = 1;
+            foreach (var vn in vnlist)
+            {
+                //abort if current mct id is different
+                if (bw.ID != _mctCount) return;
+                var progressPercent = (double)vnNo / vnCount * 100;
+                vnNo++;
+                try
+                {
+                    ((IdentifiableBackgroundWorker)sender1).ReportProgress((int)Math.Floor(progressPercent));
+                }
+                catch
+                {
+                    LogToFile("Closed while Updating Most Common Tags");
+                    return;
+                }
+                if (!vn.Tags.Any()) continue;
+                List<TagItem> tags = StringToTags(vn.Tags);
+                foreach (var tag in tags)
+                {
+                    //abort if current mct id is different
+                    if (bw.ID != _mctCount) return;
+                    var tagtag = PlainTags.Find(item => item.ID == tag.ID);
+                    if (tagtag == null) continue;
+                    if (tagtag.Cat.Equals(ContentTag) && Settings.Default.TagTypeC == false) continue;
+                    if (tagtag.Cat.Equals(SexualTag) && Settings.Default.TagTypeS == false) continue;
+                    if (tagtag.Cat.Equals(TechnicalTag) && Settings.Default.TagTypeT == false) continue;
+                    if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
+                    if (taglist.ContainsKey(tag.ID))
+                    {
+                        taglist[tag.ID] = taglist[tag.ID] + 1;
+                    }
+                    else
+                    {
+                        taglist.Add(tag.ID, 1);
+                    }
+                }
+            }
+            List<KeyValuePair<int, int>> prodlistlist = taglist.ToList();
+            prodlistlist.Sort((x, y) => y.Value.CompareTo(x.Value));
+            _toptentags = prodlistlist.Take(10).ToList();
+        }
+
 
         /// <summary>
         ///     Holds details of user-created custom filter

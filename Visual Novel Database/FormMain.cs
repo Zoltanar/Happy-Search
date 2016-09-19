@@ -33,9 +33,11 @@ namespace Happy_Search
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
         private const string TagsJsonGz = "tags.json.gz";
         private const string TagsJson = "tags.json";
+        private const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
         private const string TraitsURL = "http://vndb.org/api/traits.json.gz";
         private const string TraitsJsonGz = "traits.json.gz";
         private const string TraitsJson = "traits.json";
+        private const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
         private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
         internal const string ContentTag = "cont";
@@ -68,7 +70,7 @@ namespace Happy_Search
         internal List<ListedVN> URTList; //contains all user-related vns
         internal int UserID; //id of current user
         private List<KeyValuePair<int, int>> _toptentags;
-        private byte _mctCount = 250;
+        private byte _mctCount;
 
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
@@ -146,19 +148,19 @@ https://github.com/FredTheBarber/VndbClient";
                     $"Tagdump Update = {Settings.Default.DumpfilesUpdate}, days since = {DaysSince(Settings.Default.DumpfilesUpdate)}");
                 if (DaysSince(Settings.Default.DumpfilesUpdate) > 2 || DaysSince(Settings.Default.DumpfilesUpdate) == -1)
                 {
-                    GetNewTagdump();
-                    GetNewTraitdump();
+                    GetNewDumpFiles();
                 }
                 else
                 {
-                    LoadTagdump();
-                    LoadTraitdump();
+                    //load dump files if they exist, otherwise load default.
+                    LoadTagdump(!File.Exists(TagsJson));
+                    LoadTraitdump(!File.Exists(TraitsJson));
                 }
                 var tagSource = new AutoCompleteStringCollection();
                 tagSource.AddRange(PlainTags.Select(v => v.Name).ToArray());
                 tagSearchBox.AutoCompleteCustomSource = tagSource;
-                var traitRootIDs = PlainTraits.Select(x => x.TopmostParent).Distinct();
-                var traitRoots = PlainTraits.Where(x => traitRootIDs.Contains(x.ID));
+                IEnumerable<int> traitRootIDs = PlainTraits.Select(x => x.TopmostParent).Distinct();
+                IEnumerable<WrittenTrait> traitRoots = PlainTraits.Where(x => traitRootIDs.Contains(x.ID));
                 foreach (var writtenTrait in traitRoots)
                 {
                     traitRootsDropdown.Items.Add(writtenTrait.Name);
@@ -422,7 +424,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (UserID < 1) return;
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                WriteError(userListReply,"API Connection isn't ready.");
+                WriteError(userListReply, "API Connection isn't ready.");
                 return;
             }
             LogToFile($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
@@ -572,7 +574,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             List<int> unfetchedTitles = DBConn.GetUnfetchedUserRelatedTitles(UserID);
             DBConn.Close();
             if (!unfetchedTitles.Any()) return;
-            await GetMultipleVN(unfetchedTitles, userListReply,true);
+            await GetMultipleVN(unfetchedTitles, userListReply, true);
             WriteText(userListReply, Resources.updated_urt, true);
             ReloadLists();
         }
@@ -620,9 +622,23 @@ be displayed by clicking the User Related Titles (URT) filter.",
         public static void LogToFile(string message)
         {
             Debug.Print(message);
-            using (var writer = new StreamWriter(LogFile,true))
+            using (var writer = new StreamWriter(LogFile, true))
             {
                 writer.WriteLine(message);
+            }
+        }
+        /// <summary>
+        /// Print exception to Debug and write it to log file.
+        /// </summary>
+        /// <param name="exception">Exception to be written to file</param>
+        public static void LogToFile(Exception exception)
+        {
+            Debug.Print(exception.Message);
+            Debug.Print(exception.StackTrace);
+            using (var writer = new StreamWriter(LogFile, true))
+            {
+                writer.WriteLine(exception.Message);
+                writer.WriteLine(exception.StackTrace);
             }
         }
 
@@ -751,151 +767,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 fadeTimer.Stop();
             };
             fadeTimer.Start();
-        }
-
-        /// <summary>
-        ///     Display ten most common tags in the current list. Takes time when list contains over 9000 titles.
-        /// </summary>
-        internal void DisplayCommonTags(object sender, EventArgs e)
-        {
-            if (sender != null && !DontTriggerEvent)
-            {
-                var checkBox = (CheckBox)sender;
-                DontTriggerEvent = true;
-                IEnumerable<VisualNovelForm> vnForms = Application.OpenForms.OfType<VisualNovelForm>();
-                switch (checkBox.Name)
-                {
-                    case "tagTypeC":
-                        Settings.Default.TagTypeC = checkBox.Checked;
-                        tagTypeC2.Checked = checkBox.Checked;
-                        foreach (var vnForm in vnForms)
-                        {
-                            vnForm.tagTypeC.Checked = checkBox.Checked;
-                            vnForm.DisplayTags(null, null);
-                        }
-                        break;
-                    case "tagTypeS":
-                        Settings.Default.TagTypeS = checkBox.Checked;
-                        tagTypeS2.Checked = checkBox.Checked;
-                        foreach (var vnForm in vnForms)
-                        {
-                            vnForm.tagTypeC.Checked = checkBox.Checked;
-                            vnForm.DisplayTags(null, null);
-                        }
-                        break;
-                    case "tagTypeT":
-                        Settings.Default.TagTypeT = checkBox.Checked;
-                        tagTypeT2.Checked = checkBox.Checked;
-                        foreach (var vnForm in vnForms)
-                        {
-                            vnForm.tagTypeC.Checked = checkBox.Checked;
-                            vnForm.DisplayTags(null, null);
-                        }
-                        break;
-                }
-                DontTriggerEvent = false;
-                Settings.Default.Save();
-                DisplayCommonTagsURT(null, null);
-            }
-            _mctCount++;
-            var bw = new IdentifiableBackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true, ID = _mctCount };
-            bw.DoWork += RunBackgroundWork;
-            bw.ProgressChanged +=delegate (object o, ProgressChangedEventArgs args)
-                {
-                    mctLoadingLabel.Text = $@"{args.ProgressPercentage}% Completed";
-                };
-            bw.RunWorkerCompleted += OnBackgroundWorkCompleted;
-            bw.RunWorkerAsync();
-        }
-
-        private void OnBackgroundWorkCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            var bw = (IdentifiableBackgroundWorker) sender;
-            Debug.Print($"Executing onCompletion bw code for id={bw.ID}");
-            if (bw.ID != _mctCount)
-            {
-                Debug.Print($"Skipping OnBWCompleted for id={bw.ID}because thread was aborted.");
-                return;
-            }
-            if (_toptentags == null || !_toptentags.Any()) return;
-            var mctNo = 1;
-            while (mctNo < _toptentags.Count)
-            {
-                var mctIndex = mctNo - 1;
-                var name = TagTypeAll + mctNo;
-                var cb = (CheckBox) Controls.Find(name, true).First();
-                var tagName = PlainTags.Find(item => item.ID == _toptentags[mctIndex].Key).Name;
-                cb.Text = $@"{tagName} ({_toptentags[mctIndex].Value})";
-                cb.Checked = false;
-                cb.Visible = true;
-                mctNo++;
-            }
-            ClearCommonTags(TagTypeAll, 10 - _toptentags.Count);
-            FadeLabel(mctLoadingLabel);
-            Debug.Print($"Finished executing onCompletion bw code for id={bw.ID}");
-        }
-
-        private void RunBackgroundWork(object sender1, DoWorkEventArgs e1)
-        {
-            var bw = (IdentifiableBackgroundWorker)sender1;
-            Debug.Print($"Started DoWork {bw.ID}");
-            ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
-            var vnCount = vnlist.Length;
-            if (vnCount == 0)
-            {
-                ClearCommonTags(TagTypeAll, 10);
-                return;
-            }
-            //vn list - most common tags
-            var taglist = new Dictionary<int, int>();
-            var vnNo = 1;
-            foreach (var vn in vnlist)
-            {
-                if (bw.ID != _mctCount)
-                {
-                    Debug.Print($"Skipping RunBWWork for id={bw.ID} because thread was aborted.");
-                    return;
-                }
-                var progressPercent = (double)vnNo / vnCount * 100;
-                vnNo++;
-                try
-                {
-                    ((IdentifiableBackgroundWorker)sender1).ReportProgress((int)Math.Floor(progressPercent));
-                }
-                catch
-                {
-                    LogToFile("Closed while Updating Most Common Tags");
-                    return;
-                }
-                if (!vn.Tags.Any()) continue;
-                List<TagItem> tags = StringToTags(vn.Tags);
-                foreach (var tag in tags)
-                {
-                    if (bw.ID != _mctCount)
-                    {
-                        Debug.Print($"Skipping RunBWWork for id={bw.ID} because thread was aborted.");
-                        return;
-                    }
-                    var tagtag = PlainTags.Find(item => item.ID == tag.ID);
-                    if (tagtag == null) continue;
-                    if (tagtag.Cat.Equals(ContentTag) && Settings.Default.TagTypeC == false) continue;
-                    if (tagtag.Cat.Equals(SexualTag) && Settings.Default.TagTypeS == false) continue;
-                    if (tagtag.Cat.Equals(TechnicalTag) && Settings.Default.TagTypeT == false) continue;
-                    if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
-                    if (taglist.ContainsKey(tag.ID))
-                    {
-                        taglist[tag.ID] = taglist[tag.ID] + 1;
-                    }
-                    else
-                    {
-                        taglist.Add(tag.ID, 1);
-                    }
-                }
-            }
-            List<KeyValuePair<int, int>> prodlistlist = taglist.ToList();
-            prodlistlist.Sort((x, y) => y.Value.CompareTo(x.Value));
-            _toptentags = prodlistlist.Take(10).ToList();
-            Debug.Print($"Completed DoWork {bw.ID}");
         }
 
         /// <summary>
@@ -1075,7 +946,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             return DateTime.MaxValue;
         }
-        
+
         /// <summary>
         ///     Convert JSON-formatted string to list of tags.
         /// </summary>
@@ -1161,98 +1032,138 @@ be displayed by clicking the User Related Titles (URT) filter.",
             dbs9r.Text = Convert.ToString(dbXml.Traits);
         }
 
-        /// <summary>
-        ///     Get new Tag dump file from VNDB.org
-        /// </summary>
-        private void GetNewTagdump()
+        private void GetNewDumpFiles()
         {
-            if (!File.Exists(TagsJsonGz))
+            const int maxTries = 5;
+            int tries = 0;
+            bool complete = false;
+            //tagdump section
+            while (!complete && tries < maxTries)
             {
-                SplashScreen.SplashScreen.SetStatus("Downloading new Tagdump file...");
-                using (var client = new WebClient())
+                if (!File.Exists(TagsJsonGz))
                 {
-                    client.DownloadFile(TagsURL, TagsJsonGz);
+                    SplashScreen.SplashScreen.SetStatus("Downloading new Tagdump file...");
+                    tries++;
+                    try
+                    {
+                        using (var client = new WebClient())
+                        {
+                            client.DownloadFile(TagsURL, TagsJsonGz);
+                        }
+
+
+                        GZipDecompress(TagsJsonGz, TagsJson);
+                        File.Delete(TagsJsonGz);
+                        complete = true;
+                    }
+                    catch (Exception e)
+                    {
+                        LogToFile(e);
+                    }
                 }
             }
-            GZipDecompress(TagsJsonGz, TagsJson);
-            File.Delete(TagsJsonGz);
-            Settings.Default.DumpfilesUpdate = DateTime.UtcNow;
-            Settings.Default.Save();
-            LoadTagdump();
+            //load default file if new one couldnt be received or for some reason doesn't exist.
+            if (!complete || !File.Exists(TagsJson)) LoadTagdump(true);
+            else LoadTagdump();
+            //traitdump section
+            tries = 0;
+            complete = false;
+            while (!complete && tries < maxTries)
+            {
+                if (!File.Exists(TraitsJsonGz))
+                {
+                    SplashScreen.SplashScreen.SetStatus("Downloading new Traitdump file...");
+                    tries++;
+                    try
+                    {
+                        using (var client = new WebClient())
+                        {
+                            client.DownloadFile(TraitsURL, TraitsJsonGz);
+                        }
+                        GZipDecompress(TraitsJsonGz, TraitsJson);
+                        File.Delete(TraitsJsonGz);
+                        complete = true;
+                    }
+                    catch (Exception e)
+                    {
+                        LogToFile(e);
+                    }
+                }
+            }
+            //load default file if new one couldnt be received or for some reason doesn't exist.
+            if (!complete || !File.Exists(TraitsJsonGz)) LoadTraitdump(true);
+            else
+            {
+                Settings.Default.DumpfilesUpdate = DateTime.UtcNow;
+                Settings.Default.Save();
+                LoadTraitdump();
+            }
         }
+
 
         /// <summary>
         ///     Load Tags from Tag dump file.
         /// </summary>
-        private void LoadTagdump()
+        /// <param name="loadDefault">Load default file?</param>
+        private void LoadTagdump(bool loadDefault = false)
         {
-            if (!File.Exists(TagsJson))
-                GetNewTagdump();
-            else
-                try
-                {
-                    PlainTags = JsonConvert.DeserializeObject<List<WrittenTag>>(File.ReadAllText(TagsJson));
-                    List<ItemWithParents> baseList = PlainTags.Cast<ItemWithParents>().ToList();
-                    foreach (var writtenTag in PlainTags)
-                    {
-                        writtenTag.SetItemChildren(baseList);
-                    }
-                }
-                catch (JsonReaderException e)
-                {
-                    LogToFile(e.Message);
-                    LogToFile($"{TagsJson} could not be read, deleting it and getting new one.");
-                    File.Delete(TagsJson);
-                    GetNewTagdump();
-                }
-        }
-
-        /// <summary>
-        ///     Get new Trait dump file from VNDB.org
-        /// </summary>
-        private void GetNewTraitdump()
-        {
-            if (!File.Exists(TraitsJsonGz))
+            var fileToLoad = loadDefault ? DefaultTagsJson : TagsJson;
+            LogToFile($"Attempting to load {fileToLoad}");
+            try
             {
-                SplashScreen.SplashScreen.SetStatus("Downloading new Traitdump file...");
-                using (var client = new WebClient())
+                PlainTags = JsonConvert.DeserializeObject<List<WrittenTag>>(File.ReadAllText(fileToLoad));
+                List<ItemWithParents> baseList = PlainTags.Cast<ItemWithParents>().ToList();
+                foreach (var writtenTag in PlainTags)
                 {
-                    client.DownloadFile(TraitsURL, TraitsJsonGz);
+                    writtenTag.SetItemChildren(baseList);
                 }
             }
-            GZipDecompress(TraitsJsonGz, TraitsJson);
-            File.Delete(TraitsJsonGz);
-            Settings.Default.DumpfilesUpdate = DateTime.UtcNow;
-            Settings.Default.Save();
-            LoadTraitdump();
+            catch (JsonReaderException e)
+            {
+                if (fileToLoad.Equals(DefaultTagsJson))
+                {
+                    //Should never happen.
+                    LogToFile($"Failed to read default tags.json file, please download a new one from {TagsURL} uncompress it and paste it in {DefaultTagsJson}.");
+                    PlainTags = new List<WrittenTag>();
+                    return;
+                }
+                LogToFile(e);
+                LogToFile($"{TagsJson} could not be read, deleting it and loading default tagdump.");
+                File.Delete(TagsJson);
+                LoadTagdump(true);
+            }
         }
-
+        
         /// <summary>
         ///     Load Traits from Trait dump file.
         /// </summary>
-        private void LoadTraitdump()
+        private void LoadTraitdump(bool loadDefault = false)
         {
-            if (!File.Exists(TraitsJson))
-                GetNewTraitdump();
-            else
-                try
+            var fileToLoad = loadDefault ? DefaultTraitsJson : TraitsJson;
+            LogToFile($"Attempting to load {fileToLoad}");
+            try
+            {
+                PlainTraits = JsonConvert.DeserializeObject<List<WrittenTrait>>(File.ReadAllText(fileToLoad));
+                List<ItemWithParents> baseList = PlainTraits.Cast<ItemWithParents>().ToList();
+                foreach (var writtenTrait in PlainTraits)
                 {
-                    PlainTraits = JsonConvert.DeserializeObject<List<WrittenTrait>>(File.ReadAllText(TraitsJson));
-                    List<ItemWithParents> baseList = PlainTraits.Cast<ItemWithParents>().ToList();
-                    foreach (var writtenTrait in PlainTraits)
-                    {
-                        writtenTrait.SetTopmostParent(PlainTraits);
-                        writtenTrait.SetItemChildren(baseList);
-                    }
-
+                    writtenTrait.SetItemChildren(baseList);
                 }
-                catch (JsonReaderException e)
+            }
+            catch (JsonReaderException e)
+            {
+                if (fileToLoad.Equals(DefaultTraitsJson))
                 {
-                    LogToFile(e.Message);
-                    LogToFile($"{TraitsJson} could not be read, deleting it and getting new one.");
-                    File.Delete(TraitsJson);
-                    GetNewTraitdump();
+                    //Should never happen.
+                    LogToFile($"Failed to read default traits.json file, please download a new one from {TraitsURL} uncompress it and paste it in {DefaultTraitsJson}.");
+                    PlainTraits = new List<WrittenTrait>();
+                    return;
                 }
+                LogToFile(e);
+                LogToFile($"{TraitsJson} could not be read, deleting it and loading default traitdump.");
+                File.Delete(TraitsJson);
+                LoadTraitdump(true);
+            }
         }
 
         /// <summary>
@@ -1365,11 +1276,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #endregion
 
         #region Classes/Enums
-        
+
         private class IdentifiableBackgroundWorker : BackgroundWorker
         {
             public int ID { get; set; }
-            
+
         }
 
         /// <summary>

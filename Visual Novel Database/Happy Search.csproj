@@ -229,12 +229,30 @@
     <None Include="Program Data\Certificates\isrgrootx1.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Certificates\lets-encrypt-x1-cross-signed.pem" />
-    <None Include="Program Data\Certificates\lets-encrypt-x2-cross-signed.pem" />
-    <None Include="Program Data\Certificates\lets-encrypt-x3-cross-signed.pem" />
-    <None Include="Program Data\Certificates\lets-encrypt-x4-cross-signed.pem" />
-    <None Include="Program Data\Certificates\letsencryptauthorityx1.pem" />
-    <None Include="Program Data\Certificates\letsencryptauthorityx2.pem" />
+    <None Include="Program Data\Certificates\lets-encrypt-x1-cross-signed.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Certificates\lets-encrypt-x2-cross-signed.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Certificates\lets-encrypt-x3-cross-signed.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Certificates\lets-encrypt-x4-cross-signed.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Certificates\letsencryptauthorityx1.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Certificates\letsencryptauthorityx2.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Default Files\tags.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Default Files\traits.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -290,6 +308,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

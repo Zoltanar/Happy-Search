@@ -55,11 +55,7 @@ namespace Happy_Search
                         foreach (var cert in certs)
                         {
                             FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-                            FormMain.LogToFile(cert.Subject);
-                            FormMain.LogToFile(cert.Issuer);
-                            FormMain.LogToFile(cert.GetFormat());
-                            FormMain.LogToFile(cert.GetEffectiveDateString());
-                            FormMain.LogToFile(cert.GetExpirationDateString());
+                            FormMain.LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
                         }
                         sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
                     }
@@ -73,11 +69,8 @@ namespace Happy_Search
                     {
                         FormMain.LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
                         var subject = sslStream.RemoteCertificate.Subject;
-                        FormMain.LogToFile(subject);
-                        FormMain.LogToFile(sslStream.RemoteCertificate.Issuer);
-                        FormMain.LogToFile(sslStream.RemoteCertificate.GetFormat());
-                        FormMain.LogToFile(sslStream.RemoteCertificate.GetEffectiveDateString());
-                        FormMain.LogToFile(sslStream.RemoteCertificate.GetExpirationDateString());
+                        FormMain.LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t"+ 
+                            sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
                             FormMain.LogToFile($"Certificate received isn't for {VndbHost} so connection is closed");
