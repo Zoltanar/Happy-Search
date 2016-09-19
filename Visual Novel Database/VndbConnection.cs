@@ -46,7 +46,12 @@ namespace Happy_Search
                     FormMain.LogToFile("SSL Stream received...");
                     if (File.Exists(CertificateFile))
                     {
-                        var certs = new X509CertificateCollection { X509Certificate.CreateFromCertFile(CertificateFile) };
+                        var certs = new X509CertificateCollection();
+                        var certFiles = Directory.GetFiles("Program Data\\Certificates");
+                        foreach (var certFile in certFiles)
+                        {
+                            certs.Add(X509Certificate.CreateFromCertFile(certFile));
+                        }
                         foreach (var cert in certs)
                         {
                             FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
@@ -55,8 +60,8 @@ namespace Happy_Search
                             FormMain.LogToFile(cert.GetFormat());
                             FormMain.LogToFile(cert.GetEffectiveDateString());
                             FormMain.LogToFile(cert.GetExpirationDateString());
-                            sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
                         }
+                        sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
                     }
                     else
                     {
