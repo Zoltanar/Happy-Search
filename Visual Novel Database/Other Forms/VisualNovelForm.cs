@@ -130,7 +130,7 @@ namespace Happy_Search
             //prepare data
             displayedVN = vnItem;
             var ext = Path.GetExtension(vnItem.ImageURL);
-            var imageLoc = $"vnImages\\{vnItem.VNID}{ext}";
+            var imageLoc = $"{FormMain.VNImagesFolder}{vnItem.VNID}{ext}";
             DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
             //relations, anime and screenshots are only fetched here but are saved to database/disk

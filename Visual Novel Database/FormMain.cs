@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,30 +27,33 @@ namespace Happy_Search
     public partial class FormMain : Form
     {
         //constants / definables
-        private const string VNImagesFolder = "vnImages\\";
-        internal const string VNScreensFolder = "vnScreens\\";
-        private const string DBStatsXml = "dbs.xml";
-        private const string LogFile = "message.log";
+
+        //Files
+        internal const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
+        internal const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
+        private const string DBStatsXml = "Stored Data\\dbs.xml";
+        private const string MainXmlFile = "Stored Data\\saved_objects.xml";
+        private const string LogFile = "Stored Data\\message.log";
         private const string TagsURL = "http://vndb.org/api/tags.json.gz";
-        private const string TagsJsonGz = "tags.json.gz";
-        private const string TagsJson = "tags.json";
+        private const string TagsJsonGz = "Stored Data\\tags.json.gz";
+        private const string TagsJson = "Stored Data\\tags.json";
         private const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
         private const string TraitsURL = "http://vndb.org/api/traits.json.gz";
-        private const string TraitsJsonGz = "traits.json.gz";
-        private const string TraitsJson = "traits.json";
+        private const string TraitsJsonGz = "Stored Data\\traits.json.gz";
+        private const string TraitsJson = "Stored Data\\traits.json";
         private const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
+        private const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
         private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
         internal const string ContentTag = "cont";
         internal const string SexualTag = "ero";
         internal const string TechnicalTag = "tech";
         internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "1.3.6";
+        internal const string ClientVersion = "1.3.8";
         internal const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         internal static readonly string MaxResultsString = $"\"results\":{APIMaxResults}";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
-        private const string MainXmlFile = "saved_objects.xml";
         private static readonly Color ErrorColor = Color.Red;
         internal static readonly Color NormalColor = SystemColors.ControlLightLight;
         internal static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
@@ -96,6 +100,7 @@ namespace Happy_Search
                 URTToggleBox.SelectedIndex = 0;
                 UnreleasedToggleBox.SelectedIndex = 0;
                 BlacklistToggleBox.SelectedIndex = 0;
+                otherMethodsCB.SelectedIndex = 0;
                 DontTriggerEvent = false;
                 replyText.Text = "";
                 userListReply.Text = "";
@@ -116,6 +121,7 @@ namespace Happy_Search
                 checkBox9.Visible = false;
                 checkBox10.Visible = false;
                 tileOLV.ItemRenderer = new VNTileRenderer();
+                Directory.CreateDirectory("Stored Data");
                 File.Create(LogFile).Close();
                 aboutTextBox.Text =
                     $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
@@ -129,6 +135,8 @@ http://www.codeproject.com/Articles/5454/A-Pretty-Good-Splash-Screen-in-C
 (reasonably modified) VndbClient by FredTheBarber
 https://github.com/FredTheBarber/VndbClient";
                 LogToFile($"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})");
+                LogToFile($"Project at {ProjectURL})");
+                LogToFile($"Start Time = {DateTime.UtcNow}");
             }
             SplashScreen.SplashScreen.SetStatus("Loading User Settings...");
             {
@@ -146,7 +154,7 @@ https://github.com/FredTheBarber/VndbClient";
             SplashScreen.SplashScreen.SetStatus("Loading Tag and Trait files...");
             {
                 LogToFile(
-                    $"Tagdump Update = {Settings.Default.DumpfilesUpdate}, days since = {DaysSince(Settings.Default.DumpfilesUpdate)}");
+                    $"Dumpfiles Update = {Settings.Default.DumpfilesUpdate}, days since = {DaysSince(Settings.Default.DumpfilesUpdate)}");
                 if (DaysSince(Settings.Default.DumpfilesUpdate) > 2 || DaysSince(Settings.Default.DumpfilesUpdate) == -1)
                 {
                     GetNewDumpFiles();
@@ -160,11 +168,12 @@ https://github.com/FredTheBarber/VndbClient";
                 var tagSource = new AutoCompleteStringCollection();
                 tagSource.AddRange(PlainTags.Select(v => v.Name).ToArray());
                 tagSearchBox.AutoCompleteCustomSource = tagSource;
-                IEnumerable<int> traitRootIDs = PlainTraits.Select(x => x.TopmostParent).Distinct();
-                IEnumerable<WrittenTrait> traitRoots = PlainTraits.Where(x => traitRootIDs.Contains(x.ID));
-                foreach (var writtenTrait in traitRoots)
+                string[] traitRootNames = PlainTraits.Where(x => x.TopmostParentName == null).Select(x => x.Name).ToArray();
+                traitRootsDropdown.Items.Clear();
+                foreach (var rootName in traitRootNames)
                 {
-                    traitRootsDropdown.Items.Add(writtenTrait.Name);
+                    if (rootName == null) continue;
+                    traitRootsDropdown.Items.Add(rootName);
                 }
             }
             SplashScreen.SplashScreen.SetStatus("Connecting to SQLite Database...");
@@ -298,7 +307,7 @@ https://github.com/FredTheBarber/VndbClient";
         /// <summary>
         ///     Update titles to include all fields in latest version of Happy Search.
         /// </summary>
-        private async void UpdateTitlesToLatestVersionClick(object sender, EventArgs e)
+        private async void UpdateTitlesToLatestVersionClick()
         {
             //popularity, rating and votecount were added, check for votecount
             int[] listOfTitlesFromOldVersions = _vnList.Where(x => x.VoteCount == -1).Select(x => x.VNID).ToArray();
@@ -308,18 +317,6 @@ https://github.com/FredTheBarber/VndbClient";
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             await UpdateTitlesToLatestVersion(listOfTitlesFromOldVersions);
-            ReloadLists();
-            RefreshVNList();
-            var messageBox2 =
-                MessageBox.Show(
-                    @"Do you wish to get character data about all VNs?
-You only need to this once and only if you used Happy Search prior to version 1.3
-This will take a long time if you have a lot of titles in your local database.",
-                    Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (messageBox2 == DialogResult.Yes)
-            {
-                await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToArray(), userListReply);
-            }
             ReloadLists();
             RefreshVNList();
             WriteText(userListReply, $"Updated {_vnsAdded} titles to latest version.");
@@ -339,7 +336,7 @@ This will take a long time if you have a lot of titles in your local database.",
             await UpdateTagsAndTraits(listOfTitlesToUpdate);
             ReloadLists();
             RefreshVNList();
-            WriteText(userListReply, $"Updated tags/traits of {_vnsAdded} titles.");
+            WriteText(userListReply, $"Updated tags/traits of {_vnsAdded} titles.", true);
         }
 
         private void ToggleNSFWImages(object sender, EventArgs e)
@@ -387,6 +384,75 @@ This will take a long time if you have a lot of titles in your local database.",
             }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\getstarted.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
+        }
+
+        private void OtherMethodChosen(object sender, EventArgs e)
+        {
+            switch (otherMethodsCB.SelectedIndex)
+            {
+                case 1:
+                    break;
+                case 2:
+                    UpdateTitlesToLatestVersionClick();
+                    break;
+                case 3:
+                    GetAllCharacterData();
+                    break;
+                case 4:
+                    GetAllMissingImages();
+                    break;
+                default:
+                    return;
+            }
+
+            otherMethodsCB.SelectedIndex = 0;
+        }
+
+        private async void GetAllMissingImages()
+        {
+            IEnumerable<ListedVN> vnsWithImages = _vnList.Where(x => !x.ImageURL.Equals(""));
+            ListedVN[] vnsMissingImages = (from vn in vnsWithImages
+                                           let photoFile = string.Format($"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}")
+                                           where !File.Exists(photoFile)
+                                           select vn).ToArray();
+            const int averageImageSizeBytes = 37 * 1024;
+            var missingCount = vnsMissingImages.Length;
+            var estimatedSizeString = BytesToString(missingCount * averageImageSizeBytes);
+            var doubleEstimatedSizeString = BytesToString(missingCount * averageImageSizeBytes * 2);
+            if (missingCount == 0)
+            {
+                WriteWarning(userListReply, "There are no titles missing their cover image.", true);
+                return;
+            }
+            var messageBox =
+                   MessageBox.Show(
+                       $@"There are {missingCount} titles in your local database missing their cover image.
+Do you wish to download all missing cover images?
+This can useful if you modify or replace your local database file without modifying your saved cover images folder.
+The total download size is estimated to be {estimatedSizeString} ~ {doubleEstimatedSizeString}.",
+                       Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            foreach (var vn in vnsMissingImages)
+            {
+                await SaveImageAsync(vn);
+            }
+            WriteText(userListReply, "Finished getting missing cover images.", true);
+        }
+
+        private async void GetAllCharacterData()
+        {
+            ReloadLists();
+            var messageBox2 =
+                   MessageBox.Show(
+                       @"Do you wish to get character data about all VNs?
+You only need to this once and only if you used Happy Search prior to version 1.3
+This will take a long time if you have a lot of titles in your local database.",
+                       Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox2 != DialogResult.Yes) return;
+            await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToArray(), userListReply);
+            ReloadLists();
+            RefreshVNList();
+            WriteText(userListReply, "Finished getting characters for all titles.", true);
         }
 
         #endregion
@@ -617,6 +683,22 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #region Other/General
 
         /// <summary>
+        /// Convert number of bytes to human-readable formatted string, rounded to 1 decimal place. (e.g 79.4KB)
+        /// </summary>
+        /// <param name="byteCount">Number of bytes</param>
+        /// <returns>Formatted string</returns>
+        public static string BytesToString(int byteCount)
+        {
+            string[] suf = { "B", "KB", "MB", "GB" }; //int.MaxValue is in gigabyte range.
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num) + suf[place];
+        }
+
+        /// <summary>
         /// Print message to Debug and write it to log file.
         /// </summary>
         /// <param name="message">Message to be written</param>
@@ -720,18 +802,56 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.Image == null || vn.Image.Equals("")) return;
-            var ext = Path.GetExtension(vn.Image);
-            string imageLoc = $"{VNImagesFolder}{vn.ID}{ext}";
-            if (File.Exists(imageLoc)) return;
-            var requestPic = WebRequest.Create(vn.Image);
-            using (var responsePic = requestPic.GetResponse())
+            string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
+            if (File.Exists(imageLocation)) return;
+            LogToFile($"Start downloading cover image for {vn}");
+            try
             {
-                using (var stream = responsePic.GetResponseStream())
+                var requestPic = WebRequest.Create(vn.Image);
+                using (var responsePic = requestPic.GetResponse())
                 {
-                    if (stream == null) return;
-                    var webImage = Image.FromStream(stream);
-                    webImage.Save(imageLoc);
+                    using (var stream = responsePic.GetResponseStream())
+                    {
+                        if (stream == null) return;
+                        var webImage = Image.FromStream(stream);
+                        webImage.Save(imageLocation);
+                    }
                 }
+            }
+            catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
+            {
+                LogToFile(ex);
+            }
+        }
+
+
+        /// <summary>
+        ///     Saves a title's cover image (unless it already exists)
+        /// </summary>
+        /// <param name="vn">Title</param>
+        private static async Task SaveImageAsync(ListedVN vn)
+        {
+            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
+            if (vn.ImageURL == null || vn.ImageURL.Equals("")) return;
+            string imageLocation = $"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}";
+            if (File.Exists(imageLocation)) return;
+            LogToFile($"Start downloading cover image for {vn}");
+            try
+            {
+                var requestPic = WebRequest.Create(vn.ImageURL);
+                using (var responsePic = await requestPic.GetResponseAsync())
+                {
+                    using (var stream = responsePic.GetResponseStream())
+                    {
+                        if (stream == null) return;
+                        var webImage = Image.FromStream(stream);
+                        webImage.Save(imageLocation);
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
+            {
+                LogToFile(ex);
             }
         }
 
@@ -1134,7 +1254,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 LoadTagdump(true);
             }
         }
-        
+
         /// <summary>
         ///     Load Traits from Trait dump file.
         /// </summary>
@@ -1148,6 +1268,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 List<ItemWithParents> baseList = PlainTraits.Cast<ItemWithParents>().ToList();
                 foreach (var writtenTrait in PlainTraits)
                 {
+                    writtenTrait.SetTopmostParent(PlainTraits);
                     writtenTrait.SetItemChildren(baseList);
                 }
             }

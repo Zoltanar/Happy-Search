@@ -17,7 +17,7 @@ namespace Happy_Search
 {
     internal class DbHelper
     {
-        private const string DbFile = "VNDBPC-database.sqlite";
+        private const string DbFile = "Stored Data\\Happy-Search-Local-DB.sqlite";
 
         private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
         //Pooling=True;Max Pool Size=100;

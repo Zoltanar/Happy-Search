@@ -58,7 +58,6 @@ namespace Happy_Search
             this.customTagFilterNameBox = new System.Windows.Forms.TextBox();
             this.tagSearchBox = new System.Windows.Forms.TextBox();
             this.yearBox = new System.Windows.Forms.TextBox();
-            this.updateToLatestVersionButton = new System.Windows.Forms.Button();
             this.updateTagsAndTraitsButton = new System.Windows.Forms.Button();
             this.traitSearchBox = new System.Windows.Forms.TextBox();
             this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
@@ -152,9 +151,9 @@ namespace Happy_Search
             this.olFavoriteProducers = new BrightIdeasSoftware.ObjectListView();
             this.ol2Name = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2ItemCount = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol2UserDropRate = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2UserAverageVote = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2GeneralRating = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol2UserDropRate = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2Loaded = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2Updated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol2ID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -162,6 +161,7 @@ namespace Happy_Search
             this.prodReply = new System.Windows.Forms.Label();
             this.listResultsButton = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.otherMethodsCB = new System.Windows.Forms.ComboBox();
             this.GetStartedHelpButton = new System.Windows.Forms.Button();
             this.nsfwToggle = new System.Windows.Forms.CheckBox();
             this.closeAllFormsButton = new System.Windows.Forms.Button();
@@ -202,7 +202,6 @@ namespace Happy_Search
             this.quickFilter1 = new System.Windows.Forms.Button();
             this.resultLabel = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.vnImages = new System.Windows.Forms.ImageList(this.components);
             this.ContextMenuVN = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.userlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.noneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -502,22 +501,10 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.yearBox, "Enter year here (YYYY)");
             this.yearBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.yearBox_KeyDown);
             // 
-            // updateToLatestVersionButton
-            // 
-            this.updateToLatestVersionButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateToLatestVersionButton.Location = new System.Drawing.Point(3, 82);
-            this.updateToLatestVersionButton.Name = "updateToLatestVersionButton";
-            this.updateToLatestVersionButton.Size = new System.Drawing.Size(131, 35);
-            this.updateToLatestVersionButton.TabIndex = 90;
-            this.updateToLatestVersionButton.Text = "Update Titles to Latest Version";
-            this.toolTip.SetToolTip(this.updateToLatestVersionButton, "Get data on VNs that wasn\'t saved in previous versions of Happy Search");
-            this.updateToLatestVersionButton.UseVisualStyleBackColor = true;
-            this.updateToLatestVersionButton.Click += new System.EventHandler(this.UpdateTitlesToLatestVersionClick);
-            // 
             // updateTagsAndTraitsButton
             // 
             this.updateTagsAndTraitsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 123);
+            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 82);
             this.updateTagsAndTraitsButton.Name = "updateTagsAndTraitsButton";
             this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(131, 23);
             this.updateTagsAndTraitsButton.TabIndex = 91;
@@ -1593,6 +1580,15 @@ namespace Happy_Search
             this.ol2ItemCount.Text = "Titles";
             this.ol2ItemCount.Width = 38;
             // 
+            // ol2UserDropRate
+            // 
+            this.ol2UserDropRate.AspectName = "UserDropRate";
+            this.ol2UserDropRate.AspectToStringFormat = "{0}%";
+            this.ol2UserDropRate.DisplayIndex = 4;
+            this.ol2UserDropRate.Text = "Drop Rate";
+            this.ol2UserDropRate.ToolTipText = "Your rate of dropped vs finished titles.";
+            this.ol2UserDropRate.Width = 63;
+            // 
             // ol2UserAverageVote
             // 
             this.ol2UserAverageVote.AspectName = "UserAverageVote";
@@ -1608,15 +1604,6 @@ namespace Happy_Search
             this.ol2GeneralRating.Text = "Rating";
             this.ol2GeneralRating.ToolTipText = "Average score given by all users to this producer\'s titles.";
             this.ol2GeneralRating.Width = 49;
-            // 
-            // ol2UserDropRate
-            // 
-            this.ol2UserDropRate.AspectName = "UserDropRate";
-            this.ol2UserDropRate.AspectToStringFormat = "{0}%";
-            this.ol2UserDropRate.DisplayIndex = 4;
-            this.ol2UserDropRate.Text = "Drop Rate";
-            this.ol2UserDropRate.ToolTipText = "Your rate of dropped vs finished titles.";
-            this.ol2UserDropRate.Width = 63;
             // 
             // ol2Loaded
             // 
@@ -1676,13 +1663,13 @@ namespace Happy_Search
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.otherMethodsCB);
             this.panel1.Controls.Add(this.yearLimitBox);
             this.panel1.Controls.Add(this.GetStartedHelpButton);
             this.panel1.Controls.Add(this.autoUpdateURTBox);
             this.panel1.Controls.Add(this.updateTagsAndTraitsButton);
             this.panel1.Controls.Add(this.nsfwToggle);
             this.panel1.Controls.Add(this.closeAllFormsButton);
-            this.panel1.Controls.Add(this.updateToLatestVersionButton);
             this.panel1.Controls.Add(this.loginReply);
             this.panel1.Controls.Add(this.loginButton);
             this.panel1.Controls.Add(this.userListButt);
@@ -1691,6 +1678,22 @@ namespace Happy_Search
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(139, 299);
             this.panel1.TabIndex = 94;
+            // 
+            // otherMethodsCB
+            // 
+            this.otherMethodsCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.otherMethodsCB.FormattingEnabled = true;
+            this.otherMethodsCB.Items.AddRange(new object[] {
+            "Other Functions",
+            "----------------",
+            "Update To Latest Version",
+            "Get All Character Data",
+            "Get Missing Covers"});
+            this.otherMethodsCB.Location = new System.Drawing.Point(3, 111);
+            this.otherMethodsCB.Name = "otherMethodsCB";
+            this.otherMethodsCB.Size = new System.Drawing.Size(131, 21);
+            this.otherMethodsCB.TabIndex = 92;
+            this.otherMethodsCB.SelectedIndexChanged += new System.EventHandler(this.OtherMethodChosen);
             // 
             // GetStartedHelpButton
             // 
@@ -2177,12 +2180,6 @@ namespace Happy_Search
             this.tabControl1.Size = new System.Drawing.Size(1418, 795);
             this.tabControl1.TabIndex = 0;
             // 
-            // vnImages
-            // 
-            this.vnImages.ColorDepth = System.Windows.Forms.ColorDepth.Depth24Bit;
-            this.vnImages.ImageSize = new System.Drawing.Size(72, 128);
-            this.vnImages.TransparentColor = System.Drawing.Color.Transparent;
-            // 
             // ContextMenuVN
             // 
             this.ContextMenuVN.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -2450,7 +2447,6 @@ namespace Happy_Search
         private ComboBox ulStatusDropDown;
         private Label label14;
         private TextBox ProducerListBox;
-        private ImageList vnImages;
         private GroupBox statBox;
         private Label dbs9r;
         private Label dbs8r;
@@ -2602,7 +2598,6 @@ namespace Happy_Search
         private CheckBox checkBox6;
         internal CheckBox tagTypeS;
         private Label label2;
-        private Button updateToLatestVersionButton;
         private OLVColumn tileColumnRating;
         private OLVColumn tileColumnPopularity;
         private ComboBox wlStatusDropDown;
@@ -2625,6 +2620,7 @@ namespace Happy_Search
         private Button button5;
         private Button deleteCustomTraitFilterButton;
         private OLVColumn ol2GeneralRating;
+        private ComboBox otherMethodsCB;
     }
 }
 

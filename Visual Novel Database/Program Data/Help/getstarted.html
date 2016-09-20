@@ -15,6 +15,23 @@
     <p>The application may be used by different users, identified by their User ID, favorite producers are saved by User ID, however, other settings are saved per application.</p>
     <p>Using login credentials will give you the ability to change Userlist status, Wishlist priority and/or Vote on Visual Novels, it will also allow you to get your userlist/wishlist/votelist if you have them set as hidden.</p>
     <p>If you aren&#39;t using login credentials and attempt to get your User-related titles but no results are found, your lists may be hidden, either login or change the setting and you might have to wait up to 25 hours.</p>
+    <br />
+    <p>
+        Please note that features that connect with vndb.org can be throttled which means that Happy Search must wait some minutes before continuing to connect.<br />
+        You can continue using the program's features which don't connect with vndb.org while waiting, such as listing and filtering.<br />
+        The status of the connection to vndb.org is displayed in the Status Box, described below.
+    </p>
+    <h3>Status Box</h3>
+    <p>This is the box just above the results list, at the left, it tells you the status of the connection to vndb.org:</p>
+    <ul>
+        <li>Ready, this means the connection is ready to be used and you may use the features that connect with vndb.org</li>
+        <li>Busy, this means the connection is being used at the moment, you cannot do anything during this time.</li>
+        <li>Throttled, this means the connection is not being used but it has received too many commands from Happy Search<br />
+            and must wait before continuing, you may use features that don't connect with vndb.org during this time.<br />
+            The program will continue executing the method that caused the throttling automatically after enough time has passed.</li>
+        <li>Error or Closed, this means connection was closed or failed to open, you can try again by attempting to Log In with the button above.</li>
+    </ul>
+
     <h3>User-Related Titles (URT)</h3>
     <p>These are titles in your userlist, wishlist and votelist.</p>
     <h2>Buttons and Settings</h2>
@@ -22,8 +39,16 @@
     <p>Described above, you can check the &#39;Remember&#39; checkbox to save your credentials to be used later (password is encrypted).</p>
     <h3>Update List</h3>
     <p>This will get all your user-related titles from VNDB.org, it will take a while if you have a lot of titles and this is the first time, the update is additive so only new titles are added, therefore consecutive updates should not take long.</p>
-    <h3>Update Titles to Latest Version</h3>
-    <p>This can be used to get data about titles that wasn't saved in previous versions of Happy Search, it may take a while if there are a lot of titles.</p>
+    <h3>Other Functions</h3>
+    <p>This is a dropdown list of functions that shouldn't be used regularly, for solving errors or changes in past releases.</p>
+    <ul>
+        <li>Update To Latest Version<br />
+            Get data about titles that wasn't saved in previous versions of Happy Search, it may take a while if there are a lot of titles.<br/>(It doesn't update the program)</li>
+        <li>Get Character Data<br />
+            Get data about each title's characters (traits) this can take a while, it only needs to be used if you updated from version older than 1.3</li>
+        <li>Get Missing Covers<br />
+            Get cover images for titles in the local database, useful if you modify or replace the database externally but do not replace the cover images folder to match.</li>
+    </ul>
     <h3>Update Title Tags</h3>
     <p>Tis will update the tags of all titles that haven't been updated in over 7 days, it may take a while if there are a lot of titles.</p>
     <h3>Show NSFW Images</h3>

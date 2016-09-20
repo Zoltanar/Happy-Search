@@ -324,7 +324,7 @@ namespace Happy_Search
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={ID} \t\tName={Name}";
+        public override string ToString() => $"ID={ID} Name={Name}";
     }
 
     /// <summary>
@@ -363,7 +363,7 @@ namespace Happy_Search
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={ID} \t\tName={Name}";
+        public override string ToString() => $"ID={ID} Name={Name}";
 
         /// <summary>
         /// Name of producer
@@ -508,9 +508,8 @@ namespace Happy_Search
             var photoArea = new Rectangle(itemBounds.X, photoAreaY, itemBounds.Width, photoAreaHeight);
             photoArea.Inflate(-spacing, -spacing);
             if (vn == null) return;
-            var imageUrl = vn.ImageURL;
-            var ext = Path.GetExtension(imageUrl);
-            var photoFile = string.Format($"vnImages\\{vn.VNID}{ext}");
+            var ext = Path.GetExtension(vn.ImageURL);
+            var photoFile = string.Format($"{FormMain.VNImagesFolder}{vn.VNID}{ext}");
             if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
             else if (File.Exists(photoFile))
             {
