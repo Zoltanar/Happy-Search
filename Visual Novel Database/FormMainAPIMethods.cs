@@ -315,7 +315,7 @@ namespace Happy_Search
         /// Update titles to include all fields in latest version of Happy Search.
         /// </summary>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task UpdateTitlesToLatestVersion(IEnumerable<int> vnIDs)
+        internal async Task GetOldVNStats(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
             ReloadLists();

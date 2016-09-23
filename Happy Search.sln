@@ -5,11 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Search", "Visual Novel Database\Happy Search.csproj", "{E6DD9509-0EDA-441D-BEB7-C8E482AC70C9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A9848F9B-08A4-4B2F-A4B8-6DB9FBB4E6D8}"
-	ProjectSection(SolutionItems) = preProject
-		Project Goals.txt = Project Goals.txt
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

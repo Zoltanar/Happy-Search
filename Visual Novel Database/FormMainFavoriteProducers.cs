@@ -13,6 +13,36 @@ namespace Happy_Search
     partial class FormMain
     {
         /// <summary>
+        /// Sets favorite producer data from vn statistics.
+        /// Saves data back to database.
+        /// </summary>
+        private void SetFavoriteProducersData()
+        {
+            var favoriteProducerList = new List<ListedProducer>();
+            foreach (ListedProducer producer in olFavoriteProducers.Objects)
+            {
+                ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+                double userDropRate = -1;
+                double userAverageVote = -1;
+                if (producerVNs.Any())
+                {
+                    var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
+                    var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                    ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
+                    userDropRate = finishedCount + droppedCount != 0
+                        ? (double)droppedCount / (droppedCount + finishedCount)
+                        : -1;
+                    userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
+                }
+                favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded,
+                    DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
+            }
+            DBConn.Open();
+            DBConn.InsertFavoriteProducers(favoriteProducerList, UserID);
+            DBConn.Close();
+        }
+
+        /// <summary>
         /// Bring up dialog explaining features of the 'Favorite Producers' section.
         /// </summary>
         private void Help_FavoriteProducers(object sender, EventArgs e)
@@ -194,39 +224,30 @@ This may take a while...",
         private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
         {
             LogToFile($"Getting Titles for Producer {producer.Name}");
-            string prodReleaseQuery = $"get release vn,producers (producer={producer.ID}) {{{MaxResultsString}}}";
+            string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
             var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
-            releaseItems.Sort((x, y) => DateTime.Compare(StringToDate(x.Released), StringToDate(y.Released)));
-            var producerVNList = new List<int>();
+            List<int> producerVNList = releaseItems.SelectMany(item => item.VN.Select(x=>x.ID)).ToList();
+            /* var producerVNList = new List<int>();
             foreach (var item in releaseItems)
             {
-                //find developer of release
-                var dev = item.Producers.Find(x => x.Developer);
-                //if the above is the same as the producer being searched, add vns in release to list
-                if (dev?.ID == producer.ID) producerVNList.AddRange(item.VN.Select(x => x.ID));
-            }
+                producerVNList.AddRange(item.VN.Select(x=>x.ID));
+            }*/
             var moreResults = releaseRoot.More;
             var pageNo = 1;
             while (moreResults)
             {
                 pageNo++;
                 string prodReleaseMoreQuery =
-                    $"get release vn,producers (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
+                    $"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
                 if (!moreResult) return;
-                var releaseMoreRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-                List<ReleaseItem> releaseMoreItems = releaseMoreRoot.Items;
-                foreach (var item in releaseMoreItems)
-                {
-                    //find developer of release
-                    var dev = item.Producers.Find(x => x.Developer);
-                    //if the above is the same as the producer being searched, add vns in release to list
-                    if (dev?.ID == producer.ID) producerVNList.AddRange(item.VN.Select(x => x.ID));
-                }
-                moreResults = releaseMoreRoot.More;
+                releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
+                releaseItems = releaseRoot.Items;
+                producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
+                moreResults = releaseRoot.More;
             }
             await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, refreshAll);
             DBConn.Open();
@@ -248,7 +269,8 @@ This may take a while...",
             DBConn.Close();
             foreach (var favoriteProducer in favoriteProducers)
             {
-                favoriteProducer.GeneralRating = Math.Round(_vnList.Where(x => x.Producer.Equals(favoriteProducer.Name)).Select(x => x.Rating).Average(), 2);
+                double[] vnsWithVotes =_vnList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
+                favoriteProducer.GeneralRating = vnsWithVotes.Any() ? Math.Round(vnsWithVotes.Average(), 2) : -1;
             }
             olFavoriteProducers.SetObjects(favoriteProducers);
             olFavoriteProducers.Sort(0);

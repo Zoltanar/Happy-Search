@@ -56,9 +56,24 @@ add 'exclude tag' filters ? not so sure if needed
 backup sqlite database!
 add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
+merge feature to merge 2 databases, keeping most-recently-updated in case of same id
 something weird happening with vn form on v13419 Uta no™Prince-samaô All Star After Secret
 add loading image while loading vn form
 indicate when tag/trait filters are on
+vn form - set charactercb.selectedindex = 0
+update tags and traits should include stats
+clear search by name text upon enter
+clear list by producer text upon enter
+make all writetext fade by default
+better vn character display?
+producer rating, do not count vns without votes
+vn olv unreleased vns in wrong place (beginning of year instead of end)releasedate
+problem with multi-developer multi-release vns (example 'a profile' v1894)
+#ifdebug use release files (stops the need to copy them back and forth)
+in update to latest version, check kanjititle and update along with imagensfw if missing
+
+
+
 
 
 

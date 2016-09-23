@@ -135,7 +135,7 @@ http://www.codeproject.com/Articles/5454/A-Pretty-Good-Splash-Screen-in-C
 (reasonably modified) VndbClient by FredTheBarber
 https://github.com/FredTheBarber/VndbClient";
                 LogToFile($"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})");
-                LogToFile($"Project at {ProjectURL})");
+                LogToFile($"Project at {ProjectURL}");
                 LogToFile($"Start Time = {DateTime.UtcNow}");
             }
             SplashScreen.SplashScreen.SetStatus("Loading User Settings...");
@@ -307,19 +307,27 @@ https://github.com/FredTheBarber/VndbClient";
         /// <summary>
         ///     Update titles to include all fields in latest version of Happy Search.
         /// </summary>
-        private async void UpdateTitlesToLatestVersionClick()
+        private async void GetOldVNStatsClick()
         {
             //popularity, rating and votecount were added, check for votecount
-            int[] listOfTitlesFromOldVersions = _vnList.Where(x => x.VoteCount == -1).Select(x => x.VNID).ToArray();
+            int[] titlesWithoutStats = _vnList.Where(x => Math.Abs(x.Popularity) < 0.001).Select(x => x.VNID).ToArray();
+            var oldCount = titlesWithoutStats.Length;
+            if (oldCount == 0)
+            {
+                WriteWarning(userListReply, "There are no titles missing stats.", true);
+                return;
+            }
             var messageBox =
                 MessageBox.Show(
-                    $@"{listOfTitlesFromOldVersions.Length} need to be updated, if this is a large number (over 2000), it may take a while, are you sure?",
+                    $@"You only need to do this once and only if you used Happy Search prior to version 1.2.
+{oldCount} need to be updated, if this is number is over 6000 it may take a while, are you sure?",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            await UpdateTitlesToLatestVersion(listOfTitlesFromOldVersions);
+            await GetOldVNStats(titlesWithoutStats);
             ReloadLists();
             RefreshVNList();
-            WriteText(userListReply, $"Updated {_vnsAdded} titles to latest version.");
+            LoadFavoriteProducerList();
+            WriteText(userListReply, $"Got stats for {_vnsAdded} titles.");
         }
 
         /// <summary>
@@ -393,7 +401,7 @@ https://github.com/FredTheBarber/VndbClient";
                 case 1:
                     break;
                 case 2:
-                    UpdateTitlesToLatestVersionClick();
+                    GetOldVNStatsClick();
                     break;
                 case 3:
                     GetAllCharacterData();
@@ -504,28 +512,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
             DBConn.Close();
-            var favprolist = new List<ListedProducer>();
-            foreach (ListedProducer producer in olFavoriteProducers.Objects)
-            {
-                ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
-                double userDropRate = -1;
-                double userAverageVote = -1;
-                if (producerVNs.Any())
-                {
-                    var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                    var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
-                    ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
-                    userDropRate = finishedCount + droppedCount != 0
-                        ? (double)droppedCount / (droppedCount + finishedCount)
-                        : -1;
-                    userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
-                }
-                favprolist.Add(new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded,
-                    DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
-            }
-            DBConn.Open();
-            DBConn.InsertFavoriteProducers(favprolist, UserID);
-            DBConn.Close();
+            SetFavoriteProducersData();
             ReloadLists();
             LoadFavoriteProducerList();
             RefreshVNList();

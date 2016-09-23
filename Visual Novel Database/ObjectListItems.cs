@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
@@ -528,9 +527,7 @@ namespace Happy_Search
             textBoxRect.Y += textHeight + photoArea.Height;
             var producerBrush = textBrush;
             List<ListedProducer> producers =
-                Application.OpenForms.OfType<FormMain>()
-                    .Select(main => main.olFavoriteProducers.Objects as List<ListedProducer>)
-                    .FirstOrDefault();
+                (olv.FindForm() as FormMain)?.olFavoriteProducers.Objects as List<ListedProducer>;
             if (producers != null && producers.Exists(x => x.Name == vn.Producer)) producerBrush = Brushes.Yellow;
             g.DrawString(vn.Producer, font, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 
             textBoxRect.Y += textHeight;

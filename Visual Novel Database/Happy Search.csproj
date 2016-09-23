@@ -295,6 +295,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Resources\dark-striped.jpg" />
+    <Content Include="Program Data\Changelog and more.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\logo copy.ico" />
   </ItemGroup>
   <ItemGroup>
