@@ -298,6 +298,7 @@ namespace Happy_Search
             this.getNewProducersButton.Size = new System.Drawing.Size(136, 23);
             this.getNewProducersButton.TabIndex = 37;
             this.getNewProducersButton.Text = "Get New Producer Titles";
+            this.toolTip.SetToolTip(this.getNewProducersButton, "Get titles by favorite producers that aren\'t in local database yet.");
             this.getNewProducersButton.UseVisualStyleBackColor = false;
             this.getNewProducersButton.Click += new System.EventHandler(this.GetNewFavoriteProducerTitles);
             // 
@@ -504,14 +505,15 @@ namespace Happy_Search
             // updateTagsAndTraitsButton
             // 
             this.updateTagsAndTraitsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 82);
+            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 91);
             this.updateTagsAndTraitsButton.Name = "updateTagsAndTraitsButton";
             this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(131, 23);
             this.updateTagsAndTraitsButton.TabIndex = 91;
-            this.updateTagsAndTraitsButton.Text = "Update Tags And Traits";
-            this.toolTip.SetToolTip(this.updateTagsAndTraitsButton, "Update tags of titles that haven\'t been updated in over 7 days");
+            this.updateTagsAndTraitsButton.Text = "Update Title Data";
+            this.toolTip.SetToolTip(this.updateTagsAndTraitsButton, "Update tags, traits and stats of titles that haven\'t been updated in over 7 days." +
+        "");
             this.updateTagsAndTraitsButton.UseVisualStyleBackColor = true;
-            this.updateTagsAndTraitsButton.Click += new System.EventHandler(this.UpdateTagsAndTraitsClick);
+            this.updateTagsAndTraitsButton.Click += new System.EventHandler(this.UpdateTitleDataClick);
             // 
             // traitSearchBox
             // 
@@ -1686,10 +1688,10 @@ namespace Happy_Search
             this.otherMethodsCB.Items.AddRange(new object[] {
             "Other Functions",
             "----------------",
-            "Update To Latest Version",
+            "Get All VN Stats",
             "Get All Character Data",
             "Get Missing Covers"});
-            this.otherMethodsCB.Location = new System.Drawing.Point(3, 111);
+            this.otherMethodsCB.Location = new System.Drawing.Point(3, 120);
             this.otherMethodsCB.Name = "otherMethodsCB";
             this.otherMethodsCB.Size = new System.Drawing.Size(131, 21);
             this.otherMethodsCB.TabIndex = 92;
@@ -1738,7 +1740,7 @@ namespace Happy_Search
             this.loginReply.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.loginReply.Location = new System.Drawing.Point(3, 4);
             this.loginReply.Name = "loginReply";
-            this.loginReply.Size = new System.Drawing.Size(131, 17);
+            this.loginReply.Size = new System.Drawing.Size(131, 26);
             this.loginReply.TabIndex = 30;
             this.loginReply.Text = "(loginReply)";
             this.loginReply.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1746,7 +1748,7 @@ namespace Happy_Search
             // loginButton
             // 
             this.loginButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.loginButton.Location = new System.Drawing.Point(3, 24);
+            this.loginButton.Location = new System.Drawing.Point(3, 33);
             this.loginButton.Name = "loginButton";
             this.loginButton.Size = new System.Drawing.Size(131, 23);
             this.loginButton.TabIndex = 82;
@@ -1757,7 +1759,7 @@ namespace Happy_Search
             // userListButt
             // 
             this.userListButt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.userListButt.Location = new System.Drawing.Point(3, 53);
+            this.userListButt.Location = new System.Drawing.Point(3, 62);
             this.userListButt.Name = "userListButt";
             this.userListButt.Size = new System.Drawing.Size(131, 23);
             this.userListButt.TabIndex = 27;
@@ -1954,7 +1956,7 @@ namespace Happy_Search
             this.tileOLV.View = System.Windows.Forms.View.Tile;
             this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.VisualNovelLeftClick);
             this.tileOLV.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.ShowContextMenu);
-            this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatRow);
+            this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatVNRow);
             this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
             this.tileOLV.Resize += new System.EventHandler(this.tileOLV_Resize);
             // 
@@ -1968,7 +1970,7 @@ namespace Happy_Search
             // 
             // tileColumnDate
             // 
-            this.tileColumnDate.AspectName = "RelDate";
+            this.tileColumnDate.AspectName = "DateForSorting";
             this.tileColumnDate.Text = "Release Date";
             this.tileColumnDate.Width = 77;
             // 

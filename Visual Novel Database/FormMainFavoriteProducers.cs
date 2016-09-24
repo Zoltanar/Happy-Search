@@ -169,7 +169,7 @@ This may take a while...",
         {
             if (olFavoriteProducers.Items.Count == 0)
             {
-                WriteError(prodReply, "No Items in list.", true);
+                WriteWarning(prodReply, "You have no favorite producers.", true);
                 return;
             }
             var askBox =
@@ -178,6 +178,11 @@ This may take a while...",
             ReloadLists();
             List<ListedProducer> producers =
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2).ToList();
+            if (producers.Count == 0)
+            {
+                WriteWarning(prodReply, "No producers require an update.", true);
+                return;
+            }
             LogToFile($"{producers.Count} to be updated");
             _vnsAdded = 0;
             _vnsSkipped = 0;
@@ -185,7 +190,7 @@ This may take a while...",
             ReloadLists();
             RefreshVNList();
             LoadFavoriteProducerList();
-            WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.", true);
+            WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.");
         }
 
         /// <summary>

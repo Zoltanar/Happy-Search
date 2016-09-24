@@ -43,7 +43,7 @@ namespace Happy_Search
             customTraitFilters.Items.RemoveAt(selectedFilter);
             _customTraitFilters.RemoveAt(selectedFilter - 2);
             SaveMainXML();
-            WriteText(traitReply, Resources.filter_deleted, true);
+            WriteText(traitReply, Resources.filter_deleted);
             customTraitFilterNameBox.Text = "";
             customTraitFilters.SelectedIndex = 0;
         }
@@ -82,7 +82,7 @@ namespace Happy_Search
             var filterName = customTraitFilterNameBox.Text;
             if (filterName.Length == 0)
             {
-                WriteText(traitReply, "Enter name of filter.", true);
+                WriteText(traitReply, "Enter name of filter.");
                 return;
             }
             //Ask to overwrite if name entered is already in use
@@ -95,14 +95,14 @@ namespace Happy_Search
                 customFilter.Filters = new List<WrittenTrait>(_activeTraitFilter);
                 customFilter.Updated = DateTime.UtcNow;
                 SaveMainXML();
-                WriteText(traitReply, Resources.filter_saved, true);
+                WriteText(traitReply, Resources.filter_saved);
                 customTraitFilters.SelectedIndex = customTraitFilters.Items.IndexOf(filterName);
                 return;
             }
             customTraitFilters.Items.Add(filterName);
             _customTraitFilters.Add(new CustomTraitFilter(filterName, new List<WrittenTrait>(_activeTraitFilter)));
             SaveMainXML();
-            WriteText(traitReply, Resources.filter_saved, true);
+            WriteText(traitReply, Resources.filter_saved);
             customTraitFilters.SelectedIndex = customTraitFilters.Items.Count - 1;
         }
 
@@ -114,7 +114,7 @@ namespace Happy_Search
             DisplayFilterTraits(true);
             customTraitFilters.SelectedIndex = 0;
             ApplyListFilters();
-            WriteText(traitReply, "Trait filter cleared.", true);
+            WriteText(traitReply, "Trait filter cleared.");
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace Happy_Search
             DisplayFilterTraits();
             var s = (Control) sender;
             s.Text = "";
-            WriteText(traitReply, $"Filtered by {trait.Print()}", true);
+            WriteText(traitReply, $"Filtered by {trait.Print()}");
         }
 
         /// <summary>

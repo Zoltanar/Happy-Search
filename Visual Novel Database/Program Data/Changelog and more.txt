@@ -2,6 +2,9 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: update tags/traits is now update title data and also updates stats, does not update 10+ year old titles if limit10year option is on, unless they are by favorite producers
+Fixed: placement of unreleased vns.
+Fixed: various things in favorite producer section (incl. do not count vns w/o votes for average rating)
 -1.3.8 released-
 Changed: all data stored by program now goes into 'Stored Data' folder
 Changed: SQLITE file from 'VNDBPC-database.sqlite' to 'Happy-Search-Local-DB.sqlite'
@@ -61,16 +64,7 @@ something weird happening with vn form on v13419 Uta noÅôPrince-samaÅÙ All Star 
 add loading image while loading vn form
 indicate when tag/trait filters are on
 vn form - set charactercb.selectedindex = 0
-update tags and traits should include stats
-clear search by name text upon enter
-clear list by producer text upon enter
-make all writetext fade by default
 better vn character display?
-producer rating, do not count vns without votes
-vn olv unreleased vns in wrong place (beginning of year instead of end)releasedate
-problem with multi-developer multi-release vns (example 'a profile' v1894)
-#ifdebug use release files (stops the need to copy them back and forth)
-in update to latest version, check kanjititle and update along with imagensfw if missing
 
 
 

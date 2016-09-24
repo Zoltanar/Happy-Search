@@ -55,9 +55,9 @@ namespace Happy_Search
                     ChangeAPIStatus(Conn.Status);
                     return false;
                 }
-                var waitS = Conn.LastResponse.Error.Minwait * 30;
-                var minWait = Math.Min(waitS, Conn.LastResponse.Error.Fullwait);
-                string normalWarning = $"Throttled for {Math.Floor(minWait)} secs.";
+                //var waitS = Conn.LastResponse.Error.Minwait * 30;
+                double minWait = Math.Min(5*60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
+                string normalWarning = $"Throttled for {Math.Floor(minWait/60)} mins.";
                 string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped}...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 WriteWarning(replyLabel, fullThrottleMessage);
@@ -283,7 +283,7 @@ namespace Happy_Search
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
-                multiVNQuery = $"get vn basic,details,tags (id = {currentArrayString}) {{{MaxResultsString}}}";
+                multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -377,7 +377,7 @@ namespace Happy_Search
         /// Update tags of titles that haven't been updated in over 7 days.
         /// </summary>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task UpdateTagsAndTraits(IEnumerable<int> vnIDs)
+        internal async Task UpdateTitleData(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
             ReloadLists();
@@ -386,7 +386,7 @@ namespace Happy_Search
             if (!vnsToGet.Any()) return;
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
-            string multiVNQuery = $"get vn tags (id = {currentArrayString}) {{{MaxResultsString}}}";
+            string multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -402,7 +402,7 @@ namespace Happy_Search
             DBConn.Open();
             foreach (var vnItem in vnRoot.Items)
             {
-                DBConn.UpdateVNTags(vnItem);
+                DBConn.UpdateVNData(vnItem);
                 _vnsAdded++;
             }
             DBConn.Close();
@@ -412,7 +412,7 @@ namespace Happy_Search
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
-                multiVNQuery = $"get vn tags (id = {currentArrayString}) {{{MaxResultsString}}}";
+                multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -428,7 +428,7 @@ namespace Happy_Search
                 DBConn.Open();
                 foreach (var vnItem in vnRoot.Items)
                 {
-                    DBConn.UpdateVNTags(vnItem);
+                    DBConn.UpdateVNData(vnItem);
                     _vnsAdded++;
                 }
                 DBConn.Close();

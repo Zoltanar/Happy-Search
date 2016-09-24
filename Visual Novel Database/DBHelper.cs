@@ -17,7 +17,11 @@ namespace Happy_Search
 {
     internal class DbHelper
     {
+#if DEBUG
+        private const string DbFile = "..\\Release\\Stored Data\\Happy-Search-Local-DB.sqlite";
+#else
         private const string DbFile = "Stored Data\\Happy-Search-Local-DB.sqlite";
+#endif
 
         private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
         //Pooling=True;Max Pool Size=100;
@@ -70,11 +74,11 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void UpdateVNTags(VNItem vnItem)
+        public void UpdateVNData(VNItem vnItem)
         {
             var tags = ListToJsonArray(new List<object>(vnItem.Tags));
             var insertString =
-                $"UPDATE vnlist SET Tags = '{tags}' WHERE VNID = {vnItem.ID};";
+                $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity:0.00}, Rating = {vnItem.Rating:0.00}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
         }
@@ -509,7 +513,7 @@ namespace Happy_Search
             DateTime upDateTime;
             return !DateTime.TryParse(dbObject.ToString(), out upDateTime) ? DateTime.MinValue : upDateTime;
         }
-
+        
         private static void InitDatabase()
         {
             if (File.Exists(DbFile)) return;

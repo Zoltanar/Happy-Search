@@ -14,8 +14,8 @@ namespace Happy_Search
     /// </summary>
     public class ListedVN
     {
-        internal static string[] StatusUL = {"Unknown", "Playing", "Finished", "Stalled", "Dropped"};
-        internal static string[] PriorityWL = {"High", "Medium", "Low", "Blacklist"};
+        internal static string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
+        internal static string[] PriorityWL = { "High", "Medium", "Low", "Blacklist" };
 
         internal static string[] LengthTime =
         {
@@ -51,17 +51,18 @@ namespace Happy_Search
         /// <param name="screens">JSON Array string containing List of Screenshot Items</param>
         /// <param name="anime">JSON Array string containing List of Anime Items</param>
         public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus,
-            int uladded, string ulnote,int wlstatus, int wladded, int vote, int voteadded, 
-            string tags, int vnid, DateTime updatedDate,string imageURL, bool imageNSFW, string description,
+            int uladded, string ulnote, int wlstatus, int wladded, int vote, int voteadded,
+            string tags, int vnid, DateTime updatedDate, string imageURL, bool imageNSFW, string description,
             double popularity, double rating, int voteCount, string relations, string screens, string anime)
         {
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
             WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
-            if (vote != -1) Vote = (double) vote/10;
+            if (vote != -1) Vote = (double)vote / 10;
             Title = title;
             KanjiTitle = kanjiTitle;
             RelDate = reldate;
+            DateForSorting = FormMain.StringToDate(reldate);
             Producer = producer;
             Length = LengthTime[length];
             ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
@@ -102,6 +103,10 @@ namespace Happy_Search
         /// VN's first non-trial release date
         /// </summary>
         public string RelDate { get; set; }
+        /// <summary>
+        /// Date used for sorting rather than display string.
+        /// </summary>
+        public DateTime DateForSorting { get; set; }
         /// <summary>
         /// VN producer
         /// </summary>
@@ -205,7 +210,7 @@ namespace Happy_Search
         /// <returns>User-related status</returns>
         public string UserRelatedStatus()
         {
-                string[] parts = {"", "", ""};
+            string[] parts = { "", "", "" };
             if (!ULStatus.Equals(""))
             {
                 parts[0] = "Userlist: ";
@@ -356,7 +361,7 @@ namespace Happy_Search
         /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
         public static explicit operator ListedProducer(ListedSearchedProducer searchedProducer)
         {
-            return new ListedProducer(searchedProducer.Name,-1,"No",DateTime.MinValue, searchedProducer.ID);
+            return new ListedProducer(searchedProducer.Name, -1, "No", DateTime.MinValue, searchedProducer.ID);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>

@@ -78,7 +78,7 @@ namespace Happy_Search
             var filterName = customTagFilterNameBox.Text;
             if (filterName.Length == 0)
             {
-                WriteText(tagReply, "Enter name of filter.", true);
+                WriteText(tagReply, "Enter name of filter.");
                 return;
             }
             //Ask to overwrite if name entered is already in use
@@ -90,14 +90,14 @@ namespace Happy_Search
                 customFilter.Filters = new List<TagFilter>(_activeTagFilter);
                 customFilter.Updated = DateTime.UtcNow;
                 SaveMainXML();
-                WriteText(tagReply, Resources.filter_saved, true);
+                WriteText(tagReply, Resources.filter_saved);
                 customTagFilters.SelectedIndex = customTagFilters.Items.IndexOf(filterName);
                 return;
             }
             customTagFilters.Items.Add(filterName);
             _customTagFilters.Add(new CustomTagFilter(filterName, new List<TagFilter>(_activeTagFilter)));
             SaveMainXML();
-            WriteText(tagReply, Resources.filter_saved, true);
+            WriteText(tagReply, Resources.filter_saved);
             customTagFilters.SelectedIndex = customTagFilters.Items.Count - 1;
         }
 
@@ -109,7 +109,7 @@ namespace Happy_Search
             DisplayFilterTags(true);
             customTagFilters.SelectedIndex = 0;
             ApplyListFilters();
-            WriteText(tagReply, Resources.filter_cleared, true);
+            WriteText(tagReply, Resources.filter_cleared);
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace Happy_Search
             var notNeeded = false;
             var count = _vnList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
-            WriteText(tagReply, $"Tag {tagName} has {count} VNs in local database.", true);
+            WriteText(tagReply, $"Tag {tagName} has {count} VNs in local database.");
             foreach (var filter in _activeTagFilter)
             {
                 if (!newFilter.HasChild(filter.ID)) continue;
@@ -278,7 +278,7 @@ namespace Happy_Search
             }
             ReloadLists();
             ApplyListFilters();
-            WriteText(replyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.", true);
+            WriteText(replyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
         }
 
         /// <summary>
@@ -319,7 +319,7 @@ namespace Happy_Search
             customTagFilters.Items.RemoveAt(selectedFilter);
             _customTagFilters.RemoveAt(selectedFilter - 2);
             SaveMainXML();
-            WriteText(tagReply, Resources.filter_deleted, true);
+            WriteText(tagReply, Resources.filter_deleted);
             customTagFilterNameBox.Text = "";
             customTagFilters.SelectedIndex = 0;
         }
@@ -429,6 +429,13 @@ namespace Happy_Search
 
         private void OnBackgroundWorkCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
+            var vnCount = vnlist.Length;
+            if (vnCount == 0)
+            {
+                ClearCommonTags(TagTypeAll, 10);
+                return;
+            }
             var bw = (IdentifiableBackgroundWorker)sender;
             //abort if current mct id is different
             if (bw.ID != _mctCount) return;
@@ -454,11 +461,7 @@ namespace Happy_Search
             var bw = (IdentifiableBackgroundWorker)sender1;
             ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
             var vnCount = vnlist.Length;
-            if (vnCount == 0)
-            {
-                ClearCommonTags(TagTypeAll, 10);
-                return;
-            }
+            if (vnCount == 0) return;
             //vn list - most common tags
             var taglist = new Dictionary<int, int>();
             var vnNo = 1;

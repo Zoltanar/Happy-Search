@@ -47,9 +47,11 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
                 return;
             }
+            var searchString = searchBox.Text;
+            searchBox.Text = "";
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            string vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{MaxResultsString}}}";
+            string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
             var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -60,7 +62,7 @@ namespace Happy_Search
             while (moreResults)
             {
                 pageNo++;
-                vnSearchQuery = $"get vn basic (search ~ \"{searchBox.Text}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
+                vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
@@ -71,7 +73,7 @@ namespace Happy_Search
             WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} VNs for, {_vnsAdded} added, {_vnsSkipped} skipped.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
-            _currentListLabel = $"{searchBox.Text} (Search)";
+            _currentListLabel = $"{searchString} (Search)";
             ReloadLists();
             RefreshVNList();
         }
@@ -95,6 +97,7 @@ namespace Happy_Search
             }
             var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
             WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTime}");
+            yearBox.Text = "";
             ReloadLists();
             _currentList = x => x.RelDate.StartsWith(yearBox.Text);
             _currentListLabel = $"{yearBox.Text} (Year)";
@@ -122,8 +125,7 @@ namespace Happy_Search
                 moreResults = vnMoreRoot.More;
             }
             var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText,
-                $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
+            WriteText(replyText,$"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
             RefreshVNList();
         }
 
@@ -271,12 +273,12 @@ namespace Happy_Search
         private void List_Producer(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
+            if (ProducerListBox.Text.Equals("")) return;
             var producerName = ProducerListBox.Text;
-            if (!producerName.Any()) return;
+            ProducerListBox.Text = "";
             List_ClearOther();
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
             _currentListLabel = $"{producerName} (Producer)";
-            ProducerListBox.Text = producerName;
             RefreshVNList();
         }
 
@@ -440,7 +442,7 @@ namespace Happy_Search
         }
 
         //format list rows, color according to userlist status
-        private void FormatRow(object sender, FormatRowEventArgs e)
+        private void FormatVNRow(object sender, FormatRowEventArgs e)
         {
             if (e.ListView.View != View.Details) return;
             var listedVN = (ListedVN)e.Model;
@@ -473,11 +475,12 @@ namespace Happy_Search
                     break;
             }
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
-            if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(4).Text = "";
-            if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(7).Text = "";
-            if (listedVN.Vote < 1) e.Item.GetSubItem(8).Text = "";
-            e.Item.GetSubItem(9).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
-            e.Item.GetSubItem(10).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
+            if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnULAdded.Index).Text = "";
+            if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnWLAdded.Index).Text = "";
+            if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
+            e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
+            e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
+            e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
         }
 
         /// <summary>
@@ -580,7 +583,7 @@ namespace Happy_Search
                 case "Userlist":
                     if (vn.ULStatus.Equals(nitem.Text))
                     {
-                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.", true);
+                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
                     statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
@@ -589,7 +592,7 @@ namespace Happy_Search
                 case "Wishlist":
                     if (vn.WLStatus.Equals(nitem.Text))
                     {
-                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.", true);
+                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
                     statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
@@ -598,7 +601,7 @@ namespace Happy_Search
                 case "Vote":
                     if (Math.Abs(vn.Vote - Convert.ToInt32(nitem.Text)) < 0.001)
                     {
-                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.", true);
+                        WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
                     if (!nitem.Text.Equals("(None)")) statusInt = Convert.ToInt32(nitem.Text);
@@ -608,7 +611,7 @@ namespace Happy_Search
                     return;
             }
             if (!success) return;
-            WriteText(replyText, $"{TruncateString(vn.Title, 20)} status changed.", true);
+            WriteText(replyText, $"{TruncateString(vn.Title, 20)} status changed.");
         }
 
         private void RightClickShowProducerTitles(object sender, EventArgs e)
@@ -626,7 +629,7 @@ namespace Happy_Search
             var producers = olFavoriteProducers.Objects as List<ListedProducer>;
             if (producers?.Find(x => x.Name == vn.Producer) != null)
             {
-                WriteText(replyText, "Already in list.", true);
+                WriteText(replyText, "Already in list.");
                 return;
             }
             ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
@@ -653,7 +656,7 @@ namespace Happy_Search
             DBConn.Close();
             ReloadLists();
             LoadFavoriteProducerList();
-            WriteText(replyText, $"{vn.Producer} added to list.", true);
+            WriteText(replyText, $"{vn.Producer} added to list.");
         }
 
         /// <summary>

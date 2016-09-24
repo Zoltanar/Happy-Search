@@ -26,33 +26,48 @@ namespace Happy_Search
     /// </summary>
     public partial class FormMain : Form
     {
-        //constants / definables
+        #region File Locations
 
-        //Files
+        private const string TagsURL = "http://vndb.org/api/tags.json.gz";
+        private const string TraitsURL = "http://vndb.org/api/traits.json.gz";
+        private const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
+        private const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
+        private const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
+
+#if DEBUG
+        internal const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
+        internal const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
+        private const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
+        private const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
+        private const string LogFile = "..\\Release\\Stored Data\\message.log";
+        private const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
+        private const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
+        private const string TagsJson = "..\\Release\\Stored Data\\tags.json";
+        private const string TraitsJson = "..\\Release\\Stored Data\\traits.json";
+#else
         internal const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
         internal const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
         private const string DBStatsXml = "Stored Data\\dbs.xml";
         private const string MainXmlFile = "Stored Data\\saved_objects.xml";
         private const string LogFile = "Stored Data\\message.log";
-        private const string TagsURL = "http://vndb.org/api/tags.json.gz";
         private const string TagsJsonGz = "Stored Data\\tags.json.gz";
-        private const string TagsJson = "Stored Data\\tags.json";
-        private const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
-        private const string TraitsURL = "http://vndb.org/api/traits.json.gz";
         private const string TraitsJsonGz = "Stored Data\\traits.json.gz";
+        private const string TagsJson = "Stored Data\\tags.json";
         private const string TraitsJson = "Stored Data\\traits.json";
-        private const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
-        private const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
+#endif
+        #endregion
+
+        //constants / definables
+        internal const string ClientName = "Happy Search By Zolty";
+        internal const string ClientVersion = "1.3.8";
+        internal const string APIVersion = "2.25";
+        private const int APIMaxResults = 25;
+        internal static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
         private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
         internal const string ContentTag = "cont";
         internal const string SexualTag = "ero";
         internal const string TechnicalTag = "tech";
-        internal const string ClientName = "Happy Search By Zolty";
-        internal const string ClientVersion = "1.3.8";
-        internal const string APIVersion = "2.25";
-        private const int APIMaxResults = 25;
-        internal static readonly string MaxResultsString = $"\"results\":{APIMaxResults}";
         private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         private static readonly Color ErrorColor = Color.Red;
         internal static readonly Color NormalColor = SystemColors.ControlLightLight;
@@ -320,7 +335,7 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(
                     $@"You only need to do this once and only if you used Happy Search prior to version 1.2.
-{oldCount} need to be updated, if this is number is over 6000 it may take a while, are you sure?",
+{oldCount} need to be updated, if this is over 6000 it may take a while, are you sure?",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             await GetOldVNStats(titlesWithoutStats);
@@ -333,18 +348,29 @@ https://github.com/FredTheBarber/VndbClient";
         /// <summary>
         ///     Update tags of titles that haven't been updated in over 7 days.
         /// </summary>
-        private async void UpdateTagsAndTraitsClick(object sender, EventArgs e)
+        private async void UpdateTitleDataClick(object sender, EventArgs e)
         {
-            int[] listOfTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > 7).Select(x => x.VNID).ToArray();
+            int[] listOfTitlesToUpdate;
+            if (Settings.Default.Limit10Years)
+            {
+                //limit to titles release in last 10 years but include all favorite producers' titles
+                DBConn.Open();
+                IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(UserID).Select(x => x.Name);
+                DBConn.Close();
+                int[] limitedTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > 7 && x.DateForSorting > DateTime.UtcNow.AddYears(-10)).Select(x => x.VNID).ToArray();
+                int[] favProTitles = _vnList.Where(x => favProList.Contains(x.Producer)).Select(x => x.VNID).ToArray();
+                listOfTitlesToUpdate = limitedTitlesToUpdate.Concat(favProTitles).Distinct().ToArray();
+            }
+            else listOfTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > 7).Select(x => x.VNID).ToArray();
             var messageBox =
                 MessageBox.Show(
                     $@"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            await UpdateTagsAndTraits(listOfTitlesToUpdate);
+            await UpdateTitleData(listOfTitlesToUpdate);
             ReloadLists();
             RefreshVNList();
-            WriteText(userListReply, $"Updated tags/traits of {_vnsAdded} titles.", true);
+            WriteText(userListReply, $"Updated data on {_vnsAdded} titles.");
         }
 
         private void ToggleNSFWImages(object sender, EventArgs e)
@@ -444,7 +470,7 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
             {
                 await SaveImageAsync(vn);
             }
-            WriteText(userListReply, "Finished getting missing cover images.", true);
+            WriteText(userListReply, "Finished getting missing cover images.");
         }
 
         private async void GetAllCharacterData()
@@ -460,7 +486,7 @@ This will take a long time if you have a lot of titles in your local database.",
             await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToArray(), userListReply);
             ReloadLists();
             RefreshVNList();
-            WriteText(userListReply, "Finished getting characters for all titles.", true);
+            WriteText(userListReply, "Finished getting characters for all titles.");
         }
 
         #endregion
@@ -629,7 +655,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DBConn.Close();
             if (!unfetchedTitles.Any()) return;
             await GetMultipleVN(unfetchedTitles, userListReply, true);
-            WriteText(userListReply, Resources.updated_urt, true);
+            WriteText(userListReply, Resources.updated_urt);
             ReloadLists();
         }
 
@@ -730,14 +756,15 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         /// <param name="label">Label to which the message is written</param>
         /// <param name="message">Message to be written</param>
-        /// <param name="fade">Should message disappear after a few seconds?</param>
-        public static void WriteText(Label label, string message, bool fade = false)
+        /// <param name="disableFade"></param>
+        public static void WriteText(Label label, string message, bool disableFade = false)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = NormalLinkColor;
             else label.ForeColor = NormalColor;
             label.Text = message;
-            if (fade) FadeLabel(label);
+            if (disableFade) return;
+            FadeLabel(label);
         }
 
         /// <summary>
@@ -1010,7 +1037,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         /// <param name="date">String to be converted</param>
         /// <returns>DateTime representing date in string</returns>
-        private static DateTime StringToDate(string date)
+        public static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
             if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
@@ -1458,6 +1485,5 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
-
     }
 }
