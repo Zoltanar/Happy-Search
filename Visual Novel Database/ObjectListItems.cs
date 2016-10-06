@@ -234,6 +234,29 @@ namespace Happy_Search
         {
             return VoteCount == 0 ? "No votes yet." : $"{Rating:0.00} ({VoteCount} votes)";
         }
+
+        /// <summary>
+        /// Checks if title was released between two dates, the recent date is inclusive.
+        /// Make sure to enter arguments in correct order.
+        /// </summary>
+        /// <param name="oldDate">Date furthest from the present</param>
+        /// <param name="recentDate">Date closest to the present</param>
+        /// <returns></returns>
+        public bool ReleasedBetween(DateTime oldDate, DateTime recentDate)
+        {
+            return DateForSorting > oldDate && DateForSorting <= recentDate;
+        }
+
+
+        /// <summary>
+        /// Checks if title was released between now and a past date, the current date is included.
+        /// Make sure to enter arguments in correct order.
+        /// </summary>
+        /// <param name="oldDate">Date furthest from the present</param>
+        public bool ReleasedBetweenNowAnd(DateTime oldDate)
+        {
+            return DateForSorting > oldDate && DateForSorting <= DateTime.UtcNow;
+        }
     }
 
     /// <summary>

@@ -60,11 +60,12 @@ backup sqlite database!
 add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
 merge feature to merge 2 databases, keeping most-recently-updated in case of same id
+indicate when tag/trait filters are on
 something weird happening with vn form on v13419 Uta no™Prince-samaô All Star After Secret
 add loading image while loading vn form
-indicate when tag/trait filters are on
-vn form - set charactercb.selectedindex = 0
 better vn character display?
+update title data  - put vns in tiers by date of release eg [under 6 months old = 7 days] [6 months to a year = 14 days] [1-2 year = 28 days] [2+ years = 56 days]
+
 
 
 

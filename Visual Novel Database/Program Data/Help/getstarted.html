@@ -50,8 +50,14 @@
             Get cover images for titles in the local database, useful if you modify or replace the database externally but do not replace the cover images folder to match.</li>
     </ul>
     <h3>Update Title Data</h3>
-    <p>This will update the tags, traits and stats of all titles that haven't been updated in over 7 days, it may take a while if there are a lot of titles.<br />
-        If &#39;10 Year Limit&#39; is enabled, it won't update titles older than 10 years, unless they are by favorite producers.</p>
+    <p>This will update the tags, traits and stats of all titles that haven't been updated in at least 7 days, it may take a while if there are a lot of titles.</p>
+    <p>The number of days between updates is based on the release date of the titles:</p>
+    <p>Titles released in last 6 months = 7 days.</p>
+    <p>{tier2Titles.Length} Titles released 6 months - 1 year ago = 14 days.</p>
+    <p>{tier3Titles.Length} Titles released 1 year - 2 years ago = 28 days.</p>
+    <p>{tier4Titles.Length} Titles released 2-10 years ago = 56 days.</p>
+    <p>Titles released over 10 years ago aren&#39;t updated.</p>
+    <p>Titles released by favorite producers are also updated every 7 days.</p>
     <h3>Show NSFW Images</h3>
     <p>Off by default, when turned on, NSFW images will be displayed.</p>
     <h3>Auto-update URT</h3>

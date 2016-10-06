@@ -133,13 +133,6 @@ namespace Happy_Search
             var imageLoc = $"{FormMain.VNImagesFolder}{vnItem.VNID}{ext}";
             DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
-            //relations, anime and screenshots are only fetched here but are saved to database/disk
-            var taskResult = await GetVNRelations(vnItem);
-            if (!taskResult) return;
-            taskResult = await GetVNAnime(vnItem);
-            if (!taskResult) return;
-            taskResult = await GetVNScreenshots(vnItem);
-            if (!taskResult) return;
             //set data
             vnName.Text = vnItem.Title;
             vnID.Text = vnItem.VNID.ToString();
@@ -155,6 +148,13 @@ namespace Happy_Search
             if (vnItem.ImageNSFW && !Settings.Default.ShowNSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
+            //relations, anime and screenshots are only fetched here but are saved to database/disk
+            var taskResult = await GetVNRelations(vnItem);
+            if (!taskResult) return;
+            taskResult = await GetVNAnime(vnItem);
+            if (!taskResult) return;
+            taskResult = await GetVNScreenshots(vnItem);
+            if (!taskResult) return;
         }
 
         private void SetDeletedData()
@@ -192,6 +192,7 @@ namespace Happy_Search
                 stringList.Add("---------------");
             }
             vnTraitsCB.DataSource = stringList;
+            vnTraitsCB.SelectedIndex = 0;
         }
 
         private async Task<bool> GetVNAnime(ListedVN vnItem)
@@ -485,6 +486,7 @@ namespace Happy_Search
             return newWidth;
         }
 
+        #region Window Controls
         [DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
@@ -507,6 +509,7 @@ namespace Happy_Search
         {
             if (e.KeyCode == Keys.Escape) Close();
         }
+        #endregion
 
     }
 }

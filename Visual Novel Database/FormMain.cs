@@ -350,21 +350,27 @@ https://github.com/FredTheBarber/VndbClient";
         /// </summary>
         private async void UpdateTitleDataClick(object sender, EventArgs e)
         {
-            int[] listOfTitlesToUpdate;
-            if (Settings.Default.Limit10Years)
-            {
-                //limit to titles release in last 10 years but include all favorite producers' titles
-                DBConn.Open();
-                IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(UserID).Select(x => x.Name);
-                DBConn.Close();
-                int[] limitedTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > 7 && x.DateForSorting > DateTime.UtcNow.AddYears(-10)).Select(x => x.VNID).ToArray();
-                int[] favProTitles = _vnList.Where(x => favProList.Contains(x.Producer)).Select(x => x.VNID).ToArray();
-                listOfTitlesToUpdate = limitedTitlesToUpdate.Concat(favProTitles).Distinct().ToArray();
-            }
-            else listOfTitlesToUpdate = _vnList.Where(x => x.UpdatedDate > 7).Select(x => x.VNID).ToArray();
+            //limit to titles release in last 10 years but include all favorite producers' titles
+            DBConn.Open();
+            IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(UserID).Select(x => x.Name);
+            DBConn.Close();
+            var tier1Titles = _vnList.Where(x => x.UpdatedDate > 7 && x.ReleasedBetweenNowAnd(DateTime.UtcNow.AddMonths(-6))).ToArray();
+            var tier2Titles = _vnList.Where(x => x.UpdatedDate > 14 && x.ReleasedBetween(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow.AddMonths(-6))).ToArray();
+            var tier3Titles = _vnList.Where(x => x.UpdatedDate > 28 && x.ReleasedBetween(DateTime.UtcNow.AddYears(-2), DateTime.UtcNow.AddYears(-1))).ToArray();
+            var tier4Titles = _vnList.Where(x => x.UpdatedDate > 56 && x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).ToArray();
+            var titlesToUpdate = tier1Titles.Concat(tier2Titles).Concat(tier3Titles).Concat(tier4Titles).Select(x => x.VNID);
+            //update title data - put vns in tiers by date of release eg[under 6 months old = 7 days] [6 months to a year = 14 days][1-2 year = 28 days][2+ years = 56 days]
+            int[] favProTitles = _vnList.Where(x => x.UpdatedDate > 7 && favProList.Contains(x.Producer)).Select(x => x.VNID).ToArray();
+            int[] listOfTitlesToUpdate = titlesToUpdate.Concat(favProTitles).Distinct().ToArray();
             var messageBox =
                 MessageBox.Show(
-                    $@"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?",
+                    $@"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?
+{tier1Titles.Length} Titles released in last 6 months.
+{tier2Titles.Length} Titles released 6 months - 1 year ago.
+{tier3Titles.Length} Titles released 1 year - 2 years ago.
+{tier4Titles.Length} Titles released 2+ years ago.
+{favProTitles.Length} Titles by Favorite Producers.
+",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             await UpdateTitleData(listOfTitlesToUpdate);
@@ -372,6 +378,7 @@ https://github.com/FredTheBarber/VndbClient";
             RefreshVNList();
             WriteText(userListReply, $"Updated data on {_vnsAdded} titles.");
         }
+
 
         private void ToggleNSFWImages(object sender, EventArgs e)
         {
