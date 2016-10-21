@@ -37,7 +37,7 @@ namespace Happy_Search
 
         #region Set Methods
 
-        public void AddRelationsToVN(int vnid, List<RelationsItem> relations)
+        public void AddRelationsToVN(int vnid, RelationsItem[] relations)
         {
             var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";
             relationsString = Regex.Replace(relationsString, "'", "''");
@@ -47,7 +47,7 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void AddScreensToVN(int vnid, List<ScreenItem> screens)
+        public void AddScreensToVN(int vnid, ScreenItem[] screens)
         {
             var screensString = screens.Any() ? ListToJsonArray(new List<object>(screens)) : "Empty";
             var insertString =
@@ -56,7 +56,7 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void AddAnimeToVN(int vnid, List<AnimeItem> anime)
+        public void AddAnimeToVN(int vnid, AnimeItem[] anime)
         {
             var animeString = anime.Any() ? ListToJsonArray(new List<object>(anime)) : "Empty";
             animeString = Regex.Replace(animeString, "'", "''");

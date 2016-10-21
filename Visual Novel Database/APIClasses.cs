@@ -38,14 +38,14 @@ namespace Happy_Search
         public Links Links { get; set; }
         public string Image { get; set; }
         public bool Image_Nsfw { get; set; }
-        public List<AnimeItem> Anime { get; set; } //flag: anime
-        public List<RelationsItem> Relations { get; set; } //flag: relations
+        public AnimeItem[] Anime { get; set; } //flag: anime
+        public RelationsItem[] Relations { get; set; } //flag: relations
         public List<TagItem> Tags { get; set; } //flag: tags
         //flag: stats
         public double Popularity { get; set; }
         public double Rating { get; set; }
         public int VoteCount { get; set; }
-        public List<ScreenItem> Screens { get; set; } //flag: screens
+        public ScreenItem[] Screens { get; set; } //flag: screens
 
         public bool Equals(VNItem other)
         {
