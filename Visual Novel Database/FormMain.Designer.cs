@@ -7,7 +7,7 @@ using BrightIdeasSoftware;
 
 namespace Happy_Search
 {
-    partial class FormMain
+    public partial class FormMain
     {
         /// <summary>
         /// Required designer variable.

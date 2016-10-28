@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Search
 {
-    partial class FormMain
+    public partial class FormMain
     {
         private const string TagLabel = "tagFilterLabel";
         private readonly List<CustomTagFilter> _customTagFilters;

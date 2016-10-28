@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Search
 {
-    partial class FormMain
+    public partial class FormMain
     {
         private static readonly ToggleArray Toggles = new ToggleArray();
 

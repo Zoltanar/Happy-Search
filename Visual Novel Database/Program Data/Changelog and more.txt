@@ -2,6 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
+Removed: Database messages from log
+Changed: update title data - days between updates based on time since title released: <6 months or by favorite producer = 7 days; 6 mon - 1 year = 14 days; 1-2 years = 28 days; 2-10 years = 56 days;10+ years = not updated;
 Added: update tags/traits is now update title data and also updates stats, does not update 10+ year old titles if limit10year option is on, unless they are by favorite producers
 Fixed: placement of unreleased vns.
 Fixed: various things in favorite producer section (incl. do not count vns w/o votes for average rating)
@@ -64,7 +66,8 @@ indicate when tag/trait filters are on
 something weird happening with vn form on v13419 Uta no™Prince-samaô All Star After Secret
 add loading image while loading vn form
 better vn character display?
-update title data  - put vns in tiers by date of release eg [under 6 months old = 7 days] [6 months to a year = 14 days] [1-2 year = 28 days] [2+ years = 56 days]
+display action in API status block
+show unreleased in unreleased vn tiles
 
 
 

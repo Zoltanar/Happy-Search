@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Happy_Search
 {
-    partial class FormMain
+    public partial class FormMain
     {
         /// <summary>
         /// Send query through API Connection.
@@ -25,6 +25,7 @@ namespace Happy_Search
         internal async Task<bool> TryQuery(string query, string errorMessage, Label replyLabel,
             bool additionalMessage = false, bool refreshList = false, bool ignoreDateLimit = false)
         {
+            //TODO Display function name on APIStatus panel
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 WriteError(replyLabel, "API Connection isn't ready.", true);
@@ -182,7 +183,7 @@ namespace Happy_Search
             var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
             await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
             DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer, false);
+            DBConn.UpsertSingleVN(vnItem, relProducer);
             var vn = DBConn.GetSingleVN(vnid, UserID);
             DBConn.Close();
             WriteText(updateLink, Resources.vn_updated);
@@ -224,7 +225,7 @@ namespace Happy_Search
             await GetProducer(relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             await GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
             DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer, false);
+            DBConn.UpsertSingleVN(vnItem, relProducer);
             DBConn.Close();
             _vnsAdded++;
         }
@@ -274,7 +275,7 @@ namespace Happy_Search
                 await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 _vnsAdded++;
                 DBConn.Open();
-                DBConn.UpsertSingleVN(vnItem, relProducer, false);
+                DBConn.UpsertSingleVN(vnItem, relProducer);
                 DBConn.Close();
             }
             await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
@@ -303,7 +304,7 @@ namespace Happy_Search
                     await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                     _vnsAdded++;
                     DBConn.Open();
-                    DBConn.UpsertSingleVN(vnItem, relProducer, false);
+                    DBConn.UpsertSingleVN(vnItem, relProducer);
                     DBConn.Close();
                 }
                 await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);

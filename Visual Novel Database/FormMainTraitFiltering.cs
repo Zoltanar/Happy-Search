@@ -9,7 +9,7 @@ using Happy_Search.Properties;
 
 namespace Happy_Search
 {
-    partial class FormMain
+    public partial class FormMain
     {
         private const string TraitLabel = "traitFilterLabel";
         private readonly List<CustomTraitFilter> _customTraitFilters;

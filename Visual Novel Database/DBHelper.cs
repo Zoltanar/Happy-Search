@@ -8,10 +8,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using static Happy_Search.FormMain;
-
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
+
 
 namespace Happy_Search
 {
@@ -26,7 +26,6 @@ namespace Happy_Search
         private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
         //Pooling=True;Max Pool Size=100;
 
-        private const bool PrintGetMethods = false;
         public static SQLiteConnection DbConn;
 
         public DbHelper()
@@ -36,6 +35,8 @@ namespace Happy_Search
         }
 
         #region Set Methods
+        
+        private const bool PrintSetMethods = false;
 
         public void AddRelationsToVN(int vnid, RelationsItem[] relations)
         {
@@ -88,7 +89,7 @@ namespace Happy_Search
             if (command == Command.Delete)
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
-                LogToFile(deleteString);
+                if (PrintSetMethods) LogToFile(deleteString);
                 var cmd = new SQLiteCommand(deleteString, DbConn);
                 cmd.ExecuteNonQuery();
                 return;
@@ -140,7 +141,7 @@ namespace Happy_Search
                     break;
             }
             if (commandString.Equals("")) return;
-            LogToFile(commandString);
+            if (PrintSetMethods) LogToFile(commandString);
             var cmd2 = new SQLiteCommand(commandString, DbConn);
             cmd2.ExecuteNonQuery();
         }
@@ -152,7 +153,7 @@ namespace Happy_Search
                 var insertString =
                     $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote}, {item.UserDropRate});";
                 var command = new SQLiteCommand(insertString, DbConn);
-                LogToFile(insertString);
+                if(PrintSetMethods) LogToFile(insertString);
                 command.ExecuteNonQuery();
             }
         }
@@ -162,7 +163,7 @@ namespace Happy_Search
             var name = Regex.Replace(producer.Name, "'", "''");
             var insertString =
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles, Loaded) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles}, '{producer.Loaded}');";
-            LogToFile(insertString);
+            if (PrintSetMethods) LogToFile(insertString);
             var cmd = new SQLiteCommand(insertString, DbConn);
             cmd.ExecuteNonQuery();
         }
@@ -183,7 +184,7 @@ namespace Happy_Search
                 $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             var command = new SQLiteCommand(commandString, DbConn);
-            LogToFile(commandString);
+            if (PrintSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -201,7 +202,7 @@ namespace Happy_Search
                 $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             var command = new SQLiteCommand(commandString, DbConn);
-            LogToFile(commandString);
+            if (PrintSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -232,7 +233,7 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void UpsertSingleVN(VNItem item, int producerid, bool print = true)
+        public void UpsertSingleVN(VNItem item, int producerid)
         {
             var tags = ListToJsonArray(new List<object>(item.Tags));
             var title = Regex.Replace(item.Title, "'", "''");
@@ -244,7 +245,7 @@ namespace Happy_Search
                 $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, " +
                 $"{length}, {item.Popularity:0.00},{item.Rating:0.00}, {item.VoteCount}, {item.ID});";
             var command = new SQLiteCommand(insertString, DbConn);
-            if (print) LogToFile(insertString);
+            if (PrintSetMethods) LogToFile(insertString);
             command.ExecuteNonQuery();
         }
 
@@ -252,7 +253,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
             var command = new SQLiteCommand(commandString, DbConn);
-            LogToFile(commandString);
+            if (PrintSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -260,13 +261,15 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM vnlist WHERE VNID={vnid};";
             var command = new SQLiteCommand(commandString, DbConn);
-            LogToFile(commandString);
+            if (PrintSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
         #endregion
 
         #region Get Methods
+
+        private const bool PrintGetMethods = false;
 
         public List<int> GetUnfetchedUserRelatedTitles(int userid)
         {
