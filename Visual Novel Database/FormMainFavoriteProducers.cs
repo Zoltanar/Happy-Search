@@ -112,7 +112,7 @@ This may take a while...",
             _vnsAdded = 0;
             _vnsSkipped = 0;
             foreach (ListedProducer producer in olFavoriteProducers.Objects)
-                await GetProducerTitles(producer, prodReply, true);
+                await GetProducerTitles("Refresh Favorite Producer Titles", producer, prodReply, true);
             LoadFavoriteProducerList();
             WriteText(prodReply, Resources.update_fp_titles_success + $" ({_vnsAdded} new titles)");
         }
@@ -140,8 +140,6 @@ This may take a while...",
         /// <summary>
         /// Fetch titles for producers whose titles haven't been fetched yet.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private async void LoadUnloaded(object sender, EventArgs e)
         {
             if (olFavoriteProducers.Items.Count == 0)
@@ -149,17 +147,22 @@ This may take a while...",
                 WriteError(prodReply, "No Items in list.", true);
                 return;
             }
-            ReloadLists();
-            List<ListedProducer> producers =
-                olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Loaded.Equals("No")).ToList();
+            ListedProducer[] producers =
+                olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Loaded.Equals("No")).ToArray();
+            if (producers.Length == 0)
+            {
+
+                WriteText(prodReply, "No producers to be loaded.");
+                return;
+            }
             foreach (var producer in producers)
             {
-                await GetProducerTitles(producer, prodReply);
+                await GetProducerTitles("Load Unloaded FP Titles", producer, prodReply);
             }
             ReloadLists();
             RefreshVNList();
             LoadFavoriteProducerList();
-            WriteText(prodReply, $"Loaded {producers.Count} producers.");
+            WriteText(prodReply, $"Loaded {producers.Length} producers.");
         }
 
         /// <summary>
@@ -186,7 +189,7 @@ This may take a while...",
             LogToFile($"{producers.Count} to be updated");
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            foreach (var producer in producers) await GetProducerTitles(producer, prodReply);
+            foreach (var producer in producers) await GetProducerTitles("Get New FP Titles",producer, prodReply);
             ReloadLists();
             RefreshVNList();
             LoadFavoriteProducerList();
@@ -223,23 +226,19 @@ This may take a while...",
         /// <summary>
         /// Get titles developed/published by producer.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="producer">Producer whose titles should be found</param>
         /// <param name="replyLabel">Label that should receive reply</param>
         /// <param name="refreshAll">Should already known titles be refreshed as well?</param>
-        private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
+        private async Task GetProducerTitles(string featureName, ListedProducer producer, Label replyLabel, bool refreshAll = false)
         {
             LogToFile($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
-            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
+            var result = await TryQuery(featureName, prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
             List<int> producerVNList = releaseItems.SelectMany(item => item.VN.Select(x=>x.ID)).ToList();
-            /* var producerVNList = new List<int>();
-            foreach (var item in releaseItems)
-            {
-                producerVNList.AddRange(item.VN.Select(x=>x.ID));
-            }*/
             var moreResults = releaseRoot.More;
             var pageNo = 1;
             while (moreResults)
@@ -247,14 +246,14 @@ This may take a while...",
                 pageNo++;
                 string prodReleaseMoreQuery =
                     $"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
+                var moreResult = await TryQuery(featureName, prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
                 if (!moreResult) return;
                 releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
                 releaseItems = releaseRoot.Items;
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;
             }
-            await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, refreshAll);
+            await GetMultipleVN(featureName, producerVNList.Distinct(), replyLabel, true, refreshAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, "Yes", DateTime.UtcNow,
@@ -281,6 +280,10 @@ This may take a while...",
             olFavoriteProducers.Sort(0);
         }
 
+        /// <summary>
+        /// Update Favorite Producer stats for changes in URT list.
+        /// </summary>
+        /// <param name="producerName">Name of producer to be updated</param>
         private void UpdateFavoriteProducerForURTChange(string producerName)
         {
             var favoriteProducers = olFavoriteProducers.Objects as List<ListedProducer>;

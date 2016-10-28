@@ -256,24 +256,24 @@ namespace Happy_Search
             IEnumerable<string> betterTags = _activeTagFilter.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
-            var result = await TryQuery(tagQuery, "UCF Query Error", replyLabel, true, true);
+            var result = await TryQuery("Update Filter Results",tagQuery, "UCF Query Error", replyLabel, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyLabel, true);
+            await GetMultipleVN("Update Filter Results",vnItems.Select(x => x.ID).ToList(), replyLabel, true);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyLabel, true, true);
+                var moreResult = await TryQuery("Update Filter Results",moreTagQuery, "UCFM Query Error", replyLabel, true, true);
                 if (!moreResult) return;
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyLabel, true);
+                await GetMultipleVN("Update Filter Results",moreVNItems.Select(x => x.ID).ToList(), replyLabel, true);
                 moreResults = moreVNRoot.More;
             }
             ReloadLists();

@@ -351,6 +351,7 @@ namespace Happy_Search
             this.loadUnloadedButton.Size = new System.Drawing.Size(101, 23);
             this.loadUnloadedButton.TabIndex = 35;
             this.loadUnloadedButton.Text = "Load Unloaded";
+            this.toolTip.SetToolTip(this.loadUnloadedButton, "Fetch titles for producers whose titles haven\'t been fetched yet.");
             this.loadUnloadedButton.UseVisualStyleBackColor = false;
             this.loadUnloadedButton.Click += new System.EventHandler(this.LoadUnloaded);
             // 

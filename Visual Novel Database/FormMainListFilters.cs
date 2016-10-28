@@ -52,7 +52,7 @@ namespace Happy_Search
             _vnsAdded = 0;
             _vnsSkipped = 0;
             string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+            var queryResult = await TryQuery("VN Search", vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
@@ -63,13 +63,13 @@ namespace Happy_Search
             {
                 pageNo++;
                 vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+                queryResult = await TryQuery("VN Search", vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 vnItems.AddRange(vnRoot.Items);
                 moreResults = vnRoot.More;
             }
-            await GetMultipleVN(vnItems.Select(x => x.ID), replyText, true);
+            await GetMultipleVN("VN Search", vnItems.Select(x => x.ID), replyText, true);
             WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} VNs for, {_vnsAdded} added, {_vnsSkipped} skipped.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
@@ -105,11 +105,11 @@ namespace Happy_Search
             _vnsSkipped = 0;
             string vnInfoQuery =
                 $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}}}";
-            var result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
+            var result = await TryQuery("Get Year Titles", vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyText, true);
+            await GetMultipleVN("Get Year Titles", vnItems.Select(x => x.ID).ToList(), replyText, true);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -117,11 +117,11 @@ namespace Happy_Search
                 pageNo++;
                 string vnInfoMoreQuery =
                     $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true, true);
+                var moreResult = await TryQuery("Get Year Titles", vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true, true);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), replyText, true);
+                await GetMultipleVN("Get Year Titles", vnMoreItems.Select(x => x.ID).ToList(), replyText, true);
                 moreResults = vnMoreRoot.More;
             }
             var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
@@ -302,7 +302,7 @@ namespace Happy_Search
             ReloadLists();
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            await GetProducerTitles(producerItem, replyText);
+            await GetProducerTitles("Update Producer Titles", producerItem, replyText);
             WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
             ReloadLists();
             RefreshVNList();

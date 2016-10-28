@@ -36,6 +36,17 @@ namespace Happy_Search
             var retries = 0;
             while (!complete && retries < 5)
             {
+                var certs = new X509CertificateCollection();
+                var certFiles = Directory.GetFiles("Program Data\\Certificates");
+                foreach (var certFile in certFiles)
+                {
+                    certs.Add(X509Certificate.CreateFromCertFile(certFile));
+                }
+                FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                foreach (var cert in certs)
+                {
+                    FormMain.LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
+                }
                 try
                 {
                     retries++;
@@ -45,17 +56,6 @@ namespace Happy_Search
                     FormMain.LogToFile("TCP Client connection made...");
                     var sslStream = new SslStream(_tcpClient.GetStream());
                     FormMain.LogToFile("SSL Stream received...");
-                    var certs = new X509CertificateCollection();
-                    var certFiles = Directory.GetFiles("Program Data\\Certificates");
-                    foreach (var certFile in certFiles)
-                    {
-                        certs.Add(X509Certificate.CreateFromCertFile(certFile));
-                    }
-                    FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-                    foreach (var cert in certs)
-                    {
-                        FormMain.LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
-                    }
                     sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
                     //sslStream.AuthenticateAsClient(VndbHost);
                     FormMain.LogToFile("SSL Stream authenticated...");

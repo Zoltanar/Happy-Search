@@ -15,6 +15,7 @@ namespace Happy_Search
         /// <summary>
         /// Send query through API Connection.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="query">Command to be sent</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
@@ -22,10 +23,9 @@ namespace Happy_Search
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="ignoreDateLimit">Ignore 10 Year VN Limit (if enabled)?</param>
         /// <returns>Returns whether it was successful.</returns>
-        internal async Task<bool> TryQuery(string query, string errorMessage, Label replyLabel,
+        internal async Task<bool> TryQuery(string featureName, string query, string errorMessage, Label replyLabel,
             bool additionalMessage = false, bool refreshList = false, bool ignoreDateLimit = false)
         {
-            //TODO Display function name on APIStatus panel
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 WriteError(replyLabel, "API Connection isn't ready.", true);
@@ -33,7 +33,7 @@ namespace Happy_Search
             }
             //change status to busy until it is solved, if error is returned then status is changed to throttled or ready if the error isn't throttling error
             //if response type is unknown then status is changed to error because it's probably a connection loss and will require reconnecting.
-            ChangeAPIStatus(VndbConnection.APIStatus.Busy);
+            ChangeAPIStatus(VndbConnection.APIStatus.Busy, featureName);
             if (Settings.Default.Limit10Years && !ignoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
             {
                 query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
@@ -45,7 +45,7 @@ namespace Happy_Search
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type == ResponseType.Unknown)
             {
-                ChangeAPIStatus(VndbConnection.APIStatus.Error);
+                ChangeAPIStatus(VndbConnection.APIStatus.Error, featureName);
                 return false;
             }
             while (Conn.LastResponse.Type == ResponseType.Error)
@@ -53,7 +53,7 @@ namespace Happy_Search
                 if (!Conn.LastResponse.Error.ID.Equals("throttled"))
                 {
                     WriteError(replyLabel, errorMessage);
-                    ChangeAPIStatus(Conn.Status);
+                    ChangeAPIStatus(Conn.Status, featureName);
                     return false;
                 }
                 //var waitS = Conn.LastResponse.Error.Minwait * 30;
@@ -62,7 +62,7 @@ namespace Happy_Search
                 string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped}...";
                 var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 WriteWarning(replyLabel, fullThrottleMessage);
-                ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
+                ChangeAPIStatus(VndbConnection.APIStatus.Throttled, featureName);
                 var waitMS = minWait * 1000;
                 var wait = Convert.ToInt32(waitMS);
                 LogToFile($"{DateTime.UtcNow} - {fullThrottleMessage}");
@@ -77,25 +77,26 @@ namespace Happy_Search
                 serverQ.Text += query + Environment.NewLine;
                 serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             }
-            ChangeAPIStatus(VndbConnection.APIStatus.Ready);
+            ChangeAPIStatus(VndbConnection.APIStatus.Ready, featureName);
             return true;
         }
 
         /// <summary>
         /// Get character data about multiple visual novels.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of VNs</param>
         /// <param name="replyLabel">Where reply will be shown</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        internal async Task GetCharactersForMultipleVN(int[] vnIDs, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task GetCharactersForMultipleVN(string featureName, int[] vnIDs, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             ReloadLists();
             if (!vnIDs.Any()) return;
             int[] currentArray = vnIDs.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+            var queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
             if (!queryResult) return;
             var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
             foreach (var character in charRoot.Items)
@@ -110,7 +111,7 @@ namespace Happy_Search
             {
                 pageNo++;
                 charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+                queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
                 foreach (var character in charRoot.Items)
@@ -127,7 +128,7 @@ namespace Happy_Search
                 currentArray = vnIDs.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+                queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
                 foreach (var character in charRoot.Items)
@@ -142,7 +143,7 @@ namespace Happy_Search
                 {
                     pageNo++;
                     charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                    queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+                    queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                     if (!queryResult) return;
                     charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
                     foreach (var character in charRoot.Items)
@@ -167,7 +168,7 @@ namespace Happy_Search
         {
             ReloadLists();
             string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
-            var result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
+            var result = await TryQuery("Update Single VN", singleVNQuery, Resources.usvn_query_error, updateLink);
             if (!result) return null;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0)
@@ -180,8 +181,8 @@ namespace Happy_Search
             }
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem);
-            var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
-            await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
+            var relProducer = await GetDeveloper("Update Single VN", vnid, Resources.usvn_query_error, updateLink);
+            await GetProducer("Update Single VN", relProducer, Resources.usvn_query_error, updateLink);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer);
             var vn = DBConn.GetSingleVN(vnid, UserID);
@@ -208,7 +209,7 @@ namespace Happy_Search
             }
             string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
             var result =
-                await TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
+                await TryQuery("Get Single VN", singleVNQuery, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0)
@@ -221,9 +222,9 @@ namespace Happy_Search
             }
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem);
-            var relProducer = await GetDeveloper(vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            await GetProducer(relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            await GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
+            var relProducer = await GetDeveloper("Get Single VN", vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
+            await GetProducer("Get Single VN", relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
+            await GetCharactersForMultipleVN("Get Single VN", new[] { vnid }, replyLabel);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer);
             DBConn.Close();
@@ -233,11 +234,12 @@ namespace Happy_Search
         /// <summary>
         /// Get data about multiple visual novels.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of visual novel IDs</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="updateAll">Should VNs be updated even if they;re already in local database?</param>
-        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
+        internal async Task GetMultipleVN(string featureName, IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
         {
             ReloadLists();
             var vnsToGet = new List<int>();
@@ -256,7 +258,7 @@ namespace Happy_Search
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+            var queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
@@ -271,21 +273,21 @@ namespace Happy_Search
             foreach (var vnItem in vnRoot.Items)
             {
                 SaveImage(vnItem);
-                var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                var relProducer = await GetDeveloper(featureName, vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                await GetProducer(featureName, relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 _vnsAdded++;
                 DBConn.Open();
                 DBConn.UpsertSingleVN(vnItem, relProducer);
                 DBConn.Close();
             }
-            await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
+            await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, refreshList);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
@@ -300,14 +302,14 @@ namespace Happy_Search
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
-                    var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                    await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    var relProducer = await GetDeveloper(featureName, vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    await GetProducer(featureName, relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                     _vnsAdded++;
                     DBConn.Open();
                     DBConn.UpsertSingleVN(vnItem, relProducer);
                     DBConn.Close();
                 }
-                await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
+                await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, refreshList);
                 done += APIMaxResults;
             }
         }
@@ -315,8 +317,9 @@ namespace Happy_Search
         /// <summary>
         /// Update titles to include all fields in latest version of Happy Search.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task GetOldVNStats(IEnumerable<int> vnIDs)
+        internal async Task GetOldVNStats(string featureName, IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
             ReloadLists();
@@ -326,7 +329,7 @@ namespace Happy_Search
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+            var queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
@@ -351,7 +354,7 @@ namespace Happy_Search
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+                queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
@@ -377,8 +380,9 @@ namespace Happy_Search
         /// <summary>
         /// Update tags of titles that haven't been updated in over 7 days.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task UpdateTitleData(IEnumerable<int> vnIDs)
+        internal async Task UpdateTitleData(string featureName, IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
             ReloadLists();
@@ -388,7 +392,7 @@ namespace Happy_Search
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+            var queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
@@ -407,14 +411,14 @@ namespace Happy_Search
                 _vnsAdded++;
             }
             DBConn.Close();
-            await GetCharactersForMultipleVN(currentArray, replyLabel, true, true);
+            await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, true);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+                queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
@@ -433,7 +437,7 @@ namespace Happy_Search
                     _vnsAdded++;
                 }
                 DBConn.Close();
-                await GetCharactersForMultipleVN(currentArray, replyLabel, true, true);
+                await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, true);
                 done += APIMaxResults;
             }
         }
@@ -441,17 +445,18 @@ namespace Happy_Search
         /// <summary>
         /// Get Developer for VN by VNID.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnid">ID of VN</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <returns></returns>
-        internal async Task<int> GetDeveloper(int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task<int> GetDeveloper(string featureName, int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             string developerQuery = $"get release basic,producers (vn =\"{vnid}\") {{{MaxResultsString}}}";
             var releaseResult =
-                await TryQuery(developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
+                await TryQuery(featureName, developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
             if (!releaseResult) return -1;
             var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> relItem = relInfo.Items;
@@ -468,19 +473,20 @@ namespace Happy_Search
         /// <summary>
         /// Get Producer from Producer ID.
         /// </summary>
+        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="producerID">ID of Producer</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <returns></returns>
-        internal async Task GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task GetProducer(string featureName, int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
             if (producerID == -1 || producerIDList.Contains(producerID)) return;
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
-                await TryQuery(producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
+                await TryQuery(featureName, producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
             if (!producerResult) return;
             var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
             List<ProducerItem> producers = root.Items;
@@ -495,7 +501,8 @@ namespace Happy_Search
         /// Change text and color of API Status label based on status.
         /// </summary>
         /// <param name="apiStatus">Status of API Connection</param>
-        internal void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
+        /// <param name="featureName"></param>
+        internal void ChangeAPIStatus(VndbConnection.APIStatus apiStatus, string featureName)
         {
             switch (apiStatus)
             {
@@ -505,7 +512,7 @@ namespace Happy_Search
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
-                    statusLabel.Text = @"Busy";
+                    statusLabel.Text = $@"Busy ({featureName})";
                     statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
@@ -548,7 +555,7 @@ namespace Happy_Search
                     queryString = statusInt == -1
                         ? $"set vnlist {vn.VNID}"
                         : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
-                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
+                    result = await TryQuery("Change VN Status", queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
                     if (hasWLStatus || hasVote)
@@ -561,7 +568,7 @@ namespace Happy_Search
                     queryString = statusInt == -1
                         ? $"set wishlist {vn.VNID}"
                         : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
-                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
+                    result = await TryQuery("Change VN Status", queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
                     if (hasULStatus || hasVote)
@@ -574,7 +581,7 @@ namespace Happy_Search
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
                         : $"set votelist {vn.VNID} {{\"vote\":{statusInt * 10}}}";
-                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
+                    result = await TryQuery("Change VN Status", queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.Open();
                     if (hasULStatus || hasWLStatus)
@@ -600,7 +607,7 @@ namespace Happy_Search
                 case ResponseType.Ok:
                     loginReply.ForeColor = Color.LightGreen;
                     loginReply.Text = UserID > 0 ? $"Connected with ID {UserID}." : "Connected without ID.";
-                    ChangeAPIStatus(Conn.Status);
+                    ChangeAPIStatus(Conn.Status, "Login");
                     return;
                 case ResponseType.Error:
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))
@@ -619,7 +626,7 @@ namespace Happy_Search
                     break;
             }
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status);
+            ChangeAPIStatus(Conn.Status, "Login");
         }
 
         /// <summary>
@@ -632,7 +639,7 @@ namespace Happy_Search
             switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
-                    ChangeAPIStatus(Conn.Status);
+                    ChangeAPIStatus(Conn.Status, "Login with credentials");
                     loginReply.ForeColor = Color.LightGreen;
                     loginReply.Text = $@"Logged in as {credentials.Key}.";
                     return;
@@ -659,7 +666,7 @@ namespace Happy_Search
                     break;
             }
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status);
+            ChangeAPIStatus(Conn.Status, "Login with credentials");
         }
 
     }

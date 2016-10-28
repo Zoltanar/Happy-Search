@@ -148,7 +148,7 @@ namespace Happy_Search
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
             //relations, anime and screenshots are only fetched here but are saved to database/disk
-            var result = await LoadFromAPI(vnItem);
+            var result = await LoadFromAPI("Load Single VN Data", vnItem);
             switch (result.Status)
             {
                 case FetchStatus.Error:
@@ -179,18 +179,18 @@ namespace Happy_Search
         }
 
 
-        private async Task<APILoadStruct> LoadFromAPI(ListedVN vnItem)
+        private async Task<APILoadStruct> LoadFromAPI(string featureName, ListedVN vnItem)
         {
             var response = new APILoadStruct();
-            var relationsResponse = await GetVNRelations(vnItem);
+            var relationsResponse = await GetVNRelations(featureName, vnItem);
             response.Status = relationsResponse.Item1;
             if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
             response.Relations = relationsResponse.Item2;
-            var animeResponse = await GetVNAnime(vnItem);
+            var animeResponse = await GetVNAnime(featureName, vnItem);
             response.Status = animeResponse.Item1;
             if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
             response.Anime = animeResponse.Item2;
-            var screenshotsResponse = await GetVNScreenshots(vnItem);
+            var screenshotsResponse = await GetVNScreenshots(featureName, vnItem);
             response.Status = screenshotsResponse.Item1;
             if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
             response.Screens = screenshotsResponse.Item2;
@@ -235,7 +235,7 @@ namespace Happy_Search
             vnTraitsCB.SelectedIndex = 0;
         }
 
-        private async Task<Tuple<FetchStatus, RelationsItem[]>> GetVNRelations(ListedVN vnItem)
+        private async Task<Tuple<FetchStatus, RelationsItem[]>> GetVNRelations(string featureName, ListedVN vnItem)
         {
             //relations were fetched before but nothing was found
             if (vnItem.Relations.Equals("Empty"))
@@ -253,7 +253,7 @@ namespace Happy_Search
             {
                 return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnUpdateLink);
+            await _parentForm.TryQuery(featureName, $"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
@@ -266,7 +266,7 @@ namespace Happy_Search
             return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, relations);
         }
 
-        private async Task<Tuple<FetchStatus, AnimeItem[]>> GetVNAnime(ListedVN vnItem)
+        private async Task<Tuple<FetchStatus, AnimeItem[]>> GetVNAnime(string featureName, ListedVN vnItem)
         {
             //anime was fetched before but nothing was found
             if (vnItem.Anime.Equals("Empty"))
@@ -284,7 +284,7 @@ namespace Happy_Search
             {
                 return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
+            await _parentForm.TryQuery(featureName, $"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
@@ -297,7 +297,7 @@ namespace Happy_Search
             return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, animeItems);
         }
 
-        private async Task<Tuple<FetchStatus, ScreenItem[]>> GetVNScreenshots(ListedVN vnItem)
+        private async Task<Tuple<FetchStatus, ScreenItem[]>> GetVNScreenshots(string featureName, ListedVN vnItem)
         {
             //screenshots were fetched before but nothing was found
             if (vnItem.Screens.Equals("Empty")) return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, null);
@@ -313,7 +313,7 @@ namespace Happy_Search
             {
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnUpdateLink);
+            await _parentForm.TryQuery(featureName, $"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {

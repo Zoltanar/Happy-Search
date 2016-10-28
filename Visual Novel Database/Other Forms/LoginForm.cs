@@ -54,7 +54,7 @@ you will also need to enter your Username and Password";
                 _parentForm.Conn.Open();
                 if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
                 {
-                    _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+                    _parentForm.ChangeAPIStatus(_parentForm.Conn.Status, "Login");
                     DialogResult = DialogResult.OK;
                     return;
                 }
@@ -70,6 +70,9 @@ you will also need to enter your Username and Password";
             DialogResult = DialogResult.OK;
         }
 
+        /// <summary>
+        /// Login with credentials (username and password).
+        /// </summary>
         private void loginButton_Click(object sender, EventArgs e)
         {
             int userID;
@@ -100,7 +103,7 @@ you will also need to enter your Username and Password";
             _parentForm.Conn.Open();
             if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
             {
-                _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+                _parentForm.ChangeAPIStatus(_parentForm.Conn.Status,"Login with Credentials");
                 DialogResult = DialogResult.OK;
                 return;
             }
