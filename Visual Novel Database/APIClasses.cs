@@ -522,5 +522,10 @@ namespace Happy_Search
         }
     }
     
+    public class CustomItemNotes
+    {
+        public string Notes { get; set; }
+        public List<string> Groups { get; set; }
+    }
 
 }

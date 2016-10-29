@@ -7,12 +7,12 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+
+namespace Happy_Search.Other_Forms
+{
 #pragma warning disable 1591
 // ReSharper disable All
 
-namespace SplashScreen
-{
-    // The SplashScreen class definition.  AKO Form
     public partial class SplashScreen : Form
     {
         /// <summary>
@@ -265,8 +265,8 @@ namespace SplashScreen
                     }
                     var iSecondsLeft = 1 +
                                        (int)
-                                           (TIMER_INTERVAL*
-                                            ((1.0 - m_dblLastCompletionFraction)/m_dblPBIncrementPerTimerInterval))/1000;
+                                       (TIMER_INTERVAL*
+                                        ((1.0 - m_dblLastCompletionFraction)/m_dblPBIncrementPerTimerInterval))/1000;
                     m_sTimeRemaining = iSecondsLeft == 1
                         ? "1 second remaining"
                         : string.Format("{0} seconds remaining", iSecondsLeft);
@@ -284,6 +284,8 @@ namespace SplashScreen
 
         #endregion Event Handlers
     }
+
+// The SplashScreen class definition.  AKO Form
 
     #region Auxiliary Classes 
 

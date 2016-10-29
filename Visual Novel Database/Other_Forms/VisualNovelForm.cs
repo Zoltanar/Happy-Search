@@ -10,8 +10,7 @@ using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
 
-
-namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
     /// <summary>
     /// Form for showing Visual Novel Information

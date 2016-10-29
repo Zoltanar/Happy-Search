@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
 
-namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
     /// <summary>
     /// Form for User to log into VNDB.org

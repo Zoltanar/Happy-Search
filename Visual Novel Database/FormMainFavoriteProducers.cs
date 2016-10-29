@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
+using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
 
 namespace Happy_Search

@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
     /// <summary>
     /// Form for showing a HTML document.

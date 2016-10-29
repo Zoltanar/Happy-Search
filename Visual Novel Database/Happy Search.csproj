@@ -153,11 +153,17 @@
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Other Forms\HtmlForm.cs">
+    <Compile Include="Other_Forms\HtmlForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Other Forms\HtmlForm.Designer.cs">
+    <Compile Include="Other_Forms\HtmlForm.Designer.cs">
       <DependentUpon>HtmlForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Other_Forms\InputDialogBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Other_Forms\InputDialogBox.Designer.cs">
+      <DependentUpon>InputDialogBox.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -166,10 +172,10 @@
     </Compile>
     <Compile Include="VndbConnection.cs" />
     <Compile Include="DBHelper.cs" />
-    <Compile Include="Other Forms\LoginForm.cs">
+    <Compile Include="Other_Forms\LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Other Forms\LoginForm.Designer.cs">
+    <Compile Include="Other_Forms\LoginForm.Designer.cs">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ObjectListItems.cs" />
@@ -179,38 +185,41 @@
     <Compile Include="FormMain.Designer.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="Other Forms\ProducerSearchForm.cs">
+    <Compile Include="Other_Forms\ProducerSearchForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Other Forms\ProducerSearchForm.Designer.cs">
+    <Compile Include="Other_Forms\ProducerSearchForm.Designer.cs">
       <DependentUpon>ProducerSearchForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Other Forms\SplashScreen.cs">
+    <Compile Include="Other_Forms\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Other Forms\SplashScreen.Designer.cs">
+    <Compile Include="Other_Forms\SplashScreen.Designer.cs">
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </Compile>
     <Compile Include="XmlHelper.cs" />
-    <Compile Include="Other Forms\VisualNovelForm.cs">
+    <Compile Include="Other_Forms\VisualNovelForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Other Forms\VisualNovelForm.Designer.cs">
+    <Compile Include="Other_Forms\VisualNovelForm.Designer.cs">
       <DependentUpon>VisualNovelForm.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Other Forms\HtmlForm.resx">
+    <EmbeddedResource Include="Other_Forms\HtmlForm.resx">
       <DependentUpon>HtmlForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Other Forms\LoginForm.resx">
+    <EmbeddedResource Include="Other_Forms\InputDialogBox.resx">
+      <DependentUpon>InputDialogBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Other_Forms\LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Other Forms\ProducerSearchForm.resx">
+    <EmbeddedResource Include="Other_Forms\ProducerSearchForm.resx">
       <DependentUpon>ProducerSearchForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -218,10 +227,10 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="Other Forms\SplashScreen.resx">
+    <EmbeddedResource Include="Other_Forms\SplashScreen.resx">
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Other Forms\VisualNovelForm.resx">
+    <EmbeddedResource Include="Other_Forms\VisualNovelForm.resx">
       <DependentUpon>VisualNovelForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config">

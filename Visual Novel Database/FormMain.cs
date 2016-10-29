@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
@@ -106,7 +107,7 @@ namespace Happy_Search
         public FormMain()
         {
             InitializeComponent();
-            SplashScreen.SplashScreen.SetStatus("Initializing Controls...");
+            SplashScreen.SetStatus("Initializing Controls...");
             {
                 DontTriggerEvent = true;
                 ulStatusDropDown.SelectedIndex = 0;
@@ -154,7 +155,7 @@ https://github.com/FredTheBarber/VndbClient";
                 LogToFile($"Project at {ProjectURL}");
                 LogToFile($"Start Time = {DateTime.UtcNow}");
             }
-            SplashScreen.SplashScreen.SetStatus("Loading User Settings...");
+            SplashScreen.SetStatus("Loading User Settings...");
             {
                 UserID = Settings.Default.UserID;
                 tagTypeC.Checked = Settings.Default.TagTypeC;
@@ -167,7 +168,7 @@ https://github.com/FredTheBarber/VndbClient";
                 autoUpdateURTBox.Checked = Settings.Default.AutoUpdateURT;
                 yearLimitBox.Checked = Settings.Default.Limit10Years;
             }
-            SplashScreen.SplashScreen.SetStatus("Loading Tag and Trait files...");
+            SplashScreen.SetStatus("Loading Tag and Trait files...");
             {
                 LogToFile(
                     $"Dumpfiles Update = {Settings.Default.DumpfilesUpdate}, days since = {DaysSince(Settings.Default.DumpfilesUpdate)}");
@@ -192,11 +193,11 @@ https://github.com/FredTheBarber/VndbClient";
                     traitRootsDropdown.Items.Add(rootName);
                 }
             }
-            SplashScreen.SplashScreen.SetStatus("Connecting to SQLite Database...");
+            SplashScreen.SetStatus("Connecting to SQLite Database...");
             {
                 DBConn = new DbHelper();
             }
-            SplashScreen.SplashScreen.SetStatus("Loading Data from Database...");
+            SplashScreen.SetStatus("Loading Data from Database...");
             {
                 DBConn.Open();
                 _vnList = DBConn.GetAllTitles(UserID);
@@ -213,17 +214,17 @@ https://github.com/FredTheBarber/VndbClient";
                 producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
                 ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
             }
-            SplashScreen.SplashScreen.SetStatus("Updating User Stats...");
+            SplashScreen.SetStatus("Updating User Stats...");
             {
                 UpdateUserStats();
             }
-            SplashScreen.SplashScreen.SetStatus("Adding VNs to Object Lists...");
+            SplashScreen.SetStatus("Adding VNs to Object Lists...");
             {
                 tileOLV.SetObjects(_vnList);
                 tileOLV.Sort(tileColumnDate, SortOrder.Descending);
                 _currentListLabel = "All Titles";
             }
-            SplashScreen.SplashScreen.SetStatus("Loading Custom Filters...");
+            SplashScreen.SetStatus("Loading Custom Filters...");
             {
                 var xml = File.Exists(MainXmlFile) ? XmlHelper.FromXmlFile<MainXml>(MainXmlFile) : new MainXml();
                 _customTagFilters = xml.CustomTagFilters;
@@ -247,7 +248,7 @@ https://github.com/FredTheBarber/VndbClient";
                 LogToFile("Done waiting 1500 ms");
             }
             InitAPIConnection();
-            SplashScreen.SplashScreen.SetStatus("Loading DBStats...");
+            SplashScreen.SetStatus("Loading DBStats...");
             {
                 LogToFile(
                     $"dbstats Update = {Settings.Default.DBStatsUpdate}, days since = {DaysSince(Settings.Default.DBStatsUpdate)}");
@@ -255,7 +256,7 @@ https://github.com/FredTheBarber/VndbClient";
                     GetNewDBStats();
                 else LoadDBStats();
             }
-            SplashScreen.SplashScreen.CloseForm();
+            SplashScreen.CloseForm();
             if (!Settings.Default.AutoUpdateURT || UserID <= 0) return;
             LogToFile("Checking if URT Update is due...");
             LogToFile($"URTUpdate= {Settings.Default.URTUpdate}, days since = {DaysSince(Settings.Default.URTUpdate)}");
@@ -275,7 +276,7 @@ https://github.com/FredTheBarber/VndbClient";
 
         private void InitAPIConnection()
         {
-            SplashScreen.SplashScreen.SetStatus("Logging into VNDB API...");
+            SplashScreen.SetStatus("Logging into VNDB API...");
             {
                 Conn.Open();
                 if (Conn.Status == VndbConnection.APIStatus.Error)
@@ -1196,7 +1197,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 if (!File.Exists(TagsJsonGz))
                 {
-                    SplashScreen.SplashScreen.SetStatus("Downloading new Tagdump file...");
+                    SplashScreen.SetStatus("Downloading new Tagdump file...");
                     tries++;
                     try
                     {
@@ -1226,7 +1227,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 if (!File.Exists(TraitsJsonGz))
                 {
-                    SplashScreen.SplashScreen.SetStatus("Downloading new Traitdump file...");
+                    SplashScreen.SetStatus("Downloading new Traitdump file...");
                     tries++;
                     try
                     {
@@ -1504,5 +1505,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
+
     }
 }

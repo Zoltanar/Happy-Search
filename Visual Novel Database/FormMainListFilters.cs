@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Xml.Serialization;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
+using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
 
 namespace Happy_Search
@@ -558,7 +559,17 @@ namespace Happy_Search
             }
             else
                 ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
-
+            if (!vn.ULStatus.Equals(""))
+            {
+                addChangeVNNoteToolStripMenuItem.Enabled = true;
+                addChangeVNGroupsToolStripMenuItem.Enabled = true;
+            }
+            var producers = olFavoriteProducers.Objects as List<ListedProducer>;
+            if (producers?.Find(x => x.Name == vn.Producer) != null)
+            {
+                addProducerToFavoritesToolStripMenuItem.Enabled = false;
+                addProducerToFavoritesToolStripMenuItem.ToolTipText = @"Already in list.";
+            }
             return ContextMenuVN;
         }
 
@@ -626,12 +637,6 @@ namespace Happy_Search
         {
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
-            var producers = olFavoriteProducers.Objects as List<ListedProducer>;
-            if (producers?.Find(x => x.Name == vn.Producer) != null)
-            {
-                WriteText(replyText, "Already in list.");
-                return;
-            }
             ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
             double userAverageVote = -1;
             double userDropRate = -1;
@@ -658,7 +663,13 @@ namespace Happy_Search
             LoadFavoriteProducerList();
             WriteText(replyText, $"{vn.Producer} added to list.");
         }
+        
+        private void RightClickAddNote(object sender, EventArgs e)
+        {
+            var vn = tileOLV.SelectedObject as ListedVN;
+            if (vn == null) return;
 
+        }
         /// <summary>
         /// Change view of Visual Novel ObjectListView.
         /// </summary>

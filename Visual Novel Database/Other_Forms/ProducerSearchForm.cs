@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
 
-namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
     /// <summary>
     /// Form to search and add producers to user's favorite producers list.

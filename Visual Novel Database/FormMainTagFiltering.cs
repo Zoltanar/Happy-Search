@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
 

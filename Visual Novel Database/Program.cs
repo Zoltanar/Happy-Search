@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using Happy_Search.Other_Forms;
 
 namespace Happy_Search
 {
@@ -11,7 +12,7 @@ namespace Happy_Search
         [STAThread]
         private static void Main()
         {
-            SplashScreen.SplashScreen.ShowSplashScreen();
+            SplashScreen.ShowSplashScreen();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FormMain());

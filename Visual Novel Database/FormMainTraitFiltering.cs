@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 
 namespace Happy_Search
@@ -125,12 +126,12 @@ namespace Happy_Search
         {
             //clear old labels
             var oldCount = 0;
-            var oldLabel = (CheckBox) Controls.Find(TraitLabel + 0, true).FirstOrDefault();
+            var oldLabel = (CheckBox)Controls.Find(TraitLabel + 0, true).FirstOrDefault();
             while (oldLabel != null)
             {
                 oldLabel.Dispose();
                 oldCount++;
-                oldLabel = (CheckBox) Controls.Find(TraitLabel + oldCount, true).FirstOrDefault();
+                oldLabel = (CheckBox)Controls.Find(TraitLabel + oldCount, true).FirstOrDefault();
             }
             if (clear || _activeTraitFilter.Count == 0)
             {
@@ -146,7 +147,7 @@ namespace Happy_Search
                 var traitLabel = new CheckBox
                 {
                     AutoSize = false,
-                    Location = new Point(6, 33 + count*22),
+                    Location = new Point(6, 33 + count * 22),
                     Name = TraitLabel + count,
                     Size = new Size(342, 17),
                     Text = trait.Print(),
@@ -174,7 +175,7 @@ namespace Happy_Search
         /// </summary>
         private void TraitFilterRemoved(object sender, EventArgs e)
         {
-            var checkbox = (CheckBox) sender;
+            var checkbox = (CheckBox)sender;
             if (checkbox.Checked)
             {
                 //shouldnt happen
@@ -227,7 +228,7 @@ namespace Happy_Search
             }
             _activeTraitFilter.Add(trait);
             DisplayFilterTraits();
-            var s = (Control) sender;
+            var s = (Control)sender;
             s.Text = "";
             WriteText(traitReply, $"Filtered by {trait.Print()}");
         }

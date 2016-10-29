@@ -1,4 +1,4 @@
-﻿namespace Happy_Search
+﻿namespace Happy_Search.Other_Forms
 {
     partial class VisualNovelForm
     {

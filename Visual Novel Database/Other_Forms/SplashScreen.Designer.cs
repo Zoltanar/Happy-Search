@@ -1,35 +1,35 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 
-namespace SplashScreen
+namespace Happy_Search.Other_Forms
 {
-	partial class SplashScreen : Form
-	{
-		/// <summary>
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.IContainer components = null;
+    partial class SplashScreen : Form
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-		/// <summary>
-		/// Required method for Designer support - do not modify
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
             this.components = new System.ComponentModel.Container();
             this.lblStatus = new System.Windows.Forms.Label();
             this.pnlStatus = new System.Windows.Forms.Panel();
@@ -100,14 +100,14 @@ namespace SplashScreen
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
-		}
-		#endregion
+        }
+        #endregion
 
 
-		private System.Windows.Forms.Label lblStatus;
-		private System.Windows.Forms.Label lblTimeRemaining;
-		private System.Windows.Forms.Timer UpdateTimer;
-		private System.Windows.Forms.Panel pnlStatus;
+        private System.Windows.Forms.Label lblStatus;
+        private System.Windows.Forms.Label lblTimeRemaining;
+        private System.Windows.Forms.Timer UpdateTimer;
+        private System.Windows.Forms.Panel pnlStatus;
         private PictureBox pictureBox1;
     }
 }

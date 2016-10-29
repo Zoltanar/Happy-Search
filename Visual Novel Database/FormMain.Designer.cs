@@ -231,6 +231,8 @@ namespace Happy_Search
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.showProducerTitlesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -2191,9 +2193,11 @@ namespace Happy_Search
             this.voteToolStripMenuItem,
             this.toolStripSeparator1,
             this.showProducerTitlesToolStripMenuItem,
-            this.addProducerToFavoritesToolStripMenuItem});
+            this.addProducerToFavoritesToolStripMenuItem,
+            this.addChangeVNNoteToolStripMenuItem,
+            this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 120);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
             // 
             // userlistToolStripMenuItem
             // 
@@ -2391,6 +2395,23 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.addProducerToFavoritesToolStripMenuItem.Text = "Add Producer To Favorites";
             this.addProducerToFavoritesToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddProducer);
+            // 
+            // addChangeVNNoteToolStripMenuItem
+            // 
+            this.addChangeVNNoteToolStripMenuItem.Enabled = false;
+            this.addChangeVNNoteToolStripMenuItem.Name = "addChangeVNNoteToolStripMenuItem";
+            this.addChangeVNNoteToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.addChangeVNNoteToolStripMenuItem.Text = "Add/Change VN Note";
+            this.addChangeVNNoteToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
+            this.addChangeVNNoteToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddNote);
+            // 
+            // addChangeVNGroupsToolStripMenuItem
+            // 
+            this.addChangeVNGroupsToolStripMenuItem.Enabled = false;
+            this.addChangeVNGroupsToolStripMenuItem.Name = "addChangeVNGroupsToolStripMenuItem";
+            this.addChangeVNGroupsToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.addChangeVNGroupsToolStripMenuItem.Text = "Add/Change VN Groups";
+            this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             // 
             // FormMain
             // 
@@ -2624,6 +2645,8 @@ namespace Happy_Search
         private Button deleteCustomTraitFilterButton;
         private OLVColumn ol2GeneralRating;
         private ComboBox otherMethodsCB;
+        private ToolStripMenuItem addChangeVNNoteToolStripMenuItem;
+        private ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
     }
 }
 

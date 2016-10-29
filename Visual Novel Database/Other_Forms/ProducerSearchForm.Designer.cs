@@ -1,4 +1,4 @@
-﻿namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
     partial class ProducerSearchForm
     {
@@ -49,7 +49,7 @@
             this.olProdSearch.AllColumns.Add(this.ol3ID);
             this.olProdSearch.AllColumns.Add(this.ol3Finished);
             this.olProdSearch.AllColumns.Add(this.ol3URT);
-            this.olProdSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.olProdSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.olProdSearch.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.ol3Name,
