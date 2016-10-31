@@ -213,6 +213,9 @@ https://github.com/FredTheBarber/VndbClient";
                 var producerFilterSource = new AutoCompleteStringCollection();
                 producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
                 ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
+                var groupFilterSource = new AutoCompleteStringCollection();
+                groupFilterSource.AddRange(_vnList.SelectMany(vn => vn.GetGroups()).ToArray());
+                groupListBox.AutoCompleteCustomSource = groupFilterSource;
             }
             SplashScreen.SetStatus("Updating User Stats...");
             {

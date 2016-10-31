@@ -5,7 +5,6 @@ using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using static Happy_Search.FormMain;

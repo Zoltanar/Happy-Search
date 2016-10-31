@@ -233,6 +233,8 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.groupListBox = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -1074,6 +1076,8 @@ namespace Happy_Search
             // 
             this.vnTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.vnTab.Controls.Add(this.groupListBox);
+            this.vnTab.Controls.Add(this.label16);
             this.vnTab.Controls.Add(this.tabControl2);
             this.vnTab.Controls.Add(this.panel2);
             this.vnTab.Controls.Add(this.listResultsButton);
@@ -2166,12 +2170,12 @@ namespace Happy_Search
             this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultLabel.BackColor = System.Drawing.Color.Transparent;
             this.resultLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.resultLabel.Location = new System.Drawing.Point(954, 349);
+            this.resultLabel.Location = new System.Drawing.Point(1161, 338);
             this.resultLabel.Name = "resultLabel";
-            this.resultLabel.Size = new System.Drawing.Size(448, 13);
+            this.resultLabel.Size = new System.Drawing.Size(241, 24);
             this.resultLabel.TabIndex = 43;
             this.resultLabel.Text = "(resultLabel)";
-            this.resultLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.resultLabel.TextAlign = System.Drawing.ContentAlignment.BottomRight;
             // 
             // tabControl1
             // 
@@ -2197,7 +2201,7 @@ namespace Happy_Search
             this.addChangeVNNoteToolStripMenuItem,
             this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 164);
             // 
             // userlistToolStripMenuItem
             // 
@@ -2413,6 +2417,30 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.Text = "Add/Change VN Groups";
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
+            // 
+            // groupListBox
+            // 
+            this.groupListBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.groupListBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.groupListBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupListBox.Location = new System.Drawing.Point(1022, 338);
+            this.groupListBox.Name = "groupListBox";
+            this.groupListBox.Size = new System.Drawing.Size(119, 22);
+            this.groupListBox.TabIndex = 99;
+            this.toolTip.SetToolTip(this.groupListBox, "Enter producer name here");
+            this.groupListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.List_Group);
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.BackColor = System.Drawing.Color.Transparent;
+            this.label16.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.label16.Location = new System.Drawing.Point(944, 342);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(72, 13);
+            this.label16.TabIndex = 98;
+            this.label16.Text = "List by Group:";
+            this.toolTip.SetToolTip(this.label16, "Enter group name here.");
             // 
             // FormMain
             // 
@@ -2648,6 +2676,8 @@ namespace Happy_Search
         private ComboBox otherMethodsCB;
         private ToolStripMenuItem addChangeVNNoteToolStripMenuItem;
         private ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
+        private TextBox groupListBox;
+        private Label label16;
     }
 }
 

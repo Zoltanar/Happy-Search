@@ -271,6 +271,21 @@ namespace Happy_Search
         }
 
         /// <summary>
+        /// Display VNs in user-defined group that is typed/selected in box.
+        /// </summary>
+        private void List_Group(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            if (groupListBox.Text.Equals("")) return;
+            var groupName = groupListBox.Text;
+            groupListBox.Text = "";
+            List_ClearOther();
+            _currentList = x => x.IsInGroup(groupName);
+            _currentListLabel = $"{groupName} (Group)";
+            RefreshVNList();
+        }
+
+        /// <summary>
         /// Display VNs by producer typed/selected in box.
         /// </summary>
         private void List_Producer(object sender, KeyEventArgs e)
@@ -671,6 +686,11 @@ namespace Happy_Search
         /// </summary>
         private async void RightClickAddNote(object sender, EventArgs e)
         {
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
+            {
+                WriteError(replyText, "Not Logged In", true);
+                return;
+            }
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
             CustomItemNotes itemNotes = null;
@@ -698,6 +718,11 @@ namespace Happy_Search
         /// </summary>
         private async void RightClickAddGroup(object sender, EventArgs e)
         {
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
+            {
+                WriteError(replyText, "Not Logged In", true);
+                return;
+            }
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
             CustomItemNotes itemNotes = null;
@@ -733,7 +758,7 @@ namespace Happy_Search
             }
             string serializedNotes = JsonConvert.SerializeObject(itemNotes);
             string preparedNotes = PrepareItemNotesJsonString(serializedNotes);
-            var query = $"set vnlist {vnid} {{\"notes\":\"{preparedNotes}\"}}"; ;
+            var query = $"set vnlist {vnid} {{\"notes\":\"{preparedNotes}\"}}";
             var apiResult = await TryQuery("Update Item Notes", query, "UIN Query Error", replyText);
             if (!apiResult) return;
             DBConn.Open();

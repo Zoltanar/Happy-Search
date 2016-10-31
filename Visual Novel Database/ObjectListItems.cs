@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
+using Newtonsoft.Json;
 
 namespace Happy_Search
 {
@@ -14,8 +15,8 @@ namespace Happy_Search
     /// </summary>
     public class ListedVN
     {
-        internal static string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
-        internal static string[] PriorityWL = { "High", "Medium", "Low", "Blacklist" };
+        internal static string[] StatusUL = {"Unknown", "Playing", "Finished", "Stalled", "Dropped"};
+        internal static string[] PriorityWL = {"High", "Medium", "Low", "Blacklist"};
 
         internal static string[] LengthTime =
         {
@@ -58,7 +59,7 @@ namespace Happy_Search
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
             WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
-            if (vote != -1) Vote = (double)vote / 10;
+            if (vote != -1) Vote = (double) vote/10;
             Title = title;
             KanjiTitle = kanjiTitle;
             RelDate = reldate;
@@ -95,104 +96,128 @@ namespace Happy_Search
         /// VN title
         /// </summary>
         public string Title { get; set; }
+
         /// <summary>
         /// VN kanji title
         /// </summary>
         public string KanjiTitle { get; set; }
+
         /// <summary>
         /// VN's first non-trial release date
         /// </summary>
         public string RelDate { get; set; }
+
         /// <summary>
         /// Date used for sorting rather than display string.
         /// </summary>
         public DateTime DateForSorting { get; set; }
+
         /// <summary>
         /// VN producer
         /// </summary>
         public string Producer { get; set; }
+
         /// <summary>
         /// VN length
         /// </summary>
         public string Length { get; set; }
+
         /// <summary>
         /// User's userlist status of VN
         /// </summary>
         public string ULStatus { get; set; }
+
         /// <summary>
         /// Date of ULStatus change
         /// </summary>
         public DateTime ULAdded { get; set; }
+
         /// <summary>
         /// User's note
         /// </summary>
         public string ULNote { get; set; }
+
         /// <summary>
         /// User's wishlist priority of VN
         /// </summary>
         public string WLStatus { get; set; }
+
         /// <summary>
         /// Date of WLStatus change
         /// </summary>
         public DateTime WLAdded { get; set; }
+
         /// <summary>
         /// User's Vote
         /// </summary>
         public double Vote { get; set; }
+
         /// <summary>
         /// Date of Vote change
         /// </summary>
         public DateTime VoteAdded { get; set; }
+
         /// <summary>
         /// Popularity of VN, percentage of most popular VN
         /// </summary>
         public double Popularity { get; set; }
+
         /// <summary>
         /// Bayesian rating of VN, 1-10
         /// </summary>
         public double Rating { get; set; }
+
         /// <summary>
         /// Number of votes cast on VN
         /// </summary>
         public int VoteCount { get; set; }
+
         /// <summary>
         /// VN's ID
         /// </summary>
         public int VNID { get; set; }
+
         /// <summary>
         /// VN's tags (in JSON array)
         /// </summary>
         [OLVIgnore]
         public string Tags { get; set; }
+
         /// <summary>
         /// Date of last VN update
         /// </summary>
         public int UpdatedDate { get; set; }
+
         /// <summary>
         /// URL of VN's cover image
         /// </summary>
         [OLVIgnore]
         public string ImageURL { get; set; }
+
         /// <summary>
         /// Is VN's cover NSFW?
         /// </summary>
         [OLVIgnore]
         public bool ImageNSFW { get; set; }
+
         /// <summary>
         /// VN description
         /// </summary>
         [OLVIgnore]
         public string Description { get; set; }
+
         /// <summary>
         /// JSON Array string containing List of Relation Items
         /// </summary>
         [OLVIgnore]
         public string Relations { get; set; }
+
         /// <summary>
         /// JSON Array string containing List of Screenshot Items
         /// </summary>
         [OLVIgnore]
         public string Screens { get; set; }
+
         /// <summary>
         /// JSON Array string containing List of Anime Items
         /// </summary>
@@ -210,7 +235,7 @@ namespace Happy_Search
         /// <returns>User-related status</returns>
         public string UserRelatedStatus()
         {
-            string[] parts = { "", "", "" };
+            string[] parts = {"", "", ""};
             if (!ULStatus.Equals(""))
             {
                 parts[0] = "Userlist: ";
@@ -247,7 +272,41 @@ namespace Happy_Search
             return DateForSorting > oldDate && DateForSorting <= recentDate;
         }
 
+        /// <summary>
+        /// Checks if VN is in specified user-defined group.
+        /// </summary>
+        /// <param name="groupName">User-defined name of group</param>
+        /// <returns>Whether VN is in the specified group</returns>
+        public bool IsInGroup(string groupName)
+        {
+            CustomItemNotes itemNotes;
+            try
+            {
+                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(ULNote);
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+            return itemNotes != null && itemNotes.Groups.Contains(groupName);
+        }
 
+        /// <summary>
+        /// Get list of groups that vn is in.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetGroups()
+        {
+            CustomItemNotes itemNotes = null;
+            try
+            {
+                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(ULNote);
+            }
+            catch (JsonException)
+            {
+            }
+            return itemNotes == null ? new List<string>() : itemNotes.Groups;
+        }
         /// <summary>
         /// Checks if title was released between now and a past date, the current date is included.
         /// Make sure to enter arguments in correct order.
