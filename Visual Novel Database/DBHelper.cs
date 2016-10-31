@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using static Happy_Search.FormMain;
@@ -38,6 +39,14 @@ namespace Happy_Search
         
         private const bool PrintSetMethods = false;
 
+        public void AddNoteToVN(int vnid, string note, int userID)
+        {
+            var noteString = Regex.Replace(note, "'", "''");
+            var insertString =
+                $"UPDATE userlist SET ULNote = '{noteString}' WHERE VNID = {vnid};";
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
         public void AddRelationsToVN(int vnid, RelationsItem[] relations)
         {
             var relationsString = relations.Any() ? ListToJsonArray(new List<object>(relations)) : "Empty";

@@ -521,11 +521,20 @@ namespace Happy_Search
             AllIDs = children.Union(new[] { ID }).ToArray();
         }
     }
-    
+
+    /// <summary>
+    /// Custom Json class for having notes and groups as a string in title notes.
+    /// </summary>
     public class CustomItemNotes
     {
         public string Notes { get; set; }
         public List<string> Groups { get; set; }
+
+        public CustomItemNotes(string notes, List<string> groups)
+        {
+            Notes = notes;
+            Groups = groups;
+        }
     }
 
 }

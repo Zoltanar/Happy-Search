@@ -165,6 +165,12 @@
     <Compile Include="Other_Forms\InputDialogBox.Designer.cs">
       <DependentUpon>InputDialogBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="Other_Forms\ListDialogBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Other_Forms\ListDialogBox.Designer.cs">
+      <DependentUpon>ListDialogBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -215,6 +221,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Other_Forms\InputDialogBox.resx">
       <DependentUpon>InputDialogBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Other_Forms\ListDialogBox.resx">
+      <DependentUpon>ListDialogBox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Other_Forms\LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>

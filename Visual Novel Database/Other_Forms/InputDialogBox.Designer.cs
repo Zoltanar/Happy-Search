@@ -1,6 +1,6 @@
 ﻿namespace Happy_Search.Other_Forms
 {
-    partial class InputDialogBox
+    sealed partial class InputDialogBox
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.questionLabel = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.answerBox = new System.Windows.Forms.TextBox();
             this.confirmButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -44,12 +44,13 @@
             this.questionLabel.Text = "(questionLabel)";
             this.questionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // textBox1
+            // answerBox
             // 
-            this.textBox1.Location = new System.Drawing.Point(12, 36);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(236, 20);
-            this.textBox1.TabIndex = 1;
+            this.answerBox.Location = new System.Drawing.Point(12, 36);
+            this.answerBox.Name = "answerBox";
+            this.answerBox.Size = new System.Drawing.Size(236, 20);
+            this.answerBox.TabIndex = 1;
+            this.answerBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.answerBox_KeyPress);
             // 
             // confirmButton
             // 
@@ -63,6 +64,7 @@
             this.confirmButton.TabIndex = 2;
             this.confirmButton.Text = "Confirm";
             this.confirmButton.UseVisualStyleBackColor = false;
+            this.confirmButton.Click += new System.EventHandler(this.confirmButton_Click);
             // 
             // cancelButton
             // 
@@ -76,6 +78,7 @@
             this.cancelButton.TabIndex = 3;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = false;
+            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
             // InputDialogBox
             // 
@@ -85,11 +88,11 @@
             this.ClientSize = new System.Drawing.Size(260, 107);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.confirmButton);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.answerBox);
             this.Controls.Add(this.questionLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "InputDialogBox";
-            this.Text = "(InputDialogBox)";
+            this.Text = "(windowTitle)";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -98,7 +101,7 @@
         #endregion
 
         private System.Windows.Forms.Label questionLabel;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox answerBox;
         private System.Windows.Forms.Button confirmButton;
         private System.Windows.Forms.Button cancelButton;
     }

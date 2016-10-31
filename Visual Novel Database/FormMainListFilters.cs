@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using BrightIdeasSoftware;
@@ -126,7 +128,7 @@ namespace Happy_Search
                 moreResults = vnMoreRoot.More;
             }
             var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText,$"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
+            WriteText(replyText, $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
             RefreshVNList();
         }
 
@@ -663,13 +665,91 @@ namespace Happy_Search
             LoadFavoriteProducerList();
             WriteText(replyText, $"{vn.Producer} added to list.");
         }
-        
-        private void RightClickAddNote(object sender, EventArgs e)
+
+        /// <summary>
+        /// Add note to title in user's vnlist.
+        /// </summary>
+        private async void RightClickAddNote(object sender, EventArgs e)
         {
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
+            CustomItemNotes itemNotes = null;
+            try
+            {
+                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(vn.ULNote);
+            }
+            catch (JsonException) { }
+            finally { if (itemNotes == null) itemNotes = new CustomItemNotes(vn.ULNote, new List<string>()); }
+            StringBuilder notesSb = new StringBuilder(itemNotes.Notes);
+            var result = new InputDialogBox(notesSb, "Add Note to Title", "Enter Note:").ShowDialog();
+            if (result != DialogResult.OK) return;
+            if (notesSb.ToString().Contains('\n'))
+            {
+                WriteError(replyText, "Note cannot contain newline characters.");
+                return;
+            }
+            itemNotes.Notes = notesSb.ToString();
+            await UpdateItemNotes("Added note to title", vn.VNID, itemNotes);
 
         }
+
+        /// <summary>
+        /// Add title in user's vnlist to a user-defined group.
+        /// </summary>
+        private async void RightClickAddGroup(object sender, EventArgs e)
+        {
+            var vn = tileOLV.SelectedObject as ListedVN;
+            if (vn == null) return;
+            CustomItemNotes itemNotes = null;
+            try
+            {
+                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(vn.ULNote);
+            }
+            catch (JsonException) { }
+            finally { if (itemNotes == null) itemNotes = new CustomItemNotes(vn.ULNote, new List<string>()); }
+            var result = new ListDialogBox(itemNotes.Groups, "Add Title to Groups", $"{vn.Title} is in groups:").ShowDialog();
+            if (result != DialogResult.OK) return;
+            if (itemNotes.Groups.Any(group => group.Contains('\n')))
+            {
+                WriteError(replyText, "Group name cannot contain newline characters.");
+                return;
+            }
+            await UpdateItemNotes("Added title to group(s).", vn.VNID, itemNotes);
+        }
+
+        /// <summary>
+        /// Send query to VNDB to update a VN's notes and if successful, update database.
+        /// </summary>
+        /// <param name="replyMessage">Message to be printed if query is successful</param>
+        /// <param name="vnid">ID of VN</param>
+        /// <param name="itemNotes">Object containing new data to replace old</param>
+        /// <returns></returns>
+        private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
+        {
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                WriteError(replyText, "API Connection isn't ready.");
+                return;
+            }
+            string serializedNotes = JsonConvert.SerializeObject(itemNotes);
+            string preparedNotes = PrepareItemNotesJsonString(serializedNotes);
+            var query = $"set vnlist {vnid} {{\"notes\":\"{preparedNotes}\"}}"; ;
+            var apiResult = await TryQuery("Update Item Notes", query, "UIN Query Error", replyText);
+            if (!apiResult) return;
+            DBConn.Open();
+            DBConn.AddNoteToVN(vnid, serializedNotes, UserID);
+            DBConn.Close();
+            ReloadLists();
+            RefreshVNList();
+            WriteText(replyText, replyMessage);
+        }
+
+        private static string PrepareItemNotesJsonString(string serializedObject)
+        {
+            string doubleEscapedString = JsonConvert.ToString(JsonConvert.ToString(serializedObject));
+            return doubleEscapedString.Substring(3, doubleEscapedString.Length - 3 - 3);
+        }
+
         /// <summary>
         /// Change view of Visual Novel ObjectListView.
         /// </summary>

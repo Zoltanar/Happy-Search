@@ -2412,6 +2412,7 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.addChangeVNGroupsToolStripMenuItem.Text = "Add/Change VN Groups";
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
+            this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
             // 
             // FormMain
             // 

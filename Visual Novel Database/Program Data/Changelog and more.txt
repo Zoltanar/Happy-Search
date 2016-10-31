@@ -2,6 +2,9 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: User can add titles in his vnlist to user-defined groups, feature to see these groups will be added later.
+Added: User can add/change notes to titles in his vnlist, these notes/groups are saved to vnlist on VNDB.org so only titles in vnlist can take them.
+Added: Name of feature being used is shown in API Status panel.
 Removed: Database messages from log
 Changed: update title data - days between updates based on time since title released: <6 months or by favorite producer = 7 days; 6 mon - 1 year = 14 days; 1-2 years = 28 days; 2-10 years = 56 days;10+ years = not updated;
 Added: update tags/traits is now update title data and also updates stats, does not update 10+ year old titles if limit10year option is on, unless they are by favorite producers
@@ -56,7 +59,6 @@ No Work
 save general database in the internet and : send general info changes to database in the internet, get database changes from the internet
 save settings to %localappdata%
 handle abrupt exit, terminate api connection
-allow user to set notes
 add 'exclude tag' filters ? not so sure if needed
 backup sqlite database!
 add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
@@ -66,8 +68,10 @@ indicate when tag/trait filters are on
 something weird happening with vn form on v13419 Uta no™Prince-samaô All Star After Secret
 add loading image while loading vn form
 better vn character display?
-display action in API status block
 show unreleased in unreleased vn tiles
+make log tab direct command require to click send button and clear the query box (instead of enter key)
+allow list by group
+
 
 
 
