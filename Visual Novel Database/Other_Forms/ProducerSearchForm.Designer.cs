@@ -32,13 +32,13 @@ namespace Happy_Search.Other_Forms
             this.ol3Name = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol3InList = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ol3ID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol3Finished = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ol3URT = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.prodAddButton = new System.Windows.Forms.Button();
             this.prodSearchReply = new System.Windows.Forms.Label();
             this.producerSearchLabel = new System.Windows.Forms.Label();
             this.producerSearchButton = new System.Windows.Forms.Button();
             this.producerSearchBox = new System.Windows.Forms.TextBox();
-            this.ol3Finished = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.ol3URT = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             ((System.ComponentModel.ISupportInitialize)(this.olProdSearch)).BeginInit();
             this.SuspendLayout();
             // 
@@ -49,7 +49,7 @@ namespace Happy_Search.Other_Forms
             this.olProdSearch.AllColumns.Add(this.ol3ID);
             this.olProdSearch.AllColumns.Add(this.ol3Finished);
             this.olProdSearch.AllColumns.Add(this.ol3URT);
-            this.olProdSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.olProdSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.olProdSearch.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.ol3Name,
@@ -86,6 +86,16 @@ namespace Happy_Search.Other_Forms
             this.ol3ID.AspectName = "ID";
             this.ol3ID.Text = "Producer ID";
             this.ol3ID.Width = 70;
+            // 
+            // ol3Finished
+            // 
+            this.ol3Finished.AspectName = "FinishedTitles";
+            this.ol3Finished.Text = "Finished";
+            // 
+            // ol3URT
+            // 
+            this.ol3URT.AspectName = "URTTitles";
+            this.ol3URT.Text = "URT";
             // 
             // prodAddButton
             // 
@@ -142,16 +152,6 @@ namespace Happy_Search.Other_Forms
             this.producerSearchBox.TabIndex = 10;
             this.producerSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SearchProducersEnterKey);
             // 
-            // ol3Finished
-            // 
-            this.ol3Finished.AspectName = "FinishedTitles";
-            this.ol3Finished.Text = "Finished";
-            // 
-            // ol3URT
-            // 
-            this.ol3URT.AspectName = "URTTitles";
-            this.ol3URT.Text = "URT";
-            // 
             // ProducerSearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -166,7 +166,7 @@ namespace Happy_Search.Other_Forms
             this.Controls.Add(this.olProdSearch);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "ProducerSearchForm";
-            this.Text = "ProducerSearchForm";
+            this.Text = "Producer Search - Happy Search";
             ((System.ComponentModel.ISupportInitialize)(this.olProdSearch)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

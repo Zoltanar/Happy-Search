@@ -328,14 +328,12 @@ namespace Happy_Search
         /// </summary>
         /// <param name="name">Producer Name</param>
         /// <param name="numberOfTitles">Number of Producer's titles</param>
-        /// <param name="loaded">Has producer been loaded? (Yes/No)</param>
         /// <param name="updated">Date of last update to Producer</param>
         /// <param name="id">Producer ID</param>
-        public ListedProducer(string name, int numberOfTitles, string loaded, DateTime updated, int id)
+        public ListedProducer(string name, int numberOfTitles, DateTime updated, int id)
         {
             Name = name;
             NumberOfTitles = numberOfTitles;
-            Loaded = loaded;
             Updated = DaysSince(updated);
             ID = id;
         }
@@ -345,17 +343,15 @@ namespace Happy_Search
         /// </summary>
         /// <param name="name">Producer Name</param>
         /// <param name="numberOfTitles">Number of Producer's titles</param>
-        /// <param name="loaded">Has producer been loaded? (Yes/No)</param>
         /// <param name="updated">Date of last update to Producer</param>
         /// <param name="id">Producer ID</param>
         /// <param name="userAverageVote">User's average vote on Producer titles. (Only titles with votes)</param>
         /// <param name="userDropRate">User's average drop rate on Producer titles. (Dropped / (Finished+Dropped)</param>
-        public ListedProducer(string name, int numberOfTitles, string loaded, DateTime updated, int id,
+        public ListedProducer(string name, int numberOfTitles, DateTime updated, int id,
             double userAverageVote, int userDropRate)
         {
             Name = name;
             NumberOfTitles = numberOfTitles;
-            Loaded = loaded;
             Updated = DaysSince(updated);
             ID = id;
             UserAverageVote = Math.Round(userAverageVote, 2);
@@ -370,10 +366,6 @@ namespace Happy_Search
         /// Number of Producer's titles
         /// </summary>
         public int NumberOfTitles { get; set; }
-        /// <summary>
-        /// Has producer been loaded? (Yes/No)
-        /// </summary>
-        public string Loaded { get; set; }
         /// <summary>
         /// Date of last update to Producer
         /// </summary>
@@ -443,7 +435,7 @@ namespace Happy_Search
         /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
         public static explicit operator ListedProducer(ListedSearchedProducer searchedProducer)
         {
-            return new ListedProducer(searchedProducer.Name, -1, "No", DateTime.MinValue, searchedProducer.ID);
+            return new ListedProducer(searchedProducer.Name, -1, DateTime.MinValue, searchedProducer.ID);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>

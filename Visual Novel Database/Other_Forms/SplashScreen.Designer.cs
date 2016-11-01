@@ -95,7 +95,7 @@ namespace Happy_Search.Other_Forms
             this.Name = "SplashScreen";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "SplashScreen";
+            this.Text = "Splash - Happy Search";
             this.DoubleClick += new System.EventHandler(this.SplashScreen_DoubleClick);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);

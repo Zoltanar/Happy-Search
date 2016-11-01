@@ -151,7 +151,7 @@ namespace Happy_Search.Other_Forms
                         ? (double)droppedCount / (droppedCount + finishedCount)
                         : -1;
                 }
-                addProducerList.Add(new ListedProducer(producer.Name, -1, "No", DateTime.UtcNow, producer.ID,
+                addProducerList.Add(new ListedProducer(producer.Name, -1, DateTime.UtcNow, producer.ID,
                     userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             _parentForm.DBConn.Open();

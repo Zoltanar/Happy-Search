@@ -32,6 +32,7 @@ namespace Happy_Search.Other_Forms
         {
             _parentForm = parentForm;
             InitializeComponent();
+            Text = $@"{vnItem.Title} - Happy Search";
             tagTypeC.Checked = Settings.Default.TagTypeC;
             tagTypeS.Checked = Settings.Default.TagTypeS;
             tagTypeT.Checked = Settings.Default.TagTypeT;

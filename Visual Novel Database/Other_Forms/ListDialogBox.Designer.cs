@@ -160,7 +160,7 @@
             this.Controls.Add(this.listViewLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "ListDialogBox";
-            this.Text = "(windowTitle)";
+            this.Text = "(windowTitle) - Happy Search";
             this.ResumeLayout(false);
             this.PerformLayout();
 

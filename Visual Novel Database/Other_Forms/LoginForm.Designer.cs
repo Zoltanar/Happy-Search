@@ -175,7 +175,7 @@
             this.Controls.Add(this.setUserIDButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "LoginForm";
-            this.Text = "LoginForm";
+            this.Text = "Login - Happy Search";
             this.ResumeLayout(false);
             this.PerformLayout();
 

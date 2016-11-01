@@ -669,7 +669,7 @@ namespace Happy_Search
             }
             var addProducerList = new List<ListedProducer>
             {
-                new ListedProducer(vn.Producer, producerVNs.Length, "No", DateTime.UtcNow,
+                new ListedProducer(vn.Producer, producerVNs.Length, DateTime.UtcNow,
                     _producerList.Find(x => x.Name == vn.Producer).ID,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };

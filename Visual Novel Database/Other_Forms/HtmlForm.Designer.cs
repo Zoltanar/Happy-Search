@@ -48,7 +48,7 @@
             this.Controls.Add(this.htmlBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "HtmlForm";
-            this.Text = "Help";
+            this.Text = "Help - Happy Search";
             this.ResumeLayout(false);
 
         }

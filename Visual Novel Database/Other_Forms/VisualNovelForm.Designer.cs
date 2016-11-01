@@ -428,7 +428,7 @@
             this.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "VisualNovelForm";
-            this.Text = "VisualNovelForm";
+            this.Text = "(windowTitle) - Happy Search";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CloseByEscape);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveWindowLeftclick);
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).EndInit();

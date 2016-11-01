@@ -2,7 +2,9 @@ Next Milestone == ??
 
 Changelog
 ---------
-Added: User can add titles in his vnlist to user-defined groups, feature to see these groups will be added later.
+Changed: Removed "Loaded" field of Favorite producer.
+Changed: Direct command requires to click on send button (instead of enter key)
+Added: User can add titles in his vnlist to user-defined groups, he can then list titles by group.
 Added: User can add/change notes to titles in his vnlist, these notes/groups are saved to vnlist on VNDB.org so only titles in vnlist can take them.
 Added: Name of feature being used is shown in API Status panel.
 Removed: Database messages from log
@@ -69,14 +71,6 @@ something weird happening with vn form on v13419 Uta no™Prince-samaô All Star 
 add loading image while loading vn form
 better vn character display?
 show unreleased in unreleased vn tiles
-make log tab direct command require to click send button and clear the query box (instead of enter key)
-allow list by group
-
-
-
-
-
-
 
 
 Incomplete
@@ -95,6 +89,7 @@ Quick Listing:
 	 titles with user-defined WL status
 	 titles with user-defined UL status
 	 titles by user-defined producer
+	 titles in user-defined group
 Quick Filtering:
 	User-related titles
 	unreleased

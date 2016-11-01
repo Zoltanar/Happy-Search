@@ -92,7 +92,7 @@
             this.Controls.Add(this.questionLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "InputDialogBox";
-            this.Text = "(windowTitle)";
+            this.Text = "(windowTitle) - Happy Search";
             this.ResumeLayout(false);
             this.PerformLayout();
 

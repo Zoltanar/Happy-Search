@@ -60,7 +60,7 @@ namespace Happy_Search
         #endregion
 
         //constants / definables
-        internal const string ClientName = "Happy Search By Zolty";
+        internal const string ClientName = "Happy Search";
         internal const string ClientVersion = "1.3.8";
         internal const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
@@ -140,9 +140,9 @@ namespace Happy_Search
                 tileOLV.ItemRenderer = new VNTileRenderer();
                 Directory.CreateDirectory("Stored Data");
                 File.Create(LogFile).Close();
-                aboutTextBox.Text =
-                    $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
+                aboutTextBox.Text =$@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
 VNDB API Client for filtering/organizing and finding visual novels.
+Created by Zolty, visit the project at {ProjectURL}
 
 Resources:
 ObjectListView by Phillip Piper (GPLv3)
@@ -1389,10 +1389,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
             return new KeyValuePair<string, char[]>(username, Encoding.UTF8.GetChars(vv));
         }
 
-        private async void LogQuestion(object sender, KeyPressEventArgs e) //send a command direct to server
+        private async void LogQuestion(object sender, EventArgs e) //send a command direct to server
         {
-            if (e.KeyChar != (char)Keys.Enter) return;
-            await Conn.QueryAsync(questionBox.Text);
+            if (questionBox.Text.Equals("")) return;
+            var query = questionBox.Text;
+            questionBox.Text = "";
+            await Conn.QueryAsync(query);
+            serverQ.Text += query + Environment.NewLine;
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
 
@@ -1508,6 +1511,5 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
-
     }
 }

@@ -35,7 +35,7 @@ namespace Happy_Search
                         : -1;
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 }
-                favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded,
+                favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles,
                     DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             DBConn.Open();
@@ -137,35 +137,7 @@ This may take a while...",
             _currentListLabel = "Favorite Producers (Selected)";
             RefreshVNList();
         }
-
-        /// <summary>
-        /// Fetch titles for producers whose titles haven't been fetched yet.
-        /// </summary>
-        private async void LoadUnloaded(object sender, EventArgs e)
-        {
-            if (olFavoriteProducers.Items.Count == 0)
-            {
-                WriteError(prodReply, "No Items in list.", true);
-                return;
-            }
-            ListedProducer[] producers =
-                olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Loaded.Equals("No")).ToArray();
-            if (producers.Length == 0)
-            {
-
-                WriteText(prodReply, "No producers to be loaded.");
-                return;
-            }
-            foreach (var producer in producers)
-            {
-                await GetProducerTitles("Load Unloaded FP Titles", producer, prodReply);
-            }
-            ReloadLists();
-            RefreshVNList();
-            LoadFavoriteProducerList();
-            WriteText(prodReply, $"Loaded {producers.Length} producers.");
-        }
-
+        
         /// <summary>
         /// Get new titles from Favorite Producers, only updates if last update was over 2 days ago.
         /// </summary>
@@ -181,7 +153,7 @@ This may take a while...",
             if (askBox != DialogResult.Yes) return;
             ReloadLists();
             List<ListedProducer> producers =
-                olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2).ToList();
+                olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2 || item.Updated == -1).ToList();
             if (producers.Count == 0)
             {
                 WriteWarning(prodReply, "No producers require an update.", true);
@@ -257,7 +229,7 @@ This may take a while...",
             await GetMultipleVN(featureName, producerVNList.Distinct(), replyLabel, true, refreshAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(UserID, producer.ID);
-            DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, "Yes", DateTime.UtcNow,
+            DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
                 producer.ID));
             DBConn.Close();
             LogToFile($"Finished getting titles for Producer= {producer}, {producerTitles.Count} titles.");
@@ -278,7 +250,7 @@ This may take a while...",
                 favoriteProducer.GeneralRating = vnsWithVotes.Any() ? Math.Round(vnsWithVotes.Average(), 2) : -1;
             }
             olFavoriteProducers.SetObjects(favoriteProducers);
-            olFavoriteProducers.Sort(0);
+            olFavoriteProducers.Sort(ol2Name.Index);
         }
 
         /// <summary>
@@ -309,7 +281,7 @@ This may take a while...",
                     : -1;
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
             }
-            producer = new ListedProducer(producer.Name, producer.NumberOfTitles, producer.Loaded, DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100));
+            producer = new ListedProducer(producer.Name, producer.NumberOfTitles, DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100));
             DBConn.Open();
             DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, UserID);
             DBConn.Close();
@@ -322,14 +294,16 @@ This may take a while...",
         /// <summary>
         /// Format row in Favorite Producers OLV.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void FormatRowFavoriteProducers(object sender, FormatRowEventArgs e)
         {
             var listedProducer = (ListedProducer)e.Model;
             e.Item.GetSubItem(ol2UserAverageVote.Index).Text = listedProducer.UserAverageVote > 0 ? listedProducer.UserAverageVote.ToString("0.00") : "";
             e.Item.GetSubItem(ol2UserDropRate.Index).Text = listedProducer.UserDropRate < 0 ? "" : $"{listedProducer.UserDropRate}%";
-            if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
+            if (listedProducer.Updated == -1)
+            {
+                e.Item.GetSubItem(ol2Updated.Index).Text = @"Never";
+                if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
+            }
         }
 
     }

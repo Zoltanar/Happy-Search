@@ -170,7 +170,7 @@ namespace Happy_Search
         {
             var name = Regex.Replace(producer.Name, "'", "''");
             var insertString =
-                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles, Loaded) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles}, '{producer.Loaded}');";
+                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles});";
             if (PrintSetMethods) LogToFile(insertString);
             var cmd = new SQLiteCommand(insertString, DbConn);
             cmd.ExecuteNonQuery();
@@ -474,7 +474,6 @@ namespace Happy_Search
             return new ListedProducer(
                 reader["Name"].ToString(),
                 DbInt(reader["Titles"]),
-                reader["Loaded"].ToString(),
                 DbDateTime(reader["Updated"]),
                 DbInt(reader["ProducerID"]));
         }
@@ -484,7 +483,6 @@ namespace Happy_Search
             return new ListedProducer(
                 reader["Name"].ToString(),
                 DbInt(reader["Titles"]),
-                reader["Loaded"].ToString(),
                 DbDateTime(reader["Updated"]),
                 DbInt(reader["ProducerID"]),
                 DbDouble(reader["UserAverageVote"]),
@@ -571,7 +569,6 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
 	`ProducerID`	INTEGER NOT NULL,
 	`Name`	TEXT,
 	`Titles`	INTEGER,
-	`Loaded`	TEXT,
 	`Updated`	DATE DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY(ProducerID)
 )";

@@ -22,7 +22,7 @@ namespace Happy_Search.Other_Forms
             //TODO add params for item name and plural (itemSingular = cube, itemPlural = cubes, etc)
             InitializeComponent();
             replyLabel.Text = "";
-            Text = windowTitle;
+            Text = $@"{windowTitle} - Happy Search";
             listViewLabel.Text = listLabel;
             _stringList = stringList;
             var items = _stringList.Select(stringItem => new ListViewItem(stringItem)).ToArray();

@@ -21,7 +21,7 @@ namespace Happy_Search.Other_Forms
         {
             InitializeComponent();
             _inputText = inputText;
-            Text = windowTitle;
+            Text = $@"{windowTitle} - Happy Search";
             questionLabel.Text = question;
             answerBox.Text = _inputText.ToString();
         }

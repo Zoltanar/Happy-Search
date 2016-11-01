@@ -216,7 +216,7 @@ namespace Happy_Search
         /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
         public static explicit operator ListedProducer(ProducerItem searchedProducer)
         {
-            return new ListedProducer(searchedProducer.Name, -1, "No", DateTime.MinValue, searchedProducer.ID);
+            return new ListedProducer(searchedProducer.Name, -1, DateTime.MinValue, searchedProducer.ID);
         }
 
 
