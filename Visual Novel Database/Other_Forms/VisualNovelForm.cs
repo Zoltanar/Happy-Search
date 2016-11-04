@@ -22,24 +22,32 @@ namespace Happy_Search.Other_Forms
         private readonly FormMain _parentForm;
         private const int ScreenshotPadding = 10;
         private ListedVN _displayedVN;
-
+        private readonly bool _loadFromDb;
         /// <summary>
         /// Load VN form with specified Visual Novel.
         /// </summary>
         /// <param name="vnItem">Visual Novel to be shown</param>
         /// <param name="parentForm">Parent form</param>
-        public VisualNovelForm(ListedVN vnItem, FormMain parentForm)
+        /// <param name="loadFromDb">Should anime/relations/screenshots also be loaded?</param>
+        public VisualNovelForm(ListedVN vnItem, FormMain parentForm, bool loadFromDb = true)
         {
             _parentForm = parentForm;
+            _loadFromDb = loadFromDb;
             InitializeComponent();
-            Text = $@"{vnItem.Title} - Happy Search";
+            Text = $@"{vnItem.Title} - {FormMain.ClientName}";
             tagTypeC.Checked = Settings.Default.TagTypeC;
             tagTypeS.Checked = Settings.Default.TagTypeS;
             tagTypeT.Checked = Settings.Default.TagTypeT;
             tagTypeC.CheckedChanged += DisplayTags;
             tagTypeS.CheckedChanged += DisplayTags;
             tagTypeT.CheckedChanged += DisplayTags;
-            SetData(vnItem);
+            _displayedVN = vnItem;
+            Load += LoadForm;
+        }
+
+        private async void LoadForm(object sender, EventArgs eventArgs)
+        {
+            await SetData(_displayedVN);
         }
 
         internal void DisplayTags(object sender, EventArgs e)
@@ -107,25 +115,43 @@ namespace Happy_Search.Other_Forms
             set { base.Text = value; }
         }
 
-        private async void SetNewData(int vnid)
-        {
-            await _parentForm.GetSingleVN(vnid, vnUpdateLink, true);
+        /// <summary>
+        /// Replaces the displayed vn with a new vn (or updates it)
+        /// </summary>
+        /// <param name="vnid">ID of vn to be displayed</param>
+        private async Task SetNewData(int vnid)
+            {
+            await GetSingleVN(vnid, vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 SetDeletedData();
                 return;
             }
-            _parentForm.DBConn.Open();
-            var vn = _parentForm.DBConn.GetSingleVN(vnid, _parentForm.UserID);
-            _parentForm.DBConn.Close();
+            ListedVN vn = null;
+            await Task.Run(() =>
+            {
+                _parentForm.DBConn.Open();
+                vn = _parentForm.DBConn.GetSingleVN(vnid, _parentForm.UserID);
+                _parentForm.DBConn.Close();
+            });
             SetDeletedData(); //clear before setting new data
-            SetData(vn);
+            await SetData(vn);
         }
 
-        private async void SetData(ListedVN vnItem)
+        /// <summary>
+        /// Display data on specified VN.
+        /// </summary>
+        /// <param name="vnItem">VN to be displayed</param>
+        /// <param name="update">Whether to refetch anime, relations and screenshots</param>
+        private async Task SetData(ListedVN vnItem, bool update = false)
         {
-            Text = $@"{FormMain.ClientName} - {vnItem.Title}";
+            if (vnItem == null || vnItem.VNID <= 0)
+            {
+                SetDeletedData();
+                return;
+            }
+            Text = $@"{vnItem.Title} - {FormMain.ClientName}";
             //prepare data
             _displayedVN = vnItem;
             var ext = Path.GetExtension(vnItem.ImageURL);
@@ -148,49 +174,46 @@ namespace Happy_Search.Other_Forms
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
             //relations, anime and screenshots are only fetched here but are saved to database/disk
-            var result = await LoadFromAPI("Load Single VN Data", vnItem);
-            switch (result.Status)
+            var loadResult = await LoadFromAPI(vnItem, update);
+            switch (loadResult.Status)
             {
                 case FetchStatus.Error:
-
                     _parentForm.DBConn.Open();
                     _parentForm.DBConn.RemoveVisualNovel(vnItem.VNID);
                     _parentForm.DBConn.Close();
                     SetDeletedData();
-                    return;
+                    break;
                 case FetchStatus.Throttled:
                     vnRelationsCB.DataSource = new List<string> { "Relations cannot be fetched until API connection is ready." };
                     vnAnimeCB.DataSource = new List<string> { "Anime cannot be fetched until API connection is ready." };
-                    picturePanel.Controls.Add(new Label
-                    {
-                        Text = @"Screenshots can't be fetched until API connection is ready.",
-                        TextAlign = ContentAlignment.MiddleCenter,
-                        Location = new Point(0, 0),
-                        Size = new Size(picturePanel.Size.Width, picturePanel.Size.Height),
-                        Font = new Font(DefaultFont.FontFamily, DefaultFont.SizeInPoints * 1.8f)
-                    });
-                    return;
+                    picturePanel.Controls.Clear();
+                    DisplayTextOnScreenshotArea("Screenshots cannot be fetched until API connection is ready");
+                    break;
                 case FetchStatus.Success:
-                    DisplayRelations(result.Relations);
-                    DisplayAnime(result.Anime);
-                    DisplayScreenshots(result.Screens);
-                    return;
+                    DisplayRelations(loadResult.Relations);
+                    DisplayAnime(loadResult.Anime);
+                    DisplayScreenshots(loadResult.Screens);
+                    break;
             }
         }
 
-
-        private async Task<APILoadStruct> LoadFromAPI(string featureName, ListedVN vnItem)
+        private async Task<APILoadStruct> LoadFromAPI(ListedVN vnItem, bool update)
         {
             var response = new APILoadStruct();
-            var relationsResponse = await GetVNRelations(featureName, vnItem);
+            if (!_loadFromDb)
+            {
+                response.Status = FetchStatus.Throttled;
+                return response;
+            }
+            var relationsResponse = await GetVNRelations(vnItem, update);
             response.Status = relationsResponse.Item1;
             if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
             response.Relations = relationsResponse.Item2;
-            var animeResponse = await GetVNAnime(featureName, vnItem);
+            var animeResponse = await GetVNAnime(vnItem, update);
             response.Status = animeResponse.Item1;
             if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
             response.Anime = animeResponse.Item2;
-            var screenshotsResponse = await GetVNScreenshots(featureName, vnItem);
+            var screenshotsResponse = await GetVNScreenshots(vnItem, update);
             response.Status = screenshotsResponse.Item1;
             if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
             response.Screens = screenshotsResponse.Item2;
@@ -235,15 +258,15 @@ namespace Happy_Search.Other_Forms
             vnTraitsCB.SelectedIndex = 0;
         }
 
-        private async Task<Tuple<FetchStatus, RelationsItem[]>> GetVNRelations(string featureName, ListedVN vnItem)
+        private async Task<Tuple<FetchStatus, RelationsItem[]>> GetVNRelations(ListedVN vnItem, bool update)
         {
             //relations were fetched before but nothing was found
-            if (vnItem.Relations.Equals("Empty"))
+            if (vnItem.Relations.Equals("Empty") && update == false)
             {
                 return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, null);
             }
             //relations were fetched before and something was found
-            if (!vnItem.Relations.Equals(""))
+            if (!vnItem.Relations.Equals("") && update == false)
             {
                 var loadedRelations = JsonConvert.DeserializeObject<RelationsItem[]>(vnItem.Relations);
                 return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, loadedRelations);
@@ -253,28 +276,31 @@ namespace Happy_Search.Other_Forms
             {
                 return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery(featureName, $"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnUpdateLink);
+            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Error, null);
             }
             RelationsItem[] relations = root.Items[0].Relations;
-            _parentForm.DBConn.Open();
-            _parentForm.DBConn.AddRelationsToVN(vnItem.VNID, relations);
-            _parentForm.DBConn.Close();
+            await Task.Run(() =>
+            {
+                _parentForm.DBConn.Open();
+                _parentForm.DBConn.AddRelationsToVN(vnItem.VNID, relations);
+                _parentForm.DBConn.Close();
+            });
             return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, relations);
         }
 
-        private async Task<Tuple<FetchStatus, AnimeItem[]>> GetVNAnime(string featureName, ListedVN vnItem)
+        private async Task<Tuple<FetchStatus, AnimeItem[]>> GetVNAnime(ListedVN vnItem, bool update)
         {
             //anime was fetched before but nothing was found
-            if (vnItem.Anime.Equals("Empty"))
+            if (vnItem.Anime.Equals("Empty") && update == false)
             {
                 return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, null);
             }
             //anime was fetched before and something was found
-            if (!vnItem.Anime.Equals(""))
+            if (!vnItem.Anime.Equals("") && update == false)
             {
                 var loadedAnime = JsonConvert.DeserializeObject<AnimeItem[]>(vnItem.Anime);
                 return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, loadedAnime);
@@ -284,26 +310,29 @@ namespace Happy_Search.Other_Forms
             {
                 return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery(featureName, $"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
+            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
                 return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Error, null);
             }
             AnimeItem[] animeItems = root.Items[0].Anime;
-            _parentForm.DBConn.Open();
-            _parentForm.DBConn.AddAnimeToVN(vnItem.VNID, animeItems);
-            _parentForm.DBConn.Close();
+            await Task.Run(() =>
+            {
+                _parentForm.DBConn.Open();
+                _parentForm.DBConn.AddAnimeToVN(vnItem.VNID, animeItems);
+                _parentForm.DBConn.Close();
+            });
             return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, animeItems);
         }
 
-        private async Task<Tuple<FetchStatus, ScreenItem[]>> GetVNScreenshots(string featureName, ListedVN vnItem)
+        private async Task<Tuple<FetchStatus, ScreenItem[]>> GetVNScreenshots(ListedVN vnItem, bool update)
         {
             //screenshots were fetched before but nothing was found
-            if (vnItem.Screens.Equals("Empty")) return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, null);
-            ScreenItem[] screens;
+            if (vnItem.Screens.Equals("Empty") && update == false) return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, null);
+            ScreenItem[] screens = null;
             //screenshots were fetched before and something was found
-            if (!vnItem.Screens.Equals(""))
+            if (!vnItem.Screens.Equals("") && update == false)
             {
                 screens = JsonConvert.DeserializeObject<ScreenItem[]>(vnItem.Screens);
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
@@ -313,16 +342,19 @@ namespace Happy_Search.Other_Forms
             {
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery(featureName, $"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnUpdateLink);
+            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Error, null);
             }
-            screens = root.Items[0].Screens;
-            _parentForm.DBConn.Open();
-            _parentForm.DBConn.AddScreensToVN(vnItem.VNID, screens);
-            _parentForm.DBConn.Close();
+            await Task.Run(() =>
+            {
+                screens = root.Items[0].Screens;
+                _parentForm.DBConn.Open();
+                _parentForm.DBConn.AddScreensToVN(vnItem.VNID, screens);
+                _parentForm.DBConn.Close();
+            });
             return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
         }
 
@@ -345,7 +377,6 @@ namespace Happy_Search.Other_Forms
             vnRelationsCB.DataSource = stringList;
         }
 
-
         private void DisplayAnime(AnimeItem[] animeItems)
         {
             if (animeItems == null || !animeItems.Any())
@@ -361,16 +392,10 @@ namespace Happy_Search.Other_Forms
 
         private void DisplayScreenshots(ScreenItem[] screenItems)
         {
+            picturePanel.Controls.Clear();
             if (screenItems == null || !screenItems.Any())
             {
-                picturePanel.Controls.Add(new Label
-                {
-                    Text = @"No Screenshots Found",
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    Location = new Point(0, 0),
-                    Size = new Size(picturePanel.Size.Width, picturePanel.Size.Height),
-                    Font = new Font(DefaultFont.FontFamily, DefaultFont.SizeInPoints * 1.8f)
-                });
+                DisplayTextOnScreenshotArea("No Screenshots Found");
                 return;
             }
             int imageX = 0;
@@ -386,12 +411,24 @@ namespace Happy_Search.Other_Forms
                 }
             }
         }
+
+        private void DisplayTextOnScreenshotArea(string text)
+        {
+            picturePanel.Controls.Add(new Label
+            {
+                Text = text,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Location = new Point(0, 0),
+                Size = new Size(picturePanel.Size.Width, picturePanel.Size.Height),
+                Font = new Font(DefaultFont.FontFamily, DefaultFont.SizeInPoints * 1.8f)
+            });
+        }
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
             if (vnUpdateLink.Text.Equals("")) return;
             var vnItem = await _parentForm.UpdateSingleVN(Convert.ToInt32(vnID.Text), vnUpdateLink);
-            SetData(vnItem);
+            await SetData(vnItem, true);
         }
 
         private void vnID_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -400,7 +437,7 @@ namespace Happy_Search.Other_Forms
             Process.Start("http://vndb.org/v" + vnID.Text + '/');
         }
 
-        private void RelationSelected(object sender, EventArgs e)
+        private async void RelationSelected(object sender, EventArgs e)
         {
             ComboBox dropdownlist = (ComboBox)sender;
             if (dropdownlist.SelectedIndex < 0) return;
@@ -417,14 +454,61 @@ namespace Happy_Search.Other_Forms
                     _parentForm.DBConn.Open();
                     var vn = _parentForm.DBConn.GetSingleVN(vnid, _parentForm.UserID);
                     _parentForm.DBConn.Close();
-                    if (vn == null) SetNewData(vnid);
+                    if (vn == null) await SetNewData(vnid);
                     else
                     {
                         SetDeletedData(); //clear before setting new data
-                        SetData(vn);
+                        await SetData(vn);
                     }
                     return;
             }
+        }
+
+        /// <summary>
+        /// Refresh data on currently displayed title.
+        /// </summary>
+        private async void RefreshData(object sender, EventArgs e)
+        {
+            await SetData(_displayedVN);
+        }
+
+        /// <summary>
+        /// Get data about a single visual novel.
+        /// </summary>
+        /// <param name="vnid">ID of VN to be retrieved.</param>
+        /// <param name="replyLabel">Label where reply will be printed.</param>
+        internal async Task GetSingleVN(int vnid, Label replyLabel)
+        {
+            var result = _parentForm.StartQuery(replyLabel, "Get Single VN");
+            if (!result) return;
+            string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
+            result = await _parentForm.TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel);
+
+            if (!result) return;
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+            if (vnRoot.Num == 0)
+            {
+                //this vn has been deleted (or something along those lines)
+                await Task.Run(() =>
+                {
+                    _parentForm.DBConn.Open();
+                    _parentForm.DBConn.RemoveVisualNovel(vnid);
+                    _parentForm.DBConn.Close();
+                });
+                return;
+            }
+            var vnItem = vnRoot.Items[0];
+            FormMain.SaveImage(vnItem);
+            var relProducer = await _parentForm.GetDeveloper(vnid, Resources.svn_query_error, replyLabel);
+            await _parentForm.GetProducer(relProducer, Resources.svn_query_error, replyLabel);
+            await _parentForm.GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
+            await Task.Run(() =>
+            {
+                _parentForm.DBConn.Open();
+                _parentForm.DBConn.UpsertSingleVN(vnItem, relProducer);
+                _parentForm.DBConn.Close();
+            });
+            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
         }
 
         private static int DrawImageFitToHeight(Control control, int height, int locationX, ScreenItem screenItem)
@@ -498,7 +582,7 @@ namespace Happy_Search.Other_Forms
         /// <summary>
         /// Class holding VN information fetched via API on VN Form Load.
         /// </summary>
-        public class APILoadStruct
+        private class APILoadStruct
         {
             /// <summary>
             /// Status of info fetch (error, success, throttled)
@@ -521,7 +605,7 @@ namespace Happy_Search.Other_Forms
         /// <summary>
         /// Status of info fetch (error, success, throttled)
         /// </summary>
-        public enum FetchStatus
+        private enum FetchStatus
         {
             /// <summary>
             /// There was an error in fetching (probably a deleted VN)

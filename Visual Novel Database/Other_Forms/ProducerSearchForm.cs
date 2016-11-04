@@ -64,9 +64,11 @@ namespace Happy_Search.Other_Forms
                 FormMain.WriteError(prodSearchReply, Resources.enter_producer_name, true);
                 return;
             }
+            var result = _parentForm.StartQuery(prodSearchReply, "Producer Search");
+            if (!result) return;
             var producerName = producerSearchBox.Text;
             string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{FormMain.MaxResultsString}}}";
-            var result = await _parentForm.TryQuery("Producer Search", prodSearchQuery, Resources.ps_query_error, prodSearchReply);
+            result = await _parentForm.TryQuery(prodSearchQuery, Resources.ps_query_error, prodSearchReply);
             if (!result) return;
             var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             List<ProducerItem> prodItems = prodRoot.Items;
@@ -79,7 +81,7 @@ namespace Happy_Search.Other_Forms
                 string prodSearchMoreQuery =
                     $"get producer basic (search~\"{producerName}\") {{{FormMain.MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult =
-                    await _parentForm.TryQuery("Producer Search", prodSearchMoreQuery, Resources.ps_query_error, prodSearchReply);
+                    await _parentForm.TryQuery(prodSearchMoreQuery, Resources.ps_query_error, prodSearchReply);
                 if (!moreResult) return;
                 var prodMoreRoot =
                     JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
@@ -89,13 +91,13 @@ namespace Happy_Search.Other_Forms
             }
             olProdSearch.SetObjects(searchedProducers);
             olProdSearch.Sort(olProdSearch.GetColumn(0), SortOrder.Ascending);
-            _parentForm.DBConn.Open();
+            _parentForm.DBConn.BeginTransaction();
             foreach (var producer in searchedProducers)
             {
                 if (_producerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
                 _parentForm.DBConn.InsertProducer((ListedProducer)producer);
             }
-            _parentForm.DBConn.Close();
+            _parentForm.DBConn.EndTransaction();
             prodSearchReply.Text = $@"{searchedProducers.Count} producers found.";
         }
         
@@ -154,9 +156,9 @@ namespace Happy_Search.Other_Forms
                 addProducerList.Add(new ListedProducer(producer.Name, -1, DateTime.UtcNow, producer.ID,
                     userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
-            _parentForm.DBConn.Open();
+            _parentForm.DBConn.BeginTransaction();
             _parentForm.DBConn.InsertFavoriteProducers(addProducerList, _parentForm.UserID);
-            _parentForm.DBConn.Close();
+            _parentForm.DBConn.EndTransaction();
             _producerList.AddRange(addProducerList);
             prodSearchReply.Text = $@"{addProducerList.Count} added.";
         }

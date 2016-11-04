@@ -64,7 +64,7 @@ namespace Happy_Search
                         FormMain.LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
                         var subject = sslStream.RemoteCertificate.Subject;
                         FormMain.LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
-                            sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
+                                           sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
                             FormMain.LogToFile($"Certificate received isn't for {VndbHost} so connection is closed");
@@ -168,13 +168,21 @@ namespace Happy_Search
                 loginBuffer =
                     $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":\"{clientVersion}\",\"username\":\"{username}\",\"password\":\"{new string(password)}\"}}";
                 Query(loginBuffer);
-                if (LastResponse.Type == ResponseType.Ok) LogIn = LogInStatus.YesWithCredentials;
+                if (LastResponse.Type == ResponseType.Ok)
+                {
+                    LogIn = LogInStatus.YesWithCredentials;
+                    Status = APIStatus.Ready;
+                }
             }
             else
             {
                 loginBuffer = $"login {{\"protocol\":1,\"client\":\"{clientName}\",\"clientver\":\"{clientVersion}\"}}";
                 Query(loginBuffer);
-                if (LastResponse.Type == ResponseType.Ok) LogIn = LogInStatus.Yes;
+                if (LastResponse.Type == ResponseType.Ok)
+                {
+                    LogIn = LogInStatus.Yes;
+                    Status = APIStatus.Ready;
+                }
             }
         }
 
@@ -201,7 +209,20 @@ namespace Happy_Search
                 responseBuffer = biggerBadderBuffer;
             }
             LastResponse = Parse(responseBuffer, totalRead);
-            Status = LastResponse.Type != ResponseType.Unknown ? APIStatus.Ready : APIStatus.Error;
+            switch (LastResponse.Type)
+            {
+                case ResponseType.Ok:
+                case ResponseType.Results:
+                case ResponseType.DBStats:
+                    Status = APIStatus.Ready;
+                    break;
+                case ResponseType.Error:
+                    Status = LastResponse.Error.ID.Equals("throttled") ? APIStatus.Throttled : APIStatus.Ready;
+                    break;
+                case ResponseType.Unknown:
+                    Status = APIStatus.Error;
+                    break;
+            }
         }
 
         internal async Task QueryAsync(string query)
@@ -240,6 +261,8 @@ namespace Happy_Search
                     break;
             }
         }
+
+
 
         /// <summary>
         /// Close connection with VNDB API
@@ -329,15 +352,15 @@ namespace Happy_Search
         /// <summary>
         /// If response is of type 'error', holds ErrorResponse
         /// </summary>
-        public ErrorResponse Error;
+        public readonly ErrorResponse Error;
         /// <summary>
         /// Response in JSON format
         /// </summary>
-        public string JsonPayload;
+        public readonly string JsonPayload;
         /// <summary>
         /// Type of response
         /// </summary>
-        public ResponseType Type;
+        public readonly ResponseType Type;
 
         /// <summary>
         /// Constructor for Response

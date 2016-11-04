@@ -71,11 +71,15 @@ something weird happening with vn form on v13419 Uta no™Prince-samaô All Star 
 add loading image while loading vn form
 better vn character display?
 show unreleased in unreleased vn tiles
+move producerlist.Updated to userprodlist
+display more information on vn tooltip, and include ul note in vn form
 
 
 Incomplete
 ---------------
-
+await all db connections
+make all batch db queries into transactions
+move all changeAPIStatus for beginning and end of features
 
 Completed (Feature List)
 ---------------

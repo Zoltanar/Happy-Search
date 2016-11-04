@@ -12,10 +12,10 @@ namespace Happy_Search
 {
     public partial class FormMain
     {
+        internal string CurrentFeatureName;
         /// <summary>
         /// Send query through API Connection.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="query">Command to be sent</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
@@ -23,7 +23,7 @@ namespace Happy_Search
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="ignoreDateLimit">Ignore 10 Year VN Limit (if enabled)?</param>
         /// <returns>Returns whether it was successful.</returns>
-        internal async Task<bool> TryQuery(string featureName, string query, string errorMessage, Label replyLabel,
+        internal async Task<bool> TryQuery(string query, string errorMessage, Label replyLabel,
             bool additionalMessage = false, bool refreshList = false, bool ignoreDateLimit = false)
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
@@ -31,21 +31,24 @@ namespace Happy_Search
                 WriteError(replyLabel, "API Connection isn't ready.", true);
                 return false;
             }
-            //change status to busy until it is solved, if error is returned then status is changed to throttled or ready if the error isn't throttling error
-            //if response type is unknown then status is changed to error because it's probably a connection loss and will require reconnecting.
-            ChangeAPIStatus(VndbConnection.APIStatus.Busy, featureName);
-            if (Settings.Default.Limit10Years && !ignoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
+            await Task.Run(() =>
             {
-                query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
+                if (Settings.Default.Limit10Years && !ignoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
+                {
+                    query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
+                }
+                LogToFile(query);
+                Conn.Query(query);
+            });
+            if (_advancedMode)
+            {
+                if (serverR.TextLength > 10000) ClearLog(null, null);
+                serverQ.Text += query + Environment.NewLine;
+                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             }
-            LogToFile(query);
-            await Conn.QueryAsync(query); //request detailed information
-            if (serverR.TextLength > 10000) ClearLog(null, null);
-            serverQ.Text += query + Environment.NewLine;
-            serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type == ResponseType.Unknown)
             {
-                ChangeAPIStatus(VndbConnection.APIStatus.Error, featureName);
+                ChangeAPIStatus(VndbConnection.APIStatus.Error);
                 return false;
             }
             while (Conn.LastResponse.Type == ResponseType.Error)
@@ -53,73 +56,73 @@ namespace Happy_Search
                 if (!Conn.LastResponse.Error.ID.Equals("throttled"))
                 {
                     WriteError(replyLabel, errorMessage);
-                    ChangeAPIStatus(Conn.Status, featureName);
+                    ChangeAPIStatus(Conn.Status);
                     return false;
                 }
-                //var waitS = Conn.LastResponse.Error.Minwait * 30;
-                double minWait = Math.Min(5*60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
-                string normalWarning = $"Throttled for {Math.Floor(minWait/60)} mins.";
-                string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped}...";
-                var fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
+                string fullThrottleMessage = "";
+                double minWait = 0;
+                await Task.Run(() =>
+                {
+                    minWait = Math.Min(5 * 60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
+                    string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
+                    string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped}...";
+                    fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
+                });
                 WriteWarning(replyLabel, fullThrottleMessage);
-                ChangeAPIStatus(VndbConnection.APIStatus.Throttled, featureName);
-                var waitMS = minWait * 1000;
-                var wait = Convert.ToInt32(waitMS);
+                ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
                 LogToFile($"{DateTime.UtcNow} - {fullThrottleMessage}");
                 if (refreshList)
                 {
-                    ReloadLists();
-                    RefreshVNList();
+                    await ReloadListsFromDbAsync();
+                    LoadVNListToGui();
                 }
+                var waitMS = minWait * 1000;
+                var wait = Convert.ToInt32(waitMS);
                 await Task.Delay(wait);
-                ClearLog(null, null);
-                await Conn.QueryAsync(query); //request detailed information
-                serverQ.Text += query + Environment.NewLine;
-                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+                ChangeAPIStatus(VndbConnection.APIStatus.Busy);
+                await Conn.QueryAsync(query);
+                if (_advancedMode)
+                {
+                    if (serverR.TextLength > 10000) ClearLog(null, null);
+                    serverQ.Text += query + Environment.NewLine;
+                    serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+                }
             }
-            ChangeAPIStatus(VndbConnection.APIStatus.Ready, featureName);
             return true;
         }
 
         /// <summary>
         /// Get character data about multiple visual novels.
+        /// Creates its own SQLite Transactions.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of VNs</param>
         /// <param name="replyLabel">Where reply will be shown</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        internal async Task GetCharactersForMultipleVN(string featureName, int[] vnIDs, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task GetCharactersForMultipleVN(int[] vnIDs, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
-            ReloadLists();
             if (!vnIDs.Any()) return;
             int[] currentArray = vnIDs.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+            var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
             if (!queryResult) return;
             var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-            foreach (var character in charRoot.Items)
-            {
-                DBConn.Open();
-                DBConn.UpsertSingleCharacter(character);
-                DBConn.Close();
-            }
+            DBConn.BeginTransaction();
+            foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
+            DBConn.EndTransaction();
             bool moreResults = charRoot.More;
             int pageNo = 1;
             while (moreResults)
             {
                 pageNo++;
                 charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                foreach (var character in charRoot.Items)
-                {
-                    DBConn.Open();
-                    DBConn.UpsertSingleCharacter(character);
-                    DBConn.Close();
-                }
+                DBConn.BeginTransaction();
+                foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
+                DBConn.EndTransaction();
                 moreResults = charRoot.More;
             }
             int done = APIMaxResults;
@@ -128,34 +131,29 @@ namespace Happy_Search
                 currentArray = vnIDs.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                foreach (var character in charRoot.Items)
-                {
-                    DBConn.Open();
-                    DBConn.UpsertSingleCharacter(character);
-                    DBConn.Close();
-                }
+                DBConn.BeginTransaction();
+                foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
+                DBConn.EndTransaction();
                 moreResults = charRoot.More;
                 pageNo = 1;
                 while (moreResults)
                 {
                     pageNo++;
                     charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                    queryResult = await TryQuery(featureName, charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
+                    queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error", replyLabel, additionalMessage, refreshList);
                     if (!queryResult) return;
                     charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                    foreach (var character in charRoot.Items)
-                    {
-                        DBConn.Open();
-                        DBConn.UpsertSingleCharacter(character);
-                        DBConn.Close();
-                    }
+                    DBConn.BeginTransaction();
+                    foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
+                    DBConn.EndTransaction();
                     moreResults = charRoot.More;
                 }
                 done += APIMaxResults;
             }
+            await ReloadListsFromDbAsync();
         }
 
         /// <summary>
@@ -166,9 +164,10 @@ namespace Happy_Search
         /// <returns></returns>
         internal async Task<ListedVN> UpdateSingleVN(int vnid, LinkLabel updateLink)
         {
-            ReloadLists();
             string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
-            var result = await TryQuery("Update Single VN", singleVNQuery, Resources.usvn_query_error, updateLink);
+            var result = StartQuery(userListReply, "Update Single VN");
+            if (!result) return null;
+            result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
             if (!result) return null;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0)
@@ -180,156 +179,132 @@ namespace Happy_Search
                 return new ListedVN();
             }
             var vnItem = vnRoot.Items[0];
-            SaveImage(vnItem);
-            var relProducer = await GetDeveloper("Update Single VN", vnid, Resources.usvn_query_error, updateLink);
-            await GetProducer("Update Single VN", relProducer, Resources.usvn_query_error, updateLink);
+            SaveImage(vnItem, true);
+            var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
+            await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer);
             var vn = DBConn.GetSingleVN(vnid, UserID);
             DBConn.Close();
+            await ReloadListsFromDbAsync();
             WriteText(updateLink, Resources.vn_updated);
+            ChangeAPIStatus(Conn.Status);
             return vn;
         }
 
-        /// <summary>
-        /// Get data about a single visual novel.
-        /// </summary>
-        /// <param name="vnid">ID of VN to be retrieved.</param>
-        /// <param name="replyLabel">Label where reply will be printed.</param>
-        /// <param name="forceUpdate">Should VN be updated even if it's already in VNList?</param>
-        /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
-        /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        internal async Task GetSingleVN(int vnid, Label replyLabel, bool forceUpdate = false, bool additionalMessage = false, bool refreshList = false)
-        {
-            int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
-            if (forceUpdate == false && vnIDList.Contains(vnid))
-            {
-                _vnsSkipped++;
-                return;
-            }
-            string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
-            var result =
-                await TryQuery("Get Single VN", singleVNQuery, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num == 0)
-            {
-                //this vn has been deleted (or something along those lines)
-                DBConn.Open();
-                DBConn.RemoveVisualNovel(vnid);
-                DBConn.Close();
-                return;
-            }
-            var vnItem = vnRoot.Items[0];
-            SaveImage(vnItem);
-            var relProducer = await GetDeveloper("Get Single VN", vnid, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            await GetProducer("Get Single VN", relProducer, Resources.svn_query_error, replyLabel, additionalMessage, refreshList);
-            await GetCharactersForMultipleVN("Get Single VN", new[] { vnid }, replyLabel);
-            DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer);
-            DBConn.Close();
-            _vnsAdded++;
-        }
+
 
         /// <summary>
         /// Get data about multiple visual novels.
+        /// Creates its own SQLite Transactions.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of visual novel IDs</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="updateAll">Should VNs be updated even if they;re already in local database?</param>
-        internal async Task GetMultipleVN(string featureName, IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
+        private async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
         {
-            ReloadLists();
             var vnsToGet = new List<int>();
-            int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
-            //remove already present vns
-            if (!updateAll)
+            await Task.Run(() =>
             {
-                foreach (var id in vnIDs)
+                int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
+                //remove already present vns
+                if (!updateAll)
                 {
-                    if (vnIDList.Contains(id)) _vnsSkipped++;
-                    else vnsToGet.Add(id);
+                    foreach (var id in vnIDs)
+                    {
+                        if (id == 0) continue;
+                        if (vnIDList.Contains(id)) _vnsSkipped++;
+                        else vnsToGet.Add(id);
+                    }
                 }
-            }
-            else vnsToGet = vnIDs.ToList();
+                else
+                {
+                    vnsToGet = vnIDs.ToList();
+                    vnsToGet.Remove(0);
+                }
+            });
             if (!vnsToGet.Any()) return;
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
-            if (!queryResult) return;
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+            if (!queryResult)
+            {
+                return;
+            }
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
             {
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
                 IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                DBConn.Open();
+                DBConn.BeginTransaction();
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                DBConn.Close();
+                DBConn.EndTransaction();
             }
+            DBConn.BeginTransaction();
             foreach (var vnItem in vnRoot.Items)
             {
                 SaveImage(vnItem);
-                var relProducer = await GetDeveloper(featureName, vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                await GetProducer(featureName, relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 _vnsAdded++;
-                DBConn.Open();
                 DBConn.UpsertSingleVN(vnItem, relProducer);
-                DBConn.Close();
             }
-            await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, refreshList);
+            DBConn.EndTransaction();
+            await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                if (!queryResult) return;
+                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                if (!queryResult)
+                {
+                    return;
+                }
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
                 {
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
                     IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    DBConn.Open();
+                    DBConn.BeginTransaction();
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                    DBConn.Close();
+                    DBConn.EndTransaction();
                 }
+                DBConn.BeginTransaction();
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
-                    var relProducer = await GetDeveloper(featureName, vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                    await GetProducer(featureName, relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                     _vnsAdded++;
-                    DBConn.Open();
                     DBConn.UpsertSingleVN(vnItem, relProducer);
-                    DBConn.Close();
                 }
-                await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, refreshList);
+                DBConn.EndTransaction();
+                await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
                 done += APIMaxResults;
             }
+            await ReloadListsFromDbAsync();
         }
 
         /// <summary>
         /// Update titles to include all fields in latest version of Happy Search.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task GetOldVNStats(string featureName, IEnumerable<int> vnIDs)
+        private async Task GetOldVNStats(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
-            ReloadLists();
             _vnsAdded = 0;
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
@@ -337,24 +312,24 @@ namespace Happy_Search
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
                 IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                DBConn.Open();
+                DBConn.BeginTransaction();
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                DBConn.Close();
+                DBConn.EndTransaction();
             }
-            DBConn.Open();
+            DBConn.BeginTransaction();
             foreach (var vnItem in vnRoot.Items)
             {
                 DBConn.UpdateVNToLatestVersion(vnItem);
                 _vnsAdded++;
             }
-            DBConn.Close();
+            DBConn.EndTransaction();
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
@@ -362,37 +337,36 @@ namespace Happy_Search
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
                     IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    DBConn.Open();
+                    DBConn.BeginTransaction();
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                    DBConn.Close();
+                    DBConn.EndTransaction();
                 }
-                DBConn.Open();
+                DBConn.BeginTransaction();
                 foreach (var vnItem in vnRoot.Items)
                 {
                     DBConn.UpdateVNToLatestVersion(vnItem);
                     _vnsAdded++;
                 }
-                DBConn.Close();
+                DBConn.EndTransaction();
                 done += APIMaxResults;
             }
+            await ReloadListsFromDbAsync();
         }
 
         /// <summary>
         /// Update tags of titles that haven't been updated in over 7 days.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnIDs">List of visual novel IDs</param>
-        internal async Task UpdateTitleData(string featureName, IEnumerable<int> vnIDs)
+        private async Task UpdateTitleData(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
-            ReloadLists();
             _vnsAdded = 0;
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
@@ -400,25 +374,25 @@ namespace Happy_Search
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
                 IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                DBConn.Open();
+                DBConn.BeginTransaction();
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                DBConn.Close();
+                DBConn.EndTransaction();
             }
-            DBConn.Open();
+            DBConn.BeginTransaction();
             foreach (var vnItem in vnRoot.Items)
             {
                 DBConn.UpdateVNData(vnItem);
                 _vnsAdded++;
             }
-            DBConn.Close();
-            await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, true);
+            DBConn.EndTransaction();
+            await GetCharactersForMultipleVN(currentArray, replyLabel, true, true);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
             {
                 currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(featureName, multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
+                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
@@ -426,37 +400,37 @@ namespace Happy_Search
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
                     IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    DBConn.Open();
+                    DBConn.BeginTransaction();
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                    DBConn.Close();
+                    DBConn.EndTransaction();
                 }
-                DBConn.Open();
+                DBConn.BeginTransaction();
                 foreach (var vnItem in vnRoot.Items)
                 {
                     DBConn.UpdateVNData(vnItem);
                     _vnsAdded++;
                 }
-                DBConn.Close();
-                await GetCharactersForMultipleVN(featureName, currentArray, replyLabel, true, true);
+                DBConn.EndTransaction();
+                await GetCharactersForMultipleVN(currentArray, replyLabel, true, true);
                 done += APIMaxResults;
             }
+            await ReloadListsFromDbAsync();
         }
 
         /// <summary>
         /// Get Developer for VN by VNID.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="vnid">ID of VN</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <returns></returns>
-        internal async Task<int> GetDeveloper(string featureName, int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task<int> GetDeveloper(int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             string developerQuery = $"get release basic,producers (vn =\"{vnid}\") {{{MaxResultsString}}}";
             var releaseResult =
-                await TryQuery(featureName, developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
+                await TryQuery(developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
             if (!releaseResult) return -1;
             var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> relItem = relInfo.Items;
@@ -472,63 +446,60 @@ namespace Happy_Search
 
         /// <summary>
         /// Get Producer from Producer ID.
+        /// A DBConnection must be open or a transaction must be occuring.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="producerID">ID of Producer</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        /// <returns></returns>
-        internal async Task GetProducer(string featureName, int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
             if (producerID == -1 || producerIDList.Contains(producerID)) return;
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
-                await TryQuery(featureName, producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
+                await TryQuery(producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
             if (!producerResult) return;
             var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
             List<ProducerItem> producers = root.Items;
             if (!producers.Any()) return;
             var producer = producers.First();
-            DBConn.Open();
             DBConn.InsertProducer((ListedProducer)producer);
-            DBConn.Close();
         }
 
         /// <summary>
         /// Change text and color of API Status label based on status.
         /// </summary>
         /// <param name="apiStatus">Status of API Connection</param>
-        /// <param name="featureName"></param>
-        internal void ChangeAPIStatus(VndbConnection.APIStatus apiStatus, string featureName)
+        internal void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
         {
             switch (apiStatus)
             {
                 case VndbConnection.APIStatus.Ready:
+                    CurrentFeatureName = "";
                     statusLabel.Text = @"Ready";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
-                    statusLabel.Text = $@"Busy ({featureName})";
+                    statusLabel.Text = $@"Busy ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Throttled:
-                    statusLabel.Text = @"Throttled";
-                    statusLabel.ForeColor = Color.Black;
+                    statusLabel.Text = $@"Throttled ({CurrentFeatureName})";
+                    statusLabel.ForeColor = Color.DarkRed;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Error:
-                    statusLabel.Text = @"Error";
+                    statusLabel.Text = $@"Error ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.Red;
                     Conn.Close();
                     break;
                 case VndbConnection.APIStatus.Closed:
-                    statusLabel.Text = @"Closed";
+                    statusLabel.Text = $@"Closed ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.White;
                     statusLabel.BackColor = Color.Black;
                     break;
@@ -548,16 +519,17 @@ namespace Happy_Search
             var hasWLStatus = vn.WLStatus != null && !vn.WLStatus.Equals("");
             var hasVote = vn.Vote > 0;
             string queryString;
-            bool result;
+            var result = StartQuery(replyText, "Change VN Status");
+            if (!result) return false;
             switch (type)
             {
                 case ChangeType.UL:
                     queryString = statusInt == -1
                         ? $"set vnlist {vn.VNID}"
                         : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
-                    result = await TryQuery("Change VN Status", queryString, Resources.cvns_query_error, replyText);
+                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
-                    DBConn.Open();
+                    DBConn.BeginTransaction();
                     if (hasWLStatus || hasVote)
                         DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
                     else if (statusInt == -1)
@@ -568,9 +540,9 @@ namespace Happy_Search
                     queryString = statusInt == -1
                         ? $"set wishlist {vn.VNID}"
                         : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
-                    result = await TryQuery("Change VN Status", queryString, Resources.cvns_query_error, replyText);
+                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
-                    DBConn.Open();
+                    DBConn.BeginTransaction();
                     if (hasULStatus || hasVote)
                         DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
                     else if (statusInt == -1)
@@ -581,9 +553,9 @@ namespace Happy_Search
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
                         : $"set votelist {vn.VNID} {{\"vote\":{statusInt * 10}}}";
-                    result = await TryQuery("Change VN Status", queryString, Resources.cvns_query_error, replyText);
+                    result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
-                    DBConn.Open();
+                    DBConn.BeginTransaction();
                     if (hasULStatus || hasWLStatus)
                         DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update);
                     else if (statusInt == -1)
@@ -591,8 +563,9 @@ namespace Happy_Search
                     else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New);
                     break;
             }
-            DBConn.Close();
-            UpdateFavoriteProducerForURTChange(vn.Producer);
+            DBConn.EndTransaction();
+            await UpdateFavoriteProducerForURTChange(vn.Producer);
+            ChangeAPIStatus(Conn.Status);
             return true;
         }
 
@@ -602,12 +575,13 @@ namespace Happy_Search
         internal void APILogin()
         {
             Conn.Login(ClientName, ClientVersion);
+            CurrentFeatureName = "Login";
             switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
                     loginReply.ForeColor = Color.LightGreen;
                     loginReply.Text = UserID > 0 ? $"Connected with ID {UserID}." : "Connected without ID.";
-                    ChangeAPIStatus(Conn.Status, "Login");
+                    ChangeAPIStatus(Conn.Status);
                     return;
                 case ResponseType.Error:
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))
@@ -626,7 +600,7 @@ namespace Happy_Search
                     break;
             }
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status, "Login");
+            ChangeAPIStatus(Conn.Status);
         }
 
         /// <summary>
@@ -635,11 +609,12 @@ namespace Happy_Search
         /// <param name="credentials">User's username and password</param>
         internal void APILoginWithCredentials(KeyValuePair<string, char[]> credentials)
         {
+            CurrentFeatureName = "Login with credentials";
             Conn.Login(ClientName, ClientVersion, credentials.Key, credentials.Value);
             switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
-                    ChangeAPIStatus(Conn.Status, "Login with credentials");
+                    ChangeAPIStatus(Conn.Status);
                     loginReply.ForeColor = Color.LightGreen;
                     loginReply.Text = $@"Logged in as {credentials.Key}.";
                     return;
@@ -666,7 +641,25 @@ namespace Happy_Search
                     break;
             }
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status, "Login with credentials");
+            ChangeAPIStatus(Conn.Status);
+        }
+
+        /// <summary>
+        /// Check if API Connection is ready, change status accordingly and write error if it isnt ready.
+        /// </summary>
+        /// <param name="replyLabel">Label where error reply will be printed</param>
+        /// <param name="featureName">Name of feature calling the query</param>
+        /// <returns>If connection was ready</returns>
+        internal bool StartQuery(Label replyLabel, string featureName)
+        {
+            if (!CurrentFeatureName.Equals(""))
+            {
+                WriteError(replyLabel, $"Wait until {CurrentFeatureName} is done.");
+                return false;
+            }
+            CurrentFeatureName = featureName;
+            ChangeAPIStatus(VndbConnection.APIStatus.Busy);
+            return true;
         }
 
     }

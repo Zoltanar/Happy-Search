@@ -72,7 +72,7 @@ namespace Happy_Search
                     DisplayFilterTraits();
                     break;
             }
-            RefreshVNList();
+            LoadVNListToGui();
         }
 
         /// <summary>

@@ -38,9 +38,9 @@ namespace Happy_Search
                 favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles,
                     DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
-            DBConn.Open();
+            DBConn.BeginTransaction();
             DBConn.InsertFavoriteProducers(favoriteProducerList, UserID);
-            DBConn.Close();
+            DBConn.EndTransaction();
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Happy_Search
                 return;
             }
             new ProducerSearchForm(this).ShowDialog();
-            LoadFavoriteProducerList();
+            LoadFPListToGui();
         }
 
         /// <summary>
@@ -84,13 +84,13 @@ namespace Happy_Search
                 WriteError(prodReply, Resources.no_items_selected, true);
                 return;
             }
-            DBConn.Open();
+            DBConn.BeginTransaction();
             foreach (ListedProducer item in olFavoriteProducers.SelectedObjects)
             {
                 DBConn.RemoveFavoriteProducer(item.ID, UserID);
             }
-            DBConn.Close();
-            LoadFavoriteProducerList();
+            DBConn.EndTransaction();
+            LoadFPListToGui();
         }
 
         /// <summary>
@@ -109,13 +109,16 @@ namespace Happy_Search
 This may take a while...",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            ReloadLists();
+            var result = StartQuery(prodReply, "Refresh Favorite Producer Titles");
+            if (!result) return;
             _vnsAdded = 0;
             _vnsSkipped = 0;
             foreach (ListedProducer producer in olFavoriteProducers.Objects)
-                await GetProducerTitles("Refresh Favorite Producer Titles", producer, prodReply, true);
-            LoadFavoriteProducerList();
+                await GetProducerTitles(producer, prodReply, true);
+            await ReloadListsFromDbAsync();
+            LoadFPListToGui();
             WriteText(prodReply, Resources.update_fp_titles_success + $" ({_vnsAdded} new titles)");
+            ChangeAPIStatus(Conn.Status);
         }
 
         /// <summary>
@@ -135,7 +138,7 @@ This may take a while...",
             List_ClearOther();
             _currentList = vn => prodList.Contains(vn.Producer);
             _currentListLabel = "Favorite Producers (Selected)";
-            RefreshVNList();
+            LoadVNListToGui();
         }
         
         /// <summary>
@@ -151,7 +154,6 @@ This may take a while...",
             var askBox =
                 MessageBox.Show(Resources.get_new_fp_titles_confirm, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            ReloadLists();
             List<ListedProducer> producers =
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2 || item.Updated == -1).ToList();
             if (producers.Count == 0)
@@ -159,14 +161,17 @@ This may take a while...",
                 WriteWarning(prodReply, "No producers require an update.", true);
                 return;
             }
+            var result = StartQuery(prodReply, "Get New FP Titles");
+            if (!result) return;
             LogToFile($"{producers.Count} to be updated");
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            foreach (var producer in producers) await GetProducerTitles("Get New FP Titles",producer, prodReply);
-            ReloadLists();
-            RefreshVNList();
-            LoadFavoriteProducerList();
+            foreach (var producer in producers) await GetProducerTitles(producer, prodReply);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            LoadFPListToGui();
             WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.");
+            ChangeAPIStatus(Conn.Status);
         }
 
         /// <summary>
@@ -193,21 +198,20 @@ This may take a while...",
             }
 
             new ProducerSearchForm(this, listForForm).ShowDialog();
-            LoadFavoriteProducerList();
+            LoadFPListToGui();
         }
 
         /// <summary>
         /// Get titles developed/published by producer.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="producer">Producer whose titles should be found</param>
         /// <param name="replyLabel">Label that should receive reply</param>
         /// <param name="refreshAll">Should already known titles be refreshed as well?</param>
-        private async Task GetProducerTitles(string featureName, ListedProducer producer, Label replyLabel, bool refreshAll = false)
+        private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
         {
             LogToFile($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
-            var result = await TryQuery(featureName, prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
+            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
@@ -219,14 +223,14 @@ This may take a while...",
                 pageNo++;
                 string prodReleaseMoreQuery =
                     $"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(featureName, prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
+                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
                 if (!moreResult) return;
                 releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
                 releaseItems = releaseRoot.Items;
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;
             }
-            await GetMultipleVN(featureName, producerVNList.Distinct(), replyLabel, true, refreshAll);
+            await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, refreshAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
@@ -238,7 +242,7 @@ This may take a while...",
         /// <summary>
         /// Load Favorite Producers into ObjectListView.
         /// </summary>
-        private void LoadFavoriteProducerList()
+        private void LoadFPListToGui()
         {
             if (UserID < 1) return;
             DBConn.Open();
@@ -257,16 +261,15 @@ This may take a while...",
         /// Update Favorite Producer stats for changes in URT list.
         /// </summary>
         /// <param name="producerName">Name of producer to be updated</param>
-        private void UpdateFavoriteProducerForURTChange(string producerName)
+        private async Task UpdateFavoriteProducerForURTChange(string producerName)
         {
             var favoriteProducers = olFavoriteProducers.Objects as List<ListedProducer>;
             if (favoriteProducers?.Find(x => x.Name.Equals(producerName)) == null)
             {
-                ReloadLists();
-                RefreshVNList();
+                await ReloadListsFromDbAsync();
+                LoadVNListToGui();
                 return;
             }
-                ReloadLists();
             var producer = _producerList.Find(x => x.Name == producerName);
             ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
             double userDropRate = -1;
@@ -286,9 +289,9 @@ This may take a while...",
             DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, UserID);
             DBConn.Close();
             UpdateUserStats();
-            ReloadLists();
-            RefreshVNList();
-            LoadFavoriteProducerList();
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            LoadFPListToGui();
         }
 
         /// <summary>

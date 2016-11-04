@@ -221,11 +221,6 @@ namespace Happy_Search
         /// </summary>
         private async void UpdateResults(object sender, EventArgs e)
         {
-            if (Conn.Status != VndbConnection.APIStatus.Ready)
-            {
-                WriteWarning(tagReply, "Connection busy with previous request...", true);
-                return;
-            }
             if (customTagFilters.SelectedIndex > 1)
             {
                 var selectedFilter = _customTagFilters[customTagFilters.SelectedIndex - 2];
@@ -234,6 +229,8 @@ namespace Happy_Search
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
+                var result = StartQuery(tagReply, "Update Filter Results");
+                if (!result) return;
                 await UpdateFilterResults(tagReply);
                 _customTagFilters[customTagFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
                 SaveMainXML();
@@ -242,8 +239,11 @@ namespace Happy_Search
             {
                 var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
+                var result = StartQuery(tagReply, "Update Filter Results");
+                if (!result) return;
                 await UpdateFilterResults(tagReply);
             }
+            ChangeAPIStatus(VndbConnection.APIStatus.Ready);
         }
 
         /// <summary>
@@ -251,33 +251,33 @@ namespace Happy_Search
         /// </summary>
         private async Task UpdateFilterResults(Label replyLabel)
         {
-            ReloadLists();
             _vnsAdded = 0;
             _vnsSkipped = 0;
             IEnumerable<string> betterTags = _activeTagFilter.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
-            var result = await TryQuery("Update Filter Results",tagQuery, "UCF Query Error", replyLabel, true, true);
+            var result = await TryQuery(tagQuery, "UCF Query Error", replyLabel, true, true);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN("Update Filter Results",vnItems.Select(x => x.ID).ToList(), replyLabel, true);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyLabel, true);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery("Update Filter Results",moreTagQuery, "UCFM Query Error", replyLabel, true, true);
+                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyLabel, true, true);
                 if (!moreResult) return;
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await GetMultipleVN("Update Filter Results",moreVNItems.Select(x => x.ID).ToList(), replyLabel, true);
+                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyLabel, true);
                 moreResults = moreVNRoot.More;
             }
-            ReloadLists();
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
             ApplyListFilters();
             WriteText(replyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
         }
@@ -305,7 +305,7 @@ namespace Happy_Search
                     DisplayFilterTags();
                     break;
             }
-            RefreshVNList();
+            LoadVNListToGui();
         }
 
         /// <summary>
@@ -374,7 +374,8 @@ namespace Happy_Search
 
 
         /// <summary>
-        ///     Display ten most common tags in the current list. Takes time when list contains over 9000 titles.
+        /// Display ten most common tags in the current list. Takes time when list contains over 9000 titles.
+        /// If called by checkbox objects, it syncs all checkboxes to recently changed.
         /// </summary>
         internal void DisplayCommonTags(object sender, EventArgs e)
         {

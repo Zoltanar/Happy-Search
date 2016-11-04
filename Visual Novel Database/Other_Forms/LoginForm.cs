@@ -42,6 +42,7 @@ you will also need to enter your Username and Password";
                 replyLabel.Text = Resources.userid_only_numbers;
                 return;
             }
+            _parentForm.CurrentFeatureName = "Login";
             _parentForm.UserID = userID;
             Settings.Default.URTUpdate = DateTime.MinValue;
             rememberBox.Checked = false;
@@ -54,7 +55,6 @@ you will also need to enter your Username and Password";
                 _parentForm.Conn.Open();
                 if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
                 {
-                    _parentForm.ChangeAPIStatus(_parentForm.Conn.Status, "Login");
                     DialogResult = DialogResult.OK;
                     return;
                 }
@@ -81,6 +81,7 @@ you will also need to enter your Username and Password";
                 replyLabel.Text = Resources.userid_only_numbers;
                 return;
             }
+            _parentForm.CurrentFeatureName = "Login with credentials";
             var username = UsernameBox.Text;
             char[] password = PasswordBox.Text.ToCharArray();
             var m = new Regex(@"[a-z0-9]+");
@@ -103,7 +104,6 @@ you will also need to enter your Username and Password";
             _parentForm.Conn.Open();
             if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
             {
-                _parentForm.ChangeAPIStatus(_parentForm.Conn.Status,"Login with Credentials");
                 DialogResult = DialogResult.OK;
                 return;
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -15,10 +16,10 @@ namespace Happy_Search
     /// </summary>
     public class ListedVN
     {
-        internal static string[] StatusUL = {"Unknown", "Playing", "Finished", "Stalled", "Dropped"};
-        internal static string[] PriorityWL = {"High", "Medium", "Low", "Blacklist"};
+        internal static readonly string[] StatusUL = {"Unknown", "Playing", "Finished", "Stalled", "Dropped"};
+        internal static readonly string[] PriorityWL = {"High", "Medium", "Low", "Blacklist"};
 
-        internal static string[] LengthTime =
+        internal static readonly string[] LengthTime =
         {
             "", "Very short (< 2 hours)", "Short (2 - 10 hours)",
             "Medium (10 - 30 hours)", "Long (30 - 50 hours)", "Very long(> 50 hours)"
@@ -500,7 +501,7 @@ namespace Happy_Search
             g.TextRenderingHint = ObjectListView.TextRenderingHint;
 
             _borderPen = e.Item.Selected ? Pens.Blue : new Pen(Color.FromArgb(0x33, 0x33, 0x33));
-            DrawVNTile(g, itemBounds, rowObject, olv, (OLVListItem)e.Item);
+            DrawVNTile(g, itemBounds, rowObject, olv);
 
             // Finally render the buffered graphics
             buffered.Render();
@@ -517,9 +518,7 @@ namespace Happy_Search
         /// <param name="itemBounds">The bounds of the item</param>
         /// <param name="rowObject">The model object to be drawn</param>
         /// <param name="olv">OLV where tile is drawn.</param>
-        /// <param name="item">OLV Item</param>
-        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv,
-            OLVListItem item)
+        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv)
         {
             Brush textBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
             var backBrush = Brushes.LightBlue;
@@ -675,6 +674,7 @@ namespace Happy_Search
         /// <param name="maxWidth">Maximum width</param>
         /// <param name="maxHeight">Maximum height</param>
         /// <returns>Scaled image</returns>
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public static Image ScaleImage(Image image, int maxWidth, int maxHeight)
         {
             var ratioX = (double)maxWidth / image.Width;

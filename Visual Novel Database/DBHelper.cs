@@ -36,13 +36,13 @@ namespace Happy_Search
 
         #region Set Methods
         
-        private const bool PrintSetMethods = false;
+        private const bool PrintSetMethods = true;
 
         public void AddNoteToVN(int vnid, string note, int userID)
         {
             var noteString = Regex.Replace(note, "'", "''");
             var insertString =
-                $"UPDATE userlist SET ULNote = '{noteString}' WHERE VNID = {vnid};";
+                $"UPDATE userlist SET ULNote = '{noteString}' WHERE VNID = {vnid} AND UserID = {userID};";
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
         }
@@ -166,6 +166,10 @@ namespace Happy_Search
             }
         }
 
+        /// <summary>
+        /// Insert or Replace Producer into producerlist.
+        /// </summary>
+        /// <param name="producer">The producer to be inserted</param>
         public void InsertProducer(ListedProducer producer)
         {
             var name = Regex.Replace(producer.Name, "'", "''");
@@ -228,7 +232,7 @@ namespace Happy_Search
                 $"{item.Vote}," +
                 $"{item.Added});";
             var command = new SQLiteCommand(commandString, DbConn);
-            LogToFile(commandString);
+            if (PrintSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -277,7 +281,7 @@ namespace Happy_Search
 
         #region Get Methods
 
-        private const bool PrintGetMethods = false;
+        private const bool PrintGetMethods = true;
 
         public List<int> GetUnfetchedUserRelatedTitles(int userid)
         {
@@ -302,21 +306,7 @@ namespace Happy_Search
             while (reader.Read()) vn = GetListedVN(reader);
             return vn;
         }
-
-        public string GetProducerName(int producerid)
-        {
-            var returnString = "N/A";
-            var selectString = $"SELECT Name FROM producerlist WHERE ProducerID={producerid};";
-            var command = new SQLiteCommand(selectString, DbConn);
-            var reader = command.ExecuteReader();
-            while (
-                reader.Read())
-            {
-                returnString = reader["Name"].ToString();
-            }
-            return returnString;
-        }
-
+        
         public List<ListedProducer> GetAllProducers()
         {
             var list = new List<ListedProducer>();
@@ -330,17 +320,6 @@ namespace Happy_Search
             }
             return list;
         }
-
-        public List<int> GetProducerIDsForUser(int userid)
-        {
-            var producerIDList = new List<int>();
-            var selectString = $"SELECT ProducerID FROM userprodlist WHERE UserID={userid};";
-            var command = new SQLiteCommand(selectString, DbConn);
-            var reader = command.ExecuteReader();
-            while (reader.Read()) producerIDList.Add(DbInt(reader["ProducerID"]));
-            return producerIDList;
-        }
-
         public List<ListedProducer> GetFavoriteProducersForUser(int userid)
         {
             var readerList = new List<ListedProducer>();
@@ -351,18 +330,7 @@ namespace Happy_Search
             while (reader.Read()) readerList.Add(GetFavoriteProducer(reader));
             return readerList;
         }
-
-        public List<int> GetUserRelatedIDs(int userid)
-        {
-            var readerList = new List<int>();
-            var selectString = $"SELECT VNID FROM userlist WHERE UserID = {userid};";
-            if (PrintGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
-            var reader = command.ExecuteReader();
-            while (reader.Read()) readerList.Add(DbInt(reader["VNID"]));
-            return readerList;
-        }
-
+        
         public List<ListedVN> GetUserRelatedTitles(int userid)
         {
             var readerList = new List<ListedVN>();
@@ -415,17 +383,7 @@ namespace Happy_Search
             while (reader.Read()) readerList.Add(GetListedVN(reader));
             return readerList;
         }
-
-        public List<int> GetNotFetchedTitlesByProducerID(int producerid)
-        {
-            var idList = new List<int>();
-            var selectIDsString = $"SELECT VNID FROM vnlist WHERE ProducerID={producerid} AND Title IS NULL;";
-            var command = new SQLiteCommand(selectIDsString, DbConn);
-            var reader = command.ExecuteReader();
-            while (reader.Read()) idList.Add(DbInt(reader["VNID"]));
-            return idList;
-        }
-
+        
         #endregion
 
         #region Other
@@ -488,19 +446,39 @@ namespace Happy_Search
                 DbDouble(reader["UserAverageVote"]),
                 DbInt(reader["UserDropRate"]));
         }
-
+        
         public void Open()
         {
             if (DbConn.State == ConnectionState.Closed)
             {
                 DbConn.Open();
+                LogToFile("Opened Database");
             }
-            else LogToFile("Tried to open database, it was already opened.");
+            else
+            {
+                LogToFile("Tried to open database, it was already opened.");
+            }
         }
 
         public void Close()
         {
             DbConn.Close();
+            LogToFile("Closed Database");
+        }
+
+        private SQLiteTransaction _transaction;
+        public void BeginTransaction()
+        {
+            Open();
+            _transaction = DbConn.BeginTransaction();
+        }
+
+
+        public void EndTransaction()
+        {
+            _transaction.Commit();
+            _transaction = null;
+            Close();
         }
 
         public int DbInt(object dbObject)
@@ -523,11 +501,11 @@ namespace Happy_Search
             return !DateTime.TryParse(dbObject.ToString(), out upDateTime) ? DateTime.MinValue : upDateTime;
         }
         
-        private static void InitDatabase()
+        private void InitDatabase()
         {
             if (File.Exists(DbFile)) return;
             SQLiteConnection.CreateFile(DbFile);
-            DbConn.Open();
+            BeginTransaction();
             //must be in this order
             CreateProducerListTable();
             CreateVNListTable();
@@ -535,7 +513,7 @@ namespace Happy_Search
             CreateUserlistTable();
             CreateUserProdListTable();
             CreateTriggers();
-            DbConn.Close();
+            EndTransaction();
         }
 
         private static void CreateVNListTable()

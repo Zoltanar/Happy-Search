@@ -64,7 +64,8 @@ namespace Happy_Search
             this.label16 = new System.Windows.Forms.Label();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.advancedCheckBox = new System.Windows.Forms.CheckBox();
+            this.sendQueryButton = new System.Windows.Forms.Button();
             this.serverR = new System.Windows.Forms.RichTextBox();
             this.logReplyLabel = new System.Windows.Forms.Label();
             this.clearLogButton = new System.Windows.Forms.Button();
@@ -574,7 +575,8 @@ namespace Happy_Search
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox3.BackColor = System.Drawing.Color.Transparent;
-            this.groupBox3.Controls.Add(this.button1);
+            this.groupBox3.Controls.Add(this.advancedCheckBox);
+            this.groupBox3.Controls.Add(this.sendQueryButton);
             this.groupBox3.Controls.Add(this.serverR);
             this.groupBox3.Controls.Add(this.logReplyLabel);
             this.groupBox3.Controls.Add(this.clearLogButton);
@@ -590,20 +592,32 @@ namespace Happy_Search
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Log";
             // 
-            // button1
+            // advancedCheckBox
             // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button1.BackColor = System.Drawing.Color.SteelBlue;
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.button1.Location = new System.Drawing.Point(297, 102);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(41, 23);
-            this.button1.TabIndex = 40;
-            this.button1.Text = "Send";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.LogQuestion);
+            this.advancedCheckBox.AutoSize = true;
+            this.advancedCheckBox.Location = new System.Drawing.Point(233, 535);
+            this.advancedCheckBox.Name = "advancedCheckBox";
+            this.advancedCheckBox.Size = new System.Drawing.Size(105, 17);
+            this.advancedCheckBox.TabIndex = 41;
+            this.advancedCheckBox.Text = "Advanced Mode";
+            this.advancedCheckBox.UseVisualStyleBackColor = true;
+            this.advancedCheckBox.CheckedChanged += new System.EventHandler(this.ToggleAdvancedMode);
+            // 
+            // sendQueryButton
+            // 
+            this.sendQueryButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.sendQueryButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.sendQueryButton.Enabled = false;
+            this.sendQueryButton.FlatAppearance.BorderSize = 0;
+            this.sendQueryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.sendQueryButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.sendQueryButton.Location = new System.Drawing.Point(297, 102);
+            this.sendQueryButton.Name = "sendQueryButton";
+            this.sendQueryButton.Size = new System.Drawing.Size(41, 23);
+            this.sendQueryButton.TabIndex = 40;
+            this.sendQueryButton.Text = "Send";
+            this.sendQueryButton.UseVisualStyleBackColor = false;
+            this.sendQueryButton.Click += new System.EventHandler(this.LogQuestion);
             // 
             // serverR
             // 
@@ -611,13 +625,14 @@ namespace Happy_Search
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.serverR.BackColor = System.Drawing.SystemColors.InfoText;
+            this.serverR.Enabled = false;
             this.serverR.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.serverR.ForeColor = System.Drawing.SystemColors.Info;
             this.serverR.Location = new System.Drawing.Point(344, 32);
             this.serverR.Name = "serverR";
             this.serverR.Size = new System.Drawing.Size(1044, 522);
             this.serverR.TabIndex = 39;
-            this.serverR.Text = "";
+            this.serverR.Text = "(Advanced Mode Disabled)";
             // 
             // logReplyLabel
             // 
@@ -632,6 +647,7 @@ namespace Happy_Search
             // 
             this.clearLogButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.clearLogButton.BackColor = System.Drawing.Color.MistyRose;
+            this.clearLogButton.Enabled = false;
             this.clearLogButton.FlatAppearance.BorderSize = 0;
             this.clearLogButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.clearLogButton.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -648,13 +664,14 @@ namespace Happy_Search
             this.serverQ.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.serverQ.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
+            this.serverQ.Enabled = false;
             this.serverQ.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.serverQ.ForeColor = System.Drawing.SystemColors.Info;
             this.serverQ.Location = new System.Drawing.Point(4, 131);
             this.serverQ.Name = "serverQ";
             this.serverQ.Size = new System.Drawing.Size(334, 394);
             this.serverQ.TabIndex = 36;
-            this.serverQ.Text = "";
+            this.serverQ.Text = "(Advanced Mode Disabled)";
             // 
             // logQueryLabel
             // 
@@ -677,13 +694,14 @@ namespace Happy_Search
             // questionBox
             // 
             this.questionBox.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.questionBox.Enabled = false;
             this.questionBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.questionBox.ForeColor = System.Drawing.SystemColors.InfoText;
             this.questionBox.Location = new System.Drawing.Point(4, 32);
             this.questionBox.Name = "questionBox";
             this.questionBox.Size = new System.Drawing.Size(334, 64);
             this.questionBox.TabIndex = 33;
-            this.questionBox.Text = "";
+            this.questionBox.Text = "(Advanced Mode Disabled)";
             // 
             // statBox
             // 
@@ -1911,9 +1929,9 @@ namespace Happy_Search
             // 
             this.statusLabel.BackColor = System.Drawing.Color.Gray;
             this.statusLabel.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.statusLabel.Location = new System.Drawing.Point(6, 337);
+            this.statusLabel.Location = new System.Drawing.Point(6, 334);
             this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Size = new System.Drawing.Size(152, 24);
+            this.statusLabel.Size = new System.Drawing.Size(152, 30);
             this.statusLabel.TabIndex = 80;
             this.statusLabel.Text = "(statusLabel)";
             this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -2453,6 +2471,7 @@ namespace Happy_Search
             this.MinimumSize = new System.Drawing.Size(1280, 720);
             this.Name = "FormMain";
             this.Text = "Happy Search";
+            this.Load += new System.EventHandler(this.OnLoadRoutines);
             this.infoTab.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
@@ -2674,7 +2693,8 @@ namespace Happy_Search
         private ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
         private TextBox groupListBox;
         private Label label16;
-        private Button button1;
+        private Button sendQueryButton;
+        private CheckBox advancedCheckBox;
     }
 }
 

@@ -57,11 +57,12 @@ namespace Happy_Search
         private const string TagsJson = "Stored Data\\tags.json";
         private const string TraitsJson = "Stored Data\\traits.json";
 #endif
+
         #endregion
 
         //constants / definables
         internal const string ClientName = "Happy Search";
-        internal const string ClientVersion = "1.3.8";
+        internal const string ClientVersion = "1.4.0";
         internal const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         internal static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -138,9 +139,13 @@ namespace Happy_Search
                 checkBox9.Visible = false;
                 checkBox10.Visible = false;
                 tileOLV.ItemRenderer = new VNTileRenderer();
+#if DEBUG
+                Directory.CreateDirectory("..\\Release\\Stored Data");
+#else
                 Directory.CreateDirectory("Stored Data");
+#endif
                 File.Create(LogFile).Close();
-                aboutTextBox.Text =$@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
+                aboutTextBox.Text = $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
 VNDB API Client for filtering/organizing and finding visual novels.
 Created by Zolty, visit the project at {ProjectURL}
 
@@ -185,7 +190,8 @@ https://github.com/FredTheBarber/VndbClient";
                 var tagSource = new AutoCompleteStringCollection();
                 tagSource.AddRange(PlainTags.Select(v => v.Name).ToArray());
                 tagSearchBox.AutoCompleteCustomSource = tagSource;
-                string[] traitRootNames = PlainTraits.Where(x => x.TopmostParentName == null).Select(x => x.Name).ToArray();
+                string[] traitRootNames =
+                    PlainTraits.Where(x => x.TopmostParentName == null).Select(x => x.Name).ToArray();
                 traitRootsDropdown.Items.Clear();
                 foreach (var rootName in traitRootNames)
                 {
@@ -205,7 +211,7 @@ https://github.com/FredTheBarber/VndbClient";
                 CharacterList = DBConn.GetAllCharacters();
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
-                LoadFavoriteProducerList();
+                LoadFPListToGui();
                 LogToFile("VN Items= " + _vnList.Count);
                 LogToFile("Producers= " + _producerList.Count);
                 LogToFile("Characters= " + CharacterList.Count);
@@ -245,28 +251,31 @@ https://github.com/FredTheBarber/VndbClient";
                 ApplyListFilters();
             }
             //this seems to stop DisconnectedContext errors.
-            {
+            /*{
                 LogToFile("Start waiting 1500 ms");
                 Thread.Sleep(1500);
                 LogToFile("Done waiting 1500 ms");
-            }
+            }*/
+            SplashScreen.CloseForm();
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+        }
+
+
+        private async void OnLoadRoutines(object sender, EventArgs e)
+        {
             InitAPIConnection();
-            SplashScreen.SetStatus("Loading DBStats...");
             {
-                LogToFile(
-                    $"dbstats Update = {Settings.Default.DBStatsUpdate}, days since = {DaysSince(Settings.Default.DBStatsUpdate)}");
-                if (DaysSince(Settings.Default.DBStatsUpdate) > 2 || DaysSince(Settings.Default.DBStatsUpdate) == -1)
-                    GetNewDBStats();
+                LogToFile($"dbstats Update = {Settings.Default.DBStatsUpdate}, days since = {DaysSince(Settings.Default.DBStatsUpdate)}");
+                if (DaysSince(Settings.Default.DBStatsUpdate) > 2 || DaysSince(Settings.Default.DBStatsUpdate) == -1) GetNewDBStats();
                 else LoadDBStats();
             }
-            SplashScreen.CloseForm();
             if (!Settings.Default.AutoUpdateURT || UserID <= 0) return;
             LogToFile("Checking if URT Update is due...");
             LogToFile($"URTUpdate= {Settings.Default.URTUpdate}, days since = {DaysSince(Settings.Default.URTUpdate)}");
             if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
             {
                 LogToFile("Updating User Related Titles...");
-                Task.Run(() => UpdateURT("Auto-Update URT"));
+                await UpdateURT("Auto-Update URT");
                 Settings.Default.URTUpdate = DateTime.UtcNow;
                 Settings.Default.Save();
             }
@@ -274,7 +283,6 @@ https://github.com/FredTheBarber/VndbClient";
             {
                 LogToFile("Update not needed.");
             }
-            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         }
 
         private void InitAPIConnection()
@@ -282,9 +290,10 @@ https://github.com/FredTheBarber/VndbClient";
             SplashScreen.SetStatus("Logging into VNDB API...");
             {
                 Conn.Open();
+                CurrentFeatureName = "Open";
                 if (Conn.Status == VndbConnection.APIStatus.Error)
                 {
-                    ChangeAPIStatus(Conn.Status,"Open");
+                    ChangeAPIStatus(Conn.Status);
                     return;
                 }
                 //login with credentials if setting is enabled and credentials exist, otherwise login without credentials
@@ -308,16 +317,17 @@ https://github.com/FredTheBarber/VndbClient";
         /// <summary>
         ///     Load Login Form for user to log in.
         /// </summary>
-        private void LogInDialog(object sender, EventArgs e)
+        private async void LogInDialog(object sender, EventArgs e)
         {
             DialogResult = new LoginForm(this).ShowDialog();
+            ChangeAPIStatus(Conn.Status);
             if (DialogResult != DialogResult.OK) return;
             Settings.Default.UserID = UserID;
             Settings.Default.Save();
             UpdateUserStats();
-            ReloadLists();
-            RefreshVNList();
-            LoadFavoriteProducerList();
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            LoadFPListToGui();
         }
 
         private void OnProcessExit(object sender, EventArgs e)
@@ -333,7 +343,7 @@ https://github.com/FredTheBarber/VndbClient";
         /// <summary>
         ///     Update titles to include all fields in latest version of Happy Search.
         /// </summary>
-        private async void GetOldVNStatsClick(string featureName)
+        private async Task GetOldVNStatsClick()
         {
             //popularity, rating and votecount were added, check for votecount
             int[] titlesWithoutStats = _vnList.Where(x => Math.Abs(x.Popularity) < 0.001).Select(x => x.VNID).ToArray();
@@ -349,11 +359,14 @@ https://github.com/FredTheBarber/VndbClient";
 {oldCount} need to be updated, if this is over 6000 it may take a while, are you sure?",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            await GetOldVNStats(featureName, titlesWithoutStats);
-            ReloadLists();
-            RefreshVNList();
-            LoadFavoriteProducerList();
+            var result = StartQuery(userListReply, "Get Old VN Stats");
+            if (!result) return;
+            await GetOldVNStats(titlesWithoutStats);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            LoadFPListToGui();
             WriteText(userListReply, $"Got stats for {_vnsAdded} titles.");
+            ChangeAPIStatus(Conn.Status);
         }
 
         /// <summary>
@@ -365,13 +378,29 @@ https://github.com/FredTheBarber/VndbClient";
             DBConn.Open();
             IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(UserID).Select(x => x.Name);
             DBConn.Close();
-            var tier1Titles = _vnList.Where(x => x.UpdatedDate > 7 && x.ReleasedBetweenNowAnd(DateTime.UtcNow.AddMonths(-6))).ToArray();
-            var tier2Titles = _vnList.Where(x => x.UpdatedDate > 14 && x.ReleasedBetween(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow.AddMonths(-6))).ToArray();
-            var tier3Titles = _vnList.Where(x => x.UpdatedDate > 28 && x.ReleasedBetween(DateTime.UtcNow.AddYears(-2), DateTime.UtcNow.AddYears(-1))).ToArray();
-            var tier4Titles = _vnList.Where(x => x.UpdatedDate > 56 && x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).ToArray();
-            var titlesToUpdate = tier1Titles.Concat(tier2Titles).Concat(tier3Titles).Concat(tier4Titles).Select(x => x.VNID);
+            var tier1Titles =
+                _vnList.Where(x => x.UpdatedDate > 7 && x.ReleasedBetweenNowAnd(DateTime.UtcNow.AddMonths(-6)))
+                    .ToArray();
+            var tier2Titles =
+                _vnList.Where(
+                    x =>
+                        x.UpdatedDate > 14 &&
+                        x.ReleasedBetween(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow.AddMonths(-6))).ToArray();
+            var tier3Titles =
+                _vnList.Where(
+                    x =>
+                        x.UpdatedDate > 28 &&
+                        x.ReleasedBetween(DateTime.UtcNow.AddYears(-2), DateTime.UtcNow.AddYears(-1))).ToArray();
+            var tier4Titles =
+                _vnList.Where(
+                    x =>
+                        x.UpdatedDate > 56 &&
+                        x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).ToArray();
+            var titlesToUpdate =
+                tier1Titles.Concat(tier2Titles).Concat(tier3Titles).Concat(tier4Titles).Select(x => x.VNID);
             //update title data - put vns in tiers by date of release eg[under 6 months old = 7 days] [6 months to a year = 14 days][1-2 year = 28 days][2+ years = 56 days]
-            int[] favProTitles = _vnList.Where(x => x.UpdatedDate > 7 && favProList.Contains(x.Producer)).Select(x => x.VNID).ToArray();
+            int[] favProTitles =
+                _vnList.Where(x => x.UpdatedDate > 7 && favProList.Contains(x.Producer)).Select(x => x.VNID).ToArray();
             int[] listOfTitlesToUpdate = titlesToUpdate.Concat(favProTitles).Distinct().ToArray();
             var messageBox =
                 MessageBox.Show(
@@ -384,10 +413,13 @@ https://github.com/FredTheBarber/VndbClient";
 ",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            await UpdateTitleData("Update Title Data", listOfTitlesToUpdate);
-            ReloadLists();
-            RefreshVNList();
+            var result = StartQuery(userListReply, "Update Title Data");
+            if (!result) return;
+            await UpdateTitleData(listOfTitlesToUpdate);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
             WriteText(userListReply, $"Updated data on {_vnsAdded} titles.");
+            ChangeAPIStatus(Conn.Status);
         }
 
 
@@ -438,33 +470,32 @@ https://github.com/FredTheBarber/VndbClient";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
-        private void OtherMethodChosen(object sender, EventArgs e)
+        private async void OtherMethodChosen(object sender, EventArgs e)
         {
             switch (otherMethodsCB.SelectedIndex)
             {
                 case 1:
                     break;
                 case 2:
-                    GetOldVNStatsClick("Get Old VN Stats");
+                    await GetOldVNStatsClick();
                     break;
                 case 3:
-                    GetAllCharacterData("Get All Char Data");
+                    await GetAllCharacterData();
                     break;
                 case 4:
-                    GetAllMissingImages();
+                    await GetAllMissingImages();
                     break;
                 default:
                     return;
             }
-
             otherMethodsCB.SelectedIndex = 0;
         }
 
-        private async void GetAllMissingImages()
+        private async Task GetAllMissingImages()
         {
             IEnumerable<ListedVN> vnsWithImages = _vnList.Where(x => !x.ImageURL.Equals(""));
             ListedVN[] vnsMissingImages = (from vn in vnsWithImages
-                                           let photoFile = string.Format($"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}")
+                                           let photoFile = String.Format($"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}")
                                            where !File.Exists(photoFile)
                                            select vn).ToArray();
             const int averageImageSizeBytes = 37 * 1024;
@@ -477,12 +508,12 @@ https://github.com/FredTheBarber/VndbClient";
                 return;
             }
             var messageBox =
-                   MessageBox.Show(
-                       $@"There are {missingCount} titles in your local database missing their cover image.
+                MessageBox.Show(
+                    $@"There are {missingCount} titles in your local database missing their cover image.
 Do you wish to download all missing cover images?
 This can useful if you modify or replace your local database file without modifying your saved cover images folder.
 The total download size is estimated to be {estimatedSizeString} ~ {doubleEstimatedSizeString}.",
-                       Resources.are_you_sure, MessageBoxButtons.YesNo);
+                    Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             foreach (var vn in vnsMissingImages)
             {
@@ -491,20 +522,22 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
             WriteText(userListReply, "Finished getting missing cover images.");
         }
 
-        private async void GetAllCharacterData(string featureName)
+        private async Task GetAllCharacterData()
         {
-            ReloadLists();
             var messageBox2 =
-                   MessageBox.Show(
-                       @"Do you wish to get character data about all VNs?
+                MessageBox.Show(
+                    @"Do you wish to get character data about all VNs?
 You only need to this once and only if you used Happy Search prior to version 1.3
 This will take a long time if you have a lot of titles in your local database.",
-                       Resources.are_you_sure, MessageBoxButtons.YesNo);
+                    Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox2 != DialogResult.Yes) return;
-            await GetCharactersForMultipleVN(featureName, _vnList.Select(x => x.VNID).ToArray(), userListReply);
-            ReloadLists();
-            RefreshVNList();
+            var result = StartQuery(userListReply, "Get All Char Data");
+            if (!result) return;
+            await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToArray(), userListReply);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
             WriteText(userListReply, "Finished getting characters for all titles.");
+            ChangeAPIStatus(Conn.Status);
         }
 
         #endregion
@@ -515,8 +548,6 @@ This will take a long time if you have a lot of titles in your local database.",
         /// <summary>
         ///     Get user's userlist, wishlist and votelist from VNDB.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private async void UpdateURTButtonClick(object sender, EventArgs e)
         {
             if (UserID < 1)
@@ -545,43 +576,53 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async Task UpdateURT(string featureName)
         {
             if (UserID < 1) return;
-            if (Conn.Status != VndbConnection.APIStatus.Ready)
-            {
-                WriteError(userListReply, "API Connection isn't ready.");
-                return;
-            }
+            var result = StartQuery(userListReply, featureName);
+            if (!result) return;
             LogToFile($"Starting GetUserRelatedTitles for {UserID}, previously had {URTList.Count} titles.");
-            ReloadLists();
             List<int> userIDList = URTList.Select(x => x.VNID).ToList();
-            userIDList = await GetUserList(featureName, userIDList);
-            userIDList = await GetWishList(featureName, userIDList);
-            await GetVoteList(featureName, userIDList);
-            await GetRemainingTitles(featureName);
+            userIDList = await GetUserList(userIDList);
+            //
+            if (userIDList.Contains(0))
+            {
+                LogToFile($"VN of ID 0 found in {featureName}, GetUserList for {UserID}");
+            }
+            //
+            userIDList = await GetWishList(userIDList);
+            if (userIDList.Contains(0))
+            {
+                LogToFile($"VN of ID 0 found in {featureName}, GetWishList for {UserID}");
+            }
+            await GetVoteList(userIDList);
+            if (userIDList.Contains(0))
+            {
+                LogToFile($"VN of ID 0 found in {featureName}, GetVoteList for {UserID}");
+            }
+            await GetRemainingTitles();
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(UserID);
             DBConn.Close();
             SetFavoriteProducersData();
-            ReloadLists();
-            LoadFavoriteProducerList();
-            RefreshVNList();
+            await ReloadListsFromDbAsync();
+            LoadFPListToGui();
+            LoadVNListToGui();
             UpdateUserStats();
             if (URTList.Count > 0) WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
             else WriteError(userListReply, Resources.no_results, true);
+            ChangeAPIStatus(Conn.Status);
         }
 
 
         /// <summary>
         ///     Get user's userlist from VNDB, add titles that aren't in local db already.
         /// </summary>
-        /// <param name="featureName">User-read name of function that called this function.</param>
         /// <param name="userIDList">list of title IDs (avoids duplicate fetching)</param>
         /// <returns>list of title IDs (avoids duplicate fetching)</returns>
-        private async Task<List<int>> GetUserList(string featureName,List<int> userIDList)
+        private async Task<List<int>> GetUserList(List<int> userIDList)
         {
             LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
-            var result = await TryQuery(featureName,userListQuery, Resources.gul_query_error, userListReply);
+            var result = await TryQuery(userListQuery, Resources.gul_query_error, userListReply);
             if (!result) return userIDList;
             var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
             if (ulRoot.Num == 0) return userIDList;
@@ -592,27 +633,27 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string userListQuery2 = $"get vnlist basic (uid = {UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(featureName, userListQuery2, Resources.gul_query_error, userListReply);
+                var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error, userListReply);
                 if (!moreResult) return userIDList;
                 var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
                 ulList.AddRange(ulMoreRoot.Items);
                 moreResults = ulMoreRoot.More;
             }
-            DBConn.Open();
+            DBConn.BeginTransaction();
             foreach (var item in ulList)
             {
                 DBConn.UpsertUserList(UserID, item);
                 if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
             }
-            DBConn.Close();
+            DBConn.EndTransaction();
             return userIDList;
         }
 
-        private async Task<List<int>> GetWishList(string featureName, List<int> userIDList)
+        private async Task<List<int>> GetWishList(List<int> userIDList)
         {
             LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {UserID} ) {{\"results\":100}}";
-            var result = await TryQuery(featureName, wishListQuery, Resources.gwl_query_error, userListReply);
+            var result = await TryQuery(wishListQuery, Resources.gwl_query_error, userListReply);
             if (!result) return userIDList;
             var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
             if (wlRoot.Num == 0) return userIDList;
@@ -623,27 +664,30 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string wishListQuery2 = $"get wishlist basic (uid = {UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(featureName, wishListQuery2, Resources.gwl_query_error, userListReply);
+                var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error, userListReply);
                 if (!moreResult) return userIDList;
                 var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
                 wlList.AddRange(wlMoreRoot.Items);
                 moreResults = wlMoreRoot.More;
             }
-            DBConn.Open();
-            foreach (var item in wlList)
+            await Task.Run(() =>
             {
-                DBConn.UpsertWishList(UserID, item);
-                if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
-            }
-            DBConn.Close();
+                DBConn.BeginTransaction();
+                foreach (var item in wlList)
+                {
+                    DBConn.UpsertWishList(UserID, item);
+                    if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
+                }
+                DBConn.EndTransaction();
+            });
             return userIDList;
         }
 
-        private async Task<List<int>> GetVoteList(string featureName, List<int> userIDList)
+        private async Task<List<int>> GetVoteList(List<int> userIDList)
         {
             LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {UserID} ) {{\"results\":100}}";
-            var result = await TryQuery(featureName, voteListQuery, Resources.gvl_query_error, userListReply);
+            var result = await TryQuery(voteListQuery, Resources.gvl_query_error, userListReply);
             if (!result) return userIDList;
             var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
             if (vlRoot.Num == 0) return userIDList;
@@ -654,32 +698,38 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string voteListQuery2 = $"get votelist basic (uid = {UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(featureName, voteListQuery2, Resources.gvl_query_error, userListReply);
+                var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error, userListReply);
                 if (!moreResult) return userIDList;
                 var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
                 vlList.AddRange(vlMoreRoot.Items);
                 moreResults = vlMoreRoot.More;
             }
-            DBConn.Open();
-            foreach (var item in vlList)
+            await Task.Run(() =>
             {
-                DBConn.UpsertVoteList(UserID, item);
-                if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
-            }
-            DBConn.Close();
+                DBConn.BeginTransaction();
+                foreach (var item in vlList)
+                {
+                    DBConn.UpsertVoteList(UserID, item);
+                    if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
+                }
+                DBConn.EndTransaction();
+            });
             return userIDList;
         }
 
-        private async Task GetRemainingTitles(string featureName)
+        private async Task GetRemainingTitles()
         {
-            LogToFile("Starting GetRemainingTitles");
-            DBConn.Open();
-            List<int> unfetchedTitles = DBConn.GetUnfetchedUserRelatedTitles(UserID);
-            DBConn.Close();
-            if (!unfetchedTitles.Any()) return;
-            await GetMultipleVN(featureName, unfetchedTitles, userListReply, true);
-            WriteText(userListReply, Resources.updated_urt);
-            ReloadLists();
+            List<int> unfetchedTitles = null;
+            await Task.Run(() =>
+            {
+                LogToFile("Starting GetRemainingTitles");
+                DBConn.Open();
+                unfetchedTitles = DBConn.GetUnfetchedUserRelatedTitles(UserID);
+                DBConn.Close();
+            });
+            if (unfetchedTitles == null || !unfetchedTitles.Any()) return;
+            await GetMultipleVN(unfetchedTitles, userListReply, true);
+            await ReloadListsFromDbAsync();
         }
 
         private void UpdateUserStats()
@@ -738,14 +788,43 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// Print message to Debug and write it to log file.
         /// </summary>
         /// <param name="message">Message to be written</param>
-        public static void LogToFile(string message)
+        internal static void LogToFile(string message)
         {
             Debug.Print(message);
+            while (IsFileLocked(new FileInfo(LogFile)))
+            {
+                Thread.Sleep(25);
+            }
             using (var writer = new StreamWriter(LogFile, true))
             {
                 writer.WriteLine(message);
             }
         }
+
+        /// <summary>
+        /// Check if file is locked,
+        /// </summary>
+        /// <param name="file">File to be checked</param>
+        /// <returns>Whether file is locked</returns>
+        public static bool IsFileLocked(FileInfo file)
+        {
+            FileStream stream = null;
+
+            try
+            {
+                stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            finally
+            {
+                stream?.Close();
+            }
+            return false;
+        }
+
         /// <summary>
         /// Print exception to Debug and write it to log file.
         /// </summary>
@@ -764,14 +843,17 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Loads lists from local database.
         /// </summary>
-        private void ReloadLists()
+        private async Task ReloadListsFromDbAsync()
         {
-            DBConn.Open();
-            _vnList = DBConn.GetAllTitles(UserID);
-            _producerList = DBConn.GetAllProducers();
-            CharacterList = DBConn.GetAllCharacters();
-            URTList = DBConn.GetUserRelatedTitles(UserID);
-            DBConn.Close();
+            await Task.Run(() =>
+            {
+                DBConn.Open();
+                _vnList = DBConn.GetAllTitles(UserID);
+                _producerList = DBConn.GetAllProducers();
+                CharacterList = DBConn.GetAllCharacters();
+                URTList = DBConn.GetUserRelatedTitles(UserID);
+                DBConn.Close();
+            });
         }
 
         /// <summary>
@@ -834,13 +916,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Saves a VN's cover image (unless it already exists)
         /// </summary>
-        /// <param name="vn"></param>
-        private static void SaveImage(VNItem vn)
+        /// <param name="vn">VN whose image is to be saved</param>
+        /// <param name="update">Get new image regardless of whether one already exists?</param>
+        internal static void SaveImage(VNItem vn, bool update = false)
         {
             if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.Image == null || vn.Image.Equals("")) return;
             string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
-            if (File.Exists(imageLocation)) return;
+            if (File.Exists(imageLocation) && update == false) return;
             LogToFile($"Start downloading cover image for {vn}");
             try
             {
@@ -866,7 +949,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         ///     Saves a title's cover image (unless it already exists)
         /// </summary>
         /// <param name="vn">Title</param>
-        private static async Task SaveImageAsync(ListedVN vn)
+        private async Task SaveImageAsync(ListedVN vn)
         {
             if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.ImageURL == null || vn.ImageURL.Equals("")) return;
@@ -1050,7 +1133,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         /// <param name="date">Date to be checked</param>
         /// <returns>Whether date is in the future</returns>
-        private static bool IsUnreleased(string date)
+        private bool IsUnreleased(string date)
         {
             return StringToDate(date) > DateTime.UtcNow;
         }
@@ -1063,8 +1146,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
         public static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
-            int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
+            if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
+            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
             if (dateRegex.IsMatch(date))
@@ -1123,7 +1206,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         /// <param name="fileToDecompress">File to Decompress</param>
         /// <param name="outputFile">Output File</param>
-        public static void GZipDecompress(string fileToDecompress, string outputFile)
+        public void GZipDecompress(string fileToDecompress, string outputFile)
         {
             using (var originalFileStream = File.OpenRead(fileToDecompress))
             {
@@ -1159,6 +1242,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready) return;
             Conn.Query("dbstats");
+            serverQ.Text += @"dbstats" + Environment.NewLine;
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             if (Conn.LastResponse.Type != ResponseType.DBStats)
             {
@@ -1177,7 +1261,10 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         private void LoadDBStats()
         {
-            if (!File.Exists(DBStatsXml)) GetNewDBStats();
+            if (!File.Exists(DBStatsXml))
+            {
+                GetNewDBStats();
+            }
             var dbXml = XmlHelper.FromXmlFile<DbRoot>(DBStatsXml);
             dbs1r.Text = Convert.ToString(dbXml.Users);
             dbs2r.Text = Convert.ToString(dbXml.Threads);
@@ -1336,7 +1423,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Refresh VN OLV.
         /// </summary>
-        private void RefreshVNList()
+        private void LoadVNListToGui()
         {
             tileOLV.SetObjects(_vnList.Where(_currentList));
         }
@@ -1374,7 +1461,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         ///     Load user's VNDB login credentials from Windows Registry
         /// </summary>
         /// <returns></returns>
-        private static KeyValuePair<string, char[]> LoadCredentials()
+        private KeyValuePair<string, char[]> LoadCredentials()
         {
             //get key data
             var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}");
@@ -1511,5 +1598,30 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         #endregion
+
+        private static bool _advancedMode;
+
+        private void ToggleAdvancedMode(object sender, EventArgs e)
+        {
+            _advancedMode = advancedCheckBox.Checked;
+            questionBox.Enabled = _advancedMode;
+            serverQ.Enabled = _advancedMode;
+            serverR.Enabled = _advancedMode;
+            sendQueryButton.Enabled = _advancedMode;
+            clearLogButton.Enabled = _advancedMode;
+            if (_advancedMode)
+            {
+                questionBox.Text = "";
+                serverQ.Text = "";
+                serverR.Text = "";
+            }
+            else
+            {
+                questionBox.Text = @"(Advanced Mode Disabled)";
+                serverQ.Text = @"(Advanced Mode Disabled)";
+                serverR.Text = @"(Advanced Mode Disabled)";
+            }
+        }
+        
     }
 }

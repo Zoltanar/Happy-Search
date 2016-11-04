@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable ClassNeverInstantiated.Global
 
 #pragma warning disable 1591
 
