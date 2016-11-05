@@ -2,6 +2,9 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: Indicators of when tag/trait filters are active.
+Added: Command line parameters, described below.
+Added: Tooltips to VNs.
 Fixed: All batch SQLite inserts/updates made into transactions.
 Changed: Removed "Loaded" field of Favorite producer.
 Changed: Direct command requires to click on send button (instead of enter key)
@@ -56,6 +59,11 @@ added: stats of VNs (popularity, rating, votecount)
 -1.1 released-
 
 
+Command Line Parameters
+---------------
+-debug:	will activate all params described below
+-dl:	will log all database connections and commands to file
+-am:	will log all api commands in the log section of the form (they are logged to file by default)
 
 No Work
 ---------------
@@ -67,11 +75,8 @@ backup sqlite database!
 add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
 merge feature to merge 2 databases, keeping most-recently-updated in case of same id
-indicate when tag/trait filters are on
 better vn character display?
-show unreleased in unreleased vn tiles date in red if unreleased
-move producerlist.Updated to userprodlist
-allow cmd line params to launch with debug mode (more logging to file)
+move producerlist.Updated to userprodlist //requires db change
 keep count of file download tries for tag/traitdump files and use default if too many.
 
 

@@ -29,16 +29,22 @@ namespace Happy_Search
         //Pooling=True;Max Pool Size=100;
 
         public static SQLiteConnection DbConn;
-
-        public DbHelper()
+        private static bool _dbLog;
+        
+        public DbHelper(bool dbLog = false)
         {
+            _dbLog = dbLog;
+            _printSetMethods = dbLog;
+            _printGetMethods = dbLog;
+
             DbConn = new SQLiteConnection(DbConnectionString);
             InitDatabase();
+
         }
 
         #region Set Methods
         
-        private const bool PrintSetMethods = true;
+        private static bool _printSetMethods;
 
         public void AddNoteToVN(int vnid, string note, int userID)
         {
@@ -99,7 +105,7 @@ namespace Happy_Search
             if (command == Command.Delete)
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
-                if (PrintSetMethods) LogToFile(deleteString);
+                if (_printSetMethods) LogToFile(deleteString);
                 var cmd = new SQLiteCommand(deleteString, DbConn);
                 cmd.ExecuteNonQuery();
                 return;
@@ -151,7 +157,7 @@ namespace Happy_Search
                     break;
             }
             if (commandString.Equals("")) return;
-            if (PrintSetMethods) LogToFile(commandString);
+            if (_printSetMethods) LogToFile(commandString);
             var cmd2 = new SQLiteCommand(commandString, DbConn);
             cmd2.ExecuteNonQuery();
         }
@@ -163,7 +169,7 @@ namespace Happy_Search
                 var insertString =
                     $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote}, {item.UserDropRate});";
                 var command = new SQLiteCommand(insertString, DbConn);
-                if(PrintSetMethods) LogToFile(insertString);
+                if(_printSetMethods) LogToFile(insertString);
                 command.ExecuteNonQuery();
             }
         }
@@ -177,7 +183,7 @@ namespace Happy_Search
             var name = Regex.Replace(producer.Name, "'", "''");
             var insertString =
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles});";
-            if (PrintSetMethods) LogToFile(insertString);
+            if (_printSetMethods) LogToFile(insertString);
             var cmd = new SQLiteCommand(insertString, DbConn);
             cmd.ExecuteNonQuery();
         }
@@ -198,7 +204,7 @@ namespace Happy_Search
                 $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             var command = new SQLiteCommand(commandString, DbConn);
-            if (PrintSetMethods) LogToFile(commandString);
+            if (_printSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -216,7 +222,7 @@ namespace Happy_Search
                 $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             var command = new SQLiteCommand(commandString, DbConn);
-            if (PrintSetMethods) LogToFile(commandString);
+            if (_printSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -234,7 +240,7 @@ namespace Happy_Search
                 $"{item.Vote}," +
                 $"{item.Added});";
             var command = new SQLiteCommand(commandString, DbConn);
-            if (PrintSetMethods) LogToFile(commandString);
+            if (_printSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -259,7 +265,7 @@ namespace Happy_Search
                 $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, " +
                 $"{length}, {item.Popularity:0.00},{item.Rating:0.00}, {item.VoteCount}, {item.ID});";
             var command = new SQLiteCommand(insertString, DbConn);
-            if (PrintSetMethods) LogToFile(insertString);
+            if (_printSetMethods) LogToFile(insertString);
             command.ExecuteNonQuery();
         }
 
@@ -267,7 +273,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
             var command = new SQLiteCommand(commandString, DbConn);
-            if (PrintSetMethods) LogToFile(commandString);
+            if (_printSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -275,7 +281,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM vnlist WHERE VNID={vnid};";
             var command = new SQLiteCommand(commandString, DbConn);
-            if (PrintSetMethods) LogToFile(commandString);
+            if (_printSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
 
@@ -283,14 +289,14 @@ namespace Happy_Search
 
         #region Get Methods
 
-        private const bool PrintGetMethods = true;
+        private static bool _printGetMethods;
 
         public List<int> GetUnfetchedUserRelatedTitles(int userid)
         {
             var selectString =
                 $"SELECT VNID FROM userlist WHERE VNID NOT IN (SELECT VNID FROM vnlist) AND UserID = {userid};";
             var list = new List<int>();
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) list.Add(DbInt(reader["VNID"]));
@@ -301,7 +307,7 @@ namespace Happy_Search
         {
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID={vnid};";
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             ListedVN vn = null;
@@ -313,7 +319,7 @@ namespace Happy_Search
         {
             var list = new List<ListedProducer>();
             var selectString = "SELECT * FROM producerlist;";
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read())
@@ -338,7 +344,7 @@ namespace Happy_Search
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist, userlist  LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID = userlist.VNID AND UserID = {userid};";
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
@@ -350,7 +356,7 @@ namespace Happy_Search
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE Title NOT NULL;";
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
@@ -361,7 +367,7 @@ namespace Happy_Search
         {
             var readerList = new List<CharacterItem>();
             var selectString = "SELECT * FROM charlist;";
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetCharacterItem(reader));
@@ -379,7 +385,7 @@ namespace Happy_Search
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userID} WHERE vnlist.ProducerID={producerID};";
-            if (PrintGetMethods) LogToFile(selectString);
+            if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, DbConn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
@@ -454,7 +460,7 @@ namespace Happy_Search
             if (DbConn.State == ConnectionState.Closed)
             {
                 DbConn.Open();
-                LogToFile("Opened Database");
+                if (_dbLog) LogToFile("Opened Database");
             }
             else
             {
@@ -465,7 +471,7 @@ namespace Happy_Search
         public void Close()
         {
             DbConn.Close();
-            LogToFile("Closed Database");
+            if(_dbLog) LogToFile("Closed Database");
         }
 
         private SQLiteTransaction _transaction;
@@ -473,31 +479,33 @@ namespace Happy_Search
         {
             Open();
             _transaction = DbConn.BeginTransaction();
+            if (_dbLog) LogToFile("Started Transaction");
         }
 
 
         public void EndTransaction()
         {
             _transaction.Commit();
+            if (_dbLog) LogToFile("Commited Transaction");
             _transaction = null;
             Close();
         }
 
-        public int DbInt(object dbObject)
+        public static int DbInt(object dbObject)
         {
             int i;
             if (!int.TryParse(dbObject.ToString(), out i)) return -1;
             return i;
         }
 
-        public double DbDouble(object dbObject)
+        public static double DbDouble(object dbObject)
         {
             double i;
             if (!double.TryParse(dbObject.ToString(), out i)) return -1;
             return i;
         }
 
-        public DateTime DbDateTime(object dbObject)
+        public static DateTime DbDateTime(object dbObject)
         {
             DateTime upDateTime;
             return !DateTime.TryParse(dbObject.ToString(), out upDateTime) ? DateTime.MinValue : upDateTime;

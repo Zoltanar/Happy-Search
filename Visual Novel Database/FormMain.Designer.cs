@@ -61,6 +61,8 @@ namespace Happy_Search
             this.traitSearchBox = new System.Windows.Forms.TextBox();
             this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
+            this.tagSignaler = new System.Windows.Forms.Button();
+            this.traitSignaler = new System.Windows.Forms.Button();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -542,6 +544,32 @@ namespace Happy_Search
             this.label16.TabIndex = 98;
             this.label16.Text = "List by Group:";
             this.toolTip.SetToolTip(this.label16, "Enter group name here.");
+            // 
+            // tagSignaler
+            // 
+            this.tagSignaler.BackColor = System.Drawing.Color.LightGray;
+            this.tagSignaler.FlatAppearance.BorderSize = 0;
+            this.tagSignaler.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagSignaler.Location = new System.Drawing.Point(896, 309);
+            this.tagSignaler.Name = "tagSignaler";
+            this.tagSignaler.Size = new System.Drawing.Size(23, 23);
+            this.tagSignaler.TabIndex = 101;
+            this.toolTip.SetToolTip(this.tagSignaler, "Red when tag filter is active, Gray when not active, click to clear filter.");
+            this.tagSignaler.UseVisualStyleBackColor = false;
+            this.tagSignaler.Click += new System.EventHandler(this.ClearTagFilter);
+            // 
+            // traitSignaler
+            // 
+            this.traitSignaler.BackColor = System.Drawing.Color.LightGray;
+            this.traitSignaler.FlatAppearance.BorderSize = 0;
+            this.traitSignaler.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.traitSignaler.Location = new System.Drawing.Point(925, 309);
+            this.traitSignaler.Name = "traitSignaler";
+            this.traitSignaler.Size = new System.Drawing.Size(23, 23);
+            this.traitSignaler.TabIndex = 92;
+            this.toolTip.SetToolTip(this.traitSignaler, "Red when trait filter is active, Gray when not active, click to clear filter.");
+            this.traitSignaler.UseVisualStyleBackColor = false;
+            this.traitSignaler.Click += new System.EventHandler(this.ClearTraitFilter);
             // 
             // infoTab
             // 
@@ -1112,6 +1140,8 @@ namespace Happy_Search
             // 
             this.vnTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.vnTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.vnTab.Controls.Add(this.tagSignaler);
+            this.vnTab.Controls.Add(this.traitSignaler);
             this.vnTab.Controls.Add(this.groupListBox);
             this.vnTab.Controls.Add(this.label16);
             this.vnTab.Controls.Add(this.tabControl2);
@@ -1859,9 +1889,9 @@ namespace Happy_Search
             this.SearchingAndFilteringButton.FlatAppearance.BorderSize = 0;
             this.SearchingAndFilteringButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SearchingAndFilteringButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(772, 309);
+            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(729, 309);
             this.SearchingAndFilteringButton.Name = "SearchingAndFilteringButton";
-            this.SearchingAndFilteringButton.Size = new System.Drawing.Size(166, 23);
+            this.SearchingAndFilteringButton.Size = new System.Drawing.Size(161, 23);
             this.SearchingAndFilteringButton.TabIndex = 91;
             this.SearchingAndFilteringButton.Text = "Searching, Listing and Filtering";
             this.SearchingAndFilteringButton.UseVisualStyleBackColor = false;
@@ -2112,7 +2142,7 @@ namespace Happy_Search
             this.replyText.BackColor = System.Drawing.Color.Transparent;
             this.replyText.Location = new System.Drawing.Point(417, 311);
             this.replyText.Name = "replyText";
-            this.replyText.Size = new System.Drawing.Size(349, 20);
+            this.replyText.Size = new System.Drawing.Size(306, 20);
             this.replyText.TabIndex = 28;
             this.replyText.Text = "(replyText)";
             this.replyText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -2704,6 +2734,8 @@ namespace Happy_Search
         private Button sendQueryButton;
         private CheckBox advancedCheckBox;
         private ComboBox groupListBox;
+        private Button tagSignaler;
+        private Button traitSignaler;
     }
 }
 

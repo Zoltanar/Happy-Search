@@ -103,6 +103,7 @@ namespace Happy_Search
         public FormMain()
         {
             InitializeComponent();
+            string[] args = Environment.GetCommandLineArgs();
             SplashScreen.SetStatus("Initializing Controls...");
             {
                 DontTriggerEvent = true;
@@ -133,6 +134,7 @@ namespace Happy_Search
                 checkBox8.Visible = false;
                 checkBox9.Visible = false;
                 checkBox10.Visible = false;
+                advancedCheckBox.Checked = args.Contains("-am") || args.Contains("-debug");
                 tileOLV.ItemRenderer = new VNTileRenderer();
 #if DEBUG
                 Directory.CreateDirectory("..\\Release\\Stored Data");
@@ -196,7 +198,7 @@ https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SetStatus("Connecting to SQLite Database...");
             {
-                DBConn = new DbHelper();
+                DBConn = new DbHelper(args.Contains("-dl") || args.Contains("-debug"));
             }
             SplashScreen.SetStatus("Loading Data from Database...");
             {

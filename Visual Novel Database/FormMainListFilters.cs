@@ -434,6 +434,8 @@ namespace Happy_Search
         /// </summary>
         private void ApplyListFilters()
         {
+            tagSignaler.BackColor = _activeTagFilter.Any() ? SignalerActive : SignalerDefault;
+            traitSignaler.BackColor = _activeTraitFilter.Any() ? SignalerActive : SignalerDefault;
             Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesTagFilter, _traitFunction };
             tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
             objectList_ItemsChanged(null, null);

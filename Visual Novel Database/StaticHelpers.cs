@@ -27,7 +27,9 @@ namespace Happy_Search
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
         public const int LabelFadeTime = 5000;
-        
+        public static readonly Color SignalerDefault = Color.LightGray;
+        public static readonly Color SignalerActive = Color.IndianRed;
+
         /// <summary>
         /// Categories of VN Tags
         /// </summary>
