@@ -11,6 +11,7 @@ using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -278,16 +279,21 @@ namespace Happy_Search
         /// <summary>
         /// Display VNs in user-defined group that is typed/selected in box.
         /// </summary>
-        private void List_Group(object sender, KeyEventArgs e)
+        private void List_Group(object sender, EventArgs e)
         {
-            if (e.KeyCode != Keys.Enter) return;
-            if (groupListBox.Text.Equals("")) return;
             var groupName = groupListBox.Text;
-            groupListBox.Text = "";
+            if (groupName.Equals("(Group)")) return;
             List_ClearOther();
             _currentList = x => x.IsInGroup(groupName);
             _currentListLabel = $"{groupName} (Group)";
-            LoadVNListToGui();
+            LoadVNListToGui(skipGroupSearch: true);
+        }
+
+        private void List_GroupEnter(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            if (groupListBox.Text.Equals("")) return;
+            List_Group(null,null);
         }
 
         /// <summary>
@@ -402,9 +408,9 @@ namespace Happy_Search
                         case ToggleSetting.Show:
                             return function;
                         case ToggleSetting.Hide:
-                            return x => !IsUnreleased(x.RelDate);
+                            return x => !DateIsUnreleased(x.RelDate);
                         case ToggleSetting.Only:
-                            return x => IsUnreleased(x.RelDate);
+                            return x => DateIsUnreleased(x.RelDate);
                         default: return function;
                     }
                 case ToggleFilter.Blacklisted:
@@ -435,7 +441,6 @@ namespace Happy_Search
         }
 
         #endregion
-
 
         #region List Results
 
@@ -708,16 +713,7 @@ namespace Happy_Search
             }
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
-            CustomItemNotes itemNotes = null;
-            try
-            {
-                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(vn.ULNote);
-            }
-            catch (JsonException)
-            {
-                
-            }
-            finally { if (itemNotes == null) itemNotes = new CustomItemNotes(vn.ULNote, new List<string>()); }
+            CustomItemNotes itemNotes = vn.GetCustomItemNotes();
             StringBuilder notesSb = new StringBuilder(itemNotes.Notes);
             var result = new InputDialogBox(notesSb, "Add Note to Title", "Enter Note:").ShowDialog();
             if (result != DialogResult.OK) return;
@@ -743,16 +739,7 @@ namespace Happy_Search
             }
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
-            CustomItemNotes itemNotes = null;
-            try
-            {
-                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(vn.ULNote);
-            }
-            catch (JsonException)
-            {
-                
-            }
-            finally { if (itemNotes == null) itemNotes = new CustomItemNotes(vn.ULNote, new List<string>()); }
+            CustomItemNotes itemNotes = vn.GetCustomItemNotes();
             var result = new ListDialogBox(itemNotes.Groups, "Add Title to Groups", $"{vn.Title} is in groups:").ShowDialog();
             if (result != DialogResult.OK) return;
             if (itemNotes.Groups.Any(group => group.Contains('\n')))
@@ -773,9 +760,8 @@ namespace Happy_Search
         {
             var result = StartQuery(replyText, "Update Item Notes");
             if (!result) return;
-            string serializedNotes = JsonConvert.SerializeObject(itemNotes);
-            string preparedNotes = PrepareItemNotesJsonString(serializedNotes);
-            var query = $"set vnlist {vnid} {{\"notes\":\"{preparedNotes}\"}}";
+            string serializedNotes = itemNotes.Serialize();
+            var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
             var apiResult = await TryQuery(query, "UIN Query Error", replyText);
             if (!apiResult) return;
             DBConn.Open();
@@ -785,12 +771,6 @@ namespace Happy_Search
             LoadVNListToGui();
             WriteText(replyText, replyMessage);
             ChangeAPIStatus(Conn.Status);
-        }
-
-        private static string PrepareItemNotesJsonString(string serializedObject)
-        {
-            string doubleEscapedString = JsonConvert.ToString(JsonConvert.ToString(serializedObject));
-            return doubleEscapedString.Substring(3, doubleEscapedString.Length - 3 - 3);
         }
 
         /// <summary>

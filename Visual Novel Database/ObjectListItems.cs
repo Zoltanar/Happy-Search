@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -64,7 +67,7 @@ namespace Happy_Search
             Title = title;
             KanjiTitle = kanjiTitle;
             RelDate = reldate;
-            DateForSorting = FormMain.StringToDate(reldate);
+            DateForSorting = StringToDate(reldate);
             Producer = producer;
             Length = LengthTime[length];
             ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
@@ -73,7 +76,7 @@ namespace Happy_Search
             VoteAdded = DateTimeOffset.FromUnixTimeSeconds(voteadded).UtcDateTime;
             Tags = tags;
             VNID = vnid;
-            UpdatedDate = FormMain.DaysSince(updatedDate);
+            UpdatedDate = DaysSince(updatedDate);
             ImageURL = imageURL;
             ImageNSFW = imageNSFW;
             Description = description;
@@ -280,33 +283,39 @@ namespace Happy_Search
         /// <returns>Whether VN is in the specified group</returns>
         public bool IsInGroup(string groupName)
         {
-            CustomItemNotes itemNotes;
-            try
-            {
-                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(ULNote);
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-            return itemNotes != null && itemNotes.Groups.Contains(groupName);
+            var itemNotes = GetCustomItemNotes();
+            return itemNotes.Groups.Contains(groupName);
         }
 
         /// <summary>
-        /// Get list of groups that vn is in.
+        /// Get CustomItemNotes containing note and list of groups that vn is in.
         /// </summary>
-        /// <returns></returns>
-        public List<string> GetGroups()
+        public CustomItemNotes GetCustomItemNotes()
         {
-            CustomItemNotes itemNotes = null;
+            //
+            if (ULNote.Equals("")) return new CustomItemNotes("", new List<string>());
+            if (!ULNote.StartsWith("Notes: "))
+            {
+                //escape ulnote
+                string fixedNote = ULNote.Replace("|", "(sep)");
+                fixedNote = fixedNote.Replace("Groups: ", "groups: ");
+                return new CustomItemNotes(fixedNote, new List<string>());
+            }
+            int endOfNotes = ULNote.IndexOf("|", StringComparison.InvariantCulture);
+            string notes;
+            string groupsString;
             try
             {
-                itemNotes = JsonConvert.DeserializeObject<CustomItemNotes>(ULNote);
+                notes = ULNote.Substring(7, endOfNotes - 7);
+                groupsString = ULNote.Substring(endOfNotes + 1 + 8);
             }
-            catch (JsonException)
+            catch (ArgumentOutOfRangeException)
             {
+                notes = "";
+                groupsString = "";
             }
-            return itemNotes == null ? new List<string>() : itemNotes.Groups;
+            List<string> groups = groupsString.Equals("") ? new List<string>() : groupsString.Split(',').ToList();
+            return new CustomItemNotes(notes,groups);
         }
         /// <summary>
         /// Checks if title was released between now and a past date, the current date is included.
@@ -502,7 +511,6 @@ namespace Happy_Search
 
             _borderPen = e.Item.Selected ? Pens.Blue : new Pen(Color.FromArgb(0x33, 0x33, 0x33));
             DrawVNTile(g, itemBounds, rowObject, olv);
-
             // Finally render the buffered graphics
             buffered.Render();
             buffered.Dispose();

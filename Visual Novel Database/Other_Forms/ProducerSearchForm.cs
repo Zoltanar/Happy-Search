@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -61,7 +62,7 @@ namespace Happy_Search.Other_Forms
         {
             if (producerSearchBox.Text == "") //check if box is empty
             {
-                FormMain.WriteError(prodSearchReply, Resources.enter_producer_name, true);
+                WriteError(prodSearchReply, Resources.enter_producer_name, true);
                 return;
             }
             var result = _parentForm.StartQuery(prodSearchReply, "Producer Search");
@@ -129,7 +130,7 @@ namespace Happy_Search.Other_Forms
             {
                 prodSearchReply.ForeColor = Color.Red;
                 prodSearchReply.Text = Resources.no_items_selected;
-                FormMain.FadeLabel(prodSearchReply);
+                FadeLabel(prodSearchReply);
                 return;
             }
             var addProducerList = new List<ListedProducer>();

@@ -8,6 +8,7 @@ using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {

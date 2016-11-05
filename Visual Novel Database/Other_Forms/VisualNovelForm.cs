@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -83,7 +84,7 @@ namespace Happy_Search.Other_Forms
             if (_displayedVN == null || _displayedVN.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
             else
             {
-                List<TagItem> allTags = FormMain.StringToTags(_displayedVN.Tags);
+                List<TagItem> allTags = StringToTags(_displayedVN.Tags);
                 var visibleTags = new List<TagItem>();
                 foreach (var tag in allTags)
                 {
@@ -498,7 +499,7 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             var vnItem = vnRoot.Items[0];
-            FormMain.SaveImage(vnItem);
+            SaveImage(vnItem);
             var relProducer = await _parentForm.GetDeveloper(vnid, Resources.svn_query_error, replyLabel);
             await _parentForm.GetProducer(relProducer, Resources.svn_query_error, replyLabel);
             await _parentForm.GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
@@ -517,7 +518,7 @@ namespace Happy_Search.Other_Forms
             string photoString = $"{FormMain.VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
             if (!File.Exists(photoString))
             {
-                FormMain.SaveScreenshot(screenItem.Image, photoString);
+                SaveScreenshot(screenItem.Image, photoString);
             }
             var photo = Image.FromFile(photoString);
             int newWidth;

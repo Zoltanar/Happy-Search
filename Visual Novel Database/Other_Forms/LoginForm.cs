@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -90,10 +91,10 @@ you will also need to enter your Username and Password";
             {
                 replyLabel.Text = Resources.enter_username_password +
                                   Resources._username_only_alphanumeric;
-                FormMain.FadeLabel(replyLabel);
+                FadeLabel(replyLabel);
                 return;
             }
-            FormMain.LogToFile("Login Credentials Validated");
+            LogToFile("Login Credentials Validated");
             if (rememberBox.Checked) FormMain.SaveCredentials(username, password);
             //
             _parentForm.UserID = userID;

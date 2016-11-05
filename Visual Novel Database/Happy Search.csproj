@@ -176,6 +176,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="StaticHelpers.cs" />
     <Compile Include="VndbConnection.cs" />
     <Compile Include="DBHelper.cs" />
     <Compile Include="Other_Forms\LoginForm.cs">

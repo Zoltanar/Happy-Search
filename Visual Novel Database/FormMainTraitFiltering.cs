@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Xml.Serialization;
 using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {

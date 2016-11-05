@@ -60,7 +60,6 @@ namespace Happy_Search
             this.updateTagsAndTraitsButton = new System.Windows.Forms.Button();
             this.traitSearchBox = new System.Windows.Forms.TextBox();
             this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
-            this.groupListBox = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -117,6 +116,7 @@ namespace Happy_Search
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.aboutTextBox = new System.Windows.Forms.RichTextBox();
             this.vnTab = new System.Windows.Forms.TabPage();
+            this.groupListBox = new System.Windows.Forms.ComboBox();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tagFilteringBox = new System.Windows.Forms.TabPage();
             this.label2 = new System.Windows.Forms.Label();
@@ -530,18 +530,6 @@ namespace Happy_Search
             this.customTraitFilterNameBox.TabIndex = 103;
             this.toolTip.SetToolTip(this.customTraitFilterNameBox, "Enter Custom Filter name here");
             this.customTraitFilterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EnterCustomTraitFilterName);
-            // 
-            // groupListBox
-            // 
-            this.groupListBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.groupListBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.groupListBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupListBox.Location = new System.Drawing.Point(1022, 338);
-            this.groupListBox.Name = "groupListBox";
-            this.groupListBox.Size = new System.Drawing.Size(119, 22);
-            this.groupListBox.TabIndex = 99;
-            this.toolTip.SetToolTip(this.groupListBox, "Enter producer name here");
-            this.groupListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.List_Group);
             // 
             // label16
             // 
@@ -1159,6 +1147,26 @@ namespace Happy_Search
             this.vnTab.Size = new System.Drawing.Size(1410, 769);
             this.vnTab.TabIndex = 1;
             this.vnTab.Text = "Visual Novel Info";
+            // 
+            // groupListBox
+            // 
+            this.groupListBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.groupListBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.groupListBox.BackColor = System.Drawing.Color.White;
+            this.groupListBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.groupListBox.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.groupListBox.FormattingEnabled = true;
+            this.groupListBox.Items.AddRange(new object[] {
+            "Show URT",
+            "Hide URT",
+            "Only URT",
+            "Only Unplayed"});
+            this.groupListBox.Location = new System.Drawing.Point(1036, 339);
+            this.groupListBox.Name = "groupListBox";
+            this.groupListBox.Size = new System.Drawing.Size(119, 21);
+            this.groupListBox.TabIndex = 100;
+            this.groupListBox.SelectedIndexChanged += new System.EventHandler(this.List_Group);
+            this.groupListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.List_GroupEnter);
             // 
             // tabControl2
             // 
@@ -2003,6 +2011,7 @@ namespace Happy_Search
             this.tileOLV.View = System.Windows.Forms.View.Tile;
             this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.VisualNovelLeftClick);
             this.tileOLV.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.ShowContextMenu);
+            this.tileOLV.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.VNToolTip);
             this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatVNRow);
             this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
             this.tileOLV.Resize += new System.EventHandler(this.tileOLV_Resize);
@@ -2691,10 +2700,10 @@ namespace Happy_Search
         private ComboBox otherMethodsCB;
         private ToolStripMenuItem addChangeVNNoteToolStripMenuItem;
         private ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
-        private TextBox groupListBox;
         private Label label16;
         private Button sendQueryButton;
         private CheckBox advancedCheckBox;
+        private ComboBox groupListBox;
     }
 }
 

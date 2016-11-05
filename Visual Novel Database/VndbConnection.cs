@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -31,7 +32,7 @@ namespace Happy_Search
         /// </summary>
         public void Open()
         {
-            FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
+            LogToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
             var complete = false;
             var retries = 0;
             while (!complete && retries < 5)
@@ -42,32 +43,32 @@ namespace Happy_Search
                 {
                     certs.Add(X509Certificate.CreateFromCertFile(certFile));
                 }
-                FormMain.LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
                 foreach (var cert in certs)
                 {
-                    FormMain.LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
+                    LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
                 }
                 try
                 {
                     retries++;
-                    FormMain.LogToFile($"Trying for the {retries}'th time...");
+                    LogToFile($"Trying for the {retries}'th time...");
                     _tcpClient = new TcpClient();
                     _tcpClient.Connect(VndbHost, VndbPortTLS);
-                    FormMain.LogToFile("TCP Client connection made...");
+                    LogToFile("TCP Client connection made...");
                     var sslStream = new SslStream(_tcpClient.GetStream());
-                    FormMain.LogToFile("SSL Stream received...");
+                    LogToFile("SSL Stream received...");
                     sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
                     //sslStream.AuthenticateAsClient(VndbHost);
-                    FormMain.LogToFile("SSL Stream authenticated...");
+                    LogToFile("SSL Stream authenticated...");
                     if (sslStream.RemoteCertificate != null)
                     {
-                        FormMain.LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
+                        LogToFile("Remote Certificate data - subject/issuer/format/effectivedate/expirationdate");
                         var subject = sslStream.RemoteCertificate.Subject;
-                        FormMain.LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
+                        LogToFile(subject + "\t - \t" + sslStream.RemoteCertificate.Issuer + "\t - \t" + sslStream.RemoteCertificate.GetFormat() + "\t - \t" +
                                            sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
-                            FormMain.LogToFile($"Certificate received isn't for {VndbHost} so connection is closed");
+                            LogToFile($"Certificate received isn't for {VndbHost} so connection is closed");
                             Status = APIStatus.Error;
                             return;
                         }
@@ -75,32 +76,32 @@ namespace Happy_Search
                     _stream = sslStream;
                     complete = true;
                     //
-                    FormMain.LogToFile($"Connected after {retries} tries.");
+                    LogToFile($"Connected after {retries} tries.");
                 }
                 catch (IOException e)
                 {
-                    FormMain.LogToFile("Conn Open Error");
-                    FormMain.LogToFile(e.Message);
-                    FormMain.LogToFile(e.StackTrace);
+                    LogToFile("Conn Open Error");
+                    LogToFile(e.Message);
+                    LogToFile(e.StackTrace);
                 }
                 catch (AuthenticationException e)
                 {
-                    FormMain.LogToFile("Conn Authentication Error");
-                    FormMain.LogToFile(e.Message);
-                    FormMain.LogToFile(e.StackTrace);
+                    LogToFile("Conn Authentication Error");
+                    LogToFile(e.Message);
+                    LogToFile(e.StackTrace);
                     if (e.InnerException == null) continue;
-                    FormMain.LogToFile(e.InnerException.Message);
-                    FormMain.LogToFile(e.InnerException.StackTrace);
+                    LogToFile(e.InnerException.Message);
+                    LogToFile(e.InnerException.StackTrace);
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
-                    FormMain.LogToFile("Conn Other Error");
-                    FormMain.LogToFile(ex.Message);
-                    FormMain.LogToFile(ex.StackTrace);
+                    LogToFile("Conn Other Error");
+                    LogToFile(ex.Message);
+                    LogToFile(ex.StackTrace);
                 }
             }
             if (_stream != null  && _stream.CanRead) return;
-            FormMain.LogToFile($"Failed to connect after {retries} tries.");
+            LogToFile($"Failed to connect after {retries} tries.");
             Status = APIStatus.Error;
             AskForNonSsl();
         }
@@ -110,7 +111,7 @@ namespace Happy_Search
             var messageResult = MessageBox.Show(@"Connection to VNDB failed, do you wish to try without SSL?",
                 @"Connection Failed", MessageBoxButtons.YesNo);
             if (messageResult != DialogResult.Yes) return;
-            FormMain.LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
+            LogToFile($"Attempting to open connection to {VndbHost}:{VndbPort} without SSL");
             Status = APIStatus.Closed;
             var complete = false;
             var retries = 0;
@@ -119,36 +120,36 @@ namespace Happy_Search
                 try
                 {
                     retries++;
-                    FormMain.LogToFile($"Trying for the {retries}'th time...");
+                    LogToFile($"Trying for the {retries}'th time...");
                     _tcpClient = new TcpClient();
                     _tcpClient.Connect(VndbHost, VndbPort);
-                    FormMain.LogToFile("TCP Client connection made...");
+                    LogToFile("TCP Client connection made...");
                     _stream = _tcpClient.GetStream();
-                    FormMain.LogToFile("Stream received...");
-                    FormMain.LogToFile($"Connected after {retries} tries.");
+                    LogToFile("Stream received...");
+                    LogToFile($"Connected after {retries} tries.");
                     complete = true;
                 }
                 catch (IOException e)
                 {
-                    FormMain.LogToFile("Conn Open Error");
-                    FormMain.LogToFile(e.Message);
-                    FormMain.LogToFile(e.StackTrace);
+                    LogToFile("Conn Open Error");
+                    LogToFile(e.Message);
+                    LogToFile(e.StackTrace);
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
-                    FormMain.LogToFile("Conn Other Error");
-                    FormMain.LogToFile(ex.Message);
-                    FormMain.LogToFile(ex.StackTrace);
+                    LogToFile("Conn Other Error");
+                    LogToFile(ex.Message);
+                    LogToFile(ex.StackTrace);
                 }
                 catch (Exception otherXException)
                 {
-                    FormMain.LogToFile("Conn Other2 Error");
-                    FormMain.LogToFile(otherXException.Message);
-                    FormMain.LogToFile(otherXException.StackTrace);
+                    LogToFile("Conn Other2 Error");
+                    LogToFile(otherXException.Message);
+                    LogToFile(otherXException.StackTrace);
                 }
             }
             if (_stream != null && _stream.CanRead) return;
-            FormMain.LogToFile($"Failed to connect after {retries} tries.");
+            LogToFile($"Failed to connect after {retries} tries.");
             Status = APIStatus.Error;
         }
 
@@ -276,9 +277,9 @@ namespace Happy_Search
             }
             catch (ObjectDisposedException e)
             {
-                FormMain.LogToFile("Failed to close connection.");
-                FormMain.LogToFile(e.Message);
-                FormMain.LogToFile(e.StackTrace);
+                LogToFile("Failed to close connection.");
+                LogToFile(e.Message);
+                LogToFile(e.StackTrace);
             }
             Status = APIStatus.Closed;
         }

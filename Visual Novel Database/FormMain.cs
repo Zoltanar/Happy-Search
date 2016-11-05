@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -19,7 +14,7 @@ using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Timer = System.Windows.Forms.Timer;
+using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -30,52 +25,56 @@ namespace Happy_Search
     {
         #region File Locations
 
-        private const string TagsURL = "http://vndb.org/api/tags.json.gz";
-        private const string TraitsURL = "http://vndb.org/api/traits.json.gz";
-        private const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
-        private const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
-        private const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
+#pragma warning disable 1591
+        public const string TagsURL = "http://vndb.org/api/tags.json.gz";
+        public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
+        public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
+        public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
+        public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
 
 #if DEBUG
-        internal const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
-        internal const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
-        private const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
-        private const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
-        private const string LogFile = "..\\Release\\Stored Data\\message.log";
-        private const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
-        private const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
-        private const string TagsJson = "..\\Release\\Stored Data\\tags.json";
-        private const string TraitsJson = "..\\Release\\Stored Data\\traits.json";
+        public const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
+        public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
+        public const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
+        public const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
+        public const string LogFile = "..\\Release\\Stored Data\\message.log";
+        public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
+        public const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
+        public const string TagsJson = "..\\Release\\Stored Data\\tags.json";
+        public const string TraitsJson = "..\\Release\\Stored Data\\traits.json";
 #else
-        internal const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
-        internal const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
-        private const string DBStatsXml = "Stored Data\\dbs.xml";
-        private const string MainXmlFile = "Stored Data\\saved_objects.xml";
-        private const string LogFile = "Stored Data\\message.log";
-        private const string TagsJsonGz = "Stored Data\\tags.json.gz";
-        private const string TraitsJsonGz = "Stored Data\\traits.json.gz";
-        private const string TagsJson = "Stored Data\\tags.json";
-        private const string TraitsJson = "Stored Data\\traits.json";
+        public const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
+        public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
+        public const string DBStatsXml = "Stored Data\\dbs.xml";
+        public const string MainXmlFile = "Stored Data\\saved_objects.xml";
+        public const string LogFile = "Stored Data\\message.log";
+        public const string TagsJsonGz = "Stored Data\\tags.json.gz";
+        public const string TraitsJsonGz = "Stored Data\\traits.json.gz";
+        public const string TagsJson = "Stored Data\\tags.json";
+        public const string TraitsJson = "Stored Data\\traits.json";
 #endif
+#pragma warning restore 1591
 
         #endregion
 
         //constants / definables
-        internal const string ClientName = "Happy Search";
-        internal const string ClientVersion = "1.4.0";
-        internal const string APIVersion = "2.25";
-        private const int APIMaxResults = 25;
-        internal static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-        private const string TagTypeAll = "checkBox";
-        private const string TagTypeUrt = "mctULLabel";
-        internal const string ContentTag = "cont";
-        internal const string SexualTag = "ero";
-        internal const string TechnicalTag = "tech";
-        private const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
-        private static readonly Color ErrorColor = Color.Red;
-        internal static readonly Color NormalColor = SystemColors.ControlLightLight;
-        internal static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
-        private static readonly Color WarningColor = Color.DarkKhaki;
+#pragma warning disable 1591
+        public const string ClientName = "Happy Search";
+        public const string ClientVersion = "1.4.0";
+        public const string APIVersion = "2.25";
+        public const int APIMaxResults = 25;
+        public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
+        public const string TagTypeAll = "checkBox";
+        public const string TagTypeUrt = "mctULLabel";
+        public const string ContentTag = "cont";
+        public const string SexualTag = "ero";
+        public const string TechnicalTag = "tech";
+        public const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
+        public static readonly Color ErrorColor = Color.Red;
+        public static readonly Color NormalColor = SystemColors.ControlLightLight;
+        public static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
+        public static readonly Color WarningColor = Color.DarkKhaki;
+#pragma warning restore 1591
 
         internal readonly VndbConnection Conn = new VndbConnection();
         internal readonly DbHelper DBConn;
@@ -216,12 +215,8 @@ https://github.com/FredTheBarber/VndbClient";
                 LogToFile("Producers= " + _producerList.Count);
                 LogToFile("Characters= " + CharacterList.Count);
                 LogToFile("UserRelated Items= " + URTList.Count);
-                var producerFilterSource = new AutoCompleteStringCollection();
-                producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
-                ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
-                var groupFilterSource = new AutoCompleteStringCollection();
-                groupFilterSource.AddRange(_vnList.SelectMany(vn => vn.GetGroups()).ToArray());
-                groupListBox.AutoCompleteCustomSource = groupFilterSource;
+                PopulateProducerSearchBox();
+                PopulateGroupSearchBox();
             }
             SplashScreen.SetStatus("Updating User Stats...");
             {
@@ -258,6 +253,21 @@ https://github.com/FredTheBarber/VndbClient";
             }*/
             SplashScreen.CloseForm();
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+        }
+
+        private void PopulateGroupSearchBox()
+        {
+            var groupFilterSource = new AutoCompleteStringCollection { "(Group)" };
+            groupFilterSource.AddRange(_vnList.SelectMany(vn => vn.GetCustomItemNotes().Groups).Distinct().ToArray());
+            groupListBox.AutoCompleteCustomSource = groupFilterSource;
+            groupListBox.DataSource = groupFilterSource;
+        }
+
+        private void PopulateProducerSearchBox()
+        {
+            var producerFilterSource = new AutoCompleteStringCollection();
+            producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
+            ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
         }
 
 
@@ -768,75 +778,27 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Other/General
 
-        /// <summary>
-        /// Convert number of bytes to human-readable formatted string, rounded to 1 decimal place. (e.g 79.4KB)
-        /// </summary>
-        /// <param name="byteCount">Number of bytes</param>
-        /// <returns>Formatted string</returns>
-        public static string BytesToString(int byteCount)
-        {
-            string[] suf = { "B", "KB", "MB", "GB" }; //int.MaxValue is in gigabyte range.
-            if (byteCount == 0)
-                return "0" + suf[0];
-            long bytes = Math.Abs(byteCount);
-            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
-            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
-            return (Math.Sign(byteCount) * num) + suf[place];
-        }
+        private static bool _advancedMode;
 
-        /// <summary>
-        /// Print message to Debug and write it to log file.
-        /// </summary>
-        /// <param name="message">Message to be written</param>
-        internal static void LogToFile(string message)
+        private void ToggleAdvancedMode(object sender, EventArgs e)
         {
-            Debug.Print(message);
-            while (IsFileLocked(new FileInfo(LogFile)))
+            _advancedMode = advancedCheckBox.Checked;
+            questionBox.Enabled = _advancedMode;
+            serverQ.Enabled = _advancedMode;
+            serverR.Enabled = _advancedMode;
+            sendQueryButton.Enabled = _advancedMode;
+            clearLogButton.Enabled = _advancedMode;
+            if (_advancedMode)
             {
-                Thread.Sleep(25);
+                questionBox.Text = "";
+                serverQ.Text = "";
+                serverR.Text = "";
             }
-            using (var writer = new StreamWriter(LogFile, true))
+            else
             {
-                writer.WriteLine(message);
-            }
-        }
-
-        /// <summary>
-        /// Check if file is locked,
-        /// </summary>
-        /// <param name="file">File to be checked</param>
-        /// <returns>Whether file is locked</returns>
-        public static bool IsFileLocked(FileInfo file)
-        {
-            FileStream stream = null;
-
-            try
-            {
-                stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            }
-            catch (IOException)
-            {
-                return true;
-            }
-            finally
-            {
-                stream?.Close();
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Print exception to Debug and write it to log file.
-        /// </summary>
-        /// <param name="exception">Exception to be written to file</param>
-        public static void LogToFile(Exception exception)
-        {
-            Debug.Print(exception.Message);
-            Debug.Print(exception.StackTrace);
-            using (var writer = new StreamWriter(LogFile, true))
-            {
-                writer.WriteLine(exception.Message);
-                writer.WriteLine(exception.StackTrace);
+                questionBox.Text = @"(Advanced Mode Disabled)";
+                serverQ.Text = @"(Advanced Mode Disabled)";
+                serverR.Text = @"(Advanced Mode Disabled)";
             }
         }
 
@@ -854,160 +816,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
             });
-        }
-
-        /// <summary>
-        ///     Writes message in a label with message text color.
-        /// </summary>
-        /// <param name="label">Label to which the message is written</param>
-        /// <param name="message">Message to be written</param>
-        /// <param name="disableFade"></param>
-        public static void WriteText(Label label, string message, bool disableFade = false)
-        {
-            var linkLabel = label as LinkLabel;
-            if (linkLabel != null) linkLabel.LinkColor = NormalLinkColor;
-            else label.ForeColor = NormalColor;
-            label.Text = message;
-            if (disableFade) return;
-            FadeLabel(label);
-        }
-
-        /// <summary>
-        ///     Writes message in a label with warning text color.
-        /// </summary>
-        /// <param name="label">Label to which the message is written</param>
-        /// <param name="message">Message to be written</param>
-        /// <param name="fade">Should message disappear after a few seconds?</param>
-        public static void WriteWarning(Label label, string message, bool fade = false)
-        {
-            var linkLabel = label as LinkLabel;
-            if (linkLabel != null) linkLabel.LinkColor = WarningColor;
-            else label.ForeColor = WarningColor;
-            label.Text = message;
-            if (fade) FadeLabel(label);
-        }
-
-        /// <summary>
-        ///     Writes message in a label with error text color.
-        /// </summary>
-        /// <param name="label">Label to which the message is written</param>
-        /// <param name="message">Message to be written</param>
-        /// <param name="fade">Should message disappear after a few seconds?</param>
-        public static void WriteError(Label label, string message, bool fade = false)
-        {
-            var linkLabel = label as LinkLabel;
-            if (linkLabel != null) linkLabel.LinkColor = ErrorColor;
-            else label.ForeColor = ErrorColor;
-            label.Text = message;
-            if (fade) FadeLabel(label);
-        }
-
-        /// <summary>
-        ///     Convert DateTime to UnixTimestamp.
-        /// </summary>
-        /// <param name="dateTime">DateTime to be converted</param>
-        /// <returns>UnixTimestamp (double)</returns>
-        public static double DateTimeToUnixTimestamp(DateTime dateTime)
-        {
-            return (dateTime -
-                    new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
-        }
-
-        /// <summary>
-        ///     Saves a VN's cover image (unless it already exists)
-        /// </summary>
-        /// <param name="vn">VN whose image is to be saved</param>
-        /// <param name="update">Get new image regardless of whether one already exists?</param>
-        internal static void SaveImage(VNItem vn, bool update = false)
-        {
-            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-            if (vn.Image == null || vn.Image.Equals("")) return;
-            string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
-            if (File.Exists(imageLocation) && update == false) return;
-            LogToFile($"Start downloading cover image for {vn}");
-            try
-            {
-                var requestPic = WebRequest.Create(vn.Image);
-                using (var responsePic = requestPic.GetResponse())
-                {
-                    using (var stream = responsePic.GetResponseStream())
-                    {
-                        if (stream == null) return;
-                        var webImage = Image.FromStream(stream);
-                        webImage.Save(imageLocation);
-                    }
-                }
-            }
-            catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
-            {
-                LogToFile(ex);
-            }
-        }
-
-
-        /// <summary>
-        ///     Saves a title's cover image (unless it already exists)
-        /// </summary>
-        /// <param name="vn">Title</param>
-        private async Task SaveImageAsync(ListedVN vn)
-        {
-            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-            if (vn.ImageURL == null || vn.ImageURL.Equals("")) return;
-            string imageLocation = $"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}";
-            if (File.Exists(imageLocation)) return;
-            LogToFile($"Start downloading cover image for {vn}");
-            try
-            {
-                var requestPic = WebRequest.Create(vn.ImageURL);
-                using (var responsePic = await requestPic.GetResponseAsync())
-                {
-                    using (var stream = responsePic.GetResponseStream())
-                    {
-                        if (stream == null) return;
-                        var webImage = Image.FromStream(stream);
-                        webImage.Save(imageLocation);
-                    }
-                }
-            }
-            catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
-            {
-                LogToFile(ex);
-            }
-        }
-
-        internal static void SaveScreenshot(string imageUrl, string savedLocation)
-        {
-            if (!Directory.Exists(VNScreensFolder)) Directory.CreateDirectory(VNScreensFolder);
-            string[] urlSplit = imageUrl.Split('/');
-            if (!Directory.Exists($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}"))
-                Directory.CreateDirectory($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}");
-            if (imageUrl.Equals("")) return;
-            if (File.Exists(savedLocation)) return;
-            var requestPic = WebRequest.Create(imageUrl);
-            using (var responsePic = requestPic.GetResponse())
-            {
-                using (var stream = responsePic.GetResponseStream())
-                {
-                    if (stream == null) return;
-                    var webImage = Image.FromStream(stream);
-                    webImage.Save(savedLocation);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Delete text in label after time set in LabelFadeTime.
-        /// </summary>
-        /// <param name="tLabel">Label to delete text in</param>
-        internal static void FadeLabel(Label tLabel)
-        {
-            var fadeTimer = new Timer { Interval = LabelFadeTime };
-            fadeTimer.Tick += (sender, e) =>
-            {
-                tLabel.Text = "";
-                fadeTimer.Stop();
-            };
-            fadeTimer.Start();
         }
 
         /// <summary>
@@ -1129,113 +937,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         /// <summary>
-        ///     Check if date is in the future.
-        /// </summary>
-        /// <param name="date">Date to be checked</param>
-        /// <returns>Whether date is in the future</returns>
-        private bool IsUnreleased(string date)
-        {
-            return StringToDate(date) > DateTime.UtcNow;
-        }
-
-        /// <summary>
-        ///     Convert a string containing a date (in the format YYYY-MM-DD) to a DateTime.
-        /// </summary>
-        /// <param name="date">String to be converted</param>
-        /// <returns>DateTime representing date in string</returns>
-        public static DateTime StringToDate(string date)
-        {
-            //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
-            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
-            var dtDate = new DateTime();
-            var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
-            if (dateRegex.IsMatch(date))
-            {
-                //handle possible invalid dates such as february 30
-                var tryDone = false;
-                var tryCount = 0;
-                while (!tryDone)
-                {
-                    try
-                    {
-                        dtDate = new DateTime(dateArray[0], dateArray[1], dateArray[2] - tryCount);
-                        tryDone = true;
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        LogToFile(
-                            $"Date: {dateArray[0]}-{dateArray[1]}-{dateArray[2] - tryCount} is invalid, trying again one day earlier");
-                        tryCount++;
-                    }
-                }
-                return dtDate;
-            }
-            //if date only has year-month, then if month hasn't finished = unreleased
-            var monthRegex = new Regex(@"^\d{4}-\d{2}$");
-            if (monthRegex.IsMatch(date))
-            {
-                dtDate = new DateTime(dateArray[0], dateArray[1], 28);
-                return dtDate;
-            }
-            //if date only has year, then if year hasn't finished = unreleased
-            var yearRegex = new Regex(@"^\d{4}$");
-            if (yearRegex.IsMatch(date))
-            {
-                dtDate = new DateTime(dateArray[0], 12, 28);
-                return dtDate;
-            }
-            return DateTime.MaxValue;
-        }
-
-        /// <summary>
-        ///     Convert JSON-formatted string to list of tags.
-        /// </summary>
-        /// <param name="tagstring">JSON-formatted string</param>
-        /// <returns>List of tags</returns>
-        internal static List<TagItem> StringToTags(string tagstring)
-        {
-            if (tagstring.Equals("")) return new List<TagItem>();
-            var curS = $"{{\"tags\":{tagstring}}}";
-            var vnitem = JsonConvert.DeserializeObject<VNItem>(curS);
-            return vnitem.Tags;
-        }
-
-        /// <summary>
-        ///     Decompress GZip file.
-        /// </summary>
-        /// <param name="fileToDecompress">File to Decompress</param>
-        /// <param name="outputFile">Output File</param>
-        public void GZipDecompress(string fileToDecompress, string outputFile)
-        {
-            using (var originalFileStream = File.OpenRead(fileToDecompress))
-            {
-                var newFileName = outputFile;
-
-                using (var decompressedFileStream = File.Create(newFileName))
-                {
-                    using (var decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
-                    {
-                        decompressionStream.CopyTo(decompressedFileStream);
-                        LogToFile($@"Decompressed: {fileToDecompress}");
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Get Days passed since date of last update.
-        /// </summary>
-        /// <param name="updatedDate">Date of last update</param>
-        /// <returns>Number of days since last update</returns>
-        public static int DaysSince(DateTime updatedDate)
-        {
-            if (updatedDate == DateTime.MinValue) return -1;
-            var days = (DateTime.UtcNow - updatedDate).Days;
-            return days;
-        }
-
-        /// <summary>
         ///     Get new VNDB Stats from VNDB using API.
         /// </summary>
         private void GetNewDBStats()
@@ -1345,7 +1046,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
-
         /// <summary>
         ///     Load Tags from Tag dump file.
         /// </summary>
@@ -1421,11 +1121,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         /// <summary>
-        ///     Refresh VN OLV.
+        ///     Refresh VN OLV and repopulate group and producer search boxes.
         /// </summary>
-        private void LoadVNListToGui()
+        private void LoadVNListToGui(bool skipGroupSearch = false)
         {
             tileOLV.SetObjects(_vnList.Where(_currentList));
+            if (!skipGroupSearch) PopulateGroupSearchBox();
+            PopulateProducerSearchBox();
         }
 
         /// <summary>
@@ -1461,7 +1163,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         ///     Load user's VNDB login credentials from Windows Registry
         /// </summary>
         /// <returns></returns>
-        private KeyValuePair<string, char[]> LoadCredentials()
+        private static KeyValuePair<string, char[]> LoadCredentials()
         {
             //get key data
             var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}");
@@ -1492,9 +1194,16 @@ be displayed by clicking the User Related Titles (URT) filter.",
             serverR.Text = "";
         }
 
-        private static string TruncateString(string value, int maxChars)
+
+        private void VNToolTip(object sender, BrightIdeasSoftware.ToolTipShowingEventArgs e)
         {
-            return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
+            ListedVN vn = (ListedVN)e.Model;
+            CustomItemNotes notes = vn.GetCustomItemNotes();
+            StringBuilder sb = new StringBuilder($"{TruncateString(vn.Title, 50)}\n");
+            sb.Append($"{TruncateString($"by {vn.Producer}", 50)}");
+            if (notes != null && !notes.Notes.Equals("")) sb.Append($"\n{TruncateString($"Notes: {notes.Notes}", 50)}");
+            if (notes != null && notes.Groups.Count != 0) sb.Append($"\n{TruncateString($"Groups: {string.Join(", ", notes.Groups)}", 50)}");
+            e.Text = sb.ToString();
         }
         #endregion
 
@@ -1596,32 +1305,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             WL,
             Vote
         }
-
         #endregion
 
-        private static bool _advancedMode;
-
-        private void ToggleAdvancedMode(object sender, EventArgs e)
-        {
-            _advancedMode = advancedCheckBox.Checked;
-            questionBox.Enabled = _advancedMode;
-            serverQ.Enabled = _advancedMode;
-            serverR.Enabled = _advancedMode;
-            sendQueryButton.Enabled = _advancedMode;
-            clearLogButton.Enabled = _advancedMode;
-            if (_advancedMode)
-            {
-                questionBox.Text = "";
-                serverQ.Text = "";
-                serverR.Text = "";
-            }
-            else
-            {
-                questionBox.Text = @"(Advanced Mode Disabled)";
-                serverQ.Text = @"(Advanced Mode Disabled)";
-                serverR.Text = @"(Advanced Mode Disabled)";
-            }
-        }
-        
     }
 }

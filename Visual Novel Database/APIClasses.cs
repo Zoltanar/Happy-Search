@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable ClassNeverInstantiated.Global
 
@@ -536,6 +538,14 @@ namespace Happy_Search
         {
             Notes = notes;
             Groups = groups;
+        }
+
+        public string Serialize()
+        {
+            if (Notes.Equals("") && !Groups.Any()) return "";
+            string serializedString = $"Notes: {Notes}|Groups: {string.Join(",", Groups)}";
+            string escapedString = JsonConvert.ToString(serializedString);
+            return escapedString.Substring(1,escapedString.Length-2);
         }
     }
 

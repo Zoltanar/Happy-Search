@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using static Happy_Search.FormMain;
+using static Happy_Search.StaticHelpers;
+
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
