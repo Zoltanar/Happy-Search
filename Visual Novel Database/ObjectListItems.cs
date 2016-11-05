@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -9,7 +8,6 @@ using System.Linq;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
-using Newtonsoft.Json;
 using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
@@ -94,6 +92,35 @@ namespace Happy_Search
         public ListedVN()
         {
             VNID = -1;
+        }
+
+        /// <summary>
+        /// List of Tags, must be set prior to use.
+        /// </summary>
+        public List<TagItem> TagList { get; set; }
+
+        /// <summary>
+        /// Sets TagList field.
+        /// </summary>
+        /// <param name="plainTags">List of tags from tagdump</param>
+        public void SetTags(List<WrittenTag> plainTags)
+        {
+            var tagList = StringToTags(Tags);
+            foreach (TagItem tag in tagList)
+            {
+                tag.SetCategory(plainTags);
+            }
+            TagList = tagList;
+        }
+
+        /// <summary>
+        /// Gets characters involved in VN.
+        /// </summary>
+        /// <param name="characterList">List of all characters</param>
+        /// <returns>Array of Characters</returns>
+        public CharacterItem[] GetCharacters(IEnumerable<CharacterItem> characterList)
+        {
+            return characterList.Where(x => x.CharacterIsInVN(VNID)).ToArray();
         }
 
         /// <summary>
@@ -484,6 +511,9 @@ namespace Happy_Search
         private const int LinesOfTextAbovePicture = 1;
         private const int LinesOfTextBelowPicture = 3;
         private Pen _borderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
+        private static readonly Brush TextBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
+        private static readonly Font BoldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
+        private static readonly Font NormalFont = new Font("Microsoft Sans Serif", 8.25f);
 
         /// <summary>
         ///     Render the whole item within an ObjectListView. This is only used in non-Details views.
@@ -528,27 +558,11 @@ namespace Happy_Search
         /// <param name="olv">OLV where tile is drawn.</param>
         public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv)
         {
-            Brush textBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
             var backBrush = Brushes.LightBlue;
             //tile size 230,375
             //image 230-spacing, 300-spacing
             const int spacing = 8;
-            var font = new Font("Microsoft Sans Serif", 8.25f);
-            var boldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
-            var fmtNear = new StringFormat(StringFormatFlags.NoWrap)
-            {
-                Trimming = StringTrimming.EllipsisCharacter,
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Near
-            };
-            var fmtFar = new StringFormat(StringFormatFlags.NoWrap)
-            {
-                Trimming = StringTrimming.EllipsisCharacter,
-                Alignment = StringAlignment.Far,
-                LineAlignment = StringAlignment.Far
-            };
-            var textHeight = g.MeasureString("Wj", font).Height;
-            var dateWidth = g.MeasureString("9999-99-99", font).Width;
+            var textHeight = g.MeasureString("Wj", NormalFont).Height;
             // Allow a border around the card
             itemBounds.Inflate(-2, -2);
             var vn = rowObject as ListedVN;
@@ -601,28 +615,55 @@ namespace Happy_Search
                 DrawImageFitToSize(g, photoArea, photoFile);
             }
             else g.DrawImage(Resources.no_image, photoArea);
-
+            DrawTileText(photoArea,textHeight,g,vn, olv);
+        }
+         
+        private void DrawTileText(RectangleF photoArea, float textHeight, Graphics g,ListedVN vn, ObjectListView olv)
+        {
+            var dateWidth = g.MeasureString("9999-99-99", NormalFont).Width;
+            var fmtNear = new StringFormat(StringFormatFlags.NoWrap)
+            {
+                Trimming = StringTrimming.EllipsisCharacter,
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Near
+            };
+            var fmtFar = new StringFormat(StringFormatFlags.NoWrap)
+            {
+                Trimming = StringTrimming.EllipsisCharacter,
+                Alignment = StringAlignment.Far,
+                LineAlignment = StringAlignment.Far
+            };
             // Now draw the text portion
             //text above picture
             RectangleF textBoxRect = photoArea;
             textBoxRect.Y -= textHeight;
             textBoxRect.Height = textHeight;
             fmtNear.Alignment = StringAlignment.Near;
-            g.DrawString(vn.Title, boldFont, textBrush, textBoxRect, fmtNear); //line 1: vn title
+            g.DrawString(vn.Title, BoldFont, TextBrush, textBoxRect, fmtNear); //line 1: vn title
                                                                                //text below picture
             textBoxRect.Y += textHeight + photoArea.Height;
-            var producerBrush = textBrush;
-            List<ListedProducer> producers =
-                (olv.FindForm() as FormMain)?.olFavoriteProducers.Objects as List<ListedProducer>;
-            if (producers != null && producers.Exists(x => x.Name == vn.Producer)) producerBrush = Brushes.Yellow;
-            g.DrawString(vn.Producer, font, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 
+            var favoriteProducers = (olv.FindForm() as FormMain)?.olFavoriteProducers.Objects as List<ListedProducer>;
+            Brush producerBrush = favoriteProducers != null && favoriteProducers.Exists(x => x.Name == vn.Producer) ? new SolidBrush(Color.Yellow) : TextBrush;
+            Brush dateBrush = DateIsUnreleased(vn.RelDate) ? new SolidBrush(Color.Red) : TextBrush;
+            g.DrawString(vn.Producer, NormalFont, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 
             textBoxRect.Y += textHeight;
             textBoxRect.Width -= dateWidth;
-            g.DrawString($"Rating: {vn.RatingAndVoteCount()}", font, textBrush, textBoxRect, fmtNear);//line 3 left: rating/votecount
+            g.DrawString($"Rating: {vn.RatingAndVoteCount()}", NormalFont, TextBrush, textBoxRect, fmtNear);//line 3 left: rating/votecount
             textBoxRect.Width = photoArea.Width;
-            g.DrawString(vn.RelDate, font, textBrush, textBoxRect, fmtFar); //line 3 right: vn release date
+            g.DrawString(vn.RelDate, NormalFont, dateBrush, textBoxRect, fmtFar); //line 3 right: vn release date
             textBoxRect.Y += textHeight;
-            g.DrawString(vn.UserRelatedStatus(), font, textBrush, textBoxRect, fmtNear);
+            if (vn.ULStatus.Equals("Playing"))
+            {
+                var ulWidth = g.MeasureString("Userlist: ", NormalFont).Width;
+                var playingRectangle = new RectangleF(textBoxRect.X+ulWidth,textBoxRect.Y, textBoxRect.Width-ulWidth,textBoxRect.Height);
+                g.DrawString("Userlist: ", NormalFont, TextBrush, textBoxRect, fmtNear);
+                g.DrawString("Playing", NormalFont, new SolidBrush(Color.Yellow), playingRectangle, fmtNear);
+                if(vn.Vote > 0) g.DrawString($" (Vote:{vn.Vote:0.00})", NormalFont, TextBrush, textBoxRect, fmtFar); //line 3 right: vn release date
+            }
+            else
+            {
+                g.DrawString(vn.UserRelatedStatus(), NormalFont, TextBrush, textBoxRect, fmtNear);
+            }
             //line 4: user-related status
         }
 

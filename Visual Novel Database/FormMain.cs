@@ -66,10 +66,6 @@ namespace Happy_Search
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
         public const string TagTypeAll = "checkBox";
         public const string TagTypeUrt = "mctULLabel";
-        public const string ContentTag = "cont";
-        public const string SexualTag = "ero";
-        public const string TechnicalTag = "tech";
-        public const int LabelFadeTime = 5000; //ms for text to disappear (not actual fade)
         public static readonly Color ErrorColor = Color.Red;
         public static readonly Color NormalColor = SystemColors.ControlLightLight;
         public static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
@@ -1197,13 +1193,26 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void VNToolTip(object sender, BrightIdeasSoftware.ToolTipShowingEventArgs e)
         {
-            ListedVN vn = (ListedVN)e.Model;
-            CustomItemNotes notes = vn.GetCustomItemNotes();
-            StringBuilder sb = new StringBuilder($"{TruncateString(vn.Title, 50)}\n");
-            sb.Append($"{TruncateString($"by {vn.Producer}", 50)}");
-            if (notes != null && !notes.Notes.Equals("")) sb.Append($"\n{TruncateString($"Notes: {notes.Notes}", 50)}");
-            if (notes != null && notes.Groups.Count != 0) sb.Append($"\n{TruncateString($"Groups: {string.Join(", ", notes.Groups)}", 50)}");
-            e.Text = sb.ToString();
+            var vn = (ListedVN)e.Model;
+            var notes = vn.GetCustomItemNotes();
+            var characterCount = vn.GetCharacters(CharacterList).Length;
+            vn.SetTags(PlainTags);
+            var toolTipLines = new List<string>
+            {
+                $"{TruncateString(vn.Title, 50)}",
+                $"{TruncateString($"by {vn.Producer}", 50)}"
+            };
+            if (vn.TagList.Any())
+            {
+                toolTipLines.Add($"Tags: {vn.TagList.GetTagCountByCat(TagCategory.Content)} Content," +
+                                 $" {vn.TagList.GetTagCountByCat(TagCategory.Sexual)} Sexual," +
+                                 $" {vn.TagList.GetTagCountByCat(TagCategory.Technical)} Technical");
+            }
+            else toolTipLines.Add("No Tags Found.");
+            if (characterCount > 0) toolTipLines.Add($"Characters: {characterCount}.");
+            if (notes != null && !notes.Notes.Equals("")) toolTipLines.Add($"{TruncateString($"Notes: {notes.Notes}", 50)}");
+            if (notes != null && notes.Groups.Count != 0) toolTipLines.Add($"{TruncateString($"Groups: {string.Join(", ", notes.Groups)}", 50)}");
+            e.Text = string.Join("\n",toolTipLines);
         }
         #endregion
 

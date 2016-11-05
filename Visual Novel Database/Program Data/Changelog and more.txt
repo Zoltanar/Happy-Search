@@ -68,9 +68,8 @@ add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
 merge feature to merge 2 databases, keeping most-recently-updated in case of same id
 indicate when tag/trait filters are on
-something weird happening with vn form on v13419 Uta no™Prince-samaô All Star After Secret
 better vn character display?
-show unreleased in unreleased vn tiles
+show unreleased in unreleased vn tiles date in red if unreleased
 move producerlist.Updated to userprodlist
 allow cmd line params to launch with debug mode (more logging to file)
 keep count of file download tries for tag/traitdump files and use default if too many.

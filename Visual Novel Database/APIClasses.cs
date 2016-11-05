@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
+using static Happy_Search.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable ClassNeverInstantiated.Global
@@ -166,6 +167,8 @@ namespace Happy_Search
             set { this[2] = value; }
         }
 
+        public TagCategory Category { get; set; }
+
         public override string ToString()
         {
             return $"[{ID},{Score},{Spoiler}]";
@@ -175,10 +178,24 @@ namespace Happy_Search
         {
             return plainTags.Find(item => item.ID == ID)?.Name;
         }
-
-        public string GetCategory(List<WrittenTag> plainTags)
+        
+        public void SetCategory(List<WrittenTag> plainTags)
         {
-            return plainTags.Find(item => item.ID == ID)?.Cat;
+            string cat = plainTags.Find(item => item.ID == ID)?.Cat;
+            switch (cat)
+            {
+                case ContentTag:
+                    Category = TagCategory.Content;
+                    return;
+                case SexualTag:
+                    Category = TagCategory.Sexual;
+                    return;
+                case TechnicalTag:
+                    Category = TagCategory.Technical;
+                    return;
+                default:
+                    return;
+            }
         }
 
         /// <summary>

@@ -21,6 +21,19 @@ namespace Happy_Search
     /// </summary>
     public static class StaticHelpers
     {
+
+#pragma warning disable 1591
+        public const string ContentTag = "cont";
+        public const string SexualTag = "ero";
+        public const string TechnicalTag = "tech";
+        public const int LabelFadeTime = 5000;
+        
+        /// <summary>
+        /// Categories of VN Tags
+        /// </summary>
+        public enum TagCategory { Content, Sexual, Technical }
+#pragma warning restore 1591
+
         /// <summary>
         /// Print message to Debug and write it to log file.
         /// </summary>
@@ -126,7 +139,7 @@ namespace Happy_Search
             label.Text = message;
             if (fade) FadeLabel(label);
         }
-        
+
         /// <summary>
         /// Convert number of bytes to human-readable formatted string, rounded to 1 decimal place. (e.g 79.4KB)
         /// </summary>
@@ -204,6 +217,26 @@ namespace Happy_Search
             var curS = $"{{\"tags\":{tagstring}}}";
             var vnitem = JsonConvert.DeserializeObject<VNItem>(curS);
             return vnitem.Tags;
+        }
+
+        /// <summary>
+        /// Get number of tags in specified category.
+        /// </summary>
+        /// <param name="tags">Collection of tags</param>
+        /// <param name="category">Category that tags should be in</param>
+        /// <returns>Number of tags that match</returns>
+        public static int GetTagCountByCat(this IEnumerable<TagItem> tags, TagCategory category)
+        {
+            switch (category)
+            {
+                case TagCategory.Content:
+                    return tags.Count(tag => tag.Category == TagCategory.Content);
+                case TagCategory.Sexual:
+                    return tags.Count(tag => tag.Category == TagCategory.Sexual);
+                case TagCategory.Technical:
+                    return tags.Count(tag => tag.Category == TagCategory.Technical);
+            }
+            return 1;
         }
 
         /// <summary>
@@ -324,7 +357,7 @@ namespace Happy_Search
         /// <param name="tLabel">Label to delete text in</param>
         public static void FadeLabel(Label tLabel)
         {
-            var fadeTimer = new Timer { Interval = FormMain.LabelFadeTime };
+            var fadeTimer = new Timer { Interval = LabelFadeTime };
             fadeTimer.Tick += (sender, e) =>
             {
                 tLabel.Text = "";

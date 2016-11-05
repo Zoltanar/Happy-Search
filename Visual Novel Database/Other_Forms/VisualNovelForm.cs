@@ -84,20 +84,20 @@ namespace Happy_Search.Other_Forms
             if (_displayedVN == null || _displayedVN.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
             else
             {
-                List<TagItem> allTags = StringToTags(_displayedVN.Tags);
+                _displayedVN.SetTags(_parentForm.PlainTags);
+                List<TagItem> allTags = _displayedVN.TagList;
                 var visibleTags = new List<TagItem>();
                 foreach (var tag in allTags)
                 {
-                    var cat = tag.GetCategory(_parentForm.PlainTags);
-                    switch (cat)
+                    switch (tag.Category)
                     {
-                        case FormMain.ContentTag:
+                        case TagCategory.Content:
                             if (!tagTypeC.Checked) continue;
                             break;
-                        case FormMain.SexualTag:
+                        case TagCategory.Sexual:
                             if (!tagTypeS.Checked) continue;
                             break;
-                        case FormMain.TechnicalTag:
+                        case TagCategory.Technical:
                             if (!tagTypeT.Checked) continue;
                             break;
                     }
@@ -244,7 +244,7 @@ namespace Happy_Search.Other_Forms
 
         private void DisplayVNCharacterTraits(ListedVN vnItem)
         {
-            var vnCharacters = _parentForm.CharacterList.Where(x => x.CharacterIsInVN(vnItem.VNID)).ToArray();
+            var vnCharacters = vnItem.GetCharacters(_parentForm.CharacterList);
             var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
             foreach (var characterItem in vnCharacters)
             {
