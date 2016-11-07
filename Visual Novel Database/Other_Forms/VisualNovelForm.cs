@@ -156,7 +156,7 @@ namespace Happy_Search.Other_Forms
             //prepare data
             _displayedVN = vnItem;
             var ext = Path.GetExtension(vnItem.ImageURL);
-            var imageLoc = $"{FormMain.VNImagesFolder}{vnItem.VNID}{ext}";
+            var imageLoc = $"{VNImagesFolder}{vnItem.VNID}{ext}";
             DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
             //set data
@@ -515,7 +515,7 @@ namespace Happy_Search.Other_Forms
         private static int DrawImageFitToHeight(Control control, int height, int locationX, ScreenItem screenItem)
         {
             string[] urlSplit = screenItem.Image.Split('/');
-            string photoString = $"{FormMain.VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
+            string photoString = $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
             if (!File.Exists(photoString))
             {
                 SaveScreenshot(screenItem.Image, photoString);

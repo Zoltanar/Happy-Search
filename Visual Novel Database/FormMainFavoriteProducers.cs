@@ -141,7 +141,7 @@ This may take a while...",
             _currentListLabel = "Favorite Producers (Selected)";
             LoadVNListToGui();
         }
-        
+
         /// <summary>
         /// Get new titles from Favorite Producers, only updates if last update was over 2 days ago.
         /// </summary>
@@ -187,14 +187,12 @@ This may take a while...",
                 if (listedProducers?.Find(x => x.Name.Equals(producer.Name)) != null) continue;
                 int finishedTitles = URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
                 int urtTitles = URTList.Count(x => x.Producer == producer.Name);
-                if (finishedTitles > 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles), finishedTitles);
+                if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles), finishedTitles);
             }
-            LogToFile("Finished adding suggestions");
             IOrderedEnumerable<KeyValuePair<ListedSearchedProducer, int>> sortedSuggestions = from entry in suggestions orderby entry.Value descending select entry;
             var listForForm = new List<ListedSearchedProducer>();
             foreach (KeyValuePair<ListedSearchedProducer, int> suggestion in sortedSuggestions)
             {
-                LogToFile($"{suggestion.Key.Name} = Finished {suggestion.Value} titles.");
                 listForForm.Add(suggestion.Key);
             }
 
@@ -216,7 +214,7 @@ This may take a while...",
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
-            List<int> producerVNList = releaseItems.SelectMany(item => item.VN.Select(x=>x.ID)).ToList();
+            List<int> producerVNList = releaseItems.SelectMany(item => item.VN.Select(x => x.ID)).ToList();
             var moreResults = releaseRoot.More;
             var pageNo = 1;
             while (moreResults)
@@ -251,7 +249,7 @@ This may take a while...",
             DBConn.Close();
             foreach (var favoriteProducer in favoriteProducers)
             {
-                double[] vnsWithVotes =_vnList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
+                double[] vnsWithVotes = _vnList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
                 favoriteProducer.GeneralRating = vnsWithVotes.Any() ? Math.Round(vnsWithVotes.Average(), 2) : -1;
             }
             olFavoriteProducers.SetObjects(favoriteProducers);
@@ -280,15 +278,13 @@ This may take a while...",
                 var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
                 var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
                 ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
-                userDropRate = finishedCount + droppedCount != 0
-                    ? (double)droppedCount / (droppedCount + finishedCount)
-                    : -1;
+                userDropRate = finishedCount + droppedCount != 0 ? (double)droppedCount / (droppedCount + finishedCount) : -1;
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
             }
             producer = new ListedProducer(producer.Name, producer.NumberOfTitles, DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100));
-            DBConn.Open();
+            DBConn.BeginTransaction();
             DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, UserID);
-            DBConn.Close();
+            DBConn.EndTransaction();
             UpdateUserStats();
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
@@ -302,10 +298,13 @@ This may take a while...",
         {
             var listedProducer = (ListedProducer)e.Model;
             e.Item.GetSubItem(ol2UserAverageVote.Index).Text = listedProducer.UserAverageVote > 0 ? listedProducer.UserAverageVote.ToString("0.00") : "";
-            e.Item.GetSubItem(ol2UserDropRate.Index).Text = listedProducer.UserDropRate < 0 ? "" : $"{listedProducer.UserDropRate}%";
+            e.Item.GetSubItem(ol2UserDropRate.Index).Text = listedProducer.UserDropRate > -1 ? $"{listedProducer.UserDropRate}%" : "";
+            if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
+            if (listedProducer.GeneralRating < 0) e.Item.GetSubItem(ol2GeneralRating.Index).Text = "";
             if (listedProducer.Updated == -1)
             {
                 e.Item.GetSubItem(ol2Updated.Index).Text = @"Never";
+                e.Item.GetSubItem(ol2GeneralRating.Index).Text = @"Never";
                 if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
             }
         }

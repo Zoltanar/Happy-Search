@@ -608,7 +608,7 @@ namespace Happy_Search
             photoArea.Inflate(-spacing, -spacing);
             if (vn == null) return;
             var ext = Path.GetExtension(vn.ImageURL);
-            var photoFile = string.Format($"{FormMain.VNImagesFolder}{vn.VNID}{ext}");
+            var photoFile = string.Format($"{VNImagesFolder}{vn.VNID}{ext}");
             if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
             else if (File.Exists(photoFile))
             {

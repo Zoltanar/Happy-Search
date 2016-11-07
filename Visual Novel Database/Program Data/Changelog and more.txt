@@ -2,6 +2,7 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: Logging of features on begin and end. Only with -debug.
 Added: Indicators of when tag/trait filters are active.
 Added: Command line parameters, described below.
 Added: Tooltips to VNs.
@@ -72,23 +73,25 @@ save settings to %localappdata%
 handle abrupt exit, terminate api connection
 add 'exclude tag' filters ? not so sure if needed
 backup sqlite database!
-add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
 merge feature to merge 2 databases, keeping most-recently-updated in case of same id
 better vn character display?
-move producerlist.Updated to userprodlist //requires db change
-keep count of file download tries for tag/traitdump files and use default if too many.
+--
+let user know of any updates to happy search
+add option to make tag/trait filters as OR (e.g. tag=chuunibyou heroine OR trait=personality>chuunibyou)
+--
 
 
 Incomplete
 ---------------
 await all db connections
-display more information on vn tooltip, and include ul note in vn form
+include ul note in vn form
 
 Completed (Feature List)
 ---------------
 Searching:	
 	vns by tag(s)
+	vns by trait(s)
 	vns by name
 	vns by year of release
 Quick Listing:
@@ -125,7 +128,7 @@ VN Window (Left click a title in result list)
 	All windows can be closed with a button in the main window
 Automatic File Downloading
 	Tags and traits dump files are downloaded and decompressed automatically
-	They will be automatically redownloaded if they are exist or corrupt
+	They will be automatically redownloaded if they don't exist or are corrupt
 	They are kept up to date automatically (2 days)
 Persistent Data
 	User credentials incl. username/password

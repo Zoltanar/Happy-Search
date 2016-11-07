@@ -695,9 +695,9 @@ namespace Happy_Search
                     _producerList.Find(x => x.Name == vn.Producer).ID,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
-            DBConn.Open();
+            DBConn.BeginTransaction();
             DBConn.InsertFavoriteProducers(addProducerList, UserID);
-            DBConn.Close();
+            DBConn.EndTransaction();
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
             WriteText(replyText, $"{vn.Producer} added to list.");

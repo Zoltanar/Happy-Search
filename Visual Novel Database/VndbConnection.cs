@@ -35,19 +35,19 @@ namespace Happy_Search
             LogToFile($"Attempting to open connection to {VndbHost}:{VndbPortTLS}");
             var complete = false;
             var retries = 0;
+            var certs = new X509CertificateCollection();
+            var certFiles = Directory.GetFiles("Program Data\\Certificates");
+            foreach (var certFile in certFiles)
+            {
+                certs.Add(X509Certificate.CreateFromCertFile(certFile));
+            }
+            LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
+            foreach (var cert in certs)
+            {
+                LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
+            }
             while (!complete && retries < 5)
             {
-                var certs = new X509CertificateCollection();
-                var certFiles = Directory.GetFiles("Program Data\\Certificates");
-                foreach (var certFile in certFiles)
-                {
-                    certs.Add(X509Certificate.CreateFromCertFile(certFile));
-                }
-                LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-                foreach (var cert in certs)
-                {
-                    LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
-                }
                 try
                 {
                     retries++;
@@ -68,7 +68,7 @@ namespace Happy_Search
                                            sslStream.RemoteCertificate.GetEffectiveDateString() + "\t - \t" + sslStream.RemoteCertificate.GetExpirationDateString());
                         if (!subject.Substring(3).Equals(VndbHost))
                         {
-                            LogToFile($"Certificate received isn't for {VndbHost} so connection is closed");
+                            LogToFile($"Certificate received isn't for {VndbHost} so connection is closed (it was for {subject.Substring(3)})");
                             Status = APIStatus.Error;
                             return;
                         }

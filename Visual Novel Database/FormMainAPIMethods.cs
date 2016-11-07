@@ -466,7 +466,7 @@ namespace Happy_Search
             List<ProducerItem> producers = root.Items;
             if (!producers.Any()) return;
             var producer = producers.First();
-            DBConn.InsertProducer((ListedProducer)producer);
+            DBConn.InsertProducer((ListedProducer)producer, true);
         }
 
         /// <summary>
@@ -478,17 +478,20 @@ namespace Happy_Search
             switch (apiStatus)
             {
                 case VndbConnection.APIStatus.Ready:
+                    if(Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Ended");
                     CurrentFeatureName = "";
                     statusLabel.Text = @"Ready";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
+                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Started");
                     statusLabel.Text = $@"Busy ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Throttled:
+                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Throttled");
                     statusLabel.Text = $@"Throttled ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.DarkRed;
                     statusLabel.BackColor = Color.Khaki;

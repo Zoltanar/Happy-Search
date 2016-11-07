@@ -96,9 +96,10 @@ namespace Happy_Search.Other_Forms
             foreach (var producer in searchedProducers)
             {
                 if (_producerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                _parentForm.DBConn.InsertProducer((ListedProducer)producer);
+                _parentForm.DBConn.InsertProducer((ListedProducer) producer, true);
             }
             _parentForm.DBConn.EndTransaction();
+            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             prodSearchReply.Text = $@"{searchedProducers.Count} producers found.";
         }
         

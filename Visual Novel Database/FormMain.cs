@@ -23,39 +23,7 @@ namespace Happy_Search
     /// </summary>
     public partial class FormMain : Form
     {
-        #region File Locations
 
-#pragma warning disable 1591
-        public const string TagsURL = "http://vndb.org/api/tags.json.gz";
-        public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
-        public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
-        public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
-        public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
-
-#if DEBUG
-        public const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
-        public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
-        public const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
-        public const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
-        public const string LogFile = "..\\Release\\Stored Data\\message.log";
-        public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
-        public const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
-        public const string TagsJson = "..\\Release\\Stored Data\\tags.json";
-        public const string TraitsJson = "..\\Release\\Stored Data\\traits.json";
-#else
-        public const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
-        public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
-        public const string DBStatsXml = "Stored Data\\dbs.xml";
-        public const string MainXmlFile = "Stored Data\\saved_objects.xml";
-        public const string LogFile = "Stored Data\\message.log";
-        public const string TagsJsonGz = "Stored Data\\tags.json.gz";
-        public const string TraitsJsonGz = "Stored Data\\traits.json.gz";
-        public const string TagsJson = "Stored Data\\tags.json";
-        public const string TraitsJson = "Stored Data\\traits.json";
-#endif
-#pragma warning restore 1591
-
-        #endregion
 
         //constants / definables
 #pragma warning disable 1591
@@ -251,21 +219,6 @@ https://github.com/FredTheBarber/VndbClient";
             }*/
             SplashScreen.CloseForm();
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-        }
-
-        private void PopulateGroupSearchBox()
-        {
-            var groupFilterSource = new AutoCompleteStringCollection { "(Group)" };
-            groupFilterSource.AddRange(_vnList.SelectMany(vn => vn.GetCustomItemNotes().Groups).Distinct().ToArray());
-            groupListBox.AutoCompleteCustomSource = groupFilterSource;
-            groupListBox.DataSource = groupFilterSource;
-        }
-
-        private void PopulateProducerSearchBox()
-        {
-            var producerFilterSource = new AutoCompleteStringCollection();
-            producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
-            ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
         }
 
 
@@ -817,6 +770,28 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
 
         /// <summary>
+        /// Populates group search box with group data from titles.
+        /// </summary>
+        private void PopulateGroupSearchBox()
+        {
+            var groupFilterSource = new AutoCompleteStringCollection { "(Group)" };
+            groupFilterSource.AddRange(_vnList.SelectMany(vn => vn.GetCustomItemNotes().Groups).Distinct().ToArray());
+            groupListBox.AutoCompleteCustomSource = groupFilterSource;
+            groupListBox.DataSource = groupFilterSource;
+        }
+
+        /// <summary>
+        /// Populates producer search box with data from producer list.
+        /// </summary>
+        private void PopulateProducerSearchBox()
+        {
+            var producerFilterSource = new AutoCompleteStringCollection();
+            producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
+            ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
+        }
+
+
+        /// <summary>
         ///     Display ten most common tags in user related titles.
         /// </summary>
         internal void DisplayCommonTagsURT(object sender, EventArgs e)
@@ -941,8 +916,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready) return;
             Conn.Query("dbstats");
-            serverQ.Text += @"dbstats" + Environment.NewLine;
-            serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+            if (_advancedMode)
+            {
+                serverQ.Text += @"dbstats" + Environment.NewLine;
+                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+            }
             if (Conn.LastResponse.Type != ResponseType.DBStats)
             {
                 dbs1r.Text = Resources.dbs_unknown_error;

@@ -22,6 +22,40 @@ namespace Happy_Search
     public static class StaticHelpers
     {
 
+        #region File Locations
+
+#pragma warning disable 1591
+        public const string TagsURL = "http://vndb.org/api/tags.json.gz";
+        public const string TraitsURL = "http://vndb.org/api/traits.json.gz";
+        public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
+        public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
+        public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
+
+#if DEBUG
+        public const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
+        public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
+        public const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
+        public const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
+        public const string LogFile = "..\\Release\\Stored Data\\message.log";
+        public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
+        public const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
+        public const string TagsJson = "..\\Release\\Stored Data\\tags.json";
+        public const string TraitsJson = "..\\Release\\Stored Data\\traits.json";
+#else
+        public const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
+        public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
+        public const string DBStatsXml = "Stored Data\\dbs.xml";
+        public const string MainXmlFile = "Stored Data\\saved_objects.xml";
+        public const string LogFile = "Stored Data\\message.log";
+        public const string TagsJsonGz = "Stored Data\\tags.json.gz";
+        public const string TraitsJsonGz = "Stored Data\\traits.json.gz";
+        public const string TagsJson = "Stored Data\\tags.json";
+        public const string TraitsJson = "Stored Data\\traits.json";
+#endif
+#pragma warning restore 1591
+
+        #endregion
+
 #pragma warning disable 1591
         public const string ContentTag = "cont";
         public const string SexualTag = "ero";
@@ -43,11 +77,11 @@ namespace Happy_Search
         public static void LogToFile(string message)
         {
             Debug.Print(message);
-            while (IsFileLocked(new FileInfo(FormMain.LogFile)))
+            while (IsFileLocked(new FileInfo(LogFile)))
             {
                 Thread.Sleep(25);
             }
-            using (var writer = new StreamWriter(FormMain.LogFile, true))
+            using (var writer = new StreamWriter(LogFile, true))
             {
                 writer.WriteLine(message);
             }
@@ -61,11 +95,11 @@ namespace Happy_Search
         {
             Debug.Print(exception.Message);
             Debug.Print(exception.StackTrace);
-            while (IsFileLocked(new FileInfo(FormMain.LogFile)))
+            while (IsFileLocked(new FileInfo(LogFile)))
             {
                 Thread.Sleep(25);
             }
-            using (var writer = new StreamWriter(FormMain.LogFile, true))
+            using (var writer = new StreamWriter(LogFile, true))
             {
                 writer.WriteLine(exception.Message);
                 writer.WriteLine(exception.StackTrace);
@@ -304,9 +338,9 @@ namespace Happy_Search
         /// <param name="update">Get new image regardless of whether one already exists?</param>
         public static void SaveImage(VNItem vn, bool update = false)
         {
-            if (!Directory.Exists(FormMain.VNImagesFolder)) Directory.CreateDirectory(FormMain.VNImagesFolder);
+            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.Image == null || vn.Image.Equals("")) return;
-            string imageLocation = $"{FormMain.VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
+            string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
             if (File.Exists(imageLocation) && update == false) return;
             LogToFile($"Start downloading cover image for {vn}");
             try
@@ -335,10 +369,10 @@ namespace Happy_Search
         /// <param name="savedLocation">Location to save image to</param>
         public static void SaveScreenshot(string imageUrl, string savedLocation)
         {
-            if (!Directory.Exists(FormMain.VNScreensFolder)) Directory.CreateDirectory(FormMain.VNScreensFolder);
+            if (!Directory.Exists(VNScreensFolder)) Directory.CreateDirectory(VNScreensFolder);
             string[] urlSplit = imageUrl.Split('/');
-            if (!Directory.Exists($"{FormMain.VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}"))
-                Directory.CreateDirectory($"{FormMain.VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}");
+            if (!Directory.Exists($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}"))
+                Directory.CreateDirectory($"{VNScreensFolder}\\{urlSplit[urlSplit.Length - 2]}");
             if (imageUrl.Equals("")) return;
             if (File.Exists(savedLocation)) return;
             var requestPic = WebRequest.Create(imageUrl);
@@ -374,9 +408,9 @@ namespace Happy_Search
         /// <param name="vn">Title</param>
         public static async Task SaveImageAsync(ListedVN vn)
         {
-            if (!Directory.Exists(FormMain.VNImagesFolder)) Directory.CreateDirectory(FormMain.VNImagesFolder);
+            if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
             if (vn.ImageURL == null || vn.ImageURL.Equals("")) return;
-            string imageLocation = $"{FormMain.VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}";
+            string imageLocation = $"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}";
             if (File.Exists(imageLocation)) return;
             LogToFile($"Start downloading cover image for {vn}");
             try
