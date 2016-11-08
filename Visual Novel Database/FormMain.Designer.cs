@@ -237,6 +237,7 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToggleFiltersModeButton = new System.Windows.Forms.CheckBox();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -563,7 +564,7 @@ namespace Happy_Search
             this.traitSignaler.BackColor = System.Drawing.Color.LightGray;
             this.traitSignaler.FlatAppearance.BorderSize = 0;
             this.traitSignaler.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.traitSignaler.Location = new System.Drawing.Point(925, 309);
+            this.traitSignaler.Location = new System.Drawing.Point(942, 309);
             this.traitSignaler.Name = "traitSignaler";
             this.traitSignaler.Size = new System.Drawing.Size(23, 23);
             this.traitSignaler.TabIndex = 92;
@@ -1170,6 +1171,7 @@ namespace Happy_Search
             this.vnTab.Controls.Add(this.quickFilter0);
             this.vnTab.Controls.Add(this.quickFilter1);
             this.vnTab.Controls.Add(this.resultLabel);
+            this.vnTab.Controls.Add(this.ToggleFiltersModeButton);
             this.vnTab.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.vnTab.Location = new System.Drawing.Point(4, 22);
             this.vnTab.Name = "vnTab";
@@ -1943,9 +1945,9 @@ namespace Happy_Search
             "Hide URT",
             "Only URT",
             "Only Unplayed"});
-            this.URTToggleBox.Location = new System.Drawing.Point(954, 311);
+            this.URTToggleBox.Location = new System.Drawing.Point(971, 311);
             this.URTToggleBox.Name = "URTToggleBox";
-            this.URTToggleBox.Size = new System.Drawing.Size(119, 21);
+            this.URTToggleBox.Size = new System.Drawing.Size(102, 21);
             this.URTToggleBox.TabIndex = 85;
             this.URTToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_URT);
             // 
@@ -2497,6 +2499,22 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
             // 
+            // ToggleFiltersModeButton
+            // 
+            this.ToggleFiltersModeButton.Appearance = System.Windows.Forms.Appearance.Button;
+            this.ToggleFiltersModeButton.BackColor = System.Drawing.Color.Black;
+            this.ToggleFiltersModeButton.FlatAppearance.BorderSize = 0;
+            this.ToggleFiltersModeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ToggleFiltersModeButton.Location = new System.Drawing.Point(896, 311);
+            this.ToggleFiltersModeButton.Name = "ToggleFiltersModeButton";
+            this.ToggleFiltersModeButton.Size = new System.Drawing.Size(69, 19);
+            this.ToggleFiltersModeButton.TabIndex = 103;
+            this.ToggleFiltersModeButton.Text = "And";
+            this.ToggleFiltersModeButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.toolTip.SetToolTip(this.ToggleFiltersModeButton, "Click to toggle between \'and\' and \'or\'. Changes how tag/trait filters are used.");
+            this.ToggleFiltersModeButton.UseVisualStyleBackColor = false;
+            this.ToggleFiltersModeButton.CheckedChanged += new System.EventHandler(this.ToggleFiltersMode);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2736,6 +2754,7 @@ namespace Happy_Search
         private ComboBox groupListBox;
         private Button tagSignaler;
         private Button traitSignaler;
+        private CheckBox ToggleFiltersModeButton;
     }
 }
 

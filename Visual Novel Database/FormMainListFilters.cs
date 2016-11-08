@@ -436,12 +436,67 @@ namespace Happy_Search
         {
             tagSignaler.BackColor = _activeTagFilter.Any() ? SignalerActive : SignalerDefault;
             traitSignaler.BackColor = _activeTraitFilter.Any() ? SignalerActive : SignalerDefault;
-            Func<ListedVN, bool>[] funcArray = { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesTagFilter, _traitFunction };
+            Func<ListedVN, bool>[] funcArray;
+            //do OR for tag/trait filters
+            if (ToggleFiltersModeButton.Checked)
+            {
+                //if both are active
+                if (_activeTagFilter.Any() && _activeTraitFilter.Any())
+                {
+                    funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted),
+                    vn => VNMatchesTagFilter(vn) || _traitFunction(vn) };
+
+                }
+                //if only tagfilter is active
+                else if (_activeTagFilter.Any() && !_activeTraitFilter.Any())
+                {
+                    funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted),
+                    VNMatchesTagFilter };
+                }
+                //if only traitfilter is active
+                else if (!_activeTagFilter.Any() && _activeTraitFilter.Any())
+                {
+                    funcArray = new[]
+                    {
+                        GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted),
+                        _traitFunction
+                    };
+                }
+                //if none are active
+                else
+                {
+                    funcArray = new[]{GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted)};
+                }
+            }
+            else
+            {
+                funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesTagFilter, _traitFunction };
+            }
             tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
             objectList_ItemsChanged(null, null);
             SaveMainXML();
         }
 
+        private void ToggleFiltersMode(object sender, EventArgs e)
+        {
+            if (ToggleFiltersModeButton.Checked)
+            {
+                ToggleFiltersModeButton.BackColor = Color.LightGreen;
+                ToggleFiltersModeButton.ForeColor = Color.Black;
+                ToggleFiltersModeButton.Text = @"Or";
+            }
+            else
+            {
+                ToggleFiltersModeButton.BackColor = Color.Black;
+                ToggleFiltersModeButton.ForeColor = Color.White;
+                ToggleFiltersModeButton.Text = @"And";
+            }
+            //only reapply filters if both are active (if only one is active, the result would be the same)
+            if (_activeTagFilter.Any() && _activeTraitFilter.Any())
+            {
+                ApplyListFilters();
+            }
+        }
         #endregion
 
         #region List Results
