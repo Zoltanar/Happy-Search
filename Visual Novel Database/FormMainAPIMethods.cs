@@ -193,7 +193,41 @@ namespace Happy_Search
             return vn;
         }
 
+        /// <summary>
+        /// Searches VNDB for producers by name, independent.
+        /// Call StartQuery prior to it and ChangeAPIStatus afterwards.
+        /// </summary>
+        internal async Task<List<ProducerItem>> AddProducersBySearchedName(string producerName, Label replyLabel)
+        {
+            string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
+            var result = await TryQuery(prodSearchQuery, Resources.ps_query_error, replyLabel);
+            if (!result) return null;
+            var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
+            List<ProducerItem> prodItems = prodRoot.Items;
+            var moreResults = prodRoot.More;
+            var pageNo = 1;
+            while (moreResults)
+            {
+                pageNo++;
+                string prodSearchMoreQuery =
+                    $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
+                var moreResult =
+                    await TryQuery(prodSearchMoreQuery, Resources.ps_query_error, replyLabel);
+                if (!moreResult) return null;
+                var prodMoreRoot = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
+                prodItems.AddRange(prodMoreRoot.Items);
+                moreResults = prodMoreRoot.More;
+            }
+            for (int index = prodItems.Count - 1; index >= 0; index--)
+            {
+                if(_producerList.Exists(x=>x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+            }
+            DBConn.BeginTransaction();
+            foreach (var producer in prodItems) DBConn.InsertProducer((ListedProducer)producer, true);
+            DBConn.EndTransaction();
+            return prodItems;
 
+        }
 
         /// <summary>
         /// Get data about multiple visual novels.

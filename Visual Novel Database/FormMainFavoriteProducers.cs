@@ -240,19 +240,20 @@ This may take a while...",
 
         /// <summary>
         /// Load Favorite Producers into ObjectListView.
+        /// Gets data from local database.
         /// </summary>
         private void LoadFPListToGui()
         {
             if (UserID < 1) return;
             DBConn.Open();
-            List<ListedProducer> favoriteProducers = DBConn.GetFavoriteProducersForUser(UserID);
+            FavoriteProducerList = DBConn.GetFavoriteProducersForUser(UserID);
             DBConn.Close();
-            foreach (var favoriteProducer in favoriteProducers)
+            foreach (var favoriteProducer in FavoriteProducerList)
             {
                 double[] vnsWithVotes = _vnList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
                 favoriteProducer.GeneralRating = vnsWithVotes.Any() ? Math.Round(vnsWithVotes.Average(), 2) : -1;
             }
-            olFavoriteProducers.SetObjects(favoriteProducers);
+            olFavoriteProducers.SetObjects(FavoriteProducerList);
             olFavoriteProducers.Sort(ol2Name.Index);
         }
 

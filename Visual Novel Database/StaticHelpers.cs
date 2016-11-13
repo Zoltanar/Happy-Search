@@ -60,10 +60,25 @@ namespace Happy_Search
         public const string ContentTag = "cont";
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
-        public const int LabelFadeTime = 5000;
+        private const int LabelFadeTime = 5000;
         public static readonly Color SignalerDefault = Color.LightGray;
         public static readonly Color SignalerActive = Color.IndianRed;
 
+        //tile background colors
+        public static readonly SolidBrush DefaultTileBrush = new SolidBrush(Color.LightBlue);
+        public static readonly SolidBrush WLHighBrush = new SolidBrush(Color.DeepPink);
+        public static readonly SolidBrush WLMediumBrush = new SolidBrush(Color.Pink);
+        public static readonly SolidBrush WLLowBrush = new SolidBrush(Color.LightPink);
+        public static readonly SolidBrush ULFinishedBrush = new SolidBrush(Color.LightGreen);
+        public static readonly SolidBrush ULStalledBrush = new SolidBrush(Color.DarkKhaki);
+        public static readonly SolidBrush ULDroppedBrush = new SolidBrush(Color.DarkOrange);
+        public static readonly SolidBrush ULUnknownBrush = new SolidBrush(Color.Gray);
+
+        //tile text colors
+        public static readonly SolidBrush FavoriteProducerBrush = new SolidBrush(Color.Yellow);
+        public static readonly SolidBrush ULPlayingBrush = new SolidBrush(Color.Yellow);
+        public static readonly SolidBrush UnreleasedBrush = new SolidBrush(Color.White);
+        
         /// <summary>
         /// Categories of VN Tags
         /// </summary>

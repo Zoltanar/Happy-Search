@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
+    [SuppressMessage("ReSharper", "LocalizableElement")]
     public partial class FormMain
     {
         private static readonly ToggleArray Toggles = new ToggleArray();
@@ -156,12 +158,12 @@ namespace Happy_Search
         /// <summary>
         /// Clear other listing options.
         /// </summary>
-        private void List_ClearOther()
+        private void List_ClearOther(bool skipProducerBox = false)
         {
             DontTriggerEvent = true;
             ulStatusDropDown.SelectedIndex = 0;
             wlStatusDropDown.SelectedIndex = 0;
-            ProducerListBox.Text = "";
+            if(!skipProducerBox) ProducerListBox.Text = "";
             DontTriggerEvent = false;
         }
 
@@ -304,8 +306,7 @@ namespace Happy_Search
             if (e.KeyCode != Keys.Enter) return;
             if (ProducerListBox.Text.Equals("")) return;
             var producerName = ProducerListBox.Text;
-            ProducerListBox.Text = "";
-            List_ClearOther();
+            List_ClearOther(skipProducerBox:true);
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
             _currentListLabel = $"{producerName} (Producer)";
             LoadVNListToGui();
@@ -314,19 +315,38 @@ namespace Happy_Search
         /// <summary>
         /// Get new VNs from VNDB that match selected producer.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private async void UpdateProducerTitles(object sender, EventArgs e)
         {
             var producer = ProducerListBox.Text;
             if (producer.Equals("")) return;
-            var askBox = MessageBox.Show(Resources.update_custom_filter + '\n' + Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
             var producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
             if (producerItem == null)
             {
-                WriteError(replyText, "NYI (Producer not in local db)", true);
-                return;
+                var askBox2 = MessageBox.Show($"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
+                if (askBox2 != DialogResult.Yes) return;
+                var result2 = StartQuery(replyText, "Update Producer Titles");
+                if (!result2) return;
+                var producers = await AddProducersBySearchedName(producer, replyText);
+                if (producers == null) return;
+                if (producers.Count == 0)
+                {
+                    WriteError(replyText, $"{producer} was not found.");
+                    ChangeAPIStatus(Conn.Status);
+                    return;
+                }
+                if (!producers.Exists(x => x.Name.Equals(producer)))
+                {
+                    WriteError(replyText, $"{producer} wasn't found but {producers.Count} other producers were added.");
+                    await ReloadListsFromDbAsync();
+                    ChangeAPIStatus(Conn.Status);
+                    return;
+                }
+                ChangeAPIStatus(Conn.Status);
+                await ReloadListsFromDbAsync();
+                producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+                ProducerListBox.Text = producer;
             }
             var result = StartQuery(replyText, "Update Producer Titles");
             if (!result) return;
@@ -536,7 +556,7 @@ namespace Happy_Search
             vnf.Show(this);
         }
 
-        //format list rows, color according to userlist status
+        //format list rows, color according to userlist status, only for Details View
         private void FormatVNRow(object sender, FormatRowEventArgs e)
         {
             if (e.ListView.View != View.Details) return;
@@ -545,29 +565,35 @@ namespace Happy_Search
             switch (listedVN.WLStatus)
             {
                 case "High":
-                    e.Item.BackColor = Color.DeepPink;
+                    e.Item.BackColor = WLHighBrush.Color;
                     break;
                 case "Medium":
-                    e.Item.BackColor = Color.Pink;
+                    e.Item.BackColor = WLMediumBrush.Color;
                     break;
                 case "Low":
-                    e.Item.BackColor = Color.LightPink;
+                    e.Item.BackColor = WLLowBrush.Color;
                     break;
             }
             switch (listedVN.ULStatus)
             {
                 case "Finished":
-                    e.Item.BackColor = Color.LightGreen;
+                    e.Item.BackColor = ULFinishedBrush.Color;
                     break;
                 case "Stalled":
-                    e.Item.BackColor = Color.LightYellow;
+                    e.Item.BackColor = ULStalledBrush.Color;
                     break;
                 case "Dropped":
-                    e.Item.BackColor = Color.DarkOrange;
+                    e.Item.BackColor = ULDroppedBrush.Color;
                     break;
                 case "Unknown":
-                    e.Item.BackColor = Color.Gray;
+                    e.Item.BackColor = ULUnknownBrush.Color;
                     break;
+            }
+            if (listedVN.ULStatus.Equals("Playing")) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
+            if (FavoriteProducerList.Any() && FavoriteProducerList.Exists(x => x.Name == listedVN.Producer))
+            {
+                //e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
+                e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = Color.Blue;
             }
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
             if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnULAdded.Index).Text = "";
@@ -576,6 +602,23 @@ namespace Happy_Search
             e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
             e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
             e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
+        }
+
+        //format individual cell (only for details view)
+        private void FormatVNCell(object sender, FormatCellEventArgs e)
+        {
+            if (tileOLV.View != View.Details) return;
+            ListedVN vn = e.Model as ListedVN;
+            if (vn == null) return;
+            if (e.ColumnIndex == tileColumnULS.Index)
+            {
+                if (vn.ULStatus.Equals("Playing")) e.SubItem.ForeColor = ULPlayingBrush.Color;
+            }
+            else if (e.ColumnIndex == tileColumnProducer.Index)
+            {
+                if (FavoriteProducerList.Exists(x=> x.Name.Equals(vn.Producer))) e.SubItem.ForeColor = FavoriteProducerBrush.Color;
+            }
+
         }
 
         /// <summary>

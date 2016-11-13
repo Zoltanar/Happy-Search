@@ -60,7 +60,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         internal async Task SearchProducers()
         {
-            if (producerSearchBox.Text == "") //check if box is empty
+            if (producerSearchBox.Text.Equals("")) //check if box is empty
             {
                 WriteError(prodSearchReply, Resources.enter_producer_name, true);
                 return;

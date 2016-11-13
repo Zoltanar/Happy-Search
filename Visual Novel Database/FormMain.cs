@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -14,7 +15,11 @@ using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Octokit;
 using static Happy_Search.StaticHelpers;
+using Application = System.Windows.Forms.Application;
+using Label = System.Windows.Forms.Label;
+// ReSharper disable LocalizableElement
 
 namespace Happy_Search
 {
@@ -47,6 +52,7 @@ namespace Happy_Search
         internal bool DontTriggerEvent; //used to skip indexchanged events
         private List<ListedProducer> _producerList; //contains all producers in local database
         internal List<CharacterItem> CharacterList; //contains all producers in local database
+        internal List<ListedProducer> FavoriteProducerList; //contains all favorite producers for logged in user
         private List<ListedVN> _vnList; //contains all vns in local database
         private ushort _vnsAdded;
         private ushort _vnsSkipped;
@@ -78,6 +84,7 @@ namespace Happy_Search
                 ulStatusDropDown.SelectedIndex = 0;
                 wlStatusDropDown.SelectedIndex = 0;
                 customTagFilters.SelectedIndex = 0;
+                customTraitFilters.SelectedIndex = 0;
                 viewPicker.SelectedIndex = 0;
                 URTToggleBox.SelectedIndex = 0;
                 UnreleasedToggleBox.SelectedIndex = 0;
@@ -224,15 +231,37 @@ https://github.com/FredTheBarber/VndbClient";
 
         private async void OnLoadRoutines(object sender, EventArgs e)
         {
-            InitAPIConnection();
+            //client update
+            var args = Environment.GetCommandLineArgs();
+            if (!args.Contains("-debug") && !args.Contains("-sc"))
             {
-                LogToFile($"dbstats Update = {Settings.Default.DBStatsUpdate}, days since = {DaysSince(Settings.Default.DBStatsUpdate)}");
-                if (DaysSince(Settings.Default.DBStatsUpdate) > 2 || DaysSince(Settings.Default.DBStatsUpdate) == -1) GetNewDBStats();
-                else LoadDBStats();
+                await ClientUpdateAsync();
             }
-            if (!Settings.Default.AutoUpdateURT || UserID <= 0) return;
+
+            InitAPIConnection();
+
+            //dbstats update
+            LogToFile($"dbstats Update = {Settings.Default.DBStatsUpdate}, days since = {DaysSince(Settings.Default.DBStatsUpdate)}");
+            if (DaysSince(Settings.Default.DBStatsUpdate) > 2 || DaysSince(Settings.Default.DBStatsUpdate) == -1) GetNewDBStats();
+            else LoadDBStats();
+
+            //urt update
+            if (Settings.Default.AutoUpdateURT && UserID > 0)
+            {
+                await URTUpdateAsync();
+            }
+
+            traitRootsDropdown.SelectedIndex = 0;
+        }
+
+        /// <summary>
+        /// Check if URT update is due and if so, execute it
+        /// </summary>
+        private async Task URTUpdateAsync()
+        {
             LogToFile("Checking if URT Update is due...");
-            LogToFile($"URTUpdate= {Settings.Default.URTUpdate}, days since = {DaysSince(Settings.Default.URTUpdate)}");
+            LogToFile(
+                $"URTUpdate= {Settings.Default.URTUpdate}, days since = {DaysSince(Settings.Default.URTUpdate)}");
             if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
             {
                 LogToFile("Updating User Related Titles...");
@@ -246,6 +275,29 @@ https://github.com/FredTheBarber/VndbClient";
             }
         }
 
+        /// <summary>
+        /// Checks if there is a new release out and if so, ask user if they want to visit releases page.
+        /// </summary>
+        private async Task ClientUpdateAsync()
+        {
+            var client = new GitHubClient(new ProductHeaderValue("Happy-Search"));
+            IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Zoltanar", "Happy-Search");
+            var latest = releases[0];
+            LogToFile($"The latest release is tagged at {latest.TagName} and is named {latest.Name}");
+            if (!latest.TagName.Equals(ClientVersion))
+            {
+                var messageBoxResult = MessageBox.Show($"There is a newer version available.\nInstalled: {ClientVersion}\nLatest: {latest.TagName}\nDo you wish to visit the releases page?",
+                    @"Update Client?", MessageBoxButtons.YesNo);
+                if (messageBoxResult == DialogResult.Yes)
+                {
+                    Process.Start($"{ProjectURL}/releases");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initialize API Connection.
+        /// </summary>
         private void InitAPIConnection()
         {
             SplashScreen.SetStatus("Logging into VNDB API...");
@@ -456,7 +508,7 @@ https://github.com/FredTheBarber/VndbClient";
         {
             IEnumerable<ListedVN> vnsWithImages = _vnList.Where(x => !x.ImageURL.Equals(""));
             ListedVN[] vnsMissingImages = (from vn in vnsWithImages
-                                           let photoFile = String.Format($"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}")
+                                           let photoFile = string.Format($"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}")
                                            where !File.Exists(photoFile)
                                            select vn).ToArray();
             const int averageImageSizeBytes = 37 * 1024;
@@ -1192,7 +1244,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (characterCount > 0) toolTipLines.Add($"Characters: {characterCount}.");
             if (notes != null && !notes.Notes.Equals("")) toolTipLines.Add($"{TruncateString($"Notes: {notes.Notes}", 50)}");
             if (notes != null && notes.Groups.Count != 0) toolTipLines.Add($"{TruncateString($"Groups: {string.Join(", ", notes.Groups)}", 50)}");
-            e.Text = string.Join("\n",toolTipLines);
+            e.Text = string.Join("\n", toolTipLines);
         }
         #endregion
 

@@ -2,6 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: Get all titles for a favorite producer that isn't yet in local database (List by producer)
+Added: Check for new version and ask user to visit releases page.
 Added: Option to toggle mode of combined tag/trait filtering between AND and OR. (Allows for things such as tag=chuunibyou heroine OR trait=personality>chuunibyou)
 Added: Logging of features on begin and end. Only with -debug.
 Added: Indicators of when tag/trait filters are active.
@@ -66,6 +68,7 @@ Command Line Parameters
 -debug:	will activate all params described below
 -dl:	will log all database connections and commands to file
 -am:	will log all api commands in the log section of the form (they are logged to file by default)
+-sc:	will skip client update routine (if you dont want the program to ask you if you wish to update every time you launch)
 
 No Work
 ---------------
@@ -77,15 +80,10 @@ backup sqlite database!
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
 merge feature to merge 2 databases, keeping most-recently-updated in case of same id
 better vn character display?
---
-let user know of any updates to happy search
---
 
 
 Incomplete
 ---------------
-await all db connections
-include ul note in vn form
 
 Completed (Feature List)
 ---------------
@@ -151,3 +149,17 @@ Currently Not Possible
 add search by artist or search by voice actor (staff database not in api)
 show "list not public" error if list is hidden (it can only happen if user is not logged in with username/pass)
 make things pretty textured backgrounds (slows down loading form)
+
+Testing Procedure
+-----------------------
+Complete Initialization
+Complete OnLoadRoutines
+Set User ID (10931 is a good small sample)
+Update List
+See Suggested Favorite Producers
+Add to Favorite Producers
+Get FP Titles
+Click VN in List
+Create Tag and trait filters
+Restart Program
+Verify integrity of tag/trait filters, favorite producers and titles in database

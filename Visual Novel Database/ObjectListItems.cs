@@ -558,7 +558,7 @@ namespace Happy_Search
         /// <param name="olv">OLV where tile is drawn.</param>
         public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv)
         {
-            var backBrush = Brushes.LightBlue;
+            var backBrush = DefaultTileBrush;
             //tile size 230,375
             //image 230-spacing, 300-spacing
             const int spacing = 8;
@@ -572,28 +572,28 @@ namespace Happy_Search
             switch (vn?.WLStatus)
             {
                 case "High":
-                    backBrush = Brushes.DeepPink;
+                    backBrush = WLHighBrush;
                     break;
                 case "Medium":
-                    backBrush = Brushes.Pink;
+                    backBrush = WLMediumBrush;
                     break;
                 case "Low":
-                    backBrush = Brushes.LightPink;
+                    backBrush = WLLowBrush;
                     break;
             }
             switch (vn?.ULStatus)
             {
                 case "Finished":
-                    backBrush = Brushes.LightGreen;
+                    backBrush = ULFinishedBrush;
                     break;
                 case "Stalled":
-                    backBrush = Brushes.LightYellow;
+                    backBrush = ULStalledBrush;
                     break;
                 case "Dropped":
-                    backBrush = Brushes.DarkOrange;
+                    backBrush = ULDroppedBrush;
                     break;
                 case "Unknown":
-                    backBrush = Brushes.Gray;
+                    backBrush = ULUnknownBrush;
                     break;
             }
             g.FillPath(backBrush, path);
@@ -642,9 +642,9 @@ namespace Happy_Search
             g.DrawString(vn.Title, BoldFont, TextBrush, textBoxRect, fmtNear); //line 1: vn title
                                                                                //text below picture
             textBoxRect.Y += textHeight + photoArea.Height;
-            var favoriteProducers = (olv.FindForm() as FormMain)?.olFavoriteProducers.Objects as List<ListedProducer>;
-            Brush producerBrush = favoriteProducers != null && favoriteProducers.Exists(x => x.Name == vn.Producer) ? new SolidBrush(Color.Yellow) : TextBrush;
-            Brush dateBrush = DateIsUnreleased(vn.RelDate) ? new SolidBrush(Color.Red) : TextBrush;
+            var favoriteProducers = (olv.FindForm() as FormMain)?.FavoriteProducerList;
+            Brush producerBrush = favoriteProducers != null && favoriteProducers.Exists(x => x.Name == vn.Producer) ? FavoriteProducerBrush : TextBrush;
+            Brush dateBrush = DateIsUnreleased(vn.RelDate) ? UnreleasedBrush : TextBrush;
             g.DrawString(vn.Producer, NormalFont, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 
             textBoxRect.Y += textHeight;
             textBoxRect.Width -= dateWidth;
@@ -657,7 +657,7 @@ namespace Happy_Search
                 var ulWidth = g.MeasureString("Userlist: ", NormalFont).Width;
                 var playingRectangle = new RectangleF(textBoxRect.X+ulWidth,textBoxRect.Y, textBoxRect.Width-ulWidth,textBoxRect.Height);
                 g.DrawString("Userlist: ", NormalFont, TextBrush, textBoxRect, fmtNear);
-                g.DrawString("Playing", NormalFont, new SolidBrush(Color.Yellow), playingRectangle, fmtNear);
+                g.DrawString("Playing", NormalFont, ULPlayingBrush, playingRectangle, fmtNear);
                 if(vn.Vote > 0) g.DrawString($" (Vote:{vn.Vote:0.00})", NormalFont, TextBrush, textBoxRect, fmtFar); //line 3 right: vn release date
             }
             else

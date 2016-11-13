@@ -63,6 +63,7 @@ namespace Happy_Search
             this.label16 = new System.Windows.Forms.Label();
             this.tagSignaler = new System.Windows.Forms.Button();
             this.traitSignaler = new System.Windows.Forms.Button();
+            this.ToggleFiltersModeButton = new System.Windows.Forms.CheckBox();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -237,7 +238,6 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ToggleFiltersModeButton = new System.Windows.Forms.CheckBox();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -571,6 +571,22 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.traitSignaler, "Red when trait filter is active, Gray when not active, click to clear filter.");
             this.traitSignaler.UseVisualStyleBackColor = false;
             this.traitSignaler.Click += new System.EventHandler(this.ClearTraitFilter);
+            // 
+            // ToggleFiltersModeButton
+            // 
+            this.ToggleFiltersModeButton.Appearance = System.Windows.Forms.Appearance.Button;
+            this.ToggleFiltersModeButton.BackColor = System.Drawing.Color.Black;
+            this.ToggleFiltersModeButton.FlatAppearance.BorderSize = 0;
+            this.ToggleFiltersModeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ToggleFiltersModeButton.Location = new System.Drawing.Point(896, 311);
+            this.ToggleFiltersModeButton.Name = "ToggleFiltersModeButton";
+            this.ToggleFiltersModeButton.Size = new System.Drawing.Size(69, 19);
+            this.ToggleFiltersModeButton.TabIndex = 103;
+            this.ToggleFiltersModeButton.Text = "And";
+            this.ToggleFiltersModeButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.toolTip.SetToolTip(this.ToggleFiltersModeButton, "Click to toggle between \'and\' and \'or\'. Changes how tag/trait filters are used.");
+            this.ToggleFiltersModeButton.UseVisualStyleBackColor = false;
+            this.ToggleFiltersModeButton.CheckedChanged += new System.EventHandler(this.ToggleFiltersMode);
             // 
             // infoTab
             // 
@@ -1962,6 +1978,8 @@ namespace Happy_Search
             this.updateProducerTitlesButton.Size = new System.Drawing.Size(53, 23);
             this.updateProducerTitlesButton.TabIndex = 84;
             this.updateProducerTitlesButton.Text = "Update";
+            this.toolTip.SetToolTip(this.updateProducerTitlesButton, "If you wish to get all titles by a producer even when that producer hasn\'t entere" +
+        "d the local database.");
             this.updateProducerTitlesButton.UseVisualStyleBackColor = false;
             this.updateProducerTitlesButton.Click += new System.EventHandler(this.UpdateProducerTitles);
             // 
@@ -2038,12 +2056,14 @@ namespace Happy_Search
             this.tileOLV.TabIndex = 63;
             this.tileOLV.TileSize = new System.Drawing.Size(230, 375);
             this.tileOLV.UseAlternatingBackColors = true;
+            this.tileOLV.UseCellFormatEvents = true;
             this.tileOLV.UseCompatibleStateImageBehavior = false;
             this.tileOLV.UseFiltering = true;
             this.tileOLV.View = System.Windows.Forms.View.Tile;
             this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.VisualNovelLeftClick);
             this.tileOLV.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.ShowContextMenu);
             this.tileOLV.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.VNToolTip);
+            this.tileOLV.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.FormatVNCell);
             this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatVNRow);
             this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
             this.tileOLV.Resize += new System.EventHandler(this.tileOLV_Resize);
@@ -2498,22 +2518,6 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.Text = "Add/Change VN Groups";
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
-            // 
-            // ToggleFiltersModeButton
-            // 
-            this.ToggleFiltersModeButton.Appearance = System.Windows.Forms.Appearance.Button;
-            this.ToggleFiltersModeButton.BackColor = System.Drawing.Color.Black;
-            this.ToggleFiltersModeButton.FlatAppearance.BorderSize = 0;
-            this.ToggleFiltersModeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ToggleFiltersModeButton.Location = new System.Drawing.Point(896, 311);
-            this.ToggleFiltersModeButton.Name = "ToggleFiltersModeButton";
-            this.ToggleFiltersModeButton.Size = new System.Drawing.Size(69, 19);
-            this.ToggleFiltersModeButton.TabIndex = 103;
-            this.ToggleFiltersModeButton.Text = "And";
-            this.ToggleFiltersModeButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.toolTip.SetToolTip(this.ToggleFiltersModeButton, "Click to toggle between \'and\' and \'or\'. Changes how tag/trait filters are used.");
-            this.ToggleFiltersModeButton.UseVisualStyleBackColor = false;
-            this.ToggleFiltersModeButton.CheckedChanged += new System.EventHandler(this.ToggleFiltersMode);
             // 
             // FormMain
             // 
