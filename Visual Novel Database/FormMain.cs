@@ -60,6 +60,7 @@ namespace Happy_Search
         internal List<WrittenTrait> PlainTraits; //Contains all tags as in tags.json
         internal List<ListedVN> URTList; //contains all user-related vns
         internal int UserID; //id of current user
+        internal string Username;
         private List<KeyValuePair<int, int>> _toptentags;
         private byte _mctCount;
 
@@ -135,6 +136,7 @@ https://github.com/FredTheBarber/VndbClient";
             SplashScreen.SetStatus("Loading User Settings...");
             {
                 UserID = Settings.Default.UserID;
+                Username = Settings.Default.Username;
                 tagTypeC.Checked = Settings.Default.TagTypeC;
                 tagTypeS.Checked = Settings.Default.TagTypeS;
                 tagTypeT.Checked = Settings.Default.TagTypeT;
@@ -300,31 +302,28 @@ https://github.com/FredTheBarber/VndbClient";
         /// </summary>
         private void InitAPIConnection()
         {
-            SplashScreen.SetStatus("Logging into VNDB API...");
+            Conn.Open();
+            CurrentFeatureName = "Open";
+            if (Conn.Status == VndbConnection.APIStatus.Error)
             {
-                Conn.Open();
-                CurrentFeatureName = "Open";
-                if (Conn.Status == VndbConnection.APIStatus.Error)
-                {
-                    ChangeAPIStatus(Conn.Status);
-                    return;
-                }
-                //login with credentials if setting is enabled and credentials exist, otherwise login without credentials
-                if (Settings.Default.RememberCredentials)
-                {
-                    LogToFile("Attempting log in with credentials");
-                    KeyValuePair<string, char[]> credentials = LoadCredentials();
-                    if (credentials.Value != null)
-                    {
-                        APILoginWithCredentials(credentials);
-                        return;
-                    }
-                    APILogin();
-                    return;
-                }
-                LogToFile("Attempting log in without credentials");
-                APILogin();
+                ChangeAPIStatus(Conn.Status);
+                return;
             }
+            //login with credentials if setting is enabled and credentials exist, otherwise login without credentials
+            if (Settings.Default.RememberCredentials)
+            {
+                LogToFile("Attempting log in with credentials");
+                KeyValuePair<string, char[]> credentials = LoadCredentials();
+                if (credentials.Value != null)
+                {
+                    APILoginWithCredentials(credentials);
+                    return;
+                }
+                APILogin();
+                return;
+            }
+            LogToFile("Attempting log in without credentials");
+            APILogin();
         }
 
         /// <summary>
@@ -332,15 +331,79 @@ https://github.com/FredTheBarber/VndbClient";
         /// </summary>
         private async void LogInDialog(object sender, EventArgs e)
         {
-            DialogResult = new LoginForm(this).ShowDialog();
+            var dialogResult = new LoginForm(this).ShowDialog();
             ChangeAPIStatus(Conn.Status);
-            if (DialogResult != DialogResult.OK) return;
+            if (dialogResult == DialogResult.OK) //change id/username only (no need to login with password)
+            {
+                //relogin without credentials to clear data
+                switch (Conn.LogIn)
+                {
+                    case VndbConnection.LogInStatus.No:
+                    case VndbConnection.LogInStatus.YesWithCredentials:
+                        Conn.Login(ClientName, ClientVersion);
+                        break;
+                }
+                //get username from id if none was entered
+                if (Username.Equals(""))
+                {
+                    Username = await GetUsernameFromID(UserID);
+                }
+                ChangeAPIStatus(Conn.Status);
+                Settings.Default.Username = Username;
+                Settings.Default.UserID = UserID;
+                Settings.Default.Save();
+                SetLoginText();
+                UpdateUserStats();
+                await ReloadListsFromDbAsync();
+                LoadVNListToGui();
+                LoadFPListToGui();
+                return;
+            }
+            if (dialogResult != DialogResult.Yes) return; //do nothing
+            Settings.Default.Username = Username;
             Settings.Default.UserID = UserID;
             Settings.Default.Save();
+            SetLoginText();
             UpdateUserStats();
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             LoadFPListToGui();
+        }
+
+        /// <summary>
+        /// Set text for Login Status.
+        /// </summary>
+        private void SetLoginText()
+        {
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                loginReply.ForeColor = Color.Red;
+                string user = Username.Equals("") ? UserID.ToString() : $"{Username}({UserID})";
+                loginReply.Text = $"Connection error, showing data for {user}.";
+                return;
+            }
+            switch (Conn.LogIn)
+            {
+                case VndbConnection.LogInStatus.YesWithCredentials:
+                    loginReply.ForeColor = Color.LightGreen;
+                    loginReply.Text = $"Logged in as {Username}.";
+                    return;
+                case VndbConnection.LogInStatus.Yes:
+                    loginReply.ForeColor = Color.LightGreen;
+                    if (UserID < 1)
+                    {
+                        loginReply.Text = "Connected.";
+                        return;
+                    }
+                    loginReply.Text = !Username.Equals("")
+                        ? $"Connected as {Username}({UserID})."
+                        : $"Connected as {UserID}.";
+                    return;
+                case VndbConnection.LogInStatus.No:
+                    loginReply.ForeColor = Color.Red;
+                    loginReply.Text = "Not logged in.";
+                    return;
+            }
         }
 
         private void OnProcessExit(object sender, EventArgs e)
@@ -781,17 +844,17 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Other/General
 
-        private static bool _advancedMode;
+        internal static bool AdvancedMode; //when true, print all api queries and responses to information tab.
 
         private void ToggleAdvancedMode(object sender, EventArgs e)
         {
-            _advancedMode = advancedCheckBox.Checked;
-            questionBox.Enabled = _advancedMode;
-            serverQ.Enabled = _advancedMode;
-            serverR.Enabled = _advancedMode;
-            sendQueryButton.Enabled = _advancedMode;
-            clearLogButton.Enabled = _advancedMode;
-            if (_advancedMode)
+            AdvancedMode = advancedCheckBox.Checked;
+            questionBox.Enabled = AdvancedMode;
+            serverQ.Enabled = AdvancedMode;
+            serverR.Enabled = AdvancedMode;
+            sendQueryButton.Enabled = AdvancedMode;
+            clearLogButton.Enabled = AdvancedMode;
+            if (AdvancedMode)
             {
                 questionBox.Text = "";
                 serverQ.Text = "";
@@ -968,7 +1031,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready) return;
             Conn.Query("dbstats");
-            if (_advancedMode)
+            if (AdvancedMode)
             {
                 serverQ.Text += @"dbstats" + Environment.NewLine;
                 serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
@@ -1262,7 +1325,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
         private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
         {
-            if (e.KeyChar == (char) Keys.Enter) List_ByName();
+            if (e.KeyChar == (char)Keys.Enter) List_ByName();
         }
 
         private void yearBox_KeyDown(object sender, KeyEventArgs e) //press enter on get year titles box

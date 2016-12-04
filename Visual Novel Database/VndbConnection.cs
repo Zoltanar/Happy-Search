@@ -162,6 +162,8 @@ namespace Happy_Search
         /// <param name="password">Password of user to log in as</param>
         public void Login(string clientName, string clientVersion, string username = null, char[] password = null)
         {
+            if (Status != APIStatus.Closed) Close();
+            Open();
             string loginBuffer;
 
             if (username != null && password != null)

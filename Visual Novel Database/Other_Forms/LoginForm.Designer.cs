@@ -28,10 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.setUserIDButton = new System.Windows.Forms.Button();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LoginForm));
             this.loginButton = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.userIDBox = new System.Windows.Forms.TextBox();
+            this.loginWithPasswordButton = new System.Windows.Forms.Button();
             this.UsernameBox = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -42,68 +41,51 @@
             this.clearSaved = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // setUserIDButton
-            // 
-            this.setUserIDButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
-            this.setUserIDButton.FlatAppearance.BorderSize = 0;
-            this.setUserIDButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.setUserIDButton.Location = new System.Drawing.Point(184, 11);
-            this.setUserIDButton.Name = "setUserIDButton";
-            this.setUserIDButton.Size = new System.Drawing.Size(75, 32);
-            this.setUserIDButton.TabIndex = 0;
-            this.setUserIDButton.Text = "Set UserID";
-            this.setUserIDButton.UseVisualStyleBackColor = false;
-            this.setUserIDButton.Click += new System.EventHandler(this.setUserIDButton_Click);
-            // 
             // loginButton
             // 
             this.loginButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.loginButton.FlatAppearance.BorderSize = 0;
             this.loginButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.loginButton.Location = new System.Drawing.Point(184, 49);
+            this.loginButton.Location = new System.Drawing.Point(184, 11);
             this.loginButton.Name = "loginButton";
-            this.loginButton.Size = new System.Drawing.Size(75, 33);
-            this.loginButton.TabIndex = 1;
-            this.loginButton.Text = "Log In";
+            this.loginButton.Size = new System.Drawing.Size(75, 44);
+            this.loginButton.TabIndex = 0;
+            this.loginButton.Text = "Login";
             this.loginButton.UseVisualStyleBackColor = false;
-            this.loginButton.Click += new System.EventHandler(this.loginButton_Click);
+            this.loginButton.Click += new System.EventHandler(this.LoginButtonClick);
             // 
-            // label1
+            // loginWithPasswordButton
             // 
-            this.label1.Location = new System.Drawing.Point(12, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(60, 20);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "UserID";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // userIDBox
-            // 
-            this.userIDBox.CharacterCasing = System.Windows.Forms.CharacterCasing.Lower;
-            this.userIDBox.Location = new System.Drawing.Point(78, 11);
-            this.userIDBox.Name = "userIDBox";
-            this.userIDBox.Size = new System.Drawing.Size(100, 20);
-            this.userIDBox.TabIndex = 3;
+            this.loginWithPasswordButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            this.loginWithPasswordButton.FlatAppearance.BorderSize = 0;
+            this.loginWithPasswordButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.loginWithPasswordButton.Location = new System.Drawing.Point(90, 61);
+            this.loginWithPasswordButton.Name = "loginWithPasswordButton";
+            this.loginWithPasswordButton.Size = new System.Drawing.Size(168, 22);
+            this.loginWithPasswordButton.TabIndex = 1;
+            this.loginWithPasswordButton.Text = "Log In With Password";
+            this.loginWithPasswordButton.UseVisualStyleBackColor = false;
+            this.loginWithPasswordButton.Click += new System.EventHandler(this.LoginWithPasswordButtonClick);
             // 
             // UsernameBox
             // 
-            this.UsernameBox.Location = new System.Drawing.Point(78, 37);
+            this.UsernameBox.Location = new System.Drawing.Point(90, 9);
             this.UsernameBox.Name = "UsernameBox";
-            this.UsernameBox.Size = new System.Drawing.Size(100, 20);
+            this.UsernameBox.Size = new System.Drawing.Size(88, 20);
             this.UsernameBox.TabIndex = 4;
             // 
             // label2
             // 
-            this.label2.Location = new System.Drawing.Point(12, 37);
+            this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(60, 20);
+            this.label2.Size = new System.Drawing.Size(72, 20);
             this.label2.TabIndex = 5;
-            this.label2.Text = "Username";
+            this.label2.Text = "Username/ID";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(12, 63);
+            this.label3.Location = new System.Drawing.Point(24, 35);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(60, 20);
             this.label3.TabIndex = 6;
@@ -112,10 +94,10 @@
             // 
             // PasswordBox
             // 
-            this.PasswordBox.Location = new System.Drawing.Point(78, 63);
+            this.PasswordBox.Location = new System.Drawing.Point(90, 35);
             this.PasswordBox.Name = "PasswordBox";
             this.PasswordBox.PasswordChar = '●';
-            this.PasswordBox.Size = new System.Drawing.Size(100, 20);
+            this.PasswordBox.Size = new System.Drawing.Size(88, 20);
             this.PasswordBox.TabIndex = 8;
             // 
             // loginInstructions
@@ -124,19 +106,20 @@
             this.loginInstructions.Name = "loginInstructions";
             this.loginInstructions.Size = new System.Drawing.Size(247, 83);
             this.loginInstructions.TabIndex = 9;
+            this.loginInstructions.Text = resources.GetString("loginInstructions.Text");
             // 
             // replyLabel
             // 
             this.replyLabel.Location = new System.Drawing.Point(16, 86);
             this.replyLabel.Name = "replyLabel";
-            this.replyLabel.Size = new System.Drawing.Size(162, 48);
+            this.replyLabel.Size = new System.Drawing.Size(162, 51);
             this.replyLabel.TabIndex = 10;
             this.replyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // rememberBox
             // 
             this.rememberBox.AutoSize = true;
-            this.rememberBox.Location = new System.Drawing.Point(184, 89);
+            this.rememberBox.Location = new System.Drawing.Point(7, 65);
             this.rememberBox.Name = "rememberBox";
             this.rememberBox.Size = new System.Drawing.Size(77, 17);
             this.rememberBox.TabIndex = 11;
@@ -145,10 +128,10 @@
             // 
             // clearSaved
             // 
-            this.clearSaved.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            this.clearSaved.BackColor = System.Drawing.Color.MistyRose;
             this.clearSaved.FlatAppearance.BorderSize = 0;
             this.clearSaved.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.clearSaved.Location = new System.Drawing.Point(183, 112);
+            this.clearSaved.Location = new System.Drawing.Point(183, 89);
             this.clearSaved.Name = "clearSaved";
             this.clearSaved.Size = new System.Drawing.Size(75, 22);
             this.clearSaved.TabIndex = 12;
@@ -169,10 +152,8 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.UsernameBox);
-            this.Controls.Add(this.userIDBox);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.loginWithPasswordButton);
             this.Controls.Add(this.loginButton);
-            this.Controls.Add(this.setUserIDButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "LoginForm";
             this.Text = "Login - Happy Search";
@@ -183,10 +164,8 @@
 
         #endregion
 
-        private System.Windows.Forms.Button setUserIDButton;
         private System.Windows.Forms.Button loginButton;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox userIDBox;
+        private System.Windows.Forms.Button loginWithPasswordButton;
         private System.Windows.Forms.TextBox UsernameBox;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;

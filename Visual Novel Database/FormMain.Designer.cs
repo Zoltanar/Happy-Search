@@ -1958,7 +1958,8 @@ namespace Happy_Search
             this.UnreleasedToggleBox.Items.AddRange(new object[] {
             "Show Unreleased",
             "Hide Unreleased",
-            "Only Unreleased"});
+            "Only Unreleased",
+            "Hide No Release Date"});
             this.UnreleasedToggleBox.Location = new System.Drawing.Point(1079, 311);
             this.UnreleasedToggleBox.Name = "UnreleasedToggleBox";
             this.UnreleasedToggleBox.Size = new System.Drawing.Size(114, 21);
@@ -2686,7 +2687,7 @@ namespace Happy_Search
         private GroupBox groupBox3;
         private Label logQueryLabel;
         private Label label1;
-        private RichTextBox serverR;
+        internal RichTextBox serverR;
         private Label logReplyLabel;
         private Button clearLogButton;
         private RichTextBox serverQ;

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
-using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -20,97 +18,168 @@ namespace Happy_Search.Other_Forms
         /// <summary>
         /// Load form for user to log into VNDB.org
         /// </summary>
-        /// <param name="parentForm"></param>
         public LoginForm(FormMain parentForm)
         {
             InitializeComponent();
             _parentForm = parentForm;
             rememberBox.Checked = Settings.Default.RememberCredentials;
             rememberBox.CheckedChanged += rememberBox_CheckedChanged;
-            loginInstructions.Text =
-                @"All settings are saved by UserID, this is the ID of your account in vndb.org
-You can see this number in your profile page (https://vndb.org/u######)
-The UserID is used to get the user's lists.
-If you wish to change userlist/wishlist status and/or votes,
-you will also need to enter your Username and Password";
         }
 
-        private void setUserIDButton_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Login using just username/user id.
+        /// </summary>
+        private void LoginButtonClick(object sender, EventArgs e)
         {
             int userID;
-            if (!int.TryParse(userIDBox.Text, out userID))
+            switch (GetIDMethod(out userID))
             {
-                replyLabel.Text = Resources.userid_only_numbers;
-                return;
-            }
-            _parentForm.CurrentFeatureName = "Login";
-            _parentForm.UserID = userID;
-            Settings.Default.URTUpdate = DateTime.MinValue;
-            rememberBox.Checked = false;
-            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.Yes)
-            {
-                if (_parentForm.Conn.Status != VndbConnection.APIStatus.Closed)
-                {
-                    _parentForm.Conn.Close();
-                }
-                _parentForm.Conn.Open();
-                if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
-                {
-                    DialogResult = DialogResult.OK;
+                case 0:
+                    ChangeUserOnly(newId: userID);
                     return;
-                }
-                _parentForm.APILogin();
+                case 1:
+                    ChangeUserOnly(newUsername: UsernameBox.Text);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        /// <summary>
+        /// Find if user entered ID or username and validate it
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>-1 for error, 0 for user ID, 1 for username</returns>
+        private int GetIDMethod(out int id)
+        {
+
+            id = -1;
+            string text = UsernameBox.Text;
+            if (text.Equals(""))
+            {
+                replyLabel.Text = @"Enter username or user ID.";
+                return -1;
+            }
+            //try ID
+            bool parse = int.TryParse(text, out id);
+            if (parse)
+            {
+                if (id > 0) return 0;
+                replyLabel.Text = @"User ID must be higher than 0.";
+                return -1;
+            }
+            //try username
+            var m = new Regex(@"[a-z0-9]+");
+            if (m.Match(text).Success) return 1;
+            replyLabel.Text = Resources._username_only_alphanumeric;
+            return -1;
+        }
+
+
+        /// <summary>
+        /// Login using just username/user id.
+        /// </summary>
+        private void ChangeUserOnly(int newId = -1, string newUsername = "")
+        {
+            _parentForm.Username = "";
+            _parentForm.UserID = -1;
+            if (newId > 0)
+            {
+                _parentForm.UserID = newId;
+            }
+            else if (!newUsername.Equals(""))
+            {
+                _parentForm.Username = newUsername;
             }
             else
             {
-                _parentForm.loginReply.ForeColor = Color.LightGreen;
-                _parentForm.loginReply.Text = _parentForm.UserID > 0
-                    ? $"Connected with ID {_parentForm.UserID}."
-                    : "Connected without ID.";
+                replyLabel.Text = @"CID Error";
+                return;
             }
+            ClearSavedCredentials(null,null);
             DialogResult = DialogResult.OK;
         }
 
         /// <summary>
         /// Login with credentials (username and password).
         /// </summary>
-        private void loginButton_Click(object sender, EventArgs e)
+        private async void LoginWithPasswordButtonClick(object sender, EventArgs e)
         {
             int userID;
-            if (!int.TryParse(userIDBox.Text, out userID))
-            {
-                replyLabel.Text = Resources.userid_only_numbers;
-                return;
-            }
+            string username;
             _parentForm.CurrentFeatureName = "Login with credentials";
-            var username = UsernameBox.Text;
+            switch (GetIDMethod(out userID))
+            {
+                case 0:
+                    username = await _parentForm.GetUsernameFromID(userID);
+                    if (username.Equals(""))
+                    {
+                        replyLabel.Text = @"User with that ID was not found.";
+                        return;
+                    }
+                    break;
+                case 1:
+                    username = UsernameBox.Text;
+                    break;
+                default:
+                    return;
+            }
             char[] password = PasswordBox.Text.ToCharArray();
-            var m = new Regex(@"[a-z0-9]+");
-
-            if (!m.Match(username).Success || !password.Any())
-            {
-                replyLabel.Text = Resources.enter_username_password +
-                                  Resources._username_only_alphanumeric;
-                FadeLabel(replyLabel);
-                return;
-            }
-            LogToFile("Login Credentials Validated");
+            ClearSavedCredentials(null, null);
             if (rememberBox.Checked) FormMain.SaveCredentials(username, password);
-            //
-            _parentForm.UserID = userID;
-            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Closed)
-            {
-                _parentForm.Conn.Close();
-            }
-            _parentForm.Conn.Open();
+            APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password),userID);
+        }
+
+
+        /// <summary>
+        /// Log into VNDB with credentials.
+        /// </summary>
+        /// <param name="credentials">User's username and password</param>
+        /// <param name="userId">VNDB User ID</param>
+        private void APILoginWithCredentials(KeyValuePair<string, char[]> credentials, int userId)
+        {
             if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
             {
-                DialogResult = DialogResult.OK;
+                replyLabel.Text = @"There was an error opening connection to API server.";
                 return;
             }
-            _parentForm.APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password));
-            DialogResult = DialogResult.OK;
+            _parentForm.Conn.Login(FormMain.ClientName, FormMain.ClientVersion, credentials.Key, credentials.Value);
+            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+            switch (_parentForm.Conn.LastResponse.Type)
+            {
+                case ResponseType.Ok:
+                    _parentForm.Username = credentials.Key;
+                    _parentForm.UserID = userId;
+                    DialogResult = DialogResult.Yes;
+                    return;
+                case ResponseType.Error:
+                    if (_parentForm.Conn.LastResponse.Error.ID.Equals("loggedin"))
+                    {
+                        //should never happen
+                        replyLabel.ForeColor = Color.LightGreen;
+                        replyLabel.Text = Resources.already_logged_in;
+                        break;
+                    }
+                    if (_parentForm.Conn.LastResponse.Error.ID.Equals("auth"))
+                    {
+                        replyLabel.ForeColor = Color.Red;
+                        replyLabel.Text = _parentForm.Conn.LastResponse.Error.Msg;
+                        break;
+                    }
+                    replyLabel.ForeColor = Color.Red;
+                    replyLabel.Text = @"ALC Unknown Error 1";
+                    break;
+                default:
+                    replyLabel.ForeColor = Color.Red;
+                    replyLabel.Text = @"ALC Unknown Error 2";
+                    break;
+            }
+            if (FormMain.AdvancedMode)
+            {
+                _parentForm.serverR.Text += _parentForm.Conn.LastResponse.JsonPayload + Environment.NewLine;
+            }
         }
+
 
         private void rememberBox_CheckedChanged(object sender, EventArgs e)
         {

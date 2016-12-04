@@ -41,7 +41,7 @@ namespace Happy_Search
                 LogToFile(query);
                 Conn.Query(query);
             });
-            if (_advancedMode)
+            if (AdvancedMode)
             {
                 if (serverR.TextLength > 10000) ClearLog(null, null);
                 serverQ.Text += query + Environment.NewLine;
@@ -82,7 +82,7 @@ namespace Happy_Search
                 await Task.Delay(wait);
                 ChangeAPIStatus(VndbConnection.APIStatus.Busy);
                 await Conn.QueryAsync(query);
-                if (_advancedMode)
+                if (AdvancedMode)
                 {
                     if (serverR.TextLength > 10000) ClearLog(null, null);
                     serverQ.Text += query + Environment.NewLine;
@@ -90,6 +90,47 @@ namespace Happy_Search
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Send query through API Connection, don't poste error messages back.
+        /// </summary>
+        /// <param name="query">Command to be sent</param>
+        /// <returns>Returns whether it was successful.</returns>
+        internal async Task<bool> TryQueryNoReply(string query)
+        {
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
+            {
+                return false;
+            }
+            await Task.Run(() =>
+            {
+                LogToFile(query);
+                Conn.Query(query);
+            });
+            if (AdvancedMode)
+            {
+                if (serverR.TextLength > 10000) ClearLog(null, null);
+                serverQ.Text += query + Environment.NewLine;
+                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+            }
+            return Conn.LastResponse.Type != ResponseType.Unknown && Conn.LastResponse.Type != ResponseType.Error;
+        }
+
+        /// <summary>
+        /// Get username from VNDB user ID, returns empty string if error.
+        /// </summary>
+        internal async Task<string> GetUsernameFromID(int userID)
+        {
+
+            var result = await TryQueryNoReply($"get user basic (id={userID})");
+            if (!result)
+            {
+                ChangeAPIStatus(Conn.Status);
+                return "";
+            }
+            var response = JsonConvert.DeserializeObject<UserRootItem>(Conn.LastResponse.JsonPayload);
+            return response.Items.Any() ? response.Items[0].Username : "";
         }
 
         /// <summary>
@@ -220,7 +261,7 @@ namespace Happy_Search
             }
             for (int index = prodItems.Count - 1; index >= 0; index--)
             {
-                if(_producerList.Exists(x=>x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+                if (_producerList.Exists(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
             }
             DBConn.BeginTransaction();
             foreach (var producer in prodItems) DBConn.InsertProducer((ListedProducer)producer, true);
@@ -512,7 +553,7 @@ namespace Happy_Search
             switch (apiStatus)
             {
                 case VndbConnection.APIStatus.Ready:
-                    if(Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Ended");
+                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Ended");
                     CurrentFeatureName = "";
                     statusLabel.Text = @"Ready";
                     statusLabel.ForeColor = Color.Black;
@@ -614,12 +655,11 @@ namespace Happy_Search
         {
             Conn.Login(ClientName, ClientVersion);
             CurrentFeatureName = "Login";
+            ChangeAPIStatus(Conn.Status);
             switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
-                    loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = UserID > 0 ? $"Connected with ID {UserID}." : "Connected without ID.";
-                    ChangeAPIStatus(Conn.Status);
+                    SetLoginText();
                     return;
                 case ResponseType.Error:
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))
@@ -637,8 +677,7 @@ namespace Happy_Search
                     loginReply.Text = Resources.login_unknown_error;
                     break;
             }
-            serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            ChangeAPIStatus(Conn.Status);
+            if (AdvancedMode) serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
 
         /// <summary>

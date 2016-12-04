@@ -134,8 +134,6 @@ namespace Happy_Search
         }
 
         public override string ToString() => $"ID={ID} Title={Title}";
-
-
     }
 
     //object contained in VNItem
@@ -178,7 +176,7 @@ namespace Happy_Search
         {
             return plainTags.Find(item => item.ID == ID)?.Name;
         }
-        
+
         public void SetCategory(List<WrittenTag> plainTags)
         {
             string cat = plainTags.Find(item => item.ID == ID)?.Cat;
@@ -500,9 +498,31 @@ namespace Happy_Search
             TopmostParent = idOfParent;
             TopmostParentName = plainTraits.Find(x => x.ID == TopmostParent).Name;
         }
+    }
 
+    /// <summary>
+    /// JSON Object received from 'get user' API command.
+    /// </summary>
+    public class UserRootItem
+    {
 
+        public List<UserItem> Items { get; set; }
+        public bool More { get; set; }
+        public int Num { get; set; }
+    }
 
+    /// <summary>
+    /// Object contained in UserRootItem.Items
+    /// </summary>
+    public class UserItem
+    {
+        public int ID { get; set; }
+        public string Username { get; set; }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString() => $"ID={ID} Username={Username}";
     }
 
     public class ItemWithParents
@@ -562,7 +582,7 @@ namespace Happy_Search
             if (Notes.Equals("") && !Groups.Any()) return "";
             string serializedString = $"Notes: {Notes}|Groups: {string.Join(",", Groups)}";
             string escapedString = JsonConvert.ToString(serializedString);
-            return escapedString.Substring(1,escapedString.Length-2);
+            return escapedString.Substring(1, escapedString.Length - 2);
         }
     }
 

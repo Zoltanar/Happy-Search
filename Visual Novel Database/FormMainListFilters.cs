@@ -477,6 +477,8 @@ namespace Happy_Search
                             return x => !DateIsUnreleased(x.RelDate);
                         case ToggleSetting.Only:
                             return x => DateIsUnreleased(x.RelDate);
+                        case ToggleSetting.HideNoReleaseDate:
+                            return x => x.DateForSorting != DateTime.MaxValue;
                         default: return function;
                     }
                 case ToggleFilter.Blacklisted:
@@ -985,7 +987,8 @@ namespace Happy_Search
             Show,
             Hide,
             Only,
-            OnlyUnplayed
+            OnlyUnplayed = 3,
+            HideNoReleaseDate = 3
         }
 
         /// <summary>

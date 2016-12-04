@@ -117,4 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="loginInstructions.Text" xml:space="preserve">
+    <value>Log in with your VNDB username/ID, password is required to change list status and votes.
+If there is no internet access at the moment, you must enter user ID.
+You can find it in your profile page. (https://vndb.org/u######)</value>
+  </data>
 </root>
