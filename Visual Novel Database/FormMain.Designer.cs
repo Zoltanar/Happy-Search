@@ -64,6 +64,7 @@ namespace Happy_Search
             this.tagSignaler = new System.Windows.Forms.Button();
             this.traitSignaler = new System.Windows.Forms.Button();
             this.ToggleFiltersModeButton = new System.Windows.Forms.CheckBox();
+            this.updateProducerTitlesButton = new System.Windows.Forms.Button();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -179,7 +180,6 @@ namespace Happy_Search
             this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
             this.UnreleasedToggleBox = new System.Windows.Forms.ComboBox();
             this.URTToggleBox = new System.Windows.Forms.ComboBox();
-            this.updateProducerTitlesButton = new System.Windows.Forms.Button();
             this.statusLabel = new System.Windows.Forms.Label();
             this.viewPicker = new System.Windows.Forms.ComboBox();
             this.tileOLV = new BrightIdeasSoftware.ObjectListView();
@@ -449,7 +449,7 @@ namespace Happy_Search
             // searchBox
             // 
             this.searchBox.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.searchBox.Location = new System.Drawing.Point(105, 311);
+            this.searchBox.Location = new System.Drawing.Point(87, 311);
             this.searchBox.Name = "searchBox";
             this.searchBox.Size = new System.Drawing.Size(92, 20);
             this.searchBox.TabIndex = 21;
@@ -492,7 +492,7 @@ namespace Happy_Search
             // 
             // yearBox
             // 
-            this.yearBox.Location = new System.Drawing.Point(338, 312);
+            this.yearBox.Location = new System.Drawing.Point(314, 311);
             this.yearBox.Name = "yearBox";
             this.yearBox.Size = new System.Drawing.Size(38, 20);
             this.yearBox.TabIndex = 36;
@@ -588,6 +588,22 @@ namespace Happy_Search
             this.ToggleFiltersModeButton.UseVisualStyleBackColor = false;
             this.ToggleFiltersModeButton.CheckedChanged += new System.EventHandler(this.ToggleFiltersMode);
             // 
+            // updateProducerTitlesButton
+            // 
+            this.updateProducerTitlesButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.updateProducerTitlesButton.FlatAppearance.BorderSize = 0;
+            this.updateProducerTitlesButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.updateProducerTitlesButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.updateProducerTitlesButton.Location = new System.Drawing.Point(777, 338);
+            this.updateProducerTitlesButton.Name = "updateProducerTitlesButton";
+            this.updateProducerTitlesButton.Size = new System.Drawing.Size(53, 23);
+            this.updateProducerTitlesButton.TabIndex = 84;
+            this.updateProducerTitlesButton.Text = "Update";
+            this.toolTip.SetToolTip(this.updateProducerTitlesButton, "If you wish to get all titles by a producer even when that producer hasn\'t entere" +
+        "d the local database.");
+            this.updateProducerTitlesButton.UseVisualStyleBackColor = false;
+            this.updateProducerTitlesButton.Click += new System.EventHandler(this.UpdateProducerTitles);
+            // 
             // infoTab
             // 
             this.infoTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
@@ -627,6 +643,7 @@ namespace Happy_Search
             // 
             // advancedCheckBox
             // 
+            this.advancedCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.advancedCheckBox.AutoSize = true;
             this.advancedCheckBox.Location = new System.Drawing.Point(233, 535);
             this.advancedCheckBox.Name = "advancedCheckBox";
@@ -638,7 +655,6 @@ namespace Happy_Search
             // 
             // sendQueryButton
             // 
-            this.sendQueryButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.sendQueryButton.BackColor = System.Drawing.Color.SteelBlue;
             this.sendQueryButton.Enabled = false;
             this.sendQueryButton.FlatAppearance.BorderSize = 0;
@@ -1967,22 +1983,6 @@ namespace Happy_Search
             this.URTToggleBox.TabIndex = 85;
             this.URTToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_URT);
             // 
-            // updateProducerTitlesButton
-            // 
-            this.updateProducerTitlesButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.updateProducerTitlesButton.FlatAppearance.BorderSize = 0;
-            this.updateProducerTitlesButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.updateProducerTitlesButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.updateProducerTitlesButton.Location = new System.Drawing.Point(777, 338);
-            this.updateProducerTitlesButton.Name = "updateProducerTitlesButton";
-            this.updateProducerTitlesButton.Size = new System.Drawing.Size(53, 23);
-            this.updateProducerTitlesButton.TabIndex = 84;
-            this.updateProducerTitlesButton.Text = "Update";
-            this.toolTip.SetToolTip(this.updateProducerTitlesButton, "If you wish to get all titles by a producer even when that producer hasn\'t entere" +
-        "d the local database.");
-            this.updateProducerTitlesButton.UseVisualStyleBackColor = false;
-            this.updateProducerTitlesButton.Click += new System.EventHandler(this.UpdateProducerTitles);
-            // 
             // statusLabel
             // 
             this.statusLabel.BackColor = System.Drawing.Color.Gray;
@@ -2151,13 +2151,13 @@ namespace Happy_Search
             this.yearButton.FlatAppearance.BorderSize = 0;
             this.yearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.yearButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.yearButton.Location = new System.Drawing.Point(382, 312);
+            this.yearButton.Location = new System.Drawing.Point(358, 311);
             this.yearButton.Name = "yearButton";
-            this.yearButton.Size = new System.Drawing.Size(29, 20);
+            this.yearButton.Size = new System.Drawing.Size(53, 20);
             this.yearButton.TabIndex = 46;
-            this.yearButton.Text = "Go";
+            this.yearButton.Text = "Update";
             this.yearButton.UseVisualStyleBackColor = false;
-            this.yearButton.Click += new System.EventHandler(this.GetYearTitles);
+            this.yearButton.Click += new System.EventHandler(this.Search_ByYear);
             // 
             // replyText
             // 
@@ -2173,11 +2173,11 @@ namespace Happy_Search
             // 
             this.label15.AutoSize = true;
             this.label15.BackColor = System.Drawing.Color.Transparent;
-            this.label15.Location = new System.Drawing.Point(238, 315);
+            this.label15.Location = new System.Drawing.Point(243, 315);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(94, 13);
+            this.label15.Size = new System.Drawing.Size(65, 13);
             this.label15.TabIndex = 47;
-            this.label15.Text = "Get Titles by Year:";
+            this.label15.Text = "List by Year:";
             this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btnFetch
@@ -2186,13 +2186,13 @@ namespace Happy_Search
             this.btnFetch.FlatAppearance.BorderSize = 0;
             this.btnFetch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnFetch.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnFetch.Location = new System.Drawing.Point(203, 311);
+            this.btnFetch.Location = new System.Drawing.Point(185, 311);
             this.btnFetch.Name = "btnFetch";
-            this.btnFetch.Size = new System.Drawing.Size(29, 20);
+            this.btnFetch.Size = new System.Drawing.Size(52, 20);
             this.btnFetch.TabIndex = 27;
-            this.btnFetch.Text = "Go";
+            this.btnFetch.Text = "Update";
             this.btnFetch.UseVisualStyleBackColor = false;
-            this.btnFetch.Click += new System.EventHandler(this.VNSearch);
+            this.btnFetch.Click += new System.EventHandler(this.Search_ByName);
             // 
             // label4
             // 
@@ -2200,9 +2200,9 @@ namespace Happy_Search
             this.label4.BackColor = System.Drawing.Color.Transparent;
             this.label4.Location = new System.Drawing.Point(10, 314);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(89, 13);
+            this.label4.Size = new System.Drawing.Size(71, 13);
             this.label4.TabIndex = 23;
-            this.label4.Text = "Search by Name:";
+            this.label4.Text = "List by Name:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label14

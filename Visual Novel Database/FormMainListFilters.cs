@@ -41,7 +41,7 @@ namespace Happy_Search
         /// <summary>
         /// Searches for VNs from VNDB, adds them if they are not in local database.
         /// </summary>
-        private async void VNSearch(object sender, EventArgs e) //Fetch information from 'VNDB.org'
+        private async void Search_ByName(object sender, EventArgs e) //Fetch information from 'VNDB.org'
         {
             if (searchBox.Text == "") //check if box is empty
             {
@@ -53,7 +53,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
                 return;
             }
-            var result = StartQuery(replyText, "VN Search");
+            var result = StartQuery(replyText, "Search_ByName");
             if (!result) return;
             var searchString = searchBox.Text;
             searchBox.Text = "";
@@ -78,7 +78,7 @@ namespace Happy_Search
                 moreResults = vnRoot.More;
             }
             await GetMultipleVN(vnItems.Select(x => x.ID), replyText, true);
-            WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} VNs for, {_vnsAdded} added, {_vnsSkipped} skipped.");
+            WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} titles, {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
             _currentListLabel = $"{searchString} (Search)";
@@ -90,7 +90,7 @@ namespace Happy_Search
         /// <summary>
         /// Gets VNs released in the year entered by user, doesn't update VNs already in local database
         /// </summary>
-        private async void GetYearTitles(object sender, EventArgs e)
+        private async void Search_ByYear(object sender, EventArgs e)
         {
             if (yearBox.Text == "") //check if box is empty
             {
@@ -104,10 +104,11 @@ namespace Happy_Search
                 WriteError(replyText, Resources.must_be_integer, true);
                 return;
             }
-            var result = StartQuery(replyText, "Get Year Titles");
+            var result = StartQuery(replyText, "Search_ByYear");
             if (!result) return;
-            var startTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTime}");
+            var startTime = DateTime.UtcNow.ToLocalTime();
+            var startTimeString = startTime.ToString("HH:mm");
+            WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTimeString}");
             yearBox.Text = "";
             _currentList = x => x.RelDate.StartsWith(yearBox.Text);
             _currentListLabel = $"{yearBox.Text} (Year)";
@@ -134,15 +135,58 @@ namespace Happy_Search
                 await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), replyText, true);
                 moreResults = vnMoreRoot.More;
             }
-            var endTime = DateTime.UtcNow.ToLocalTime().ToString("HH:mm");
-            WriteText(replyText, $"Got all VNs for {year}.  Time:{startTime}-{endTime}  {_vnsAdded} added, {_vnsSkipped} skipped.");
+            var span = DateTime.UtcNow.ToLocalTime() - startTime;
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
+            WriteText(replyText,
+                span < TimeSpan.FromMinutes(1)
+                    ? $"Got VNs for {year} in <1 min. {_vnsAdded}/{_vnsAdded+_vnsSkipped} added."
+                    : $"Got VNs for {year} in {span:HH:mm}. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.", true);
+            ChangeAPIStatus(Conn.Status);
         }
 
         #endregion
 
         #region Listing
+
+        private void List_ByName()
+        {
+            if (searchBox.Text == "") //check if box is empty
+            {
+                WriteError(replyText, Resources.enter_vn_title, true);
+                return;
+            }
+            if (searchBox.Text.Length < 3)
+            {
+                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
+                return;
+            }
+            var searchString = searchBox.Text.ToLowerInvariant();
+            List_ClearOther(skipNameBox:true);
+            _currentList = vn=>vn.Title.ToLowerInvariant().Contains(searchString) || vn.KanjiTitle.ToLowerInvariant().Contains(searchString);
+            _currentListLabel = $"{searchString} (Search)";
+            LoadVNListToGui();
+        }
+
+        private void List_ByYear()
+        {
+            if (yearBox.Text == "") //check if box is empty
+            {
+                WriteError(replyText, Resources.enter_year, true);
+                return;
+            }
+            int year;
+            var userIsNumber = int.TryParse(yearBox.Text, out year);
+            if (userIsNumber == false) //check if box has integer
+            {
+                WriteError(replyText, Resources.must_be_integer, true);
+                return;
+            }
+            List_ClearOther(skipYearBox:true);
+            _currentList = vn => vn.ReleasedInYear(year);
+            _currentListLabel = $"{year} (Year)";
+            LoadVNListToGui();
+        }
 
         /// <summary>
         /// Display all Visual Novels in local database.
@@ -158,12 +202,14 @@ namespace Happy_Search
         /// <summary>
         /// Clear other listing options.
         /// </summary>
-        private void List_ClearOther(bool skipProducerBox = false)
+        private void List_ClearOther(bool skipProducerBox = false, bool skipNameBox = false, bool skipYearBox = false)
         {
             DontTriggerEvent = true;
             ulStatusDropDown.SelectedIndex = 0;
             wlStatusDropDown.SelectedIndex = 0;
-            if(!skipProducerBox) ProducerListBox.Text = "";
+            if (!skipProducerBox) ProducerListBox.Text = "";
+            if (!skipNameBox) searchBox.Text = "";
+            if (!skipYearBox) yearBox.Text = "";
             DontTriggerEvent = false;
         }
 

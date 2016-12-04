@@ -353,6 +353,15 @@ namespace Happy_Search
         {
             return DateForSorting > oldDate && DateForSorting <= DateTime.UtcNow;
         }
+
+        /// <summary>
+        /// Check if title was released in specified year.
+        /// </summary>
+        /// <param name="year">Year of release</param>
+        public bool ReleasedInYear(int year)
+        {
+            return DateForSorting.Year == year;
+        }
     }
 
     /// <summary>

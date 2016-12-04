@@ -78,7 +78,7 @@ namespace Happy_Search
         public static readonly SolidBrush FavoriteProducerBrush = new SolidBrush(Color.Yellow);
         public static readonly SolidBrush ULPlayingBrush = new SolidBrush(Color.Yellow);
         public static readonly SolidBrush UnreleasedBrush = new SolidBrush(Color.White);
-        
+
         /// <summary>
         /// Categories of VN Tags
         /// </summary>
@@ -215,8 +215,8 @@ namespace Happy_Search
         public static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
-            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
+            if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
+            int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
             if (dateRegex.IsMatch(date))

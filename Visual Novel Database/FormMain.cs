@@ -1262,14 +1262,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
         private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
         {
-            if (e.KeyChar != (char)Keys.Enter) return;
-            e.Handled = true;
-            VNSearch(sender, e);
+            if (e.KeyChar == (char) Keys.Enter) List_ByName();
         }
 
         private void yearBox_KeyDown(object sender, KeyEventArgs e) //press enter on get year titles box
         {
-            if (e.KeyCode == Keys.Enter) GetYearTitles(sender, e);
+            if (e.KeyCode == Keys.Enter) List_ByYear();
         }
 
         #endregion
