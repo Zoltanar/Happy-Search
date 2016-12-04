@@ -133,6 +133,22 @@ namespace Happy_Search
             return response.Items.Any() ? response.Items[0].Username : "";
         }
 
+
+        /// <summary>
+        /// Get user ID from VNDB username, returns -1 if error.
+        /// </summary>
+        internal async Task<int> GetIDFromUsername(string username)
+        {
+            var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
+            if (!result)
+            {
+                ChangeAPIStatus(Conn.Status);
+                return -1;
+            }
+            var response = JsonConvert.DeserializeObject<UserRootItem>(Conn.LastResponse.JsonPayload);
+            return response.Items.Any() ? response.Items[0].ID : -1;
+        }
+
         /// <summary>
         /// Get character data about multiple visual novels.
         /// Creates its own SQLite Transactions.

@@ -348,6 +348,10 @@ https://github.com/FredTheBarber/VndbClient";
                 {
                     Username = await GetUsernameFromID(UserID);
                 }
+                if (UserID < 1)
+                {
+                    UserID = await GetIDFromUsername(Username);
+                }
                 ChangeAPIStatus(Conn.Status);
                 Settings.Default.Username = Username;
                 Settings.Default.UserID = UserID;

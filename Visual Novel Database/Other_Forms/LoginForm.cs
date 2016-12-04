@@ -38,7 +38,7 @@ namespace Happy_Search.Other_Forms
                     ChangeUserOnly(newId: userID);
                     return;
                 case 1:
-                    ChangeUserOnly(newUsername: UsernameBox.Text);
+                    ChangeUserOnly(newUsername: UsernameBox.Text.ToLower());
                     return;
                 default:
                     return;
@@ -119,7 +119,7 @@ namespace Happy_Search.Other_Forms
                     }
                     break;
                 case 1:
-                    username = UsernameBox.Text;
+                    username = UsernameBox.Text.ToLower();
                     break;
                 default:
                     return;

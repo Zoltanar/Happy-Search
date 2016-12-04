@@ -92,7 +92,6 @@ fix log tab buttons on resize
 make tag/trait text boxes use autocomplete with alias and partly named results typing fool should show https://vndb.org/g/list?t=-1&q=fool
 other functions - update all titles regardless
 toggle hide non-results area
-show username from id when logging in using id only (api get user)
 add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
 delete all root api classes and have a single root class with List<object> Items.
 
