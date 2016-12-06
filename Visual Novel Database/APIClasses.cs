@@ -443,7 +443,7 @@ namespace Happy_Search
     //object contained in tag dump
     public class WrittenTag : ItemWithParents
     {
-        public List<object> Aliases { get; set; }
+        public List<string> Aliases { get; set; }
         public int VNs { get; set; }
         public string Description { get; set; }
         public string Name { get; set; }
@@ -454,7 +454,7 @@ namespace Happy_Search
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={ID} Name={Name}";
+        public override string ToString() => Name;
     }
 
 
@@ -466,21 +466,14 @@ namespace Happy_Search
         public string Description { get; set; }
         public bool Meta { get; set; }
         public int Chars { get; set; }
-        public List<object> Aliases { get; set; }
+        public List<string> Aliases { get; set; }
 
         public int TopmostParent { get; set; }
         public string TopmostParentName { get; set; }
 
-        /// <summary>Returns a string that represents the current object.</summary>
-        /// <returns>A string that represents the current object.</returns>
-        /// <filterpriority>2</filterpriority>
-        public override string ToString() => $"ID={ID} Name={Name}";
-
-        /// <summary>
-        /// Returns name of tag in the form of Root > Trait (e.g. Hair > Green)
-        /// </summary>
-        /// <returns>Name of tag in the form of Root > Trait</returns>
-        public string Print() => $"{TopmostParentName} > {Name}";
+        /// <summary>Returns name of tag in the form of Root > Trait (e.g. Hair > Green)</summary>
+        public override string ToString() => $"{TopmostParentName} > {Name}";
+        
 
         public void SetTopmostParent(List<WrittenTrait> plainTraits)
         {

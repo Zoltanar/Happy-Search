@@ -2,6 +2,7 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: Tag/trait searching now shows tags with text in any part of name/alias. Help files have been updated.
 Changed: Login can now be used with username instead of ID.
 Added: Unreleased toggle filter: Hide No Release Date.
 Added: Local DB methods for searching by name and by release year. (local search by alias not added yet)
@@ -89,11 +90,9 @@ do not allow open database between api queries
 see current groups when adding title to groups
 fix log tab buttons on resize
 -
-make tag/trait text boxes use autocomplete with alias and partly named results typing fool should show https://vndb.org/g/list?t=-1&q=fool
 other functions - update all titles regardless
 toggle hide non-results area
 add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
-delete all root api classes and have a single root class with List<object> Items.
 
 
 

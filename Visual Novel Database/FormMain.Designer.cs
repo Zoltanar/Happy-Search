@@ -65,6 +65,8 @@ namespace Happy_Search
             this.traitSignaler = new System.Windows.Forms.Button();
             this.ToggleFiltersModeButton = new System.Windows.Forms.CheckBox();
             this.updateProducerTitlesButton = new System.Windows.Forms.Button();
+            this.tagSearchButton = new System.Windows.Forms.Button();
+            this.traitSearchButton = new System.Windows.Forms.Button();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -123,6 +125,7 @@ namespace Happy_Search
             this.groupListBox = new System.Windows.Forms.ComboBox();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tagFilteringBox = new System.Windows.Forms.TabPage();
+            this.tagSearchResultBox = new System.Windows.Forms.ListBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.TagFilteringHelpButton = new System.Windows.Forms.Button();
@@ -145,6 +148,7 @@ namespace Happy_Search
             this.deleteCustomTagFilterButton = new System.Windows.Forms.Button();
             this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.traitFilteringBox = new System.Windows.Forms.TabPage();
+            this.traitSearchResultBox = new System.Windows.Forms.ListBox();
             this.label5 = new System.Windows.Forms.Label();
             this.traitFilteringHelpButton = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
@@ -480,15 +484,15 @@ namespace Happy_Search
             // 
             // tagSearchBox
             // 
-            this.tagSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.tagSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.tagSearchBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.tagSearchBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tagSearchBox.Location = new System.Drawing.Point(274, 1);
             this.tagSearchBox.Name = "tagSearchBox";
-            this.tagSearchBox.Size = new System.Drawing.Size(163, 22);
+            this.tagSearchBox.Size = new System.Drawing.Size(140, 22);
             this.tagSearchBox.TabIndex = 29;
-            this.toolTip.SetToolTip(this.tagSearchBox, "Enter tag name here");
-            this.tagSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddTagBySearch);
+            this.toolTip.SetToolTip(this.tagSearchBox, "Enter tag name/alias here.");
+            this.tagSearchBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.AddTagBySearch);
             // 
             // yearBox
             // 
@@ -514,15 +518,15 @@ namespace Happy_Search
             // 
             // traitSearchBox
             // 
-            this.traitSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.traitSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.traitSearchBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.traitSearchBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.traitSearchBox.Location = new System.Drawing.Point(185, 6);
             this.traitSearchBox.Name = "traitSearchBox";
-            this.traitSearchBox.Size = new System.Drawing.Size(163, 22);
+            this.traitSearchBox.Size = new System.Drawing.Size(140, 22);
             this.traitSearchBox.TabIndex = 99;
             this.toolTip.SetToolTip(this.traitSearchBox, "Enter trait name here");
-            this.traitSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddTraitBySearch);
+            this.traitSearchBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.AddTraitBySearch);
             // 
             // customTraitFilterNameBox
             // 
@@ -603,6 +607,36 @@ namespace Happy_Search
         "d the local database.");
             this.updateProducerTitlesButton.UseVisualStyleBackColor = false;
             this.updateProducerTitlesButton.Click += new System.EventHandler(this.UpdateProducerTitles);
+            // 
+            // tagSearchButton
+            // 
+            this.tagSearchButton.BackColor = System.Drawing.Color.MistyRose;
+            this.tagSearchButton.FlatAppearance.BorderSize = 0;
+            this.tagSearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagSearchButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.tagSearchButton.Location = new System.Drawing.Point(420, 1);
+            this.tagSearchButton.Name = "tagSearchButton";
+            this.tagSearchButton.Size = new System.Drawing.Size(17, 22);
+            this.tagSearchButton.TabIndex = 94;
+            this.tagSearchButton.Text = "S";
+            this.toolTip.SetToolTip(this.tagSearchButton, "Search for a tag based on name and/or alias.");
+            this.tagSearchButton.UseVisualStyleBackColor = false;
+            this.tagSearchButton.Click += new System.EventHandler(this.SearchTags);
+            // 
+            // traitSearchButton
+            // 
+            this.traitSearchButton.BackColor = System.Drawing.Color.MistyRose;
+            this.traitSearchButton.FlatAppearance.BorderSize = 0;
+            this.traitSearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.traitSearchButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.traitSearchButton.Location = new System.Drawing.Point(331, 6);
+            this.traitSearchButton.Name = "traitSearchButton";
+            this.traitSearchButton.Size = new System.Drawing.Size(17, 22);
+            this.traitSearchButton.TabIndex = 111;
+            this.traitSearchButton.Text = "S";
+            this.toolTip.SetToolTip(this.traitSearchButton, "Search for a tag based on name and/or alias.");
+            this.traitSearchButton.UseVisualStyleBackColor = false;
+            this.traitSearchButton.Click += new System.EventHandler(this.SearchTraits);
             // 
             // infoTab
             // 
@@ -1246,6 +1280,8 @@ namespace Happy_Search
             // 
             this.tagFilteringBox.AutoScroll = true;
             this.tagFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.tagFilteringBox.Controls.Add(this.tagSearchButton);
+            this.tagFilteringBox.Controls.Add(this.tagSearchResultBox);
             this.tagFilteringBox.Controls.Add(this.label2);
             this.tagFilteringBox.Controls.Add(this.label6);
             this.tagFilteringBox.Controls.Add(this.TagFilteringHelpButton);
@@ -1278,6 +1314,17 @@ namespace Happy_Search
             this.tagFilteringBox.Size = new System.Drawing.Size(564, 273);
             this.tagFilteringBox.TabIndex = 0;
             this.tagFilteringBox.Text = "Tag Filtering";
+            this.tagFilteringBox.Click += new System.EventHandler(this.ClearListBox);
+            // 
+            // tagSearchResultBox
+            // 
+            this.tagSearchResultBox.FormattingEnabled = true;
+            this.tagSearchResultBox.Location = new System.Drawing.Point(274, 28);
+            this.tagSearchResultBox.Name = "tagSearchResultBox";
+            this.tagSearchResultBox.Size = new System.Drawing.Size(163, 238);
+            this.tagSearchResultBox.TabIndex = 93;
+            this.tagSearchResultBox.Visible = false;
+            this.tagSearchResultBox.SelectedIndexChanged += new System.EventHandler(this.AddTagFromList);
             // 
             // label2
             // 
@@ -1515,6 +1562,8 @@ namespace Happy_Search
             // 
             this.traitFilteringBox.AutoScroll = true;
             this.traitFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.traitFilteringBox.Controls.Add(this.traitSearchButton);
+            this.traitFilteringBox.Controls.Add(this.traitSearchResultBox);
             this.traitFilteringBox.Controls.Add(this.label5);
             this.traitFilteringBox.Controls.Add(this.traitFilteringHelpButton);
             this.traitFilteringBox.Controls.Add(this.customTraitFilterNameBox);
@@ -1532,6 +1581,17 @@ namespace Happy_Search
             this.traitFilteringBox.Size = new System.Drawing.Size(564, 273);
             this.traitFilteringBox.TabIndex = 1;
             this.traitFilteringBox.Text = "Trait Filtering Box";
+            this.traitFilteringBox.Click += new System.EventHandler(this.ClearTraitResults);
+            // 
+            // traitSearchResultBox
+            // 
+            this.traitSearchResultBox.FormattingEnabled = true;
+            this.traitSearchResultBox.Location = new System.Drawing.Point(6, 32);
+            this.traitSearchResultBox.Name = "traitSearchResultBox";
+            this.traitSearchResultBox.Size = new System.Drawing.Size(342, 238);
+            this.traitSearchResultBox.TabIndex = 110;
+            this.traitSearchResultBox.Visible = false;
+            this.traitSearchResultBox.SelectedIndexChanged += new System.EventHandler(this.AddTraitFromList);
             // 
             // label5
             // 
@@ -2760,6 +2820,10 @@ namespace Happy_Search
         private Button tagSignaler;
         private Button traitSignaler;
         private CheckBox ToggleFiltersModeButton;
+        private ListBox tagSearchResultBox;
+        private Button tagSearchButton;
+        private ListBox traitSearchResultBox;
+        private Button traitSearchButton;
     }
 }
 

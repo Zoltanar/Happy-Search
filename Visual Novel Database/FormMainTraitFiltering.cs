@@ -151,7 +151,7 @@ namespace Happy_Search
                     Location = new Point(6, 33 + count * 22),
                     Name = TraitLabel + count,
                     Size = new Size(342, 17),
-                    Text = trait.Print(),
+                    Text = trait.ToString(),
                     Checked = true,
                     AutoEllipsis = true
                 };
@@ -210,28 +210,99 @@ namespace Happy_Search
         private void AddTraitBySearch(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
+            traitSearchResultBox.Visible = false;
             if (traitSearchBox.Text == "") //check if box is empty
             {
-                WriteError(traitReply, "Enter trait ID.", true);
+                WriteError(traitReply, "Enter trait name.", true);
                 return;
             }
             var traitName = traitSearchBox.Text;
             var root = PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
             var trait =
-                PlainTraits.Find(
-                    x =>
+                PlainTraits.Find(x =>
                         x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
                         x.TopmostParent == root.ID);
             if (trait == null)
             {
-                WriteError(traitReply, $"{root} > {traitName} not found.", true);
+                //WriteError(traitReply, $"{root} > {traitName} not found.", true);
+                SearchTraits(null,null);
+                return;
+            }
+            AddFilterTrait(trait);
+            var s = (Control)sender;
+            s.Text = "";
+            WriteText(traitReply, $"Added trait {trait}");
+        }
+
+        /// <summary>
+        /// Add trait to active filter.
+        /// </summary>
+        /// <param name="trait"></param>
+        private void AddFilterTrait(WrittenTrait trait)
+        {
+            if (trait == null)
+            {
+                WriteError(traitReply, "Trait not found.", true);
+                return;
+            }
+            if (_activeTraitFilter.Contains(trait))
+            {
+                WriteError(traitReply, "Trait is already in filter.", true);
                 return;
             }
             _activeTraitFilter.Add(trait);
             DisplayFilterTraits();
-            var s = (Control)sender;
-            s.Text = "";
-            WriteText(traitReply, $"Filtered by {trait.Print()}");
+        }
+
+        /// <summary>
+        /// Search for traits by name/alias.
+        /// </summary>
+        private void SearchTraits(object sender, EventArgs e)
+        {
+            traitSearchResultBox.Visible = false;
+            if (traitSearchBox.Text == "") //check if box is empty
+            {
+                WriteError(traitReply, "Enter trait name.", true);
+                return;
+            }
+            var text = traitSearchBox.Text.ToLowerInvariant();
+            var results = PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+                                            t.Aliases.Exists(a=>a.ToLowerInvariant().Contains(text))).ToArray();
+            if (results.Length == 0)
+            {
+                WriteError(traitReply,"No traits with that name/alias found.");
+                return;
+            }
+            if (results.Length == 1)
+            {
+                traitSearchBox.Text = "";
+                WriteText(traitReply, $"Added trait {results.First()}");
+                AddFilterTrait(results.First());
+                return;
+            }
+            traitSearchResultBox.Items.Clear();
+            // ReSharper disable once CoVariantArrayConversion
+            traitSearchResultBox.Items.AddRange(results);
+            traitSearchResultBox.Visible = true;
+        }
+
+        /// <summary>
+        /// Add trait from search results.
+        /// </summary>
+        private void AddTraitFromList(object sender, EventArgs e)
+        {
+            var lb = (ListBox)sender;
+            traitSearchBox.Text = "";
+            lb.Visible = false;
+            AddFilterTrait(lb.SelectedItem as WrittenTrait);
+        }
+
+        /// <summary>
+        /// Clear results list from view.
+        /// </summary>
+        private void ClearTraitResults(object sender, EventArgs e)
+        {
+            traitSearchResultBox.Visible = false;
         }
 
         /// <summary>

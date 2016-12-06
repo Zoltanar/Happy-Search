@@ -127,18 +127,38 @@ namespace Happy_Search
                 WriteError(tagReply, $"Tag {tagName} not found", true);
                 return;
             }
+            AddFilterTag(writtenTag);
+        }
+
+        /// <summary>
+        /// Add tag to list of active tag filters.
+        /// </summary>
+        /// <param name="writtenTag">Tag to be added to active filter.</param>
+        private void AddFilterTag(WrittenTag writtenTag)
+        {
+            if(writtenTag == null)
+            { 
+                WriteError(tagReply, "Tag not found.", true);
+                return;
+            }
             foreach (var filter in _activeTagFilter)
             {
+                //if tag is already in filter, do nothing.
+                if (filter.ID == writtenTag.ID)
+                {
+                    WriteError(tagReply,"Tag is already in filter.");
+                    return;
+                }
+                //if filter isn't parent of tag, continue
                 if (!filter.HasChild(writtenTag.ID)) continue;
-                //this happens when tag added is more precise than a present tag, eg transfer student heroine is more precise than student heroine
+                //if filter is parent of tag, remove filter (because it would be useless in the presence of more specific tag)
+                //eg transfer student heroine is more precise than student heroine
                 _activeTagFilter.Remove(filter);
-                LogToFile($"{writtenTag.Name} Tag Displaced {filter.Name} Tag.");
                 break;
             }
             //save tag as tag and children
             //var children = new List<int>();
             int[] children = Enumerable.Empty<int>().ToArray();
-            LogToFile($"Getting Child Tags for {tagName}");
             var difference = 1;
             //new
             int[] childrenForThisRound = PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
@@ -157,19 +177,24 @@ namespace Happy_Search
                 childrenForThisRound = tmp.ToArray();
             }
             var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, children);
-            var notNeeded = false;
             var count = _vnList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
-            WriteText(tagReply, $"Tag {tagName} has {count} VNs in local database.");
+            TagFilter moreSpecificFilter = null;
+            var notNeeded = false;
             foreach (var filter in _activeTagFilter)
             {
                 if (!newFilter.HasChild(filter.ID)) continue;
-                LogToFile($"{writtenTag.Name} not necessary, {filter.Name} is already included");
                 notNeeded = true;
+                moreSpecificFilter = filter;
                 break;
             }
-            if (notNeeded) return;
+            if (notNeeded)
+            {
+                WriteText(tagReply, $"Tag isn't needed because {moreSpecificFilter.Name} is more specific.");
+                return;
+            }
             _activeTagFilter.Add(newFilter);
+            WriteText(tagReply, $"Tag {writtenTag.Name} has {count} VNs in local database.");
             DisplayFilterTags();
         }
 
@@ -358,19 +383,86 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Add tag with name entered by user.
+        /// Search for tags by name/alias entered by user.
         /// </summary>
-        private void AddTagBySearch(object sender, KeyEventArgs e) //press enter on tag search
+        private void AddTagBySearch(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
+            tagSearchResultBox.Visible = false;
             if (tagSearchBox.Text == "") //check if box is empty
             {
                 WriteError(tagReply, "Enter tag name.", true);
                 return;
             }
-            var tagName = tagSearchBox.Text;
-            AddFilterTag(tagName);
+            var tb = (TextBox)sender;
+            string text = tb.Text.ToLowerInvariant();
+            //if exact match is found, add it
+            var exact = PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
+            if (exact != null)
+            {
+                tagSearchBox.Text = "";
+                AddFilterTag(exact);
+                return;
+            }
+            SearchTags(null,null);
+            
+        }
+
+        /// <summary>
+        /// Add tag selected from list.
+        /// </summary>
+        private void AddTagFromList(object sender, EventArgs e)
+        {
+            var lb = (ListBox) sender;
             tagSearchBox.Text = "";
+            lb.Visible = false;
+            AddFilterTag(lb.SelectedItem as WrittenTag);
+        }
+
+        /// <summary>
+        /// Search for tags by name/alias entered by user, doesn't simply add exact match.
+        /// </summary>
+        private void SearchTags(object sender, EventArgs e)
+        {
+            tagSearchResultBox.Visible = false;
+            string text = tagSearchBox.Text.ToLowerInvariant();
+            if (e != null)
+            {
+                if (tagSearchBox.Text == "") //check if box is empty
+                {
+                    WriteError(tagReply, "Enter tag name.", true);
+                    return;
+                }
+            }
+            //find all results with similar name or alias
+            var results = PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+                                               t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
+            //if no results, return not found
+            if (results.Length == 0)
+            {
+                WriteError(tagReply, $"Tag {tagSearchBox.Text} not found.", true);
+                return;
+            }
+            //if only one result, add it
+            if (results.Length == 1)
+            {
+                tagSearchBox.Text = "";
+                AddFilterTag(results.First());
+                return;
+            }
+            //if several results, show list.
+            tagSearchResultBox.Items.Clear();
+            // ReSharper disable once CoVariantArrayConversion
+            tagSearchResultBox.Items.AddRange(results);
+            tagSearchResultBox.Visible = true;
+        }
+
+        /// <summary>
+        /// Clear results box from view on click in tag filtering section.
+        /// </summary>
+        private void ClearListBox(object sender, EventArgs e)
+        {
+            tagSearchResultBox.Visible = false;
         }
 
 

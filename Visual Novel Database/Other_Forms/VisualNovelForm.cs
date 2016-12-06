@@ -251,7 +251,7 @@ namespace Happy_Search.Other_Forms
                 stringList.Add($"Character {characterItem.ID}");
                 foreach (var trait in characterItem.Traits)
                 {
-                    stringList.Add(_parentForm.PlainTraits.Find(x => x.ID == trait.ID)?.Print());
+                    stringList.Add(_parentForm.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
                 }
                 stringList.Add("---------------");
             }
