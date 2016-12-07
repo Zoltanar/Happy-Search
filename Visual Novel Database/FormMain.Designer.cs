@@ -1869,7 +1869,8 @@ namespace Happy_Search
             "----------------",
             "Get All VN Stats",
             "Get All Character Data",
-            "Get Missing Covers"});
+            "Get Missing Covers",
+            "Update Title Data (All)"});
             this.otherMethodsCB.Location = new System.Drawing.Point(3, 120);
             this.otherMethodsCB.Name = "otherMethodsCB";
             this.otherMethodsCB.Size = new System.Drawing.Size(131, 21);

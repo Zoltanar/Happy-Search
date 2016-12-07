@@ -33,7 +33,7 @@ namespace Happy_Search
         //constants / definables
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.0";
+        public const string ClientVersion = "1.4.1";
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -284,16 +284,13 @@ https://github.com/FredTheBarber/VndbClient";
         {
             var client = new GitHubClient(new ProductHeaderValue("Happy-Search"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Zoltanar", "Happy-Search");
-            var latest = releases[0];
-            LogToFile($"The latest release is tagged at {latest.TagName} and is named {latest.Name}");
+            var latest = releases.First(r => !r.Prerelease);
+            LogToFile($"The latest non-test release is tagged at {latest.TagName} and is named {latest.Name}");
             if (!latest.TagName.Equals(ClientVersion))
             {
-                var messageBoxResult = MessageBox.Show($"There is a newer version available.\nInstalled: {ClientVersion}\nLatest: {latest.TagName}\nDo you wish to visit the releases page?",
+                var messageBoxResult = MessageBox.Show($"Latest non-test release is {latest.TagName}, you are running {ClientVersion}\nDo you wish to visit the releases page?",
                     @"Update Client?", MessageBoxButtons.YesNo);
-                if (messageBoxResult == DialogResult.Yes)
-                {
-                    Process.Start($"{ProjectURL}/releases");
-                }
+                if (messageBoxResult == DialogResult.Yes) Process.Start($"{ProjectURL}/releases");
             }
         }
 
@@ -565,10 +562,33 @@ https://github.com/FredTheBarber/VndbClient";
                 case 4:
                     await GetAllMissingImages();
                     break;
+                case 5:
+                    await UpdateAllTitlesSkipLimit();
+                    break;
                 default:
                     return;
             }
             otherMethodsCB.SelectedIndex = 0;
+        }
+
+        /// <summary>
+        /// Update title data of all titles regardless of release date/last update date.
+        /// </summary>
+        private async Task UpdateAllTitlesSkipLimit()
+        {
+            var messageBox = MessageBox.Show(
+                "This will update title data for all titles, regardless of their release date and date of last update.\n" +
+                "It will take a long time if you have over 1000 titles.\n" +
+                "Are you sure?",
+                "Are you sure?", MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            var result = StartQuery(userListReply, "Update Title Data (All)");
+            if (!result) return;
+            await UpdateTitleData(_vnList.Select(t => t.VNID));
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            WriteText(userListReply, "Updated data on all titles.");
+            ChangeAPIStatus(Conn.Status);
         }
 
         private async Task GetAllMissingImages()

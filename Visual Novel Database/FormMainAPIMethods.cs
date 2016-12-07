@@ -446,9 +446,9 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Update tags of titles that haven't been updated in over 7 days.
+        /// Update tags, traits and stats of titles.
         /// </summary>
-        /// <param name="vnIDs">List of visual novel IDs</param>
+        /// <param name="vnIDs">List of IDs of titles to be updated.</param>
         private async Task UpdateTitleData(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
