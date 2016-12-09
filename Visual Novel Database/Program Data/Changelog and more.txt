@@ -2,6 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
+Changed: Layout has been changed, minimum size is now 1220,660
+Changed: List By Name/Alias, Producer, Year and Group methods are now grouped up.
 Added: (VN Form) Name/original name now selectable.
 Added: Other Function: Update Title Data (All), skips release date/update date checks.
 Added: Tag/trait searching now shows tags with text in any part of name/alias. Help files have been updated.
@@ -93,6 +95,13 @@ see current groups when adding title to groups
 -
 toggle hide non-results area
 add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
+check tooltips for tag/trait searching
+-
+check if sql in transaction before throttle and close then reopen
+test german date format
+ability to remove titles from database
+multi-select titles and batch functions
+move suggested fav producers in producer search window
 
 
 

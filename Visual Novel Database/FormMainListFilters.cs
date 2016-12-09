@@ -39,24 +39,43 @@ namespace Happy_Search
         #region Searching
 
         /// <summary>
+        /// Run selected Search function.
+        /// </summary>
+        private void ListByUpdate(object sender, EventArgs e)
+        {
+            switch (ListByCB.SelectedIndex)
+            {
+                case (int)ListBy.Name:
+                    Search_Name();
+                    return;
+                case (int)ListBy.Producer:
+                    Search_Producer();
+                    return;
+                case (int)ListBy.Year:
+                    Search_Year();
+                    return;
+            }
+        }
+
+        /// <summary>
         /// Searches for VNs from VNDB, adds them if they are not in local database.
         /// </summary>
-        private async void Search_ByName(object sender, EventArgs e) //Fetch information from 'VNDB.org'
+        private async void Search_Name() //Fetch information from 'VNDB.org'
         {
-            if (searchBox.Text == "") //check if box is empty
+            if (ListByTB.Text == "") //check if box is empty
             {
                 WriteError(replyText, Resources.enter_vn_title, true);
                 return;
             }
-            if (searchBox.Text.Length < 3)
+            if (ListByTB.Text.Length < 3)
             {
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
                 return;
             }
             var result = StartQuery(replyText, "Search_ByName");
             if (!result) return;
-            var searchString = searchBox.Text;
-            searchBox.Text = "";
+            var searchString = ListByTB.Text;
+            ListByTB.Text = "";
             _vnsAdded = 0;
             _vnsSkipped = 0;
             string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
@@ -90,15 +109,15 @@ namespace Happy_Search
         /// <summary>
         /// Gets VNs released in the year entered by user, doesn't update VNs already in local database
         /// </summary>
-        private async void Search_ByYear(object sender, EventArgs e)
+        private async void Search_Year()
         {
-            if (yearBox.Text == "") //check if box is empty
+            if (ListByTB.Text == "") //check if box is empty
             {
                 WriteError(replyText, Resources.enter_year, true);
                 return;
             }
             int year;
-            var userIsNumber = int.TryParse(yearBox.Text, out year);
+            var userIsNumber = int.TryParse(ListByTB.Text, out year);
             if (userIsNumber == false) //check if box has integer
             {
                 WriteError(replyText, Resources.must_be_integer, true);
@@ -109,9 +128,9 @@ namespace Happy_Search
             var startTime = DateTime.UtcNow.ToLocalTime();
             var startTimeString = startTime.ToString("HH:mm");
             WriteText(replyText, $"Getting All VNs For year {year}.  Started at {startTimeString}");
-            yearBox.Text = "";
-            _currentList = x => x.RelDate.StartsWith(yearBox.Text);
-            _currentListLabel = $"{yearBox.Text} (Year)";
+            ListByTB.Text = "";
+            _currentList = x => x.RelDate.StartsWith(ListByTB.Text);
+            _currentListLabel = $"{ListByTB.Text} (Year)";
             _vnsAdded = 0;
             _vnsSkipped = 0;
             string vnInfoQuery =
@@ -144,45 +163,191 @@ namespace Happy_Search
                     : $"Got VNs for {year} in {span:HH:mm}. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.", true);
             ChangeAPIStatus(Conn.Status);
         }
+        
+        /// <summary>
+        /// Get new VNs from VNDB that match selected producer.
+        /// </summary>
+        private async void Search_Producer()
+        {
+            var producer = ListByTB.Text;
+            if (producer.Equals(""))
+            {
+                WriteError(replyText, "Enter producer name.");
+                return;
+            }
+            var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (askBox != DialogResult.Yes) return;
+            var producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+            if (producerItem == null)
+            {
+                var askBox2 = MessageBox.Show($"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
+                if (askBox2 != DialogResult.Yes) return;
+                var result2 = StartQuery(replyText, "Update Producer Titles");
+                if (!result2) return;
+                var producers = await AddProducersBySearchedName(producer, replyText);
+                if (producers == null) return;
+                if (producers.Count == 0)
+                {
+                    WriteError(replyText, $"{producer} was not found.");
+                    ChangeAPIStatus(Conn.Status);
+                    return;
+                }
+                if (!producers.Exists(x => x.Name.Equals(producer)))
+                {
+                    WriteError(replyText, $"{producer} wasn't found but {producers.Count} other producers were added.");
+                    await ReloadListsFromDbAsync();
+                    ChangeAPIStatus(Conn.Status);
+                    return;
+                }
+                ChangeAPIStatus(Conn.Status);
+                await ReloadListsFromDbAsync();
+                producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+                ListByTB.Text = producer;
+            }
+            var result = StartQuery(replyText, "Update Producer Titles");
+            if (!result) return;
+            _vnsAdded = 0;
+            _vnsSkipped = 0;
+            await GetProducerTitles(producerItem, replyText);
+            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            ChangeAPIStatus(Conn.Status);
+        }
 
         #endregion
 
         #region Listing
 
-        private void List_ByName()
+
+        /// <summary>
+        /// Change ListBy TextBox in accordance to selected function.
+        /// </summary>
+        private void ChangeListBy(object sender, EventArgs e)
         {
-            if (searchBox.Text == "") //check if box is empty
+            ListByTB.Text = "";
+            switch (ListByCB.SelectedIndex)
+            {
+                case (int) ListBy.Name:
+                    ListByTB.Visible = true;
+                    groupListBox.Visible = false;
+                    ListByUpdateButton.Enabled = true;
+                    ListByGoButton.Enabled = true;
+                    ListByTB.AutoCompleteMode = AutoCompleteMode.None;
+                    break;
+                case (int) ListBy.Producer:
+                    ListByTB.Visible = true;
+                    groupListBox.Visible = false;
+                    ListByUpdateButton.Enabled = true;
+                    ListByGoButton.Enabled = true;
+                    PopulateProducerSearchBox();
+                    break;
+                case (int) ListBy.Year:
+                    ListByTB.Visible = true;
+                    groupListBox.Visible = false;
+                    ListByUpdateButton.Enabled = true;
+                    ListByGoButton.Enabled = true;
+                    ListByTB.AutoCompleteMode = AutoCompleteMode.None;
+                    break;
+                case (int)ListBy.Group:
+                    ListByTB.Visible = false;
+                    groupListBox.Visible = true;
+                    ListByUpdateButton.Enabled = false;
+                    ListByGoButton.Enabled = false;
+                    return;
+
+            }
+        }
+
+        /// <summary>
+        /// Only allow Digits in input for List By Year.
+        /// </summary>
+        private void ListByTB_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (ListByCB.SelectedIndex == (int)ListBy.Year)
+            {
+                e.Handled = !char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar);
+            }
+        }
+
+        /// <summary>
+        /// Enter Key on ListBy TextBox.
+        /// </summary>
+        private void ListByTB_KeyUp(object sender, KeyEventArgs e)
+        {
+            switch (ListByCB.SelectedIndex)
+            {
+                case (int)ListBy.Name:
+                    if (e.KeyCode == Keys.Enter) List_Name();
+                    return;
+                case (int)ListBy.Producer:
+                    if (e.KeyCode == Keys.Enter) List_Producer();
+                    return;
+                case (int)ListBy.Year:
+                    if (e.KeyCode == Keys.Enter) List_Year();
+                    return;
+                case (int)ListBy.Group:
+                    if (e.KeyCode == Keys.Enter) List_Group(null,null);
+                    return;
+            }
+        }
+
+        /// <summary>
+        /// Run selected List function.
+        /// </summary>
+        private void ListByGo(object sender, EventArgs e)
+        {
+            switch (ListByCB.SelectedIndex)
+            {
+                case (int)ListBy.Name:
+                    List_Name();
+                    return;
+                case (int)ListBy.Producer:
+                    List_Producer();
+                    return;
+                case (int)ListBy.Year:
+                    List_Year();
+                    return;
+            }
+        }
+
+        private void List_Name()
+        {
+            if (ListByTB.Text == "") //check if box is empty
             {
                 WriteError(replyText, Resources.enter_vn_title, true);
                 return;
             }
-            if (searchBox.Text.Length < 3)
+            if (ListByTB.Text.Length < 3)
             {
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
                 return;
             }
-            var searchString = searchBox.Text.ToLowerInvariant();
-            List_ClearOther(skipNameBox:true);
+            var searchString = ListByTB.Text.ToLowerInvariant();
+            List_ClearOther(skipListBox: true);
             _currentList = vn=>vn.Title.ToLowerInvariant().Contains(searchString) || vn.KanjiTitle.ToLowerInvariant().Contains(searchString);
             _currentListLabel = $"{searchString} (Search)";
             LoadVNListToGui();
         }
 
-        private void List_ByYear()
+        /// <summary>
+        /// List titles released in specified year.
+        /// </summary>
+        private void List_Year()
         {
-            if (yearBox.Text == "") //check if box is empty
+            if (ListByTB.Text == "") //check if box is empty
             {
                 WriteError(replyText, Resources.enter_year, true);
                 return;
             }
             int year;
-            var userIsNumber = int.TryParse(yearBox.Text, out year);
+            var userIsNumber = int.TryParse(ListByTB.Text, out year);
             if (userIsNumber == false) //check if box has integer
             {
                 WriteError(replyText, Resources.must_be_integer, true);
                 return;
             }
-            List_ClearOther(skipYearBox:true);
+            List_ClearOther(skipListBox: true);
             _currentList = vn => vn.ReleasedInYear(year);
             _currentListLabel = $"{year} (Year)";
             LoadVNListToGui();
@@ -202,14 +367,12 @@ namespace Happy_Search
         /// <summary>
         /// Clear other listing options.
         /// </summary>
-        private void List_ClearOther(bool skipProducerBox = false, bool skipNameBox = false, bool skipYearBox = false)
+        private void List_ClearOther(bool skipListBox = false)
         {
             DontTriggerEvent = true;
             ulStatusDropDown.SelectedIndex = 0;
             wlStatusDropDown.SelectedIndex = 0;
-            if (!skipProducerBox) ProducerListBox.Text = "";
-            if (!skipNameBox) searchBox.Text = "";
-            if (!skipYearBox) yearBox.Text = "";
+            if (!skipListBox) ListByTB.Text = "";
             DontTriggerEvent = false;
         }
 
@@ -347,62 +510,18 @@ namespace Happy_Search
         /// <summary>
         /// Display VNs by producer typed/selected in box.
         /// </summary>
-        private void List_Producer(object sender, KeyEventArgs e)
+        private void List_Producer(string producerName = null)
         {
-            if (e.KeyCode != Keys.Enter) return;
-            if (ProducerListBox.Text.Equals("")) return;
-            var producerName = ProducerListBox.Text;
-            List_ClearOther(skipProducerBox:true);
+            producerName = producerName ?? ListByTB.Text;
+            if (producerName.Equals(""))
+            {
+                WriteError(replyText, "Enter producer name.");
+                return;
+            }
+            List_ClearOther(skipListBox:true);
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
             _currentListLabel = $"{producerName} (Producer)";
             LoadVNListToGui();
-        }
-
-        /// <summary>
-        /// Get new VNs from VNDB that match selected producer.
-        /// </summary>
-        private async void UpdateProducerTitles(object sender, EventArgs e)
-        {
-            var producer = ProducerListBox.Text;
-            if (producer.Equals("")) return;
-            var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (askBox != DialogResult.Yes) return;
-            var producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
-            if (producerItem == null)
-            {
-                var askBox2 = MessageBox.Show($"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
-                if (askBox2 != DialogResult.Yes) return;
-                var result2 = StartQuery(replyText, "Update Producer Titles");
-                if (!result2) return;
-                var producers = await AddProducersBySearchedName(producer, replyText);
-                if (producers == null) return;
-                if (producers.Count == 0)
-                {
-                    WriteError(replyText, $"{producer} was not found.");
-                    ChangeAPIStatus(Conn.Status);
-                    return;
-                }
-                if (!producers.Exists(x => x.Name.Equals(producer)))
-                {
-                    WriteError(replyText, $"{producer} wasn't found but {producers.Count} other producers were added.");
-                    await ReloadListsFromDbAsync();
-                    ChangeAPIStatus(Conn.Status);
-                    return;
-                }
-                ChangeAPIStatus(Conn.Status);
-                await ReloadListsFromDbAsync();
-                producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
-                ProducerListBox.Text = producer;
-            }
-            var result = StartQuery(replyText, "Update Producer Titles");
-            if (!result) return;
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
-            await GetProducerTitles(producerItem, replyText);
-            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
-            await ReloadListsFromDbAsync();
-            LoadVNListToGui();
-            ChangeAPIStatus(Conn.Status);
         }
 
         #endregion
@@ -814,8 +933,7 @@ namespace Happy_Search
         {
             var vn = tileOLV.SelectedObject as ListedVN;
             if (vn == null) return;
-            ProducerListBox.Text = vn.Producer;
-            List_Producer(null, new KeyEventArgs(Keys.Enter));
+            List_Producer(vn.Producer);
         }
 
         private async void RightClickAddProducer(object sender, EventArgs e)
@@ -969,6 +1087,11 @@ namespace Happy_Search
 
         #region Classes and Enums
 #pragma warning disable 1591
+        /// <summary>
+        /// Specifies ListBy mode.
+        /// </summary>
+        private enum ListBy { Name, Producer, Year, Group }
+
         /// <summary>
         /// Specifies toggle filter
         /// </summary>

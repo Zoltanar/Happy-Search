@@ -91,6 +91,7 @@ namespace Happy_Search
                 UnreleasedToggleBox.SelectedIndex = 0;
                 BlacklistToggleBox.SelectedIndex = 0;
                 otherMethodsCB.SelectedIndex = 0;
+                ListByCB.SelectedIndex = 0;
                 DontTriggerEvent = false;
                 replyText.Text = "";
                 userListReply.Text = "";
@@ -924,9 +925,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         private void PopulateProducerSearchBox()
         {
+            if (ListByCB.SelectedIndex != (int)ListBy.Producer) return;
+            ListByTB.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            ListByTB.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             var producerFilterSource = new AutoCompleteStringCollection();
             producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
-            ProducerListBox.AutoCompleteCustomSource = producerFilterSource;
+            ListByTB.AutoCompleteCustomSource = producerFilterSource;
         }
 
 
@@ -1347,15 +1351,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (e.KeyCode == Keys.Enter) SaveCustomTraitFilter(sender, e);
         }
-        private void searchButton_keyPress(object sender, KeyPressEventArgs e) //press enter on search button
-        {
-            if (e.KeyChar == (char)Keys.Enter) List_ByName();
-        }
-
-        private void yearBox_KeyDown(object sender, KeyEventArgs e) //press enter on get year titles box
-        {
-            if (e.KeyCode == Keys.Enter) List_ByYear();
-        }
 
         #endregion
 
@@ -1432,6 +1427,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Vote
         }
         #endregion
-
+        
     }
 }
