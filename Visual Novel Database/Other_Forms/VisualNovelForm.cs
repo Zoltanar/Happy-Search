@@ -501,12 +501,15 @@ namespace Happy_Search.Other_Forms
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem);
             var relProducer = await _parentForm.GetDeveloper(vnid, Resources.svn_query_error, replyLabel);
-            await _parentForm.GetProducer(relProducer, Resources.svn_query_error, replyLabel);
+            //TODO
+            var gpResult = await _parentForm.GetProducer(relProducer, Resources.svn_query_error, replyLabel);
+            if (!gpResult.Item1) return;
             await _parentForm.GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
             await Task.Run(() =>
             {
                 _parentForm.DBConn.Open();
                 _parentForm.DBConn.UpsertSingleVN(vnItem, relProducer);
+                if(gpResult.Item2 != null) _parentForm.DBConn.InsertProducer(gpResult.Item2,true);
                 _parentForm.DBConn.Close();
             });
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);

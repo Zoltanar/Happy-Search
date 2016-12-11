@@ -239,9 +239,11 @@ namespace Happy_Search
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem, true);
             var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
-            await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
+            var gpResult = await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
+            if (!gpResult.Item1) return null;
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer);
+            if(gpResult.Item2 != null) DBConn.InsertProducer(gpResult.Item2,true);
             var vn = DBConn.GetSingleVN(vnid, UserID);
             DBConn.Close();
             await ReloadListsFromDbAsync();
@@ -335,15 +337,21 @@ namespace Happy_Search
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                 DBConn.EndTransaction();
             }
-            DBConn.BeginTransaction();
+            List<Tuple<VNItem,int>> vnsToBeUpserted = new List<Tuple<VNItem, int>>();
+            List<ListedProducer> producersToBeUpserted = new List<ListedProducer>();
             foreach (var vnItem in vnRoot.Items)
             {
                 SaveImage(vnItem);
                 var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                var gpResult = await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                if (!gpResult.Item1) return;
+                if(gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
                 _vnsAdded++;
-                DBConn.UpsertSingleVN(vnItem, relProducer);
+                vnsToBeUpserted.Add(new Tuple<VNItem, int>(vnItem,relProducer));
             }
+            DBConn.BeginTransaction();
+            foreach (Tuple<VNItem, int> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1,vn.Item2);
+            foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
             DBConn.EndTransaction();
             await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
             int done = APIMaxResults;
@@ -367,15 +375,21 @@ namespace Happy_Search
                     foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                     DBConn.EndTransaction();
                 }
-                DBConn.BeginTransaction();
+                vnsToBeUpserted.Clear();
+                producersToBeUpserted.Clear();
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
                     var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                    await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    var gpResult = await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
+                    if (!gpResult.Item1) return;
+                    if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
                     _vnsAdded++;
-                    DBConn.UpsertSingleVN(vnItem, relProducer);
+                    vnsToBeUpserted.Add(new Tuple<VNItem, int>(vnItem, relProducer));
                 }
+                DBConn.BeginTransaction();
+                foreach (Tuple<VNItem, int> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2);
+                foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
                 DBConn.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
                 done += APIMaxResults;
@@ -537,27 +551,28 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Get Producer from Producer ID.
-        /// A DBConnection must be open or a transaction must be occuring.
+        /// Get Producer from VNDB using Producer ID.
+        /// Add producer to database afterwards.
         /// </summary>
         /// <param name="producerID">ID of Producer</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        internal async Task GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
+        internal async Task<Tuple<bool,ListedProducer>> GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
-            if (producerID == -1 || producerIDList.Contains(producerID)) return;
+            if (producerID == -1 || producerIDList.Contains(producerID)) return new Tuple<bool, ListedProducer>(true, null);
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
                 await TryQuery(producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
-            if (!producerResult) return;
+            if (!producerResult) return new Tuple<bool, ListedProducer>(false, null);
             var root = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
             List<ProducerItem> producers = root.Items;
-            if (!producers.Any()) return;
+            if (!producers.Any()) return new Tuple<bool, ListedProducer>(true, null);
             var producer = producers.First();
-            DBConn.InsertProducer((ListedProducer)producer, true);
+            return new Tuple<bool, ListedProducer>(true, (ListedProducer)producer);
         }
 
         /// <summary>

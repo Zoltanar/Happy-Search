@@ -538,8 +538,8 @@ namespace Happy_Search
                 return;
             }
             SQLiteConnection.CreateFile(DbFile);
-            BeginTransaction();
             if (_dbLog) LogToFile("Creating Database");
+            BeginTransaction();
             //must be in this order
             CreateProducerListTable();
             CreateVNListTable();
@@ -548,8 +548,8 @@ namespace Happy_Search
             CreateUserProdListTable();
             CreateTableDetails();
             CreateTriggers();
-            if (_dbLog) LogToFile("Finished Creating Database");
             EndTransaction();
+            if (_dbLog) LogToFile("Finished Creating Database");
         }
 
         private DatabaseVersion GetCurrentVersion()
