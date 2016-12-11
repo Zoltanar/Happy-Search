@@ -16,7 +16,7 @@ namespace Happy_Search.Other_Forms
     public partial class ProducerSearchForm : Form
     {
         private readonly FormMain _parentForm;
-        private readonly List<ListedProducer> _producerList;
+        private readonly List<ListedProducer> _favoriteProducerList;
 
         /// <summary>
         /// Form to search and add producers to user's favorite producers list.
@@ -27,24 +27,31 @@ namespace Happy_Search.Other_Forms
             _parentForm = parentForm;
             prodSearchReply.Text = "";
             _parentForm.DBConn.Open();
-            _producerList = _parentForm.DBConn.GetFavoriteProducersForUser(_parentForm.UserID);
+            _favoriteProducerList = _parentForm.DBConn.GetFavoriteProducersForUser(_parentForm.UserID);
             _parentForm.DBConn.Close();
         }
-
+        
         /// <summary>
-        /// Load ProducerSearchForm already populated by producers.
+        /// Show suggested favorite producers (producers not in list with over 2 finished titles).
         /// </summary>
-        /// <param name="parentForm">Parent Form</param>
-        /// <param name="producers">List of producers to be shown in OLV.</param>
-        public ProducerSearchForm(FormMain parentForm, List<ListedSearchedProducer> producers)
+        private void SuggestProducers(object sender, EventArgs e)
         {
-            InitializeComponent();
-            _parentForm = parentForm;
-            prodSearchReply.Text = "";
-            olProdSearch.SetObjects(producers);
-            _parentForm.DBConn.Open();
-            _producerList = _parentForm.DBConn.GetFavoriteProducersForUser(_parentForm.UserID);
-            _parentForm.DBConn.Close();
+            var suggestions = new List<ListedSearchedProducer>();
+            foreach (var producer in _parentForm.ProducerList)
+            {
+                if (_favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                int finishedTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
+                int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
+                if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles));
+            }
+            if (!suggestions.Any())
+            {
+                prodSearchReply.Text = @"No producers to be suggested.";
+                return;
+            }
+            olProdSearch.SetObjects(suggestions);
+            olProdSearch.Sort(olProdSearch.GetColumn(ol3Finished.Index), SortOrder.Descending);
+            prodSearchReply.Text = $@"{suggestions.Count} suggested producers.";
         }
 
         /// <summary>
@@ -95,7 +102,7 @@ namespace Happy_Search.Other_Forms
             _parentForm.DBConn.BeginTransaction();
             foreach (var producer in searchedProducers)
             {
-                if (_producerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                if (_favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
                 _parentForm.DBConn.InsertProducer((ListedProducer) producer, true);
             }
             _parentForm.DBConn.EndTransaction();
@@ -161,14 +168,14 @@ namespace Happy_Search.Other_Forms
             _parentForm.DBConn.BeginTransaction();
             _parentForm.DBConn.InsertFavoriteProducers(addProducerList, _parentForm.UserID);
             _parentForm.DBConn.EndTransaction();
-            _producerList.AddRange(addProducerList);
+            _favoriteProducerList.AddRange(addProducerList);
             prodSearchReply.Text = $@"{addProducerList.Count} added.";
         }
 
 
         private ListedSearchedProducer NewListedSearchedProducer(ProducerItem producer)
         {
-            string inList = _producerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
+            string inList = _favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
             int finished = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
             int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
             return new ListedSearchedProducer(producer.Name, inList, producer.ID, finished, urtTitles);

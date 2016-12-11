@@ -90,7 +90,7 @@ namespace Happy_Search
         public void UpdateVNToLatestVersion(VNItem vnItem)
         {
             var insertString =
-                $"UPDATE vnlist SET Popularity = {vnItem.Popularity:0.00}, Rating = {vnItem.Rating:0.00}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
+                $"UPDATE vnlist SET Popularity = {vnItem.Popularity.ToString("0.00", CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             if (_printSetMethods) LogToFile(insertString);
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
@@ -100,7 +100,7 @@ namespace Happy_Search
         {
             var tags = ListToJsonArray(new List<object>(vnItem.Tags));
             var insertString =
-                $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity:0.00}, Rating = {vnItem.Rating:0.00}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
+                $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity.ToString("0.00",CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             if (_printSetMethods) LogToFile(insertString);
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
@@ -173,7 +173,7 @@ namespace Happy_Search
             foreach (var item in addProducerList)
             {
                 var insertString =
-                    $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote}, {item.UserDropRate});";
+                    $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote.ToString("0.00", CultureInfo.InvariantCulture)}, {item.UserDropRate});";
                 var command = new SQLiteCommand(insertString, DbConn);
                 if (_printSetMethods) LogToFile(insertString);
                 command.ExecuteNonQuery();
@@ -272,7 +272,7 @@ namespace Happy_Search
             var insertString =
                 "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, Popularity, Rating, VoteCount, VNID)" +
                 $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, " +
-                $"{length}, {item.Popularity:0.00},{item.Rating:0.00}, {item.VoteCount}, {item.ID});";
+                $"{length}, {item.Popularity.ToString("0.00", CultureInfo.InvariantCulture)},{item.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, {item.VoteCount}, {item.ID});";
             if (_printSetMethods) LogToFile(insertString);
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();

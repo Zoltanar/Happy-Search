@@ -39,6 +39,7 @@ namespace Happy_Search.Other_Forms
             this.producerSearchLabel = new System.Windows.Forms.Label();
             this.producerSearchButton = new System.Windows.Forms.Button();
             this.producerSearchBox = new System.Windows.Forms.TextBox();
+            this.suggestProducersButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.olProdSearch)).BeginInit();
             this.SuspendLayout();
             // 
@@ -99,13 +100,13 @@ namespace Happy_Search.Other_Forms
             // 
             // prodAddButton
             // 
-            this.prodAddButton.BackColor = System.Drawing.Color.MistyRose;
+            this.prodAddButton.BackColor = System.Drawing.Color.SteelBlue;
             this.prodAddButton.FlatAppearance.BorderSize = 0;
             this.prodAddButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.prodAddButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.prodAddButton.Location = new System.Drawing.Point(575, 136);
+            this.prodAddButton.ForeColor = System.Drawing.Color.White;
+            this.prodAddButton.Location = new System.Drawing.Point(575, 135);
             this.prodAddButton.Name = "prodAddButton";
-            this.prodAddButton.Size = new System.Drawing.Size(114, 20);
+            this.prodAddButton.Size = new System.Drawing.Size(114, 23);
             this.prodAddButton.TabIndex = 7;
             this.prodAddButton.Text = "Add Selected to List";
             this.prodAddButton.UseVisualStyleBackColor = false;
@@ -124,21 +125,22 @@ namespace Happy_Search.Other_Forms
             // producerSearchLabel
             // 
             this.producerSearchLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.producerSearchLabel.Location = new System.Drawing.Point(12, 139);
+            this.producerSearchLabel.Location = new System.Drawing.Point(12, 135);
             this.producerSearchLabel.Name = "producerSearchLabel";
-            this.producerSearchLabel.Size = new System.Drawing.Size(92, 17);
+            this.producerSearchLabel.Size = new System.Drawing.Size(92, 23);
             this.producerSearchLabel.TabIndex = 9;
             this.producerSearchLabel.Text = "Search Producers";
+            this.producerSearchLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // producerSearchButton
             // 
-            this.producerSearchButton.BackColor = System.Drawing.Color.Coral;
+            this.producerSearchButton.BackColor = System.Drawing.Color.MistyRose;
             this.producerSearchButton.FlatAppearance.BorderSize = 0;
             this.producerSearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.producerSearchButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.producerSearchButton.Location = new System.Drawing.Point(216, 136);
+            this.producerSearchButton.Location = new System.Drawing.Point(216, 135);
             this.producerSearchButton.Name = "producerSearchButton";
-            this.producerSearchButton.Size = new System.Drawing.Size(29, 20);
+            this.producerSearchButton.Size = new System.Drawing.Size(29, 23);
             this.producerSearchButton.TabIndex = 11;
             this.producerSearchButton.Text = "Go";
             this.producerSearchButton.UseVisualStyleBackColor = false;
@@ -152,12 +154,27 @@ namespace Happy_Search.Other_Forms
             this.producerSearchBox.TabIndex = 10;
             this.producerSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SearchProducersEnterKey);
             // 
+            // suggestProducersButton
+            // 
+            this.suggestProducersButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.suggestProducersButton.FlatAppearance.BorderSize = 0;
+            this.suggestProducersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.suggestProducersButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.suggestProducersButton.Location = new System.Drawing.Point(464, 135);
+            this.suggestProducersButton.Name = "suggestProducersButton";
+            this.suggestProducersButton.Size = new System.Drawing.Size(105, 23);
+            this.suggestProducersButton.TabIndex = 90;
+            this.suggestProducersButton.Text = "Suggest Producers";
+            this.suggestProducersButton.UseVisualStyleBackColor = false;
+            this.suggestProducersButton.Click += new System.EventHandler(this.SuggestProducers);
+            // 
             // ProducerSearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Gray;
             this.ClientSize = new System.Drawing.Size(701, 165);
+            this.Controls.Add(this.suggestProducersButton);
             this.Controls.Add(this.prodSearchReply);
             this.Controls.Add(this.producerSearchLabel);
             this.Controls.Add(this.producerSearchButton);
@@ -186,5 +203,6 @@ namespace Happy_Search.Other_Forms
         private System.Windows.Forms.TextBox producerSearchBox;
         private BrightIdeasSoftware.OLVColumn ol3Finished;
         private BrightIdeasSoftware.OLVColumn ol3URT;
+        private System.Windows.Forms.Button suggestProducersButton;
     }
 }

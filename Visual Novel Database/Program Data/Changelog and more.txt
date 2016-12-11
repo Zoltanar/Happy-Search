@@ -2,8 +2,13 @@ Next Milestone == ??
 
 Changelog
 ---------
+Changed: Layout changes incl. Suggest Producers is now in Producer Search Window.
+Added: Toggle between normal view and wide view (more results).
+Fixed: SQL Handling of different number formats. 
+Fixed: No more API queries between SQL transactions.
 Changed: Layout has been changed, minimum size is now 1220,660
 Changed: List By Name/Alias, Producer, Year and Group methods are now grouped up.
+-1.4.1 released (test)-
 Added: (VN Form) Name/original name now selectable.
 Added: Other Function: Update Title Data (All), skips release date/update date checks.
 Added: Tag/trait searching now shows tags with text in any part of name/alias. Help files have been updated.
@@ -74,10 +79,11 @@ added: stats of VNs (popularity, rating, votecount)
 
 Command Line Parameters
 ---------------
--debug:	will activate all params described below
+-debug:	will activate params -dl, -am and -sc described below
 -dl:	will log all database connections and commands to file
 -am:	will log all api commands in the log section of the form (they are logged to file by default)
 -sc:	will skip client update routine (if you dont want the program to ask you if you wish to update every time you launch)
+-flu:	will force auto-update for list (mainly for debugging)
 
 No Work
 ---------------
@@ -90,18 +96,12 @@ merge feature to merge 2 databases, keeping most-recently-updated in case of sam
 better vn character display?
 -
 allow adding titles to multiple groups via comma separation
-do not allow open database between api queries
 see current groups when adding title to groups
 -
-toggle hide non-results area
 add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
-check tooltips for tag/trait searching
 -
-check if sql in transaction before throttle and close then reopen
-test german date format
 ability to remove titles from database
 multi-select titles and batch functions
-move suggested fav producers in producer search window
 
 
 

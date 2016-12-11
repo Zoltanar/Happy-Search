@@ -175,30 +175,7 @@ This may take a while...",
             ChangeAPIStatus(Conn.Status);
         }
 
-        /// <summary>
-        /// Bring up form with suggestions for favorite producers (producers not in list with over 2 finished titles.
-        /// </summary>
-        private void SuggestProducers(object sender, EventArgs e)
-        {
-            var suggestions = new Dictionary<ListedSearchedProducer, int>();
-            foreach (var producer in _producerList)
-            {
-                var listedProducers = olFavoriteProducers.Objects as List<ListedProducer>;
-                if (listedProducers?.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                int finishedTitles = URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
-                int urtTitles = URTList.Count(x => x.Producer == producer.Name);
-                if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles), finishedTitles);
-            }
-            IOrderedEnumerable<KeyValuePair<ListedSearchedProducer, int>> sortedSuggestions = from entry in suggestions orderby entry.Value descending select entry;
-            var listForForm = new List<ListedSearchedProducer>();
-            foreach (KeyValuePair<ListedSearchedProducer, int> suggestion in sortedSuggestions)
-            {
-                listForForm.Add(suggestion.Key);
-            }
-
-            new ProducerSearchForm(this, listForForm).ShowDialog();
-            LoadFPListToGui();
-        }
+        
 
         /// <summary>
         /// Get titles developed/published by producer.
@@ -270,7 +247,7 @@ This may take a while...",
                 LoadVNListToGui();
                 return;
             }
-            var producer = _producerList.Find(x => x.Name == producerName);
+            var producer = ProducerList.Find(x => x.Name == producerName);
             ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
             double userDropRate = -1;
             double userAverageVote = -1;

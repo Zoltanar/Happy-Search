@@ -177,7 +177,7 @@ namespace Happy_Search
             }
             var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+            var producerItem = ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
             if (producerItem == null)
             {
                 var askBox2 = MessageBox.Show($"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
@@ -201,7 +201,7 @@ namespace Happy_Search
                 }
                 ChangeAPIStatus(Conn.Status);
                 await ReloadListsFromDbAsync();
-                producerItem = _producerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+                producerItem = ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
                 ListByTB.Text = producer;
             }
             var result = StartQuery(replyText, "Update Producer Titles");
@@ -956,7 +956,7 @@ namespace Happy_Search
             var addProducerList = new List<ListedProducer>
             {
                 new ListedProducer(vn.Producer, producerVNs.Length, DateTime.UtcNow,
-                    _producerList.Find(x => x.Name == vn.Producer).ID,
+                    ProducerList.Find(x => x.Name == vn.Producer).ID,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
             DBConn.BeginTransaction();

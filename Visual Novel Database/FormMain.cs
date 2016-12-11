@@ -50,7 +50,7 @@ namespace Happy_Search
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
         internal bool DontTriggerEvent; //used to skip indexchanged events
-        private List<ListedProducer> _producerList; //contains all producers in local database
+        internal List<ListedProducer> ProducerList; //contains all producers in local database
         internal List<CharacterItem> CharacterList; //contains all producers in local database
         internal List<ListedProducer> FavoriteProducerList; //contains all favorite producers for logged in user
         private List<ListedVN> _vnList; //contains all vns in local database
@@ -63,6 +63,7 @@ namespace Happy_Search
         internal string Username;
         private List<KeyValuePair<int, int>> _toptentags;
         private byte _mctCount;
+        private bool _wideView;
 
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
@@ -182,13 +183,13 @@ https://github.com/FredTheBarber/VndbClient";
             {
                 DBConn.Open();
                 _vnList = DBConn.GetAllTitles(UserID);
-                _producerList = DBConn.GetAllProducers();
+                ProducerList = DBConn.GetAllProducers();
                 CharacterList = DBConn.GetAllCharacters();
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
                 LoadFPListToGui();
                 LogToFile("VN Items= " + _vnList.Count);
-                LogToFile("Producers= " + _producerList.Count);
+                LogToFile("Producers= " + ProducerList.Count);
                 LogToFile("Characters= " + CharacterList.Count);
                 LogToFile("UserRelated Items= " + URTList.Count);
                 PopulateProducerSearchBox();
@@ -249,7 +250,7 @@ https://github.com/FredTheBarber/VndbClient";
             else LoadDBStats();
 
             //urt update
-            if (Settings.Default.AutoUpdateURT && UserID > 0)
+            if (UserID > 0 && (Settings.Default.AutoUpdateURT || args.Contains("-flu")))
             {
                 await URTUpdateAsync();
             }
@@ -265,7 +266,8 @@ https://github.com/FredTheBarber/VndbClient";
             LogToFile("Checking if URT Update is due...");
             LogToFile(
                 $"URTUpdate= {Settings.Default.URTUpdate}, days since = {DaysSince(Settings.Default.URTUpdate)}");
-            if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1)
+            var args = Environment.GetCommandLineArgs();
+            if (DaysSince(Settings.Default.URTUpdate) > 2 || DaysSince(Settings.Default.URTUpdate) == -1 || args.Contains("-flu"))
             {
                 LogToFile("Updating User Related Titles...");
                 await UpdateURT("Auto-Update URT");
@@ -902,7 +904,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 DBConn.Open();
                 _vnList = DBConn.GetAllTitles(UserID);
-                _producerList = DBConn.GetAllProducers();
+                ProducerList = DBConn.GetAllProducers();
                 CharacterList = DBConn.GetAllCharacters();
                 URTList = DBConn.GetUserRelatedTitles(UserID);
                 DBConn.Close();
@@ -929,7 +931,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             ListByTB.AutoCompleteSource = AutoCompleteSource.CustomSource;
             ListByTB.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             var producerFilterSource = new AutoCompleteStringCollection();
-            producerFilterSource.AddRange(_producerList.Select(v => v.Name).ToArray());
+            producerFilterSource.AddRange(ProducerList.Select(v => v.Name).ToArray());
             ListByTB.AutoCompleteCustomSource = producerFilterSource;
         }
 
@@ -1427,6 +1429,33 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Vote
         }
         #endregion
-        
+
+        /// <summary>
+        /// Toggle between wide view (see more results) and normal view
+        /// </summary>
+        private void ToggleWideView(object sender, EventArgs e)
+        {
+            _wideView = !_wideView;
+            if (_wideView)
+            {
+                panel1.Visible = false;
+                panel2.Visible = false;
+                tabControl2.Visible = false;
+                panel3.Location = new Point(6,6);
+                tileOLV.Location = new Point(6,65);
+                tileOLV.Height += 300;
+                toggleViewButton.Text = "▼ Show Options ▼";
+            }
+            else
+            {
+                panel1.Visible = true;
+                panel2.Visible = true;
+                tabControl2.Visible = true;
+                panel3.Location = new Point(6, 306);
+                tileOLV.Location = new Point(6, 365);
+                tileOLV.Height -= 300;
+                toggleViewButton.Text = "▲ Hide Options ▲";
+            }
+        }
     }
 }

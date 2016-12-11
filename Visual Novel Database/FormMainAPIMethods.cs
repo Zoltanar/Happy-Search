@@ -279,7 +279,7 @@ namespace Happy_Search
             }
             for (int index = prodItems.Count - 1; index >= 0; index--)
             {
-                if (_producerList.Exists(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+                if (ProducerList.Exists(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
             }
             DBConn.BeginTransaction();
             foreach (var producer in prodItems) DBConn.InsertProducer((ListedProducer)producer, true);
@@ -562,7 +562,7 @@ namespace Happy_Search
         /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
         internal async Task<Tuple<bool,ListedProducer>> GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
-            int[] producerIDList = _producerList.Select(x => x.ID).ToArray();
+            int[] producerIDList = ProducerList.Select(x => x.ID).ToArray();
             if (producerID == -1 || producerIDList.Contains(producerID)) return new Tuple<bool, ListedProducer>(true, null);
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
