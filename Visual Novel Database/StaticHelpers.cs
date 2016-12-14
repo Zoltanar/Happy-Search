@@ -456,5 +456,14 @@ namespace Happy_Search
         {
             return StringToDate(date) > DateTime.UtcNow;
         }
+
+        /// <summary>
+        /// Get path of stored screenshot (Doesn't check if it exists).
+        /// </summary>
+        public static string StoredLocation(this ScreenItem screenItem)
+        {
+            string[] urlSplit = screenItem.Image.Split('/');
+            return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
+        }
     }
 }

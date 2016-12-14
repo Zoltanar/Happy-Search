@@ -28,12 +28,10 @@ namespace Happy_Search
     /// </summary>
     public partial class FormMain : Form
     {
-
-
         //constants / definables
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.1";
+        public const string ClientVersion = "1.4.2";
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -93,6 +91,7 @@ namespace Happy_Search
                 BlacklistToggleBox.SelectedIndex = 0;
                 otherMethodsCB.SelectedIndex = 0;
                 ListByCB.SelectedIndex = 0;
+                multiActionBox.SelectedIndex = 0;
                 DontTriggerEvent = false;
                 replyText.Text = "";
                 userListReply.Text = "";
@@ -390,7 +389,7 @@ https://github.com/FredTheBarber/VndbClient";
             {
                 case VndbConnection.LogInStatus.YesWithCredentials:
                     loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = $"Logged in as {Username}.";
+                    loginReply.Text = $"Logged in as {Username}({UserID}).";
                     return;
                 case VndbConnection.LogInStatus.Yes:
                     loginReply.ForeColor = Color.LightGreen;
@@ -1430,32 +1429,5 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
         #endregion
 
-        /// <summary>
-        /// Toggle between wide view (see more results) and normal view
-        /// </summary>
-        private void ToggleWideView(object sender, EventArgs e)
-        {
-            _wideView = !_wideView;
-            if (_wideView)
-            {
-                panel1.Visible = false;
-                panel2.Visible = false;
-                tabControl2.Visible = false;
-                panel3.Location = new Point(6,6);
-                tileOLV.Location = new Point(6,65);
-                tileOLV.Height += 300;
-                toggleViewButton.Text = "▼ Show Options ▼";
-            }
-            else
-            {
-                panel1.Visible = true;
-                panel2.Visible = true;
-                tabControl2.Visible = true;
-                panel3.Location = new Point(6, 306);
-                tileOLV.Location = new Point(6, 365);
-                tileOLV.Height -= 300;
-                toggleViewButton.Text = "▲ Hide Options ▲";
-            }
-        }
     }
 }

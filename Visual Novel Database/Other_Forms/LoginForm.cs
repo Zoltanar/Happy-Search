@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Microsoft.Win32;
@@ -127,7 +128,7 @@ namespace Happy_Search.Other_Forms
             char[] password = PasswordBox.Text.ToCharArray();
             ClearSavedCredentials(null, null);
             if (rememberBox.Checked) FormMain.SaveCredentials(username, password);
-            APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password),userID);
+            await APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password),userID);
         }
 
 
@@ -136,7 +137,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         /// <param name="credentials">User's username and password</param>
         /// <param name="userId">VNDB User ID</param>
-        private void APILoginWithCredentials(KeyValuePair<string, char[]> credentials, int userId)
+        private async Task APILoginWithCredentials(KeyValuePair<string, char[]> credentials, int userId)
         {
             if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
             {
@@ -149,7 +150,7 @@ namespace Happy_Search.Other_Forms
             {
                 case ResponseType.Ok:
                     _parentForm.Username = credentials.Key;
-                    _parentForm.UserID = userId;
+                    if (userId < 1) _parentForm.UserID = await _parentForm.GetIDFromUsername(credentials.Key);
                     DialogResult = DialogResult.Yes;
                     return;
                 case ResponseType.Error:

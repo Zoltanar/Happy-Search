@@ -520,6 +520,7 @@ namespace Happy_Search
         private const int LinesOfTextAbovePicture = 1;
         private const int LinesOfTextBelowPicture = 3;
         private Pen _borderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
+        private Pen _selectedBorderPen = Pens.Gold;
         private static readonly Brush TextBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
         private static readonly Font BoldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
         private static readonly Font NormalFont = new Font("Microsoft Sans Serif", 8.25f);
@@ -547,9 +548,7 @@ namespace Happy_Search
             g.Clear(olv.BackColor);
             g.SmoothingMode = ObjectListView.SmoothingMode;
             g.TextRenderingHint = ObjectListView.TextRenderingHint;
-
-            _borderPen = e.Item.Selected ? Pens.Blue : new Pen(Color.FromArgb(0x33, 0x33, 0x33));
-            DrawVNTile(g, itemBounds, rowObject, olv);
+            DrawVNTile(g, itemBounds, rowObject, olv, e.Item.Selected);
             // Finally render the buffered graphics
             buffered.Render();
             buffered.Dispose();
@@ -564,8 +563,9 @@ namespace Happy_Search
         /// <param name="g">A Graphics for rendering</param>
         /// <param name="itemBounds">The bounds of the item</param>
         /// <param name="rowObject">The model object to be drawn</param>
-        /// <param name="olv">OLV where tile is drawn.</param>
-        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv)
+        /// <param name="olv">OLV where tile is drawn</param>
+        /// <param name="isSelected">Whether tile is selected</param>
+        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv, bool isSelected)
         {
             var backBrush = DefaultTileBrush;
             //tile size 230,375
@@ -606,7 +606,8 @@ namespace Happy_Search
                     break;
             }
             g.FillPath(backBrush, path);
-            g.DrawPath(_borderPen, path);
+            if (isSelected) path.Widen(_selectedBorderPen);
+            g.DrawPath(isSelected ? _selectedBorderPen : _borderPen, path);
             g.Clip = new Region(itemBounds);
 
             // Draw the photo

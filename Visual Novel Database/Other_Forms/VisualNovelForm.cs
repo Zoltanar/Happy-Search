@@ -517,8 +517,7 @@ namespace Happy_Search.Other_Forms
 
         private static int DrawImageFitToHeight(Control control, int height, int locationX, ScreenItem screenItem)
         {
-            string[] urlSplit = screenItem.Image.Split('/');
-            string photoString = $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
+            string photoString = screenItem.StoredLocation();
             if (!File.Exists(photoString))
             {
                 SaveScreenshot(screenItem.Image, photoString);

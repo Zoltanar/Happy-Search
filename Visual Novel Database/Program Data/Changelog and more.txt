@@ -2,6 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: Multi-selection actions (Remove from DB)/
+Fixed: Login with username and password (instead of user id and password) fixed.
 Changed: Layout changes incl. Suggest Producers is now in Producer Search Window.
 Added: Toggle between normal view and wide view (more results).
 Fixed: SQL Handling of different number formats. 
@@ -97,16 +99,15 @@ better vn character display?
 -
 allow adding titles to multiple groups via comma separation
 see current groups when adding title to groups
--
 add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
--
 ability to remove titles from database
-multi-select titles and batch functions
+cancel current function
 
 
 
 Incomplete
 ---------------
+multi-select titles and batch functions
 
 Completed (Feature List)
 ---------------

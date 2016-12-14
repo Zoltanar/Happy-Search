@@ -219,6 +219,97 @@ namespace Happy_Search
 
         #region Listing
 
+        /// <summary>
+        /// Toggle between wide view (see more results) and normal view
+        /// </summary>
+        private void ToggleWideView(object sender, EventArgs e)
+        {
+            _wideView = !_wideView;
+            if (_wideView)
+            {
+                panel1.Visible = false;
+                panel2.Visible = false;
+                tabControl2.Visible = false;
+                panel3.Location = new Point(6, 6);
+                tileOLV.Location = new Point(6, 65);
+                tileOLV.Height += 300;
+                toggleViewButton.Text = "▼ Show Options ▼";
+            }
+            else
+            {
+                panel1.Visible = true;
+                panel2.Visible = true;
+                tabControl2.Visible = true;
+                panel3.Location = new Point(6, 306);
+                tileOLV.Location = new Point(6, 365);
+                tileOLV.Height -= 300;
+                toggleViewButton.Text = "▲ Hide Options ▲";
+            }
+        }
+
+        /// <summary>
+        /// Handle selected multi-selection action.
+        /// </summary>
+        private async void MultiActionSelect(object sender, EventArgs e)
+        {
+            if (multiActionBox.SelectedIndex < 1) return;
+            if (tileOLV.SelectedObjects.Count < 1)
+            {
+                WriteText(replyText, "No titles selected.");
+                multiActionBox.SelectedIndex = 0;
+                return;
+            }
+            var titles = tileOLV.SelectedObjects.Cast<ListedVN>().ToArray();
+            switch (multiActionBox.SelectedIndex)
+            {
+                case 1:
+                    tileOLV.SelectedObjects = null;
+                    break;
+                case 2:
+                    string message = $"You've selected {titles.Length} titles.\nAre you sure you wish to remove them from local database?";
+                    var messageBox = MessageBox.Show(message, "Confirm Action", MessageBoxButtons.YesNo);
+                    if (messageBox != DialogResult.Yes)
+                    {
+                        multiActionBox.SelectedIndex = 0;
+                        return;
+                    }
+                    WriteWarning(replyText, "Removing titles...");
+                    await Task.Run(() => RemoveTitlesFromDB(titles));
+                    await ReloadListsFromDbAsync();
+                    LoadVNListToGui();
+                    WriteText(replyText, "Titles Removed.");
+                    break;
+            }
+            multiActionBox.SelectedIndex = 0;
+        }
+        
+        /// <summary>
+        /// Remove titles and associated images from local database.
+        /// </summary>
+        /// <param name="titles">Titles to be removed</param>
+        private void RemoveTitlesFromDB(ListedVN[] titles)
+        {
+            foreach (var title in titles)
+            {
+                var screenItems = JsonConvert.DeserializeObject<ScreenItem[]>(title.Screens);
+                foreach (var screen in screenItems)
+                {
+                    try
+                    {
+                        File.Delete(screen.StoredLocation());
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
+                }
+                try
+                {
+                    File.Delete($"{VNImagesFolder}\\{title.VNID}{Path.GetExtension(title.ImageURL)}");
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
+            }
+            DBConn.BeginTransaction();
+            foreach (var title in titles) DBConn.RemoveVisualNovel(title.VNID);
+            DBConn.EndTransaction();
+        }
 
         /// <summary>
         /// Change ListBy TextBox in accordance to selected function.
@@ -705,6 +796,7 @@ namespace Happy_Search
         /// </summary>
         private void VisualNovelLeftClick(object sender, CellClickEventArgs e)
         {
+            if (ModifierKeys.HasFlag(Keys.Control)) return;
             var listView = (ObjectListView)sender;
             if (listView.SelectedIndices.Count <= 0) return;
             var vnItem = (ListedVN)listView.SelectedObjects[0];

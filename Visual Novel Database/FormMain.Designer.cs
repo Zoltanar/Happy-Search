@@ -138,6 +138,7 @@ namespace Happy_Search
             this.ol2ID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.prodReply = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.multiActionBox = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
             this.quickFilter1 = new System.Windows.Forms.Button();
@@ -723,9 +724,9 @@ namespace Happy_Search
             this.toggleViewButton.FlatAppearance.BorderSize = 0;
             this.toggleViewButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.toggleViewButton.ForeColor = System.Drawing.Color.White;
-            this.toggleViewButton.Location = new System.Drawing.Point(817, 1);
+            this.toggleViewButton.Location = new System.Drawing.Point(910, 1);
             this.toggleViewButton.Name = "toggleViewButton";
-            this.toggleViewButton.Size = new System.Drawing.Size(360, 23);
+            this.toggleViewButton.Size = new System.Drawing.Size(267, 23);
             this.toggleViewButton.TabIndex = 93;
             this.toggleViewButton.Text = "▲ Hide Options ▲";
             this.toolTip.SetToolTip(this.toggleViewButton, "Show/hide settings, filtering and favorite producers sections.");
@@ -1415,6 +1416,8 @@ namespace Happy_Search
             // 
             // prodReply
             // 
+            this.prodReply.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.prodReply.Location = new System.Drawing.Point(331, 242);
             this.prodReply.Name = "prodReply";
             this.prodReply.Size = new System.Drawing.Size(126, 51);
@@ -1426,6 +1429,7 @@ namespace Happy_Search
             // 
             this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel3.Controls.Add(this.multiActionBox);
             this.panel3.Controls.Add(this.toggleViewButton);
             this.panel3.Controls.Add(this.label4);
             this.panel3.Controls.Add(this.ListByGoButton);
@@ -1453,6 +1457,24 @@ namespace Happy_Search
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1187, 58);
             this.panel3.TabIndex = 108;
+            // 
+            // multiActionBox
+            // 
+            this.multiActionBox.BackColor = System.Drawing.Color.Navy;
+            this.multiActionBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.multiActionBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.multiActionBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.multiActionBox.FormattingEnabled = true;
+            this.multiActionBox.Items.AddRange(new object[] {
+            "Multi Actions",
+            "Deselect All",
+            "Remove From DB"});
+            this.multiActionBox.Location = new System.Drawing.Point(817, 3);
+            this.multiActionBox.Name = "multiActionBox";
+            this.multiActionBox.Size = new System.Drawing.Size(89, 21);
+            this.multiActionBox.TabIndex = 108;
+            this.toolTip.SetToolTip(this.multiActionBox, "Perform actions on all selected titles. Select by Ctrl+clicking.");
+            this.multiActionBox.SelectedIndexChanged += new System.EventHandler(this.MultiActionSelect);
             // 
             // label4
             // 
@@ -2215,7 +2237,6 @@ namespace Happy_Search
             this.tileOLV.FullRowSelect = true;
             this.tileOLV.HideSelection = false;
             this.tileOLV.Location = new System.Drawing.Point(6, 365);
-            this.tileOLV.MultiSelect = false;
             this.tileOLV.Name = "tileOLV";
             this.tileOLV.OwnerDraw = true;
             this.tileOLV.ShowCommandMenuOnRightClick = true;
@@ -2795,6 +2816,7 @@ namespace Happy_Search
         private Panel panel3;
         private Button refreshAllProducersButton;
         private Button toggleViewButton;
+        private ComboBox multiActionBox;
     }
 }
 
