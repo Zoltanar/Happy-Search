@@ -50,11 +50,6 @@ namespace Happy_Search
         private void Help_FavoriteProducers(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
-            {
-                WriteError(prodReply, @"Unknown Path Error");
-                return;
-            }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\favoriteproducers.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }

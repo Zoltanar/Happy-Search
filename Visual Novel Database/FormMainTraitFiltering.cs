@@ -24,11 +24,6 @@ namespace Happy_Search
         private void Help_TraitFiltering(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
-            {
-                WriteError(traitReply, @"Unknown Path Error");
-                return;
-            }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\traitfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }

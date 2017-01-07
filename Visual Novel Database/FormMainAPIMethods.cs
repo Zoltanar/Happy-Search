@@ -622,8 +622,9 @@ namespace Happy_Search
         /// <param name="vn">VN which will be changed</param>
         /// <param name="type">What is being changed</param>
         /// <param name="statusInt">The new value</param>
+        /// <param name="newVoteValue">New vote value</param>
         /// <returns>Returns whether it as successful.</returns>
-        private async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt)
+        private async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
         {
             var hasULStatus = vn.ULStatus != null && !vn.ULStatus.Equals("");
             var hasWLStatus = vn.WLStatus != null && !vn.WLStatus.Equals("");
@@ -660,17 +661,18 @@ namespace Happy_Search
                     else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
                     break;
                 case ChangeType.Vote:
+                    int vote = (int) Math.Floor(newVoteValue * 10);
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
-                        : $"set votelist {vn.VNID} {{\"vote\":{statusInt * 10}}}";
+                        : $"set votelist {vn.VNID} {{\"vote\":{vote}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error, replyText);
                     if (!result) return false;
                     DBConn.BeginTransaction();
                     if (hasULStatus || hasWLStatus)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update);
+                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update, newVoteValue);
                     else if (statusInt == -1)
                         DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New);
+                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New, newVoteValue);
                     break;
             }
             DBConn.EndTransaction();

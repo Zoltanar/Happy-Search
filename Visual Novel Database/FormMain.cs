@@ -540,11 +540,6 @@ https://github.com/FredTheBarber/VndbClient";
         private void Help_GetStarted(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
-            {
-                WriteError(prodReply, @"Unknown Path Error");
-                return;
-            }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\getstarted.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }

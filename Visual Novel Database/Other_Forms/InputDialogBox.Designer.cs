@@ -32,6 +32,7 @@
             this.answerBox = new System.Windows.Forms.TextBox();
             this.confirmButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.replyLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // questionLabel
@@ -58,7 +59,7 @@
             this.confirmButton.FlatAppearance.BorderSize = 0;
             this.confirmButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.confirmButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.confirmButton.Location = new System.Drawing.Point(173, 62);
+            this.confirmButton.Location = new System.Drawing.Point(173, 90);
             this.confirmButton.Name = "confirmButton";
             this.confirmButton.Size = new System.Drawing.Size(75, 23);
             this.confirmButton.TabIndex = 2;
@@ -72,7 +73,7 @@
             this.cancelButton.FlatAppearance.BorderSize = 0;
             this.cancelButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cancelButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.cancelButton.Location = new System.Drawing.Point(110, 62);
+            this.cancelButton.Location = new System.Drawing.Point(110, 90);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(57, 23);
             this.cancelButton.TabIndex = 3;
@@ -80,17 +81,28 @@
             this.cancelButton.UseVisualStyleBackColor = false;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
+            // replyLabel
+            // 
+            this.replyLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.replyLabel.Location = new System.Drawing.Point(12, 62);
+            this.replyLabel.Name = "replyLabel";
+            this.replyLabel.Size = new System.Drawing.Size(236, 23);
+            this.replyLabel.TabIndex = 4;
+            this.replyLabel.Text = "(replyLabel)";
+            this.replyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // InputDialogBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            this.ClientSize = new System.Drawing.Size(260, 107);
+            this.ClientSize = new System.Drawing.Size(260, 125);
+            this.Controls.Add(this.replyLabel);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.confirmButton);
             this.Controls.Add(this.answerBox);
             this.Controls.Add(this.questionLabel);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "InputDialogBox";
             this.Text = "(windowTitle) - Happy Search";
             this.ResumeLayout(false);
@@ -104,5 +116,6 @@
         private System.Windows.Forms.TextBox answerBox;
         private System.Windows.Forms.Button confirmButton;
         private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.Label replyLabel;
     }
 }

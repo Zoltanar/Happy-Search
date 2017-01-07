@@ -277,7 +277,7 @@ namespace Happy_Search
                 parts[0] = "Wishlist: ";
                 parts[1] = WLStatus;
             }
-            if (Vote > 0) parts[2] = $" (Vote:{Vote:0.00})";
+            if (Vote > 0) parts[2] = $" (Vote: {Vote:0.#})";
             return string.Join(" ", parts);
         }
 
@@ -519,8 +519,8 @@ namespace Happy_Search
     {
         private const int LinesOfTextAbovePicture = 1;
         private const int LinesOfTextBelowPicture = 3;
-        private Pen _borderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
-        private Pen _selectedBorderPen = Pens.Gold;
+        private readonly Pen _borderPen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
+        private readonly Pen _selectedBorderPen = Pens.Gold;
         private static readonly Brush TextBrush = new SolidBrush(Color.FromArgb(0x22, 0x22, 0x22));
         private static readonly Font BoldFont = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
         private static readonly Font NormalFont = new Font("Microsoft Sans Serif", 8.25f);

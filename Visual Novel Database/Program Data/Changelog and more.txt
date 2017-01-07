@@ -2,6 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
+
+Added: Allow vote with decimal numbers (1 dp allowed).
 Added: Multi-selection actions (Remove from DB)/
 Fixed: Login with username and password (instead of user id and password) fixed.
 Changed: Layout changes incl. Suggest Producers is now in Producer Search Window.
@@ -87,11 +89,28 @@ Command Line Parameters
 -sc:	will skip client update routine (if you dont want the program to ask you if you wish to update every time you launch)
 -flu:	will force auto-update for list (mainly for debugging)
 
+
 No Work
 ---------------
+	Easy Tasks
+	----------
+	 Double click to launch vn window instead of single click.
+	 Ordering VN list, wishlist/vnlist should go in proper order, not alphabetic.
+	 Add list controls to vn window.
+	 
+	Medium Tasks
+	----------
+	 Allow user configurated color scheme (for vn list)
+	 Add release controls to vn window.
+
+	Hard Tasks
+	----------
+	 
+
+Unordered Tasks
+----------
 save general database in the internet and : send general info changes to database in the internet, get database changes from the internet
 handle abrupt exit, terminate api connection
-add 'exclude tag' filters ? not so sure if needed
 backup sqlite database!
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)
 merge feature to merge 2 databases, keeping most-recently-updated in case of same id
@@ -102,6 +121,11 @@ see current groups when adding title to groups
 add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
 ability to remove titles from database
 cancel current function
+test removing from local db user related titles
+-
+trait filter character search (asked yorhel)
+add 'exclude tag' filters
+filter trait search by character's status such as main or side
 
 
 

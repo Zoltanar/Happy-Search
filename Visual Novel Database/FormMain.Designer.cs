@@ -72,6 +72,7 @@ namespace Happy_Search
             this.SearchingAndFilteringButton = new System.Windows.Forms.Button();
             this.refreshAllProducersButton = new System.Windows.Forms.Button();
             this.toggleViewButton = new System.Windows.Forms.Button();
+            this.multiActionBox = new System.Windows.Forms.ComboBox();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -138,7 +139,6 @@ namespace Happy_Search
             this.ol2ID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.prodReply = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.multiActionBox = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
             this.quickFilter1 = new System.Windows.Forms.Button();
@@ -239,6 +239,7 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.preciseNumberToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -732,6 +733,24 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.toggleViewButton, "Show/hide settings, filtering and favorite producers sections.");
             this.toggleViewButton.UseVisualStyleBackColor = false;
             this.toggleViewButton.Click += new System.EventHandler(this.ToggleWideView);
+            // 
+            // multiActionBox
+            // 
+            this.multiActionBox.BackColor = System.Drawing.Color.Navy;
+            this.multiActionBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.multiActionBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.multiActionBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.multiActionBox.FormattingEnabled = true;
+            this.multiActionBox.Items.AddRange(new object[] {
+            "Multi Actions",
+            "Deselect All",
+            "Remove From DB"});
+            this.multiActionBox.Location = new System.Drawing.Point(817, 3);
+            this.multiActionBox.Name = "multiActionBox";
+            this.multiActionBox.Size = new System.Drawing.Size(89, 21);
+            this.multiActionBox.TabIndex = 108;
+            this.toolTip.SetToolTip(this.multiActionBox, "Perform actions on all selected titles. Select by Ctrl+clicking.");
+            this.multiActionBox.SelectedIndexChanged += new System.EventHandler(this.MultiActionSelect);
             // 
             // infoTab
             // 
@@ -1457,24 +1476,6 @@ namespace Happy_Search
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1187, 58);
             this.panel3.TabIndex = 108;
-            // 
-            // multiActionBox
-            // 
-            this.multiActionBox.BackColor = System.Drawing.Color.Navy;
-            this.multiActionBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.multiActionBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.multiActionBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.multiActionBox.FormattingEnabled = true;
-            this.multiActionBox.Items.AddRange(new object[] {
-            "Multi Actions",
-            "Deselect All",
-            "Remove From DB"});
-            this.multiActionBox.Location = new System.Drawing.Point(817, 3);
-            this.multiActionBox.Name = "multiActionBox";
-            this.multiActionBox.Size = new System.Drawing.Size(89, 21);
-            this.multiActionBox.TabIndex = 108;
-            this.toolTip.SetToolTip(this.multiActionBox, "Perform actions on all selected titles. Select by Ctrl+clicking.");
-            this.multiActionBox.SelectedIndexChanged += new System.EventHandler(this.MultiActionSelect);
             // 
             // label4
             // 
@@ -2358,7 +2359,7 @@ namespace Happy_Search
             this.addChangeVNNoteToolStripMenuItem,
             this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 164);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
             // 
             // userlistToolStripMenuItem
             // 
@@ -2466,7 +2467,8 @@ namespace Happy_Search
             this.toolStripMenuItem8,
             this.toolStripMenuItem9,
             this.toolStripMenuItem10,
-            this.toolStripMenuItem11});
+            this.toolStripMenuItem11,
+            this.preciseNumberToolStripMenuItem});
             this.voteToolStripMenuItem.Name = "voteToolStripMenuItem";
             this.voteToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.voteToolStripMenuItem.Text = "Vote";
@@ -2475,67 +2477,67 @@ namespace Happy_Search
             // noneToolStripMenuItem2
             // 
             this.noneToolStripMenuItem2.Name = "noneToolStripMenuItem2";
-            this.noneToolStripMenuItem2.Size = new System.Drawing.Size(111, 22);
+            this.noneToolStripMenuItem2.Size = new System.Drawing.Size(158, 22);
             this.noneToolStripMenuItem2.Text = "(None)";
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem2.Text = "1";
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem3.Text = "2";
             // 
             // toolStripMenuItem4
             // 
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem4.Text = "3";
             // 
             // toolStripMenuItem5
             // 
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem5.Text = "4";
             // 
             // toolStripMenuItem6
             // 
             this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem6.Text = "5";
             // 
             // toolStripMenuItem7
             // 
             this.toolStripMenuItem7.Name = "toolStripMenuItem7";
-            this.toolStripMenuItem7.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem7.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem7.Text = "6";
             // 
             // toolStripMenuItem8
             // 
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem8.Text = "7";
             // 
             // toolStripMenuItem9
             // 
             this.toolStripMenuItem9.Name = "toolStripMenuItem9";
-            this.toolStripMenuItem9.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem9.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem9.Text = "8";
             // 
             // toolStripMenuItem10
             // 
             this.toolStripMenuItem10.Name = "toolStripMenuItem10";
-            this.toolStripMenuItem10.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem10.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem10.Text = "9";
             // 
             // toolStripMenuItem11
             // 
             this.toolStripMenuItem11.Name = "toolStripMenuItem11";
-            this.toolStripMenuItem11.Size = new System.Drawing.Size(111, 22);
+            this.toolStripMenuItem11.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem11.Text = "10";
             // 
             // toolStripSeparator1
@@ -2574,6 +2576,12 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.Text = "Add/Change VN Groups";
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
+            // 
+            // preciseNumberToolStripMenuItem
+            // 
+            this.preciseNumberToolStripMenuItem.Name = "preciseNumberToolStripMenuItem";
+            this.preciseNumberToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.preciseNumberToolStripMenuItem.Text = "Precise Number";
             // 
             // FormMain
             // 
@@ -2817,6 +2825,7 @@ namespace Happy_Search
         private Button refreshAllProducersButton;
         private Button toggleViewButton;
         private ComboBox multiActionBox;
+        private ToolStripMenuItem preciseNumberToolStripMenuItem;
     }
 }
 

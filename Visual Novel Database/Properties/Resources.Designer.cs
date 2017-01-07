@@ -590,6 +590,15 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Valid votes are between 1 and 10..
+        /// </summary>
+        internal static string valid_vote_error {
+            get {
+                return ResourceManager.GetString("valid_vote_error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Visual Novel Information.
         /// </summary>
         internal static string visual_novel_information {

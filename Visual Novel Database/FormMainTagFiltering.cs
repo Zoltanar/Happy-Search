@@ -26,11 +26,6 @@ namespace Happy_Search
         private void Help_TagFiltering(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
-            {
-                WriteError(tagReply, @"Unknown Path Error");
-                return;
-            }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\tagfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }

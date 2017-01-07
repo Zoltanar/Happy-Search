@@ -106,7 +106,7 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command)
+        public void UpdateVNStatus(int userID, int vnid, ChangeType type, int statusInt, Command command, double newVoteValue = -1)
         {
             if (command == Command.Delete)
             {
@@ -149,15 +149,17 @@ namespace Happy_Search
                     }
                     break;
                 case ChangeType.Vote:
+                    int vote = (int) Math.Abs(newVoteValue * 10);
                     switch (command)
                     {
                         case Command.New:
                             commandString =
-                                $"INSERT OR REPLACE  INTO userlist (VNID, UserID, Vote, VoteAdded) Values ({vnid}, {userID}, {statusInt * 10}, {statusDate});";
+                                "INSERT OR REPLACE  INTO userlist (VNID, UserID, Vote, VoteAdded) " +
+                                $"Values ({vnid}, {userID}, {vote}, {statusDate});";
                             break;
                         case Command.Update:
                             commandString =
-                                $"UPDATE userlist SET Vote = {statusInt * 10}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
+                                $"UPDATE userlist SET Vote = {vote}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;

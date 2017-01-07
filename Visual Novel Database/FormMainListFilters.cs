@@ -27,11 +27,6 @@ namespace Happy_Search
         private void Help_SearchingAndFiltering(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
-            {
-                WriteError(replyText, @"Unknown Path Error");
-                return;
-            }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\searchingandfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -159,11 +154,11 @@ namespace Happy_Search
             LoadVNListToGui();
             WriteText(replyText,
                 span < TimeSpan.FromMinutes(1)
-                    ? $"Got VNs for {year} in <1 min. {_vnsAdded}/{_vnsAdded+_vnsSkipped} added."
+                    ? $"Got VNs for {year} in <1 min. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added."
                     : $"Got VNs for {year} in {span:HH:mm}. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.", true);
             ChangeAPIStatus(Conn.Status);
         }
-        
+
         /// <summary>
         /// Get new VNs from VNDB that match selected producer.
         /// </summary>
@@ -282,7 +277,7 @@ namespace Happy_Search
             }
             multiActionBox.SelectedIndex = 0;
         }
-        
+
         /// <summary>
         /// Remove titles and associated images from local database.
         /// </summary>
@@ -319,21 +314,21 @@ namespace Happy_Search
             ListByTB.Text = "";
             switch (ListByCB.SelectedIndex)
             {
-                case (int) ListBy.Name:
+                case (int)ListBy.Name:
                     ListByTB.Visible = true;
                     groupListBox.Visible = false;
                     ListByUpdateButton.Enabled = true;
                     ListByGoButton.Enabled = true;
                     ListByTB.AutoCompleteMode = AutoCompleteMode.None;
                     break;
-                case (int) ListBy.Producer:
+                case (int)ListBy.Producer:
                     ListByTB.Visible = true;
                     groupListBox.Visible = false;
                     ListByUpdateButton.Enabled = true;
                     ListByGoButton.Enabled = true;
                     PopulateProducerSearchBox();
                     break;
-                case (int) ListBy.Year:
+                case (int)ListBy.Year:
                     ListByTB.Visible = true;
                     groupListBox.Visible = false;
                     ListByUpdateButton.Enabled = true;
@@ -378,7 +373,7 @@ namespace Happy_Search
                     if (e.KeyCode == Keys.Enter) List_Year();
                     return;
                 case (int)ListBy.Group:
-                    if (e.KeyCode == Keys.Enter) List_Group(null,null);
+                    if (e.KeyCode == Keys.Enter) List_Group(null, null);
                     return;
             }
         }
@@ -416,7 +411,7 @@ namespace Happy_Search
             }
             var searchString = ListByTB.Text.ToLowerInvariant();
             List_ClearOther(skipListBox: true);
-            _currentList = vn=>vn.Title.ToLowerInvariant().Contains(searchString) || vn.KanjiTitle.ToLowerInvariant().Contains(searchString);
+            _currentList = vn => vn.Title.ToLowerInvariant().Contains(searchString) || vn.KanjiTitle.ToLowerInvariant().Contains(searchString);
             _currentListLabel = $"{searchString} (Search)";
             LoadVNListToGui();
         }
@@ -595,7 +590,7 @@ namespace Happy_Search
         {
             if (e.KeyCode != Keys.Enter) return;
             if (groupListBox.Text.Equals("")) return;
-            List_Group(null,null);
+            List_Group(null, null);
         }
 
         /// <summary>
@@ -609,7 +604,7 @@ namespace Happy_Search
                 WriteError(replyText, "Enter producer name.");
                 return;
             }
-            List_ClearOther(skipListBox:true);
+            List_ClearOther(skipListBox: true);
             _currentList = x => x.Producer.Equals(producerName, StringComparison.InvariantCultureIgnoreCase);
             _currentListLabel = $"{producerName} (Producer)";
             LoadVNListToGui();
@@ -743,7 +738,7 @@ namespace Happy_Search
                 //if none are active
                 else
                 {
-                    funcArray = new[]{GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted)};
+                    funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted) };
                 }
             }
             else
@@ -782,11 +777,6 @@ namespace Happy_Search
         private void Help_ListResults(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            if (path == null)
-            {
-                WriteError(replyText, @"Unknown Path Error");
-                return;
-            }
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listresults.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -875,7 +865,7 @@ namespace Happy_Search
             }
             else if (e.ColumnIndex == tileColumnProducer.Index)
             {
-                if (FavoriteProducerList.Exists(x=> x.Name.Equals(vn.Producer))) e.SubItem.ForeColor = FavoriteProducerBrush.Color;
+                if (FavoriteProducerList.Exists(x => x.Name.Equals(vn.Producer))) e.SubItem.ForeColor = FavoriteProducerBrush.Color;
             }
 
         }
@@ -1006,13 +996,29 @@ namespace Happy_Search
                     success = await ChangeVNStatus(vn, ChangeType.WL, statusInt);
                     break;
                 case "Vote":
-                    if (Math.Abs(vn.Vote - Convert.ToInt32(nitem.Text)) < 0.001)
+                    double newVoteValue = -1;
+                    switch (nitem.Text)
+                    {
+                        case "(None)":
+                            break;
+                        case "Precise Number":
+                            StringBuilder input = new StringBuilder();
+                            var voteBox = new InputDialogBox(input, "Precise Vote", "Enter vote value:", preciseVote: true).ShowDialog();
+                            if (voteBox != DialogResult.OK) return;
+                            newVoteValue = double.Parse(input.ToString());
+                            statusInt = 1;
+                            break;
+                        default:
+                            newVoteValue = Convert.ToInt32(nitem.Text);
+                            statusInt = 1;
+                            break;
+                    }
+                    if (Math.Abs(vn.Vote - newVoteValue) < 0.001)
                     {
                         WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
-                    if (!nitem.Text.Equals("(None)")) statusInt = Convert.ToInt32(nitem.Text);
-                    success = await ChangeVNStatus(vn, ChangeType.Vote, statusInt);
+                    success = await ChangeVNStatus(vn, ChangeType.Vote, statusInt, newVoteValue);
                     break;
                 default:
                     return;
