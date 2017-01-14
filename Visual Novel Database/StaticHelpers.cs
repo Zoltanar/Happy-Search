@@ -36,6 +36,7 @@ namespace Happy_Search
         public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
         public const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
         public const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
+        public const string SettingsJson = "..\\Release\\Stored Data\\settings.json";
         public const string LogFile = "..\\Release\\Stored Data\\message.log";
         public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
         public const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
@@ -46,6 +47,7 @@ namespace Happy_Search
         public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
         public const string DBStatsXml = "Stored Data\\dbs.xml";
         public const string MainXmlFile = "Stored Data\\saved_objects.xml";
+        public const string SettingsJson = "Stored Data\\settings.json";
         public const string LogFile = "Stored Data\\message.log";
         public const string TagsJsonGz = "Stored Data\\tags.json.gz";
         public const string TraitsJsonGz = "Stored Data\\traits.json.gz";

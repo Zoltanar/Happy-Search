@@ -619,7 +619,7 @@ namespace Happy_Search
             if (vn == null) return;
             var ext = Path.GetExtension(vn.ImageURL);
             var photoFile = string.Format($"{VNImagesFolder}{vn.VNID}{ext}");
-            if (vn.ImageNSFW && !Settings.Default.ShowNSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
+            if (vn.ImageNSFW && !FormMain.Settings.NSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
             else if (File.Exists(photoFile))
             {
                 DrawImageFitToSize(g, photoArea, photoFile);

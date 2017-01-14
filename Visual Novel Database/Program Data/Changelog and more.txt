@@ -97,6 +97,7 @@ No Work
 	 Double click to launch vn window instead of single click.
 	 Ordering VN list, wishlist/vnlist should go in proper order, not alphabetic.
 	 Add list controls to vn window.
+	 Make Information tab fit in minimum size window
 	 
 	Medium Tasks
 	----------
@@ -105,6 +106,8 @@ No Work
 
 	Hard Tasks
 	----------
+	UI overhaul, make a left side vertical menu
+	UI overhaul, make vn windows appear as tabs
 	 
 
 Unordered Tasks

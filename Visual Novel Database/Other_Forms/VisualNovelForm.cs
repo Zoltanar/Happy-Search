@@ -36,9 +36,9 @@ namespace Happy_Search.Other_Forms
             _loadFromDb = loadFromDb;
             InitializeComponent();
             Text = $@"{vnItem.Title} - {FormMain.ClientName}";
-            tagTypeC.Checked = Settings.Default.TagTypeC;
-            tagTypeS.Checked = Settings.Default.TagTypeS;
-            tagTypeT.Checked = Settings.Default.TagTypeT;
+            tagTypeC.Checked = FormMain.Settings.ContentTags;
+            tagTypeS.Checked = FormMain.Settings.SexualTags;
+            tagTypeT.Checked = FormMain.Settings.TechnicalTags;
             tagTypeC.CheckedChanged += DisplayTags;
             tagTypeS.CheckedChanged += DisplayTags;
             tagTypeT.CheckedChanged += DisplayTags;
@@ -61,17 +61,17 @@ namespace Happy_Search.Other_Forms
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
-                        Settings.Default.TagTypeC = checkBox.Checked;
+                        FormMain.Settings.ContentTags = checkBox.Checked;
                         _parentForm.tagTypeC.Checked = checkBox.Checked;
                         _parentForm.tagTypeC2.Checked = checkBox.Checked;
                         break;
                     case "tagTypeS":
-                        Settings.Default.TagTypeS = checkBox.Checked;
+                        FormMain.Settings.SexualTags = checkBox.Checked;
                         _parentForm.tagTypeS.Checked = checkBox.Checked;
                         _parentForm.tagTypeS2.Checked = checkBox.Checked;
                         break;
                     case "tagTypeT":
-                        Settings.Default.TagTypeT = checkBox.Checked;
+                        FormMain.Settings.TechnicalTags = checkBox.Checked;
                         _parentForm.tagTypeT.Checked = checkBox.Checked;
                         _parentForm.tagTypeT2.Checked = checkBox.Checked;
                         break;
@@ -79,7 +79,7 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DontTriggerEvent = false;
                 _parentForm.DisplayCommonTags(null, null);
                 _parentForm.DisplayCommonTagsURT(null, null);
-                Settings.Default.Save();
+                FormMain.Settings.Save();
             }
             if (_displayedVN == null || _displayedVN.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
             else
@@ -133,7 +133,7 @@ namespace Happy_Search.Other_Forms
             await Task.Run(() =>
             {
                 _parentForm.DBConn.Open();
-                vn = _parentForm.DBConn.GetSingleVN(vnid, _parentForm.UserID);
+                vn = _parentForm.DBConn.GetSingleVN(vnid, FormMain.Settings.UserID);
                 _parentForm.DBConn.Close();
             });
             SetDeletedData(); //clear before setting new data
@@ -171,7 +171,7 @@ namespace Happy_Search.Other_Forms
             vnLength.Text = vnItem.Length;
             vnUserStatus.Text = vnItem.UserRelatedStatus();
             vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
-            if (vnItem.ImageNSFW && !Settings.Default.ShowNSFWImages) pcbImages.Image = Resources.nsfw_image;
+            if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
             else pcbImages.Image = Resources.no_image;
             //relations, anime and screenshots are only fetched here but are saved to database/disk
@@ -402,7 +402,7 @@ namespace Happy_Search.Other_Forms
             int imageX = 0;
             foreach (var screen in screenItems)
             {
-                if (screen.Nsfw && !Settings.Default.ShowNSFWImages)
+                if (screen.Nsfw && !FormMain.Settings.NSFWImages)
                 {
                     imageX += DrawNSFWImageFitToHeight(picturePanel, 400, imageX) + ScreenshotPadding;
                 }
@@ -453,7 +453,7 @@ namespace Happy_Search.Other_Forms
                     string[] parts = dropdownlist.SelectedItem.ToString().Split('-');
                     var vnid = Convert.ToInt32(parts.Last());
                     _parentForm.DBConn.Open();
-                    var vn = _parentForm.DBConn.GetSingleVN(vnid, _parentForm.UserID);
+                    var vn = _parentForm.DBConn.GetSingleVN(vnid, FormMain.Settings.UserID);
                     _parentForm.DBConn.Close();
                     if (vn == null) await SetNewData(vnid);
                     else

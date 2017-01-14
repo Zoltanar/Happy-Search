@@ -173,7 +173,7 @@ namespace Happy_Search
                 Query(loginBuffer);
                 if (LastResponse.Type == ResponseType.Ok)
                 {
-                    LogIn = LogInStatus.YesWithCredentials;
+                    LogIn = LogInStatus.YesWithPassword;
                     Status = APIStatus.Ready;
                 }
             }
@@ -334,7 +334,7 @@ namespace Happy_Search
         {
             No,
             Yes,
-            YesWithCredentials
+            YesWithPassword
         }
 
         internal enum APIStatus

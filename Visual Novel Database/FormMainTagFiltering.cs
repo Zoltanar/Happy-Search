@@ -475,7 +475,7 @@ namespace Happy_Search
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
-                        Settings.Default.TagTypeC = checkBox.Checked;
+                        Settings.ContentTags = checkBox.Checked;
                         tagTypeC2.Checked = checkBox.Checked;
                         foreach (var vnForm in vnForms)
                         {
@@ -484,7 +484,7 @@ namespace Happy_Search
                         }
                         break;
                     case "tagTypeS":
-                        Settings.Default.TagTypeS = checkBox.Checked;
+                        Settings.SexualTags = checkBox.Checked;
                         tagTypeS2.Checked = checkBox.Checked;
                         foreach (var vnForm in vnForms)
                         {
@@ -493,7 +493,7 @@ namespace Happy_Search
                         }
                         break;
                     case "tagTypeT":
-                        Settings.Default.TagTypeT = checkBox.Checked;
+                        Settings.TechnicalTags = checkBox.Checked;
                         tagTypeT2.Checked = checkBox.Checked;
                         foreach (var vnForm in vnForms)
                         {
@@ -503,7 +503,7 @@ namespace Happy_Search
                         break;
                 }
                 DontTriggerEvent = false;
-                Settings.Default.Save();
+                Settings.Save();
                 DisplayCommonTagsURT(null, null);
             }
             _mctCount++;
@@ -578,9 +578,9 @@ namespace Happy_Search
                     if (bw.ID != _mctCount) return;
                     var tagtag = PlainTags.Find(item => item.ID == tag.ID);
                     if (tagtag == null) continue;
-                    if (tagtag.Cat.Equals(ContentTag) && Settings.Default.TagTypeC == false) continue;
-                    if (tagtag.Cat.Equals(SexualTag) && Settings.Default.TagTypeS == false) continue;
-                    if (tagtag.Cat.Equals(TechnicalTag) && Settings.Default.TagTypeT == false) continue;
+                    if (tagtag.Cat.Equals(ContentTag) && Settings.ContentTags == false) continue;
+                    if (tagtag.Cat.Equals(SexualTag) && Settings.SexualTags == false) continue;
+                    if (tagtag.Cat.Equals(TechnicalTag) && Settings.TechnicalTags == false) continue;
                     if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
                     if (taglist.ContainsKey(tag.ID))
                     {

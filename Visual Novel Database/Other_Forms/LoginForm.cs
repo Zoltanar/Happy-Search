@@ -23,7 +23,7 @@ namespace Happy_Search.Other_Forms
         {
             InitializeComponent();
             _parentForm = parentForm;
-            rememberBox.Checked = Settings.Default.RememberCredentials;
+            rememberBox.Checked = FormMain.Settings.RememberPassword;
             rememberBox.CheckedChanged += rememberBox_CheckedChanged;
         }
 
@@ -82,15 +82,15 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void ChangeUserOnly(int newId = -1, string newUsername = "")
         {
-            _parentForm.Username = "";
-            _parentForm.UserID = -1;
+            FormMain.Settings.Username = "";
+            FormMain.Settings.UserID = -1;
             if (newId > 0)
             {
-                _parentForm.UserID = newId;
+                FormMain.Settings.UserID = newId;
             }
             else if (!newUsername.Equals(""))
             {
-                _parentForm.Username = newUsername;
+                FormMain.Settings.Username = newUsername;
             }
             else
             {
@@ -127,7 +127,7 @@ namespace Happy_Search.Other_Forms
             }
             char[] password = PasswordBox.Text.ToCharArray();
             ClearSavedCredentials(null, null);
-            if (rememberBox.Checked) FormMain.SaveCredentials(username, password);
+            if (rememberBox.Checked) FormMain.SaveCredentials(password);
             await APILoginWithCredentials(new KeyValuePair<string, char[]>(username, password),userID);
         }
 
@@ -149,8 +149,8 @@ namespace Happy_Search.Other_Forms
             switch (_parentForm.Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
-                    _parentForm.Username = credentials.Key;
-                    if (userId < 1) _parentForm.UserID = await _parentForm.GetIDFromUsername(credentials.Key);
+                    FormMain.Settings.Username = credentials.Key;
+                    if (userId < 1) FormMain.Settings.UserID = await _parentForm.GetIDFromUsername(credentials.Key);
                     DialogResult = DialogResult.Yes;
                     return;
                 case ResponseType.Error:
@@ -184,8 +184,8 @@ namespace Happy_Search.Other_Forms
 
         private void rememberBox_CheckedChanged(object sender, EventArgs e)
         {
-            Settings.Default.RememberCredentials = rememberBox.Checked;
-            Settings.Default.Save();
+            FormMain.Settings.RememberPassword = rememberBox.Checked;
+            FormMain.Settings.Save();
         }
 
         private void ClearSavedCredentials(object sender, EventArgs e)

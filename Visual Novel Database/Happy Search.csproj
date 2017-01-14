@@ -182,6 +182,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="StaticHelpers.cs" />
+    <Compile Include="UserSettings.cs" />
     <Compile Include="VndbConnection.cs" />
     <Compile Include="DBHelper.cs" />
     <Compile Include="Other_Forms\LoginForm.cs">
@@ -278,15 +279,6 @@
     <None Include="Program Data\Default Files\traits.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

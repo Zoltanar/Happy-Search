@@ -27,7 +27,7 @@ namespace Happy_Search.Other_Forms
             _parentForm = parentForm;
             prodSearchReply.Text = "";
             _parentForm.DBConn.Open();
-            _favoriteProducerList = _parentForm.DBConn.GetFavoriteProducersForUser(_parentForm.UserID);
+            _favoriteProducerList = _parentForm.DBConn.GetFavoriteProducersForUser(FormMain.Settings.UserID);
             _parentForm.DBConn.Close();
         }
         
@@ -166,7 +166,7 @@ namespace Happy_Search.Other_Forms
                     userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             _parentForm.DBConn.BeginTransaction();
-            _parentForm.DBConn.InsertFavoriteProducers(addProducerList, _parentForm.UserID);
+            _parentForm.DBConn.InsertFavoriteProducers(addProducerList, FormMain.Settings.UserID);
             _parentForm.DBConn.EndTransaction();
             _favoriteProducerList.AddRange(addProducerList);
             prodSearchReply.Text = $@"{addProducerList.Count} added.";

@@ -794,7 +794,7 @@ namespace Happy_Search
             if (CurrentFeatureName.Equals(""))
             {
                 DBConn.Open();
-                vnItem = DBConn.GetSingleVN(vnItem.VNID, UserID);
+                vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
                 DBConn.Close();
                 vnf = new VisualNovelForm(vnItem, this);
             }
@@ -964,7 +964,7 @@ namespace Happy_Search
         /// </summary>
         private async void RightClickChangeVNStatus(object sender, ToolStripItemClickedEventArgs e)
         {
-            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(replyText, "Not Logged In", true);
                 return;
@@ -1058,7 +1058,7 @@ namespace Happy_Search
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
             DBConn.BeginTransaction();
-            DBConn.InsertFavoriteProducers(addProducerList, UserID);
+            DBConn.InsertFavoriteProducers(addProducerList, Settings.UserID);
             DBConn.EndTransaction();
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
@@ -1070,7 +1070,7 @@ namespace Happy_Search
         /// </summary>
         private async void RightClickAddNote(object sender, EventArgs e)
         {
-            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(replyText, "Not Logged In", true);
                 return;
@@ -1096,7 +1096,7 @@ namespace Happy_Search
         /// </summary>
         private async void RightClickAddGroup(object sender, EventArgs e)
         {
-            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithCredentials)
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(replyText, "Not Logged In", true);
                 return;
@@ -1129,7 +1129,7 @@ namespace Happy_Search
             var apiResult = await TryQuery(query, "UIN Query Error", replyText);
             if (!apiResult) return;
             DBConn.Open();
-            DBConn.AddNoteToVN(vnid, serializedNotes, UserID);
+            DBConn.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
             DBConn.Close();
             await ReloadListsFromDbAsync();
             LoadVNListToGui();

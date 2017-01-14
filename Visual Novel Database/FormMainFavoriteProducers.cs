@@ -40,7 +40,7 @@ namespace Happy_Search
                     DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             DBConn.BeginTransaction();
-            DBConn.InsertFavoriteProducers(favoriteProducerList, UserID);
+            DBConn.InsertFavoriteProducers(favoriteProducerList, Settings.UserID);
             DBConn.EndTransaction();
         }
 
@@ -59,7 +59,7 @@ namespace Happy_Search
         /// </summary>
         private void AddProducers(object sender, EventArgs e)
         {
-            if (UserID < 1)
+            if (Settings.UserID < 1)
             {
                 WriteText(prodReply, Resources.set_userid_first);
                 return;
@@ -83,7 +83,7 @@ namespace Happy_Search
             DBConn.BeginTransaction();
             foreach (ListedProducer item in olFavoriteProducers.SelectedObjects)
             {
-                DBConn.RemoveFavoriteProducer(item.ID, UserID);
+                DBConn.RemoveFavoriteProducer(item.ID, Settings.UserID);
             }
             DBConn.EndTransaction();
             LoadFPListToGui();
@@ -203,7 +203,7 @@ This may take a while...",
             }
             await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, refreshAll);
             DBConn.Open();
-            List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(UserID, producer.ID);
+            List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(Settings.UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
                 producer.ID));
             DBConn.Close();
@@ -216,9 +216,9 @@ This may take a while...",
         /// </summary>
         private void LoadFPListToGui()
         {
-            if (UserID < 1) return;
+            if (Settings.UserID < 1) return;
             DBConn.Open();
-            FavoriteProducerList = DBConn.GetFavoriteProducersForUser(UserID);
+            FavoriteProducerList = DBConn.GetFavoriteProducersForUser(Settings.UserID);
             DBConn.Close();
             foreach (var favoriteProducer in FavoriteProducerList)
             {
@@ -256,7 +256,7 @@ This may take a while...",
             }
             producer = new ListedProducer(producer.Name, producer.NumberOfTitles, DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100));
             DBConn.BeginTransaction();
-            DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, UserID);
+            DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, Settings.UserID);
             DBConn.EndTransaction();
             UpdateUserStats();
             await ReloadListsFromDbAsync();

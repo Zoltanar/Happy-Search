@@ -34,7 +34,7 @@ namespace Happy_Search
             }
             await Task.Run(() =>
             {
-                if (Settings.Default.Limit10Years && !ignoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
+                if (Settings.DecadeLimit && !ignoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
                 {
                     query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
                 }
@@ -244,7 +244,7 @@ namespace Happy_Search
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer);
             if(gpResult.Item2 != null) DBConn.InsertProducer(gpResult.Item2,true);
-            var vn = DBConn.GetSingleVN(vnid, UserID);
+            var vn = DBConn.GetSingleVN(vnid, Settings.UserID);
             DBConn.Close();
             await ReloadListsFromDbAsync();
             WriteText(updateLink, Resources.vn_updated);
@@ -642,10 +642,10 @@ namespace Happy_Search
                     if (!result) return false;
                     DBConn.BeginTransaction();
                     if (hasWLStatus || hasVote)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
+                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
                     else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.UL, statusInt, Command.New);
+                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.UL, statusInt, Command.Delete);
+                    else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.UL, statusInt, Command.New);
                     break;
                 case ChangeType.WL:
                     queryString = statusInt == -1
@@ -655,10 +655,10 @@ namespace Happy_Search
                     if (!result) return false;
                     DBConn.BeginTransaction();
                     if (hasULStatus || hasVote)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
+                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
                     else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
+                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.Delete);
+                    else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
                     break;
                 case ChangeType.Vote:
                     int vote = (int) Math.Floor(newVoteValue * 10);
@@ -669,10 +669,10 @@ namespace Happy_Search
                     if (!result) return false;
                     DBConn.BeginTransaction();
                     if (hasULStatus || hasWLStatus)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update, newVoteValue);
+                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update, newVoteValue);
                     else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New, newVoteValue);
+                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
+                    else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New, newVoteValue);
                     break;
             }
             DBConn.EndTransaction();
@@ -716,17 +716,17 @@ namespace Happy_Search
         /// <summary>
         /// Log into VNDB with credentials.
         /// </summary>
-        /// <param name="credentials">User's username and password</param>
-        internal void APILoginWithCredentials(KeyValuePair<string, char[]> credentials)
+        /// <param name="password">User's password</param>
+        internal void APILoginWithPassword(char[] password)
         {
             CurrentFeatureName = "Login with credentials";
-            Conn.Login(ClientName, ClientVersion, credentials.Key, credentials.Value);
+            Conn.Login(ClientName, ClientVersion, Settings.Username, password);
             switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
                     ChangeAPIStatus(Conn.Status);
                     loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = $@"Logged in as {credentials.Key}.";
+                    loginReply.Text = $@"Logged in as {Settings.Username}.";
                     return;
                 case ResponseType.Error:
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))
