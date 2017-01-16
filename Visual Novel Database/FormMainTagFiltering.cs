@@ -131,8 +131,8 @@ namespace Happy_Search
         /// <param name="writtenTag">Tag to be added to active filter.</param>
         private void AddFilterTag(WrittenTag writtenTag)
         {
-            if(writtenTag == null)
-            { 
+            if (writtenTag == null)
+            {
                 WriteError(tagReply, "Tag not found.", true);
                 return;
             }
@@ -141,7 +141,7 @@ namespace Happy_Search
                 //if tag is already in filter, do nothing.
                 if (filter.ID == writtenTag.ID)
                 {
-                    WriteError(tagReply,"Tag is already in filter.");
+                    WriteError(tagReply, "Tag is already in filter.");
                     return;
                 }
                 //if filter isn't parent of tag, continue
@@ -399,8 +399,8 @@ namespace Happy_Search
                 AddFilterTag(exact);
                 return;
             }
-            SearchTags(null,null);
-            
+            SearchTags(null, null);
+
         }
 
         /// <summary>
@@ -408,7 +408,7 @@ namespace Happy_Search
         /// </summary>
         private void AddTagFromList(object sender, EventArgs e)
         {
-            var lb = (ListBox) sender;
+            var lb = (ListBox)sender;
             tagSearchBox.Text = "";
             lb.Visible = false;
             AddFilterTag(lb.SelectedItem as WrittenTag);
@@ -471,34 +471,34 @@ namespace Happy_Search
             {
                 var checkBox = (CheckBox)sender;
                 DontTriggerEvent = true;
-                IEnumerable<VisualNovelForm> vnForms = Application.OpenForms.OfType<VisualNovelForm>();
+                var vnControls = from TabPage tabPage in tabControl1.TabPages where tabPage.Text.StartsWith("VN - ") select tabPage.Controls[0] as VNControl;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
                         Settings.ContentTags = checkBox.Checked;
                         tagTypeC2.Checked = checkBox.Checked;
-                        foreach (var vnForm in vnForms)
+                        foreach (var vnControl in vnControls)
                         {
-                            vnForm.tagTypeC.Checked = checkBox.Checked;
-                            vnForm.DisplayTags(null, null);
+                            vnControl.tagTypeC.Checked = checkBox.Checked;
+                            vnControl.DisplayTags(null, null);
                         }
                         break;
                     case "tagTypeS":
                         Settings.SexualTags = checkBox.Checked;
                         tagTypeS2.Checked = checkBox.Checked;
-                        foreach (var vnForm in vnForms)
+                        foreach (var vnControl in vnControls)
                         {
-                            vnForm.tagTypeC.Checked = checkBox.Checked;
-                            vnForm.DisplayTags(null, null);
+                            vnControl.tagTypeC.Checked = checkBox.Checked;
+                            vnControl.DisplayTags(null, null);
                         }
                         break;
                     case "tagTypeT":
                         Settings.TechnicalTags = checkBox.Checked;
                         tagTypeT2.Checked = checkBox.Checked;
-                        foreach (var vnForm in vnForms)
+                        foreach (var vnControl in vnControls)
                         {
-                            vnForm.tagTypeC.Checked = checkBox.Checked;
-                            vnForm.DisplayTags(null, null);
+                            vnControl.tagTypeC.Checked = checkBox.Checked;
+                            vnControl.DisplayTags(null, null);
                         }
                         break;
                 }

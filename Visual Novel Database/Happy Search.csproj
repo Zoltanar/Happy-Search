@@ -176,11 +176,18 @@
     <Compile Include="Other_Forms\ListDialogBox.Designer.cs">
       <DependentUpon>ListDialogBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="Other_Forms\VNControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Other_Forms\VNControl.Designer.cs">
+      <DependentUpon>VNControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Settings.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="UserSettings.cs" />
     <Compile Include="VndbConnection.cs" />
@@ -213,12 +220,6 @@
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </Compile>
     <Compile Include="XmlHelper.cs" />
-    <Compile Include="Other_Forms\VisualNovelForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Other_Forms\VisualNovelForm.Designer.cs">
-      <DependentUpon>VisualNovelForm.cs</DependentUpon>
-    </Compile>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -238,6 +239,9 @@
     <EmbeddedResource Include="Other_Forms\ProducerSearchForm.resx">
       <DependentUpon>ProducerSearchForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Other_Forms\VNControl.resx">
+      <DependentUpon>VNControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
@@ -245,9 +249,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Other_Forms\SplashScreen.resx">
       <DependentUpon>SplashScreen.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Other_Forms\VisualNovelForm.resx">
-      <DependentUpon>VisualNovelForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config">
       <SubType>Designer</SubType>
@@ -278,11 +279,6 @@
     </None>
     <None Include="Program Data\Default Files\traits.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>

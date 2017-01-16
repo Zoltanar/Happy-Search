@@ -234,12 +234,12 @@ namespace Happy_Search
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem10 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem11 = new System.Windows.Forms.ToolStripMenuItem();
+            this.preciseNumberToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.showProducerTitlesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.preciseNumberToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoTab.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -2359,7 +2359,7 @@ namespace Happy_Search
             this.addChangeVNNoteToolStripMenuItem,
             this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 164);
             // 
             // userlistToolStripMenuItem
             // 
@@ -2540,6 +2540,12 @@ namespace Happy_Search
             this.toolStripMenuItem11.Size = new System.Drawing.Size(158, 22);
             this.toolStripMenuItem11.Text = "10";
             // 
+            // preciseNumberToolStripMenuItem
+            // 
+            this.preciseNumberToolStripMenuItem.Name = "preciseNumberToolStripMenuItem";
+            this.preciseNumberToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.preciseNumberToolStripMenuItem.Text = "Precise Number";
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -2576,12 +2582,6 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.Text = "Add/Change VN Groups";
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
-            // 
-            // preciseNumberToolStripMenuItem
-            // 
-            this.preciseNumberToolStripMenuItem.Name = "preciseNumberToolStripMenuItem";
-            this.preciseNumberToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
-            this.preciseNumberToolStripMenuItem.Text = "Precise Number";
             // 
             // FormMain
             // 
@@ -2633,7 +2633,6 @@ namespace Happy_Search
         private Button userListButt;
         private Label resultLabel;
         private Label label4;
-        private TabControl tabControl1;
         private Button quickFilter1;
         private Button quickFilter0;
         private ComboBox ulStatusDropDown;
@@ -2826,6 +2825,7 @@ namespace Happy_Search
         private Button toggleViewButton;
         private ComboBox multiActionBox;
         private ToolStripMenuItem preciseNumberToolStripMenuItem;
+        internal TabControl tabControl1;
     }
 }
 

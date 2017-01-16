@@ -518,15 +518,13 @@ https://github.com/FredTheBarber/VndbClient";
         }
 
         /// <summary>
-        ///     Close All Open Visual Novel Forms (windows)
+        ///     Close all VN tabs.
         /// </summary>
         private void CloseAllForms(object sender, EventArgs e)
         {
-            for (var i = Application.OpenForms.Count - 1; i >= 0; i--)
+            foreach (TabPage tab in tabControl1.TabPages)
             {
-                if (Application.OpenForms[i].Name == "FormMain") continue;
-                LogToFile($"Closing {Application.OpenForms[i].Name}, {i}");
-                Application.OpenForms[i].Close();
+                if(tab.Text.StartsWith("VN - ")) tab.Dispose();
             }
         }
 

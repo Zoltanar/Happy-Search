@@ -790,19 +790,21 @@ namespace Happy_Search
             var listView = (ObjectListView)sender;
             if (listView.SelectedIndices.Count <= 0) return;
             var vnItem = (ListedVN)listView.SelectedObjects[0];
-            VisualNovelForm vnf;
+            VNControl vnf;
             if (CurrentFeatureName.Equals(""))
             {
                 DBConn.Open();
                 vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
                 DBConn.Close();
-                vnf = new VisualNovelForm(vnItem, this);
+                vnf = new VNControl(vnItem, this);
             }
             else
             {
-                vnf = new VisualNovelForm(vnItem, this, false);
+                vnf = new VNControl(vnItem, this, false);
             }
-            vnf.Show(this);
+            var tabPage = new TabPage("VN - " + vnItem.Title);
+            tabPage.Controls.Add(vnf);
+            tabControl1.TabPages.Add(tabPage);
         }
 
         //format list rows, color according to userlist status, only for Details View

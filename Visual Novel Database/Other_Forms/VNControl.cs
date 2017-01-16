@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
@@ -16,7 +15,7 @@ namespace Happy_Search.Other_Forms
     /// <summary>
     /// Form for showing Visual Novel Information
     /// </summary>
-    public partial class VisualNovelForm : Form
+    public partial class VNControl : UserControl
     {
         // ReSharper disable InconsistentNaming
         // ReSharper restore InconsistentNaming
@@ -30,7 +29,7 @@ namespace Happy_Search.Other_Forms
         /// <param name="vnItem">Visual Novel to be shown</param>
         /// <param name="parentForm">Parent form</param>
         /// <param name="loadFromDb">Should anime/relations/screenshots also be loaded?</param>
-        public VisualNovelForm(ListedVN vnItem, FormMain parentForm, bool loadFromDb = true)
+        public VNControl(ListedVN vnItem, FormMain parentForm, bool loadFromDb = true)
         {
             _parentForm = parentForm;
             _loadFromDb = loadFromDb;
@@ -121,7 +120,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         /// <param name="vnid">ID of vn to be displayed</param>
         private async Task SetNewData(int vnid)
-            {
+        {
             await GetSingleVN(vnid, vnUpdateLink);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
@@ -509,7 +508,7 @@ namespace Happy_Search.Other_Forms
             {
                 _parentForm.DBConn.Open();
                 _parentForm.DBConn.UpsertSingleVN(vnItem, relProducer);
-                if(gpResult.Item2 != null) _parentForm.DBConn.InsertProducer(gpResult.Item2,true);
+                if (gpResult.Item2 != null) _parentForm.DBConn.InsertProducer(gpResult.Item2, true);
                 _parentForm.DBConn.Close();
             });
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
@@ -625,33 +624,15 @@ namespace Happy_Search.Other_Forms
         }
 
         #region Window Controls
-        // ReSharper disable InconsistentNaming
-        private const int WM_NCLBUTTONDOWN = 0xA1;
-        private const int HT_CAPTION = 0x2;
-        [DllImport("user32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-
-        [DllImport("user32.dll")]
-        private static extern bool ReleaseCapture();
-
-        private void MoveWindowLeftclick(object sender, MouseEventArgs e)
-        {
-            if (e.Button != MouseButtons.Left) return;
-            ReleaseCapture();
-            SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
-        }
-
         private void CloseButton(object sender, EventArgs e)
         {
-            Close();
+            _parentForm.tabControl1.SelectedTab.Dispose();
         }
 
         private void CloseByEscape(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Escape) Close();
+            if (e.KeyCode == Keys.Escape) CloseButton(null,null);
         }
-        // ReSharper restore InconsistentNaming
         #endregion
-
     }
 }
