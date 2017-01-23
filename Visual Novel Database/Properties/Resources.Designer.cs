@@ -617,7 +617,7 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updated right now. Click to update again..
+        ///   Looks up a localized string similar to Updated just now..
         /// </summary>
         internal static string vn_updated {
             get {

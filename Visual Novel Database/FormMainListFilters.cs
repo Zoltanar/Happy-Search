@@ -790,19 +790,20 @@ namespace Happy_Search
             var listView = (ObjectListView)sender;
             if (listView.SelectedIndices.Count <= 0) return;
             var vnItem = (ListedVN)listView.SelectedObjects[0];
+            var tabPage = new TabPage();
             VNControl vnf;
             if (CurrentFeatureName.Equals(""))
             {
                 DBConn.Open();
                 vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
                 DBConn.Close();
-                vnf = new VNControl(vnItem, this);
+                vnf = new VNControl(vnItem, this, tabPage);
             }
             else
             {
-                vnf = new VNControl(vnItem, this, false);
+                vnf = new VNControl(vnItem, this, tabPage, false);
             }
-            var tabPage = new TabPage("VN - " + vnItem.Title);
+            vnf.Dock = DockStyle.Fill;
             tabPage.Controls.Add(vnf);
             tabControl1.TabPages.Add(tabPage);
         }

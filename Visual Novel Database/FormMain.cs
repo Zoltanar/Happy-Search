@@ -520,12 +520,10 @@ https://github.com/FredTheBarber/VndbClient";
         /// <summary>
         ///     Close all VN tabs.
         /// </summary>
-        private void CloseAllForms(object sender, EventArgs e)
+        private void CloseVNTabs(object sender, EventArgs e)
         {
-            foreach (TabPage tab in tabControl1.TabPages)
-            {
-                if(tab.Text.StartsWith("VN - ")) tab.Dispose();
-            }
+            var tabpages = tabControl1.TabPages;
+            while(tabpages.Count > 2) tabpages.RemoveAt(2);
         }
 
         /// <summary>
@@ -1414,6 +1412,5 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Vote
         }
         #endregion
-
     }
 }

@@ -359,6 +359,10 @@ namespace Happy_Search
             if (vn.Image == null || vn.Image.Equals("")) return;
             string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
             if (File.Exists(imageLocation) && update == false) return;
+            /*if (File.Exists(imageLocation))
+            {
+                File.Delete(imageLocation);
+            }*/
             LogToFile($"Start downloading cover image for {vn}");
             try
             {
@@ -373,7 +377,8 @@ namespace Happy_Search
                     }
                 }
             }
-            catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
+            catch (Exception ex) 
+            when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
             {
                 LogToFile(ex);
             }

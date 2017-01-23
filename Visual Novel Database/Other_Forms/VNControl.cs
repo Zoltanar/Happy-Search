@@ -23,27 +23,32 @@ namespace Happy_Search.Other_Forms
         private const int ScreenshotPadding = 10;
         private ListedVN _displayedVN;
         private readonly bool _loadFromDb;
+        private ScreenItem[] _screens;
+
         /// <summary>
         /// Load VN form with specified Visual Novel.
         /// </summary>
         /// <param name="vnItem">Visual Novel to be shown</param>
         /// <param name="parentForm">Parent form</param>
+        /// <param name="tabPage">Tab which holds this control</param>
         /// <param name="loadFromDb">Should anime/relations/screenshots also be loaded?</param>
-        public VNControl(ListedVN vnItem, FormMain parentForm, bool loadFromDb = true)
+        public VNControl(ListedVN vnItem, FormMain parentForm, TabPage tabPage, bool loadFromDb = true)
         {
             _parentForm = parentForm;
             _loadFromDb = loadFromDb;
             InitializeComponent();
-            Text = $@"{vnItem.Title} - {FormMain.ClientName}";
+            tabPage.Text = $@"{vnItem.Title}";
             tagTypeC.Checked = FormMain.Settings.ContentTags;
             tagTypeS.Checked = FormMain.Settings.SexualTags;
             tagTypeT.Checked = FormMain.Settings.TechnicalTags;
             tagTypeC.CheckedChanged += DisplayTags;
             tagTypeS.CheckedChanged += DisplayTags;
             tagTypeT.CheckedChanged += DisplayTags;
+            picturePanel.MouseWheel += ScrollScreens;
             _displayedVN = vnItem;
             Load += LoadForm;
         }
+
 
         private async void LoadForm(object sender, EventArgs eventArgs)
         {
@@ -171,7 +176,12 @@ namespace Happy_Search.Other_Forms
             vnUserStatus.Text = vnItem.UserRelatedStatus();
             vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
             if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
-            else if (File.Exists(imageLoc)) pcbImages.ImageLocation = imageLoc;
+            else if (File.Exists(imageLoc))
+            {
+                Image coverImage;
+                using (var ms = new MemoryStream(File.ReadAllBytes(imageLoc))) coverImage = Image.FromStream(ms);
+                pcbImages.Image = coverImage;
+            }
             else pcbImages.Image = Resources.no_image;
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             var loadResult = await LoadFromAPI(vnItem, update);
@@ -335,6 +345,7 @@ namespace Happy_Search.Other_Forms
             if (!vnItem.Screens.Equals("") && update == false)
             {
                 screens = JsonConvert.DeserializeObject<ScreenItem[]>(vnItem.Screens);
+                _screens = screens;
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
             }
             //screenshots haven't been fetched yet
@@ -355,6 +366,7 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DBConn.AddScreensToVN(vnItem.VNID, screens);
                 _parentForm.DBConn.Close();
             });
+            _screens = screens;
             return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
         }
 
@@ -393,9 +405,13 @@ namespace Happy_Search.Other_Forms
         private void DisplayScreenshots(ScreenItem[] screenItems)
         {
             picturePanel.Controls.Clear();
+            //
+            var dist = picturePanel.Size.Width;
+            //
             if (screenItems == null || !screenItems.Any())
             {
                 DisplayTextOnScreenshotArea("No Screenshots Found");
+                _selectedScreen = -1;
                 return;
             }
             int imageX = 0;
@@ -407,9 +423,11 @@ namespace Happy_Search.Other_Forms
                 }
                 else
                 {
-                    imageX += DrawImageFitToHeight(picturePanel, 400, imageX, screen) + ScreenshotPadding;
+                    //imageX += DrawImageFitToHeight(picturePanel, dist, imageX, screen) + ScreenshotPadding;
+                    imageX += DrawImageFitToWidth(picturePanel, dist, imageX, screen) + ScreenshotPadding;
                 }
             }
+            _selectedScreen = 1;
         }
 
         private void DisplayTextOnScreenshotArea(string text)
@@ -426,7 +444,8 @@ namespace Happy_Search.Other_Forms
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
-            if (vnUpdateLink.Text.Equals("")) return;
+            if (vnUpdateLink.Text.Equals("Updating...") || vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
+            vnUpdateLink.Text = @"Updating...";
             var vnItem = await _parentForm.UpdateSingleVN(Convert.ToInt32(vnID.Text), vnUpdateLink);
             await SetData(vnItem, true);
         }
@@ -514,7 +533,45 @@ namespace Happy_Search.Other_Forms
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
         }
 
-        private static int DrawImageFitToHeight(Control control, int height, int locationX, ScreenItem screenItem)
+
+        private static int DrawImageFitToWidth(Control control, int width, int locationX, ScreenItem screenItem)
+        {
+            string photoString = screenItem.StoredLocation();
+            if (!File.Exists(photoString))
+            {
+                SaveScreenshot(screenItem.Image, photoString);
+            }
+            var photo = Image.FromFile(photoString);
+            int newHeight;
+            var photoToAreaWidthRatio = (double)screenItem.Width / width;
+            //show whole image but do not occupy whole area
+            //if image is taller than height
+            if (screenItem.Width > width)
+            {
+                newHeight = (int)(screenItem.Height / photoToAreaWidthRatio);
+            } //if image is exactly  height
+            else if (screenItem.Width == width)
+            {
+                newHeight = screenItem.Height;
+            }
+            //if image is shorter than height
+            else
+            {
+                newHeight = (int)(screenItem.Height * photoToAreaWidthRatio);
+            }
+            var pictureBox = new PictureBox
+            {
+                BackgroundImage = photo,
+                Size = new Size(width, newHeight),
+                Location = new Point(locationX, 0),
+                BackgroundImageLayout = ImageLayout.Stretch
+            };
+            control.Controls.Add(pictureBox);
+            return width;
+        }
+
+
+        /*private static int DrawImageFitToHeight(Control control, int height, int locationX, ScreenItem screenItem)
         {
             string photoString = screenItem.StoredLocation();
             if (!File.Exists(photoString))
@@ -548,7 +605,7 @@ namespace Happy_Search.Other_Forms
             };
             control.Controls.Add(pictureBox);
             return newWidth;
-        }
+        }*/
 
         private static int DrawNSFWImageFitToHeight(Control control, int height, int locationX)
         {
@@ -623,7 +680,7 @@ namespace Happy_Search.Other_Forms
             Throttled = 2
         }
 
-        #region Window Controls
+        #region TabPage Controls
         private void CloseButton(object sender, EventArgs e)
         {
             _parentForm.tabControl1.SelectedTab.Dispose();
@@ -631,7 +688,37 @@ namespace Happy_Search.Other_Forms
 
         private void CloseByEscape(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Escape) CloseButton(null,null);
+            if (e.KeyCode == Keys.Escape) CloseButton(null, null);
+        }
+
+
+        private void OnResize(object sender, EventArgs e)
+        {
+            DisplayScreenshots(_screens);
+        }
+
+        private int _selectedScreen;
+
+        /// <summary>
+        /// Scroll through screenshots with mousewheel.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ScrollScreens(object sender, MouseEventArgs e)
+        {
+            var pictures = picturePanel.Controls.Count;
+            if (e.Delta < 0)
+            {
+                if (pictures <= _selectedScreen+1 || _selectedScreen == -1) return;
+                picturePanel.ScrollControlIntoView(picturePanel.Controls[_selectedScreen+1]);
+                _selectedScreen++;
+            }
+            else if (e.Delta > 0)
+            {
+                if (_selectedScreen <= 0) return;
+                picturePanel.ScrollControlIntoView(picturePanel.Controls[_selectedScreen - 1]);
+                _selectedScreen--;
+            }
         }
         #endregion
     }

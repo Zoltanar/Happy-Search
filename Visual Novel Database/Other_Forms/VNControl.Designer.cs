@@ -58,6 +58,8 @@
             this.vnDesc = new System.Windows.Forms.RichTextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.releasesCB = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.SuspendLayout();
             // 
@@ -98,11 +100,12 @@
             // 
             // button2
             // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button2.BackColor = System.Drawing.Color.Gainsboro;
             this.button2.FlatAppearance.BorderSize = 0;
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button2.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button2.Location = new System.Drawing.Point(8, 416);
+            this.button2.Location = new System.Drawing.Point(8, 524);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(57, 23);
             this.button2.TabIndex = 102;
@@ -191,11 +194,14 @@
             // 
             // picturePanel
             // 
+            this.picturePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.picturePanel.AutoScroll = true;
             this.picturePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.picturePanel.Location = new System.Drawing.Point(675, 3);
             this.picturePanel.Name = "picturePanel";
-            this.picturePanel.Size = new System.Drawing.Size(695, 439);
+            this.picturePanel.Size = new System.Drawing.Size(472, 544);
             this.picturePanel.TabIndex = 94;
             // 
             // label6
@@ -320,20 +326,23 @@
             // 
             // pcbImages
             // 
+            this.pcbImages.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.pcbImages.BackColor = System.Drawing.Color.Transparent;
             this.pcbImages.Location = new System.Drawing.Point(413, 32);
             this.pcbImages.Name = "pcbImages";
-            this.pcbImages.Size = new System.Drawing.Size(256, 394);
+            this.pcbImages.Size = new System.Drawing.Size(256, 494);
             this.pcbImages.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pcbImages.TabIndex = 75;
             this.pcbImages.TabStop = false;
             // 
             // vnUpdateLink
             // 
+            this.vnUpdateLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.vnUpdateLink.BackColor = System.Drawing.Color.Transparent;
             this.vnUpdateLink.DisabledLinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
             this.vnUpdateLink.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.vnUpdateLink.Location = new System.Drawing.Point(413, 429);
+            this.vnUpdateLink.Location = new System.Drawing.Point(410, 529);
             this.vnUpdateLink.Name = "vnUpdateLink";
             this.vnUpdateLink.Size = new System.Drawing.Size(256, 13);
             this.vnUpdateLink.TabIndex = 82;
@@ -365,13 +374,15 @@
             // 
             // vnDesc
             // 
+            this.vnDesc.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.vnDesc.BackColor = System.Drawing.Color.Black;
             this.vnDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.vnDesc.ForeColor = System.Drawing.SystemColors.Window;
-            this.vnDesc.Location = new System.Drawing.Point(71, 220);
+            this.vnDesc.Location = new System.Drawing.Point(71, 245);
             this.vnDesc.Name = "vnDesc";
             this.vnDesc.ReadOnly = true;
-            this.vnDesc.Size = new System.Drawing.Size(336, 222);
+            this.vnDesc.Size = new System.Drawing.Size(336, 302);
             this.vnDesc.TabIndex = 79;
             this.vnDesc.Text = "";
             // 
@@ -397,11 +408,34 @@
             this.label1.Text = "Title";
             this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
+            // label9
+            // 
+            this.label9.BackColor = System.Drawing.Color.Transparent;
+            this.label9.ForeColor = System.Drawing.Color.Lavender;
+            this.label9.Location = new System.Drawing.Point(5, 218);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(60, 22);
+            this.label9.TabIndex = 106;
+            this.label9.Text = "Releases";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // releasesCB
+            // 
+            this.releasesCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.releasesCB.FormattingEnabled = true;
+            this.releasesCB.Location = new System.Drawing.Point(71, 218);
+            this.releasesCB.Name = "releasesCB";
+            this.releasesCB.Size = new System.Drawing.Size(336, 21);
+            this.releasesCB.TabIndex = 105;
+            // 
             // VNControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.BackColor = System.Drawing.Color.Gray;
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.releasesCB);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.vnKanjiName);
             this.Controls.Add(this.vnName);
@@ -432,9 +466,11 @@
             this.Controls.Add(this.vnDesc);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
+            this.MinimumSize = new System.Drawing.Size(1150, 550);
             this.Name = "VNControl";
-            this.Size = new System.Drawing.Size(1373, 454);
+            this.Size = new System.Drawing.Size(1150, 550);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CloseByEscape);
+            this.Resize += new System.EventHandler(this.OnResize);
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -442,8 +478,6 @@
         }
 
         #endregion
-
-        internal System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox vnKanjiName;
         private System.Windows.Forms.TextBox vnName;
         private System.Windows.Forms.Button button2;
@@ -451,13 +485,9 @@
         private System.Windows.Forms.CheckBox tagTypeT;
         internal System.Windows.Forms.CheckBox tagTypeC;
         internal System.Windows.Forms.ComboBox vnTraitsCB;
-        internal System.Windows.Forms.Label label8;
-        internal System.Windows.Forms.Label label7;
         internal System.Windows.Forms.ComboBox vnAnimeCB;
         private System.Windows.Forms.Panel picturePanel;
-        internal System.Windows.Forms.Label label6;
         internal System.Windows.Forms.ComboBox vnRelationsCB;
-        internal System.Windows.Forms.Label label4;
         internal System.Windows.Forms.Label vnRating;
         internal System.Windows.Forms.Label vnPopularity;
         internal System.Windows.Forms.Label vnLength;
@@ -469,9 +499,16 @@
         internal System.Windows.Forms.PictureBox pcbImages;
         internal System.Windows.Forms.LinkLabel vnUpdateLink;
         internal System.Windows.Forms.ComboBox vnTagCB;
-        internal System.Windows.Forms.Label label5;
         internal System.Windows.Forms.RichTextBox vnDesc;
-        internal System.Windows.Forms.Label label3;
-        internal System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label9;
+        internal System.Windows.Forms.ComboBox releasesCB;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label1;
     }
 }

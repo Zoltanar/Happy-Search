@@ -17,8 +17,8 @@ namespace Happy_Search
     /// </summary>
     public class ListedVN
     {
-        internal static readonly string[] StatusUL = {"Unknown", "Playing", "Finished", "Stalled", "Dropped"};
-        internal static readonly string[] PriorityWL = {"High", "Medium", "Low", "Blacklist"};
+        internal static readonly string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
+        internal static readonly string[] PriorityWL = { "High", "Medium", "Low", "Blacklist" };
 
         internal static readonly string[] LengthTime =
         {
@@ -61,7 +61,7 @@ namespace Happy_Search
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
             WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
-            if (vote != -1) Vote = (double) vote/10;
+            if (vote != -1) Vote = (double)vote / 10;
             Title = title;
             KanjiTitle = kanjiTitle;
             RelDate = reldate;
@@ -266,7 +266,7 @@ namespace Happy_Search
         /// <returns>User-related status</returns>
         public string UserRelatedStatus()
         {
-            string[] parts = {"", "", ""};
+            string[] parts = { "", "", "" };
             if (!ULStatus.Equals(""))
             {
                 parts[0] = "Userlist: ";
@@ -342,7 +342,7 @@ namespace Happy_Search
                 groupsString = "";
             }
             List<string> groups = groupsString.Equals("") ? new List<string>() : groupsString.Split(',').ToList();
-            return new CustomItemNotes(notes,groups);
+            return new CustomItemNotes(notes, groups);
         }
         /// <summary>
         /// Checks if title was released between now and a past date, the current date is included.
@@ -625,10 +625,10 @@ namespace Happy_Search
                 DrawImageFitToSize(g, photoArea, photoFile);
             }
             else g.DrawImage(Resources.no_image, photoArea);
-            DrawTileText(photoArea,textHeight,g,vn, olv);
+            DrawTileText(photoArea, textHeight, g, vn, olv);
         }
-         
-        private void DrawTileText(RectangleF photoArea, float textHeight, Graphics g,ListedVN vn, ObjectListView olv)
+
+        private void DrawTileText(RectangleF photoArea, float textHeight, Graphics g, ListedVN vn, ObjectListView olv)
         {
             var dateWidth = g.MeasureString("9999-99-99", NormalFont).Width;
             var fmtNear = new StringFormat(StringFormatFlags.NoWrap)
@@ -665,10 +665,10 @@ namespace Happy_Search
             if (vn.ULStatus.Equals("Playing"))
             {
                 var ulWidth = g.MeasureString("Userlist: ", NormalFont).Width;
-                var playingRectangle = new RectangleF(textBoxRect.X+ulWidth,textBoxRect.Y, textBoxRect.Width-ulWidth,textBoxRect.Height);
+                var playingRectangle = new RectangleF(textBoxRect.X + ulWidth, textBoxRect.Y, textBoxRect.Width - ulWidth, textBoxRect.Height);
                 g.DrawString("Userlist: ", NormalFont, TextBrush, textBoxRect, fmtNear);
                 g.DrawString("Playing", NormalFont, ULPlayingBrush, playingRectangle, fmtNear);
-                if(vn.Vote > 0) g.DrawString($" (Vote:{vn.Vote:0.00})", NormalFont, TextBrush, textBoxRect, fmtFar); //line 3 right: vn release date
+                if (vn.Vote > 0) g.DrawString($" (Vote:{vn.Vote:0.00})", NormalFont, TextBrush, textBoxRect, fmtFar); //line 3 right: vn release date
             }
             else
             {
@@ -696,7 +696,9 @@ namespace Happy_Search
 
         private static void DrawImageFitToSize(Graphics g, Rectangle photoArea, string photoFile)
         {
-            var photo = Image.FromFile(photoFile);
+            Image photo;
+            using (var ms = new MemoryStream(File.ReadAllBytes(photoFile))) photo = Image.FromStream(ms);
+            //var photo = Image.FromFile(photoFile);
             var photoAreaRatio = (double)photoArea.Width / photoArea.Height;
             var photoRatio = (double)photo.Width / photo.Height;
             //show whole image but do not occupy whole area

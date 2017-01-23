@@ -178,7 +178,7 @@
     <value>Single VN Query Error</value>
   </data>
   <data name="vn_updated" xml:space="preserve">
-    <value>Updated right now. Click to update again.</value>
+    <value>Updated just now.</value>
   </data>
   <data name="filter_saved" xml:space="preserve">
     <value>Filter saved.</value>

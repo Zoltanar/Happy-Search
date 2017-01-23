@@ -74,7 +74,7 @@ namespace Happy_Search
             this.toggleViewButton = new System.Windows.Forms.Button();
             this.multiActionBox = new System.Windows.Forms.ComboBox();
             this.infoTab = new System.Windows.Forms.TabPage();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.logGB = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
             this.sendQueryButton = new System.Windows.Forms.Button();
             this.serverR = new System.Windows.Forms.RichTextBox();
@@ -125,7 +125,7 @@ namespace Happy_Search
             this.label10 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.groupBox9 = new System.Windows.Forms.GroupBox();
+            this.aboutGB = new System.Windows.Forms.GroupBox();
             this.aboutTextBox = new System.Windows.Forms.RichTextBox();
             this.vnTab = new System.Windows.Forms.TabPage();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -241,10 +241,10 @@ namespace Happy_Search
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoTab.SuspendLayout();
-            this.groupBox3.SuspendLayout();
+            this.logGB.SuspendLayout();
             this.statBox.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            this.groupBox9.SuspendLayout();
+            this.aboutGB.SuspendLayout();
             this.vnTab.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).BeginInit();
@@ -263,7 +263,7 @@ namespace Happy_Search
             this.tagTypeS2.AutoSize = true;
             this.tagTypeS2.Checked = true;
             this.tagTypeS2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeS2.Location = new System.Drawing.Point(636, 15);
+            this.tagTypeS2.Location = new System.Drawing.Point(436, 15);
             this.tagTypeS2.Name = "tagTypeS2";
             this.tagTypeS2.Size = new System.Drawing.Size(33, 17);
             this.tagTypeS2.TabIndex = 63;
@@ -276,7 +276,7 @@ namespace Happy_Search
             this.tagTypeT2.AutoSize = true;
             this.tagTypeT2.Checked = true;
             this.tagTypeT2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeT2.Location = new System.Drawing.Point(675, 15);
+            this.tagTypeT2.Location = new System.Drawing.Point(475, 15);
             this.tagTypeT2.Name = "tagTypeT2";
             this.tagTypeT2.Size = new System.Drawing.Size(33, 17);
             this.tagTypeT2.TabIndex = 62;
@@ -289,7 +289,7 @@ namespace Happy_Search
             this.tagTypeC2.AutoSize = true;
             this.tagTypeC2.Checked = true;
             this.tagTypeC2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeC2.Location = new System.Drawing.Point(597, 15);
+            this.tagTypeC2.Location = new System.Drawing.Point(397, 15);
             this.tagTypeC2.Name = "tagTypeC2";
             this.tagTypeC2.Size = new System.Drawing.Size(33, 17);
             this.tagTypeC2.TabIndex = 61;
@@ -685,7 +685,7 @@ namespace Happy_Search
             this.closeAllFormsButton.Text = "Close All VN Windows";
             this.toolTip.SetToolTip(this.closeAllFormsButton, "Close all VN Info Windows that you have opened.");
             this.closeAllFormsButton.UseVisualStyleBackColor = false;
-            this.closeAllFormsButton.Click += new System.EventHandler(this.CloseAllForms);
+            this.closeAllFormsButton.Click += new System.EventHandler(this.CloseVNTabs);
             // 
             // SearchingAndFilteringButton
             // 
@@ -755,10 +755,10 @@ namespace Happy_Search
             // infoTab
             // 
             this.infoTab.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            this.infoTab.Controls.Add(this.groupBox3);
+            this.infoTab.Controls.Add(this.logGB);
             this.infoTab.Controls.Add(this.statBox);
             this.infoTab.Controls.Add(this.groupBox1);
-            this.infoTab.Controls.Add(this.groupBox9);
+            this.infoTab.Controls.Add(this.aboutGB);
             this.infoTab.Location = new System.Drawing.Point(4, 22);
             this.infoTab.Name = "infoTab";
             this.infoTab.Padding = new System.Windows.Forms.Padding(3);
@@ -766,34 +766,33 @@ namespace Happy_Search
             this.infoTab.TabIndex = 2;
             this.infoTab.Text = "Information";
             // 
-            // groupBox3
+            // logGB
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.logGB.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox3.BackColor = System.Drawing.Color.Transparent;
-            this.groupBox3.Controls.Add(this.advancedCheckBox);
-            this.groupBox3.Controls.Add(this.sendQueryButton);
-            this.groupBox3.Controls.Add(this.serverR);
-            this.groupBox3.Controls.Add(this.logReplyLabel);
-            this.groupBox3.Controls.Add(this.clearLogButton);
-            this.groupBox3.Controls.Add(this.serverQ);
-            this.groupBox3.Controls.Add(this.logQueryLabel);
-            this.groupBox3.Controls.Add(this.label1);
-            this.groupBox3.Controls.Add(this.questionBox);
-            this.groupBox3.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.groupBox3.Location = new System.Drawing.Point(8, 189);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(1394, 560);
-            this.groupBox3.TabIndex = 35;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Log";
+            this.logGB.BackColor = System.Drawing.Color.Transparent;
+            this.logGB.Controls.Add(this.advancedCheckBox);
+            this.logGB.Controls.Add(this.sendQueryButton);
+            this.logGB.Controls.Add(this.serverR);
+            this.logGB.Controls.Add(this.logReplyLabel);
+            this.logGB.Controls.Add(this.clearLogButton);
+            this.logGB.Controls.Add(this.serverQ);
+            this.logGB.Controls.Add(this.logQueryLabel);
+            this.logGB.Controls.Add(this.label1);
+            this.logGB.Controls.Add(this.questionBox);
+            this.logGB.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.logGB.Location = new System.Drawing.Point(8, 189);
+            this.logGB.Name = "logGB";
+            this.logGB.Size = new System.Drawing.Size(1180, 403);
+            this.logGB.TabIndex = 35;
+            this.logGB.TabStop = false;
+            this.logGB.Text = "Log";
             // 
             // advancedCheckBox
             // 
-            this.advancedCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.advancedCheckBox.AutoSize = true;
-            this.advancedCheckBox.Location = new System.Drawing.Point(233, 535);
+            this.advancedCheckBox.Location = new System.Drawing.Point(134, 106);
             this.advancedCheckBox.Name = "advancedCheckBox";
             this.advancedCheckBox.Size = new System.Drawing.Size(105, 17);
             this.advancedCheckBox.TabIndex = 41;
@@ -827,7 +826,7 @@ namespace Happy_Search
             this.serverR.ForeColor = System.Drawing.SystemColors.Info;
             this.serverR.Location = new System.Drawing.Point(344, 32);
             this.serverR.Name = "serverR";
-            this.serverR.Size = new System.Drawing.Size(1044, 522);
+            this.serverR.Size = new System.Drawing.Size(830, 363);
             this.serverR.TabIndex = 39;
             this.serverR.Text = "(Advanced Mode Disabled)";
             // 
@@ -842,13 +841,12 @@ namespace Happy_Search
             // 
             // clearLogButton
             // 
-            this.clearLogButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.clearLogButton.BackColor = System.Drawing.Color.MistyRose;
             this.clearLogButton.Enabled = false;
             this.clearLogButton.FlatAppearance.BorderSize = 0;
             this.clearLogButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.clearLogButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.clearLogButton.Location = new System.Drawing.Point(6, 531);
+            this.clearLogButton.Location = new System.Drawing.Point(245, 102);
             this.clearLogButton.Name = "clearLogButton";
             this.clearLogButton.Size = new System.Drawing.Size(46, 23);
             this.clearLogButton.TabIndex = 37;
@@ -866,7 +864,7 @@ namespace Happy_Search
             this.serverQ.ForeColor = System.Drawing.SystemColors.Info;
             this.serverQ.Location = new System.Drawing.Point(4, 131);
             this.serverQ.Name = "serverQ";
-            this.serverQ.Size = new System.Drawing.Size(334, 394);
+            this.serverQ.Size = new System.Drawing.Size(334, 264);
             this.serverQ.TabIndex = 36;
             this.serverQ.Text = "(Advanced Mode Disabled)";
             // 
@@ -902,6 +900,7 @@ namespace Happy_Search
             // 
             // statBox
             // 
+            this.statBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.statBox.BackColor = System.Drawing.Color.Transparent;
             this.statBox.Controls.Add(this.dbs9r);
             this.statBox.Controls.Add(this.dbs8r);
@@ -922,7 +921,7 @@ namespace Happy_Search
             this.statBox.Controls.Add(this.dbs2);
             this.statBox.Controls.Add(this.dbs1);
             this.statBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.statBox.Location = new System.Drawing.Point(1263, 6);
+            this.statBox.Location = new System.Drawing.Point(1049, 6);
             this.statBox.Name = "statBox";
             this.statBox.Size = new System.Drawing.Size(139, 177);
             this.statBox.TabIndex = 32;
@@ -1084,6 +1083,7 @@ namespace Happy_Search
             // 
             // groupBox1
             // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.BackColor = System.Drawing.Color.Transparent;
             this.groupBox1.Controls.Add(this.mctULLabel10);
             this.groupBox1.Controls.Add(this.mctULLabel9);
@@ -1110,16 +1110,16 @@ namespace Happy_Search
             this.groupBox1.Controls.Add(this.label9);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.groupBox1.Location = new System.Drawing.Point(540, 6);
+            this.groupBox1.Location = new System.Drawing.Point(520, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(717, 177);
+            this.groupBox1.Size = new System.Drawing.Size(523, 177);
             this.groupBox1.TabIndex = 31;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "User Stats";
             // 
             // mctULLabel10
             // 
-            this.mctULLabel10.Location = new System.Drawing.Point(458, 150);
+            this.mctULLabel10.Location = new System.Drawing.Point(258, 150);
             this.mctULLabel10.Name = "mctULLabel10";
             this.mctULLabel10.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel10.TabIndex = 74;
@@ -1127,7 +1127,7 @@ namespace Happy_Search
             // 
             // mctULLabel9
             // 
-            this.mctULLabel9.Location = new System.Drawing.Point(458, 137);
+            this.mctULLabel9.Location = new System.Drawing.Point(258, 137);
             this.mctULLabel9.Name = "mctULLabel9";
             this.mctULLabel9.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel9.TabIndex = 73;
@@ -1135,7 +1135,7 @@ namespace Happy_Search
             // 
             // mctULLabel8
             // 
-            this.mctULLabel8.Location = new System.Drawing.Point(458, 124);
+            this.mctULLabel8.Location = new System.Drawing.Point(258, 124);
             this.mctULLabel8.Name = "mctULLabel8";
             this.mctULLabel8.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel8.TabIndex = 72;
@@ -1143,7 +1143,7 @@ namespace Happy_Search
             // 
             // mctULLabel7
             // 
-            this.mctULLabel7.Location = new System.Drawing.Point(458, 111);
+            this.mctULLabel7.Location = new System.Drawing.Point(258, 111);
             this.mctULLabel7.Name = "mctULLabel7";
             this.mctULLabel7.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel7.TabIndex = 71;
@@ -1151,7 +1151,7 @@ namespace Happy_Search
             // 
             // mctULLabel6
             // 
-            this.mctULLabel6.Location = new System.Drawing.Point(458, 98);
+            this.mctULLabel6.Location = new System.Drawing.Point(258, 98);
             this.mctULLabel6.Name = "mctULLabel6";
             this.mctULLabel6.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel6.TabIndex = 70;
@@ -1159,7 +1159,7 @@ namespace Happy_Search
             // 
             // mctULLabel5
             // 
-            this.mctULLabel5.Location = new System.Drawing.Point(458, 85);
+            this.mctULLabel5.Location = new System.Drawing.Point(258, 85);
             this.mctULLabel5.Name = "mctULLabel5";
             this.mctULLabel5.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel5.TabIndex = 69;
@@ -1167,7 +1167,7 @@ namespace Happy_Search
             // 
             // mctULLabel4
             // 
-            this.mctULLabel4.Location = new System.Drawing.Point(458, 72);
+            this.mctULLabel4.Location = new System.Drawing.Point(258, 72);
             this.mctULLabel4.Name = "mctULLabel4";
             this.mctULLabel4.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel4.TabIndex = 68;
@@ -1175,7 +1175,7 @@ namespace Happy_Search
             // 
             // mctULLabel3
             // 
-            this.mctULLabel3.Location = new System.Drawing.Point(458, 59);
+            this.mctULLabel3.Location = new System.Drawing.Point(258, 59);
             this.mctULLabel3.Name = "mctULLabel3";
             this.mctULLabel3.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel3.TabIndex = 67;
@@ -1183,7 +1183,7 @@ namespace Happy_Search
             // 
             // mctULLabel2
             // 
-            this.mctULLabel2.Location = new System.Drawing.Point(458, 46);
+            this.mctULLabel2.Location = new System.Drawing.Point(258, 46);
             this.mctULLabel2.Name = "mctULLabel2";
             this.mctULLabel2.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel2.TabIndex = 66;
@@ -1191,7 +1191,7 @@ namespace Happy_Search
             // 
             // mctULLabel1
             // 
-            this.mctULLabel1.Location = new System.Drawing.Point(458, 33);
+            this.mctULLabel1.Location = new System.Drawing.Point(258, 33);
             this.mctULLabel1.Name = "mctULLabel1";
             this.mctULLabel1.Size = new System.Drawing.Size(253, 13);
             this.mctULLabel1.TabIndex = 65;
@@ -1201,7 +1201,7 @@ namespace Happy_Search
             // 
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label13.Location = new System.Drawing.Point(458, 16);
+            this.label13.Location = new System.Drawing.Point(258, 16);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(101, 13);
             this.label13.TabIndex = 60;
@@ -1292,20 +1292,25 @@ namespace Happy_Search
             this.label8.Text = "All Titles Related to User";
             this.label8.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
-            // groupBox9
+            // aboutGB
             // 
-            this.groupBox9.BackColor = System.Drawing.Color.Transparent;
-            this.groupBox9.Controls.Add(this.aboutTextBox);
-            this.groupBox9.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.groupBox9.Location = new System.Drawing.Point(8, 6);
-            this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Size = new System.Drawing.Size(526, 177);
-            this.groupBox9.TabIndex = 1;
-            this.groupBox9.TabStop = false;
-            this.groupBox9.Text = "About";
+            this.aboutGB.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.aboutGB.BackColor = System.Drawing.Color.Transparent;
+            this.aboutGB.Controls.Add(this.aboutTextBox);
+            this.aboutGB.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.aboutGB.Location = new System.Drawing.Point(8, 6);
+            this.aboutGB.Name = "aboutGB";
+            this.aboutGB.Size = new System.Drawing.Size(506, 177);
+            this.aboutGB.TabIndex = 1;
+            this.aboutGB.TabStop = false;
+            this.aboutGB.Text = "About";
             // 
             // aboutTextBox
             // 
+            this.aboutTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.aboutTextBox.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.aboutTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.aboutTextBox.Enabled = false;
@@ -1313,7 +1318,7 @@ namespace Happy_Search
             this.aboutTextBox.Location = new System.Drawing.Point(6, 19);
             this.aboutTextBox.Name = "aboutTextBox";
             this.aboutTextBox.ReadOnly = true;
-            this.aboutTextBox.Size = new System.Drawing.Size(514, 152);
+            this.aboutTextBox.Size = new System.Drawing.Size(494, 152);
             this.aboutTextBox.TabIndex = 0;
             this.aboutTextBox.Text = "";
             // 
@@ -2598,12 +2603,12 @@ namespace Happy_Search
             this.Text = "Happy Search";
             this.Load += new System.EventHandler(this.OnLoadRoutines);
             this.infoTab.ResumeLayout(false);
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
+            this.logGB.ResumeLayout(false);
+            this.logGB.PerformLayout();
             this.statBox.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            this.groupBox9.ResumeLayout(false);
+            this.aboutGB.ResumeLayout(false);
             this.vnTab.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).EndInit();
@@ -2625,7 +2630,7 @@ namespace Happy_Search
         #endregion
         private ToolTip toolTip;
         private TabPage infoTab;
-        private GroupBox groupBox9;
+        private GroupBox aboutGB;
         private RichTextBox aboutTextBox;
         private TabPage vnTab;
         internal Label loginReply;
@@ -2739,7 +2744,7 @@ namespace Happy_Search
         private OLVColumn ol2UserAverageVote;
         private OLVColumn ol2UserDropRate;
         private RichTextBox questionBox;
-        private GroupBox groupBox3;
+        private GroupBox logGB;
         private Label logQueryLabel;
         private Label label1;
         internal RichTextBox serverR;
