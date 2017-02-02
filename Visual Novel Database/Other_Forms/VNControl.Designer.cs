@@ -411,6 +411,7 @@
             // label9
             // 
             this.label9.BackColor = System.Drawing.Color.Transparent;
+            this.label9.Enabled = false;
             this.label9.ForeColor = System.Drawing.Color.Lavender;
             this.label9.Location = new System.Drawing.Point(5, 218);
             this.label9.Name = "label9";
@@ -422,6 +423,7 @@
             // releasesCB
             // 
             this.releasesCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.releasesCB.Enabled = false;
             this.releasesCB.FormattingEnabled = true;
             this.releasesCB.Location = new System.Drawing.Point(71, 218);
             this.releasesCB.Name = "releasesCB";

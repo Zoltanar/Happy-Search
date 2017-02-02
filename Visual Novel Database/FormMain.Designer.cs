@@ -2261,6 +2261,7 @@ namespace Happy_Search
             this.tileOLV.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.FormatVNCell);
             this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatVNRow);
             this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
+            this.tileOLV.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tileOLV_MouseClick);
             this.tileOLV.Resize += new System.EventHandler(this.tileOLV_Resize);
             // 
             // tileColumnTitle

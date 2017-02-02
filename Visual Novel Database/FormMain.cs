@@ -32,7 +32,7 @@ namespace Happy_Search
         //constants / definables
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.3";
+        public const string ClientVersion = "1.4.4";
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -1412,5 +1412,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Vote
         }
         #endregion
+
     }
 }

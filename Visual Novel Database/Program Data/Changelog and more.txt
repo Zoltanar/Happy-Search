@@ -2,10 +2,16 @@ Next Milestone == ??
 
 Changelog
 ---------
-
+-1.4.4 released (test)-
+Fixed: VN tab downloads screenshots asynchronously.
+Changed: Double click to open vn tab, it will auto-switch to it unless holding alt.
+Fixed: Information tab fits in minimum size window.
 Changed: VN Windows are now tabs in the main window.
+-1.4.3 released (test)-
+Changed: (most) settings are now saved in settings.json in Stored Data folder (rather than saved by Windows per profile).
 Added: Allow vote with decimal numbers (1 dp allowed).
-Added: Multi-selection actions (Remove from DB)/
+-1.4.2 released (test)-
+Added: Multi-selection actions (Remove from DB)
 Fixed: Login with username and password (instead of user id and password) fixed.
 Changed: Layout changes incl. Suggest Producers is now in Producer Search Window.
 Added: Toggle between normal view and wide view (more results).
@@ -95,21 +101,22 @@ No Work
 ---------------
 	Easy Tasks
 	----------
-	 Double click to launch vn window instead of single click.
 	 Ordering VN list, wishlist/vnlist should go in proper order, not alphabetic.
 	 Add list controls to vn window.
-	 Make Information tab fit in minimum size window
 	 
 	Medium Tasks
 	----------
 	 Allow user configurated color scheme (for vn list)
-	 Add release controls to vn window.
+
 
 	Hard Tasks
 	----------
 	UI overhaul, make a left side vertical menu
-	UI overhaul, make vn windows appear as tabs
 	Use EntityFramework for SQLite
+
+	Not Currently Possible
+	----------
+	 Add release controls to vn window.
 	 
 
 Unordered Tasks

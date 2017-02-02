@@ -234,16 +234,21 @@ namespace Happy_Search
                 DBConn.Open();
                 DBConn.RemoveVisualNovel(vnid);
                 DBConn.Close();
+                ChangeAPIStatus(Conn.Status);
                 return new ListedVN();
             }
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem, true);
             var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
             var gpResult = await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
-            if (!gpResult.Item1) return null;
+            if (!gpResult.Item1)
+            {
+                ChangeAPIStatus(Conn.Status);
+                return null;
+            }
             DBConn.Open();
             DBConn.UpsertSingleVN(vnItem, relProducer);
-            if(gpResult.Item2 != null) DBConn.InsertProducer(gpResult.Item2,true);
+            if (gpResult.Item2 != null) DBConn.InsertProducer(gpResult.Item2, true);
             var vn = DBConn.GetSingleVN(vnid, Settings.UserID);
             DBConn.Close();
             await ReloadListsFromDbAsync();
@@ -337,7 +342,7 @@ namespace Happy_Search
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                 DBConn.EndTransaction();
             }
-            List<Tuple<VNItem,int>> vnsToBeUpserted = new List<Tuple<VNItem, int>>();
+            List<Tuple<VNItem, int>> vnsToBeUpserted = new List<Tuple<VNItem, int>>();
             List<ListedProducer> producersToBeUpserted = new List<ListedProducer>();
             foreach (var vnItem in vnRoot.Items)
             {
@@ -345,12 +350,12 @@ namespace Happy_Search
                 var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 var gpResult = await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
                 if (!gpResult.Item1) return;
-                if(gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
+                if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
                 _vnsAdded++;
-                vnsToBeUpserted.Add(new Tuple<VNItem, int>(vnItem,relProducer));
+                vnsToBeUpserted.Add(new Tuple<VNItem, int>(vnItem, relProducer));
             }
             DBConn.BeginTransaction();
-            foreach (Tuple<VNItem, int> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1,vn.Item2);
+            foreach (Tuple<VNItem, int> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2);
             foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
             DBConn.EndTransaction();
             await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
@@ -560,7 +565,7 @@ namespace Happy_Search
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
-        internal async Task<Tuple<bool,ListedProducer>> GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task<Tuple<bool, ListedProducer>> GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             int[] producerIDList = ProducerList.Select(x => x.ID).ToArray();
             if (producerID == -1 || producerIDList.Contains(producerID)) return new Tuple<bool, ListedProducer>(true, null);
@@ -661,7 +666,7 @@ namespace Happy_Search
                     else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
                     break;
                 case ChangeType.Vote:
-                    int vote = (int) Math.Floor(newVoteValue * 10);
+                    int vote = (int)Math.Floor(newVoteValue * 10);
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
                         : $"set votelist {vn.VNID} {{\"vote\":{vote}}}";

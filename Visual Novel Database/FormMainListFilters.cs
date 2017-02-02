@@ -786,6 +786,7 @@ namespace Happy_Search
         /// </summary>
         private void VisualNovelLeftClick(object sender, CellClickEventArgs e)
         {
+            if (e.ClickCount < 2) return;
             if (ModifierKeys.HasFlag(Keys.Control)) return;
             var listView = (ObjectListView)sender;
             if (listView.SelectedIndices.Count <= 0) return;
@@ -799,13 +800,13 @@ namespace Happy_Search
                 DBConn.Close();
                 vnf = new VNControl(vnItem, this, tabPage);
             }
-            else
-            {
-                vnf = new VNControl(vnItem, this, tabPage, false);
-            }
+            else vnf = new VNControl(vnItem, this, tabPage, false);
             vnf.Dock = DockStyle.Fill;
             tabPage.Controls.Add(vnf);
             tabControl1.TabPages.Add(tabPage);
+            //dont auto-switch to tab if holding alt
+            if (ModifierKeys.HasFlag(Keys.Alt)) return;
+            tabControl1.SelectTab(tabPage);
         }
 
         //format list rows, color according to userlist status, only for Details View
@@ -880,6 +881,10 @@ namespace Happy_Search
         {
             if (e == null) return;
             e.MenuStrip = VNContextMenu(e.Model);
+        }
+
+        private void tileOLV_MouseClick(object sender, MouseEventArgs e)
+        {
         }
 
         /// <summary>

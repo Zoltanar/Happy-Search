@@ -184,6 +184,7 @@ namespace Happy_Search.Other_Forms
             }
             else pcbImages.Image = Resources.no_image;
             //relations, anime and screenshots are only fetched here but are saved to database/disk
+            DisplayTextOnScreenshotArea("Getting data from VNDB...");
             var loadResult = await LoadFromAPI(vnItem, update);
             switch (loadResult.Status)
             {
@@ -346,6 +347,14 @@ namespace Happy_Search.Other_Forms
             {
                 screens = JsonConvert.DeserializeObject<ScreenItem[]>(vnItem.Screens);
                 _screens = screens;
+                foreach (var screenItem in screens)
+                {
+                    var screenLocation = screenItem.StoredLocation();
+                    if (!File.Exists(screenLocation))
+                    {
+                        SaveScreenshot(screenItem.Image, screenLocation);
+                    }
+                }
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
             }
             //screenshots haven't been fetched yet
@@ -405,9 +414,7 @@ namespace Happy_Search.Other_Forms
         private void DisplayScreenshots(ScreenItem[] screenItems)
         {
             picturePanel.Controls.Clear();
-            //
             var dist = picturePanel.Size.Width;
-            //
             if (screenItems == null || !screenItems.Any())
             {
                 DisplayTextOnScreenshotArea("No Screenshots Found");
@@ -432,13 +439,15 @@ namespace Happy_Search.Other_Forms
 
         private void DisplayTextOnScreenshotArea(string text)
         {
+            picturePanel.Controls.Clear();
             picturePanel.Controls.Add(new Label
             {
                 Text = text,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Location = new Point(0, 0),
                 Size = new Size(picturePanel.Size.Width, picturePanel.Size.Height),
-                Font = new Font(DefaultFont.FontFamily, DefaultFont.SizeInPoints * 1.8f)
+                Font = new Font(DefaultFont.FontFamily, DefaultFont.SizeInPoints * 1.8f),
+                ForeColor = Color.White
             });
         }
         private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -534,78 +543,35 @@ namespace Happy_Search.Other_Forms
         }
 
 
-        private static int DrawImageFitToWidth(Control control, int width, int locationX, ScreenItem screenItem)
+        /// <summary>
+        /// DrawImage to fit a space with maxWdith, all image is shown but to stay in ratio, there can be space left below or to the right.
+        /// </summary>
+        private static int DrawImageFitToWidth(Control control, int maxWidth, int locationX, ScreenItem screenItem)
         {
+            int maxHeight = control.Height - 20;
             string photoString = screenItem.StoredLocation();
             if (!File.Exists(photoString))
             {
                 SaveScreenshot(screenItem.Image, photoString);
             }
             var photo = Image.FromFile(photoString);
-            int newHeight;
-            var photoToAreaWidthRatio = (double)screenItem.Width / width;
-            //show whole image but do not occupy whole area
-            //if image is taller than height
-            if (screenItem.Width > width)
-            {
-                newHeight = (int)(screenItem.Height / photoToAreaWidthRatio);
-            } //if image is exactly  height
-            else if (screenItem.Width == width)
-            {
-                newHeight = screenItem.Height;
-            }
-            //if image is shorter than height
-            else
-            {
-                newHeight = (int)(screenItem.Height * photoToAreaWidthRatio);
-            }
+            double ratioH = (double)maxHeight / screenItem.Height;
+            double ratioW = (double)maxWidth / screenItem.Width;
+            double multiRatio = Math.Min(ratioH,ratioW);
+            var newHeight = (int)(screenItem.Height * multiRatio);
+            var newWidth = (int)(screenItem.Width * multiRatio);
             var pictureBox = new PictureBox
             {
                 BackgroundImage = photo,
-                Size = new Size(width, newHeight),
+                Size = new Size(newWidth, newHeight),
                 Location = new Point(locationX, 0),
                 BackgroundImageLayout = ImageLayout.Stretch
             };
             control.Controls.Add(pictureBox);
-            return width;
-        }
-
-
-        /*private static int DrawImageFitToHeight(Control control, int height, int locationX, ScreenItem screenItem)
-        {
-            string photoString = screenItem.StoredLocation();
-            if (!File.Exists(photoString))
-            {
-                SaveScreenshot(screenItem.Image, photoString);
-            }
-            var photo = Image.FromFile(photoString);
-            int newWidth;
-            var photoToAreaHeightRatio = (double)screenItem.Height / height;
-            //show whole image but do not occupy whole area
-            //if image is taller than height
-            if (screenItem.Height > height)
-            {
-                newWidth = (int)(screenItem.Width / photoToAreaHeightRatio);
-            } //if image is exactly  height
-            else if (screenItem.Height == height)
-            {
-                newWidth = screenItem.Width;
-            }
-            //if image is shorter than height
-            else
-            {
-                newWidth = (int)(screenItem.Width * photoToAreaHeightRatio);
-            }
-            var pictureBox = new PictureBox
-            {
-                BackgroundImage = photo,
-                Size = new Size(newWidth, height),
-                Location = new Point(locationX, 0),
-                BackgroundImageLayout = ImageLayout.Stretch
-            };
-            control.Controls.Add(pictureBox);
+            //Debug.Print($"Original ratio = {(double)screenItem.Width / (double)screenItem.Height}");
+            //Debug.Print($"New ratio = {(double)newWidth / (double)newHeight}");
             return newWidth;
-        }*/
+        }
 
         private static int DrawNSFWImageFitToHeight(Control control, int height, int locationX)
         {
@@ -709,8 +675,8 @@ namespace Happy_Search.Other_Forms
             var pictures = picturePanel.Controls.Count;
             if (e.Delta < 0)
             {
-                if (pictures <= _selectedScreen+1 || _selectedScreen == -1) return;
-                picturePanel.ScrollControlIntoView(picturePanel.Controls[_selectedScreen+1]);
+                if (pictures <= _selectedScreen + 1 || _selectedScreen == -1) return;
+                picturePanel.ScrollControlIntoView(picturePanel.Controls[_selectedScreen + 1]);
                 _selectedScreen++;
             }
             else if (e.Delta > 0)
