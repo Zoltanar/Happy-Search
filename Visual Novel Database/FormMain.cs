@@ -857,6 +857,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         #region Other/General
 
+
         internal static bool AdvancedMode; //when true, print all api queries and responses to information tab.
 
         private void ToggleAdvancedMode(object sender, EventArgs e)
@@ -881,10 +882,16 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
+
+        internal bool VNIsByFavoriteProducer(ListedVN vn)
+        {
+            return FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
+        }
+
         /// <summary>
         ///     Loads lists from local database.
         /// </summary>
-        private async Task ReloadListsFromDbAsync()
+        internal async Task ReloadListsFromDbAsync()
         {
             await Task.Run(() =>
             {
@@ -1230,7 +1237,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Refresh VN OLV and repopulate group and producer search boxes.
         /// </summary>
-        private void LoadVNListToGui(bool skipGroupSearch = false)
+        internal void LoadVNListToGui(bool skipGroupSearch = false)
         {
             tileOLV.SetObjects(_vnList.Where(_currentList));
             if (!skipGroupSearch) PopulateGroupSearchBox();

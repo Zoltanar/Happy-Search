@@ -3,6 +3,8 @@ Next Milestone == ??
 Changelog
 ---------
 -1.4.4 released (test)-
+Fixed: Wait for DB to be free before attempting to LoadDataFromAPI in VNControl
+-1.4.4 released (test)-
 Fixed: VN tab downloads screenshots asynchronously.
 Changed: Double click to open vn tab, it will auto-switch to it unless holding alt.
 Fixed: Information tab fits in minimum size window.
@@ -114,9 +116,10 @@ No Work
 	UI overhaul, make a left side vertical menu
 	Use EntityFramework for SQLite
 
-	Not Currently Possible
+	Not Currently Possible (Not supported by VNDB API)
 	----------
 	 Add release controls to vn window.
+	 Staff functionality
 	 
 
 Unordered Tasks

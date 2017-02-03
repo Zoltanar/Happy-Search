@@ -682,8 +682,8 @@ namespace Happy_Search
             this.closeAllFormsButton.Name = "closeAllFormsButton";
             this.closeAllFormsButton.Size = new System.Drawing.Size(131, 23);
             this.closeAllFormsButton.TabIndex = 81;
-            this.closeAllFormsButton.Text = "Close All VN Windows";
-            this.toolTip.SetToolTip(this.closeAllFormsButton, "Close all VN Info Windows that you have opened.");
+            this.closeAllFormsButton.Text = "Close All VN Tabs";
+            this.toolTip.SetToolTip(this.closeAllFormsButton, "Close all VN Info Tabs that you have opened.");
             this.closeAllFormsButton.UseVisualStyleBackColor = false;
             this.closeAllFormsButton.Click += new System.EventHandler(this.CloseVNTabs);
             // 
@@ -2261,7 +2261,6 @@ namespace Happy_Search
             this.tileOLV.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.FormatVNCell);
             this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatVNRow);
             this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
-            this.tileOLV.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tileOLV_MouseClick);
             this.tileOLV.Resize += new System.EventHandler(this.tileOLV_Resize);
             // 
             // tileColumnTitle
@@ -2628,6 +2627,11 @@ namespace Happy_Search
 
         }
 
+        private void tileOLV_MouseClick(object sender, MouseEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
         private ToolTip toolTip;
         private TabPage infoTab;
@@ -2814,7 +2818,7 @@ namespace Happy_Search
         private ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
         private Button sendQueryButton;
         private CheckBox advancedCheckBox;
-        private ComboBox groupListBox;
+        internal ComboBox groupListBox;
         private Button tagSignaler;
         private Button traitSignaler;
         private CheckBox ToggleFiltersModeButton;

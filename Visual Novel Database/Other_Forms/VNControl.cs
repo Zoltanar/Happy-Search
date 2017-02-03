@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
@@ -24,6 +25,8 @@ namespace Happy_Search.Other_Forms
         private ListedVN _displayedVN;
         private readonly bool _loadFromDb;
         private ScreenItem[] _screens;
+        private readonly TabPage _tabPage;
+        private bool _working;
 
         /// <summary>
         /// Load VN form with specified Visual Novel.
@@ -37,7 +40,8 @@ namespace Happy_Search.Other_Forms
             _parentForm = parentForm;
             _loadFromDb = loadFromDb;
             InitializeComponent();
-            tabPage.Text = $@"{vnItem.Title}";
+            _tabPage = tabPage;
+            _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             tagTypeC.Checked = FormMain.Settings.ContentTags;
             tagTypeS.Checked = FormMain.Settings.SexualTags;
             tagTypeT.Checked = FormMain.Settings.TechnicalTags;
@@ -127,12 +131,6 @@ namespace Happy_Search.Other_Forms
         private async Task SetNewData(int vnid)
         {
             await GetSingleVN(vnid, vnUpdateLink);
-            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
-            if (root.Num == 0)
-            {
-                SetDeletedData();
-                return;
-            }
             ListedVN vn = null;
             await Task.Run(() =>
             {
@@ -157,6 +155,7 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             Text = $@"{vnItem.Title} - {FormMain.ClientName}";
+            _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             //prepare data
             _displayedVN = vnItem;
             var ext = Path.GetExtension(vnItem.ImageURL);
@@ -168,6 +167,12 @@ namespace Happy_Search.Other_Forms
             vnID.Text = vnItem.VNID.ToString();
             vnKanjiName.Text = vnItem.KanjiTitle;
             vnProducer.Text = vnItem.Producer;
+            if (_parentForm.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
+            {
+                vnProducer.LinkColor = FavoriteProducerBrush.Color;
+                vnProducer.ActiveLinkColor = FavoriteProducerBrush.Color;
+                vnProducer.VisitedLinkColor = FavoriteProducerBrush.Color;
+            }
             vnDate.Text = vnItem.RelDate;
             vnDesc.Text = vnItem.Description;
             vnRating.Text = vnItem.RatingAndVoteCount();
@@ -175,6 +180,9 @@ namespace Happy_Search.Other_Forms
             vnLength.Text = vnItem.Length;
             vnUserStatus.Text = vnItem.UserRelatedStatus();
             vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
+            var notes = vnItem.GetCustomItemNotes();
+            vnNotes.Text = notes.Notes.Length > 0 ? $"Notes: {notes.Notes}" : "No notes.";
+            DisplayGroups(notes);
             if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc))
             {
@@ -185,6 +193,7 @@ namespace Happy_Search.Other_Forms
             else pcbImages.Image = Resources.no_image;
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             DisplayTextOnScreenshotArea("Getting data from VNDB...");
+            while (_parentForm.DBConn.IsBusy()) await Task.Delay(25);
             var loadResult = await LoadFromAPI(vnItem, update);
             switch (loadResult.Status)
             {
@@ -206,6 +215,24 @@ namespace Happy_Search.Other_Forms
                     DisplayScreenshots(loadResult.Screens);
                     break;
             }
+        }
+
+        private void DisplayGroups(CustomItemNotes notes)
+        {
+            int groupCount = notes.Groups.Count;
+            if (groupCount <= 0)
+            {
+                vnGroups.Items.Add("No Groups");
+                return;
+            }
+            vnGroups.Items.Add($"{groupCount} Groups");
+            vnGroups.Items.Add("----------");
+            foreach (var groupString in notes.Groups)
+            {
+
+                vnGroups.Items.Add(groupString);
+            }
+            vnGroups.SelectedIndex = 0;
         }
 
         private async Task<APILoadStruct> LoadFromAPI(ListedVN vnItem, bool update)
@@ -245,6 +272,8 @@ namespace Happy_Search.Other_Forms
             vnUpdateLink.Text = "";
             vnRating.Text = "";
             vnPopularity.Text = "";
+            vnNotes.Text = "";
+            vnGroups.Items.Clear();
             vnTagCB.DataSource = null;
             vnRelationsCB.DataSource = null;
             vnAnimeCB.DataSource = null;
@@ -469,6 +498,11 @@ namespace Happy_Search.Other_Forms
         {
             ComboBox dropdownlist = (ComboBox)sender;
             if (dropdownlist.SelectedIndex < 0) return;
+            if (dropdownlist.Text.StartsWith("------"))
+            {
+                dropdownlist.SelectedIndex = 0;
+                return;
+            }
             switch (dropdownlist.SelectedIndex)
             {
                 case 0:
@@ -497,7 +531,8 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async void RefreshData(object sender, EventArgs e)
         {
-            await SetData(_displayedVN);
+            if (_displayedVN == null) return;
+            await SetNewData(_displayedVN.VNID);
         }
 
         /// <summary>
@@ -557,7 +592,7 @@ namespace Happy_Search.Other_Forms
             var photo = Image.FromFile(photoString);
             double ratioH = (double)maxHeight / screenItem.Height;
             double ratioW = (double)maxWidth / screenItem.Width;
-            double multiRatio = Math.Min(ratioH,ratioW);
+            double multiRatio = Math.Min(ratioH, ratioW);
             var newHeight = (int)(screenItem.Height * multiRatio);
             var newWidth = (int)(screenItem.Width * multiRatio);
             var pictureBox = new PictureBox
@@ -687,5 +722,306 @@ namespace Happy_Search.Other_Forms
             }
         }
         #endregion
+
+        private void DisplayProducerTitles(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            _parentForm.tabControl1.SelectTab(0);
+            _parentForm.List_Producer(vnProducer.Text);
+        }
+
+
+        /// <summary>
+        /// Prepare and display context menu for visual novel.
+        /// </summary>
+        private ContextMenuStrip VNControlContextMenu(ListedVN vn)
+        {
+            //clearing previous
+            foreach (ToolStripMenuItem item in userlistToolStripMenuItem.DropDownItems) item.Checked = false;
+            foreach (ToolStripMenuItem item in wishlistToolStripMenuItem.DropDownItems) item.Checked = false;
+            foreach (ToolStripMenuItem item in voteToolStripMenuItem.DropDownItems) item.Checked = false;
+            userlistToolStripMenuItem.Checked = false;
+            wishlistToolStripMenuItem.Checked = false;
+            voteToolStripMenuItem.Checked = false;
+
+            //set new
+            userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
+            wishlistToolStripMenuItem.Checked = !vn.WLStatus.Equals("");
+            voteToolStripMenuItem.Checked = vn.Vote > 0;
+            switch (vn.ULStatus)
+            {
+                case "":
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
+                    break;
+                case "Unknown":
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
+                    break;
+                case "Playing":
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
+                    break;
+                case "Finished":
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
+                    break;
+                case "Stalled":
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
+                    break;
+                case "Dropped":
+                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
+                    break;
+            }
+            switch (vn.WLStatus)
+            {
+                case "":
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
+                    break;
+                case "High":
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
+                    break;
+                case "Medium":
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
+                    break;
+                case "Low":
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
+                    break;
+                case "Blacklist":
+                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
+                    break;
+            }
+            if (vn.Vote > 0)
+            {
+                var vote = (int)Math.Floor(vn.Vote);
+                ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[vote]).Checked = true;
+            }
+            else
+                ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
+            if (!vn.ULStatus.Equals(""))
+            {
+                addChangeVNNoteToolStripMenuItem.Enabled = true;
+                addChangeVNGroupsToolStripMenuItem.Enabled = true;
+            }
+            if (_parentForm.VNIsByFavoriteProducer(vn))
+            {
+                addProducerToFavoritesToolStripMenuItem.Enabled = false;
+                addProducerToFavoritesToolStripMenuItem.ToolTipText = @"Already in list.";
+            }
+            return ContextMenuVNControl;
+        }
+
+        private async void ChangeVNStatus(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
+            {
+                WriteError(vnUpdateLink, "Not Logged In", true);
+                return;
+            }
+            var nitem = e.ClickedItem;
+            if (nitem == null) return;
+            bool success;
+            if (_displayedVN == null || _working) return;
+            var statusInt = -1;
+            switch (nitem.OwnerItem.Text)
+            {
+                case "Userlist":
+                    if (_displayedVN.ULStatus.Equals(nitem.Text))
+                    {
+                        WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
+                        return;
+                    }
+                    _working = true;
+                    statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
+                    success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.UL, statusInt);
+                    break;
+                case "Wishlist":
+                    if (_displayedVN.WLStatus.Equals(nitem.Text))
+                    {
+                        WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
+                        return;
+                    }
+                    _working = true;
+                    statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
+                    success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.WL, statusInt);
+                    break;
+                case "Vote":
+                    double newVoteValue = -1;
+                    switch (nitem.Text)
+                    {
+                        case "(None)":
+                            break;
+                        case "Precise Number":
+                            StringBuilder input = new StringBuilder();
+                            var voteBox = new InputDialogBox(input, "Precise Vote", "Enter vote value:", preciseVote: true).ShowDialog();
+                            if (voteBox != DialogResult.OK) return;
+                            newVoteValue = double.Parse(input.ToString());
+                            statusInt = 1;
+                            break;
+                        default:
+                            newVoteValue = Convert.ToInt32(nitem.Text);
+                            statusInt = 1;
+                            break;
+                    }
+                    if (Math.Abs(_displayedVN.Vote - newVoteValue) < 0.001)
+                    {
+                        WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
+                        return;
+                    }
+                    _working = true;
+                    success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.Vote, statusInt, newVoteValue);
+                    _working = false;
+                    break;
+                default:
+                    return;
+            }
+            if (!success)
+            {
+                _working = false;
+                return;
+            }
+            WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} status changed.");
+            await SetNewData(_displayedVN.VNID);
+            _working = false;
+        }
+
+
+        private async void AddProducer(object sender, EventArgs e)
+        {
+            if (_displayedVN == null || _working) return;
+            _working = true;
+            ListedVN[] producerVNs = _parentForm.URTList.Where(x => x.Producer.Equals(_displayedVN.Producer)).ToArray();
+            double userAverageVote = -1;
+            double userDropRate = -1;
+            if (producerVNs.Any())
+            {
+                var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
+                var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
+                userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
+                userDropRate = finishedCount + droppedCount != 0 ?
+                    (double)droppedCount / (droppedCount + finishedCount) : -1;
+            }
+            var addProducerList = new List<ListedProducer>
+            {
+                new ListedProducer(_displayedVN.Producer, producerVNs.Length, DateTime.UtcNow,
+                    _parentForm.ProducerList.Find(x => x.Name == _displayedVN.Producer).ID,
+                    userAverageVote, (int) Math.Round(userDropRate*100))
+            };
+            _parentForm.DBConn.BeginTransaction();
+            _parentForm.DBConn.InsertFavoriteProducers(addProducerList, FormMain.Settings.UserID);
+            _parentForm.DBConn.EndTransaction();
+            await _parentForm.ReloadListsFromDbAsync();
+            _parentForm.LoadFPListToGui();
+            WriteText(vnUpdateLink, $"{_displayedVN.Producer} added to list.");
+            await SetNewData(_displayedVN.VNID);
+
+            _working = false;
+        }
+
+        private void OptionsMenu(object sender, EventArgs e)
+        {
+            if (_working)
+            {
+                vnUpdateLink.Text = @"Please wait...";
+                return;
+            }
+            VNControlContextMenu(_displayedVN).Show(Cursor.Position.X, Cursor.Position.Y + statusChangeButton.Height);
+        }
+
+        private void ShowProducerTitles(object sender, EventArgs e)
+        {
+            DisplayProducerTitles(null, null);
+        }
+
+
+        /// <summary>
+        /// Add note to title in user's vnlist.
+        /// </summary>
+        private async void AddNote(object sender, EventArgs e)
+        {
+            if (_working) return;
+            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
+            {
+                WriteError(vnUpdateLink, "Not Logged In", true);
+                return;
+            }
+            if (_displayedVN == null) return;
+            CustomItemNotes itemNotes = _displayedVN.GetCustomItemNotes();
+            StringBuilder notesSb = new StringBuilder(itemNotes.Notes);
+            var result = new InputDialogBox(notesSb, "Add Note to Title", "Enter Note:").ShowDialog();
+            if (result != DialogResult.OK) return;
+            if (notesSb.ToString().Contains('\n'))
+            {
+                WriteError(vnUpdateLink, "Note cannot contain newline characters.");
+                return;
+            }
+            itemNotes.Notes = notesSb.ToString();
+            await UpdateItemNotes("Added note to title", _displayedVN.VNID, itemNotes);
+
+        }
+
+        /// <summary>
+        /// Add title in user's vnlist to a user-defined group.
+        /// </summary>
+        private async void AddGroup(object sender, EventArgs e)
+        {
+            if (_working) return;
+            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
+            {
+                WriteError(vnUpdateLink, "Not Logged In", true);
+                return;
+            }
+            if (_displayedVN == null) return;
+            CustomItemNotes itemNotes = _displayedVN.GetCustomItemNotes();
+            var result = new ListDialogBox(itemNotes.Groups, "Add Title to Groups", $"{_displayedVN.Title} is in groups:").ShowDialog();
+            if (result != DialogResult.OK) return;
+            if (itemNotes.Groups.Any(group => group.Contains('\n')))
+            {
+                WriteError(vnUpdateLink, "Group name cannot contain newline characters.");
+                return;
+            }
+            await UpdateItemNotes("Added title to group(s).", _displayedVN.VNID, itemNotes);
+        }
+
+        /// <summary>
+        /// Send query to VNDB to update a VN's notes and if successful, update database.
+        /// </summary>
+        /// <param name="replyMessage">Message to be printed if query is successful</param>
+        /// <param name="vnid">ID of VN</param>
+        /// <param name="itemNotes">Object containing new data to replace old</param>
+        private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
+        {
+            if (_working) return;
+            _working = true;
+            var result = _parentForm.StartQuery(vnUpdateLink, "Update Item Notes");
+            if (!result) return;
+            string serializedNotes = itemNotes.Serialize();
+            var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
+            var apiResult = await _parentForm.TryQuery(query, "UIN Query Error", vnUpdateLink);
+            if (!apiResult) return;
+            _parentForm.DBConn.Open();
+            _parentForm.DBConn.AddNoteToVN(vnid, serializedNotes, FormMain.Settings.UserID);
+            _parentForm.DBConn.Close();
+            await _parentForm.ReloadListsFromDbAsync();
+            _parentForm.LoadVNListToGui();
+            WriteText(vnUpdateLink, replyMessage);
+            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+            await SetNewData(_displayedVN.VNID);
+            _working = false;
+        }
+
+        private void vnGroups_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (vnGroups.SelectedIndex)
+            {
+                case 0:
+                    return;
+                case 1:
+                    vnGroups.SelectedIndex = 0;
+                    return;
+                default:
+                    _parentForm.tabControl1.SelectTab(0);
+                    _parentForm.groupListBox.Text = (string)vnGroups.SelectedItem;
+                    _parentForm.List_Group(null, null);
+                    return;
+            }
+        }
     }
 }

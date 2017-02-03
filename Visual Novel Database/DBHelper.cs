@@ -182,6 +182,11 @@ namespace Happy_Search
             }
         }
 
+        internal bool IsBusy()
+        {
+            return DbConn.State != ConnectionState.Closed;
+        }
+
         /// <summary>
         /// Insert or Replace Producer into producerlist, if adding for the first time, set date to null.
         /// </summary>

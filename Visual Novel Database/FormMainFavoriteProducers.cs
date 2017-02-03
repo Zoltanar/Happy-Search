@@ -214,7 +214,7 @@ This may take a while...",
         /// Load Favorite Producers into ObjectListView.
         /// Gets data from local database.
         /// </summary>
-        private void LoadFPListToGui()
+        internal void LoadFPListToGui()
         {
             if (Settings.UserID < 1) return;
             DBConn.Open();

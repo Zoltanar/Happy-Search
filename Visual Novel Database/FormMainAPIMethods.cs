@@ -629,7 +629,7 @@ namespace Happy_Search
         /// <param name="statusInt">The new value</param>
         /// <param name="newVoteValue">New vote value</param>
         /// <returns>Returns whether it as successful.</returns>
-        private async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
+        internal async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
         {
             var hasULStatus = vn.ULStatus != null && !vn.ULStatus.Equals("");
             var hasWLStatus = vn.WLStatus != null && !vn.WLStatus.Equals("");
@@ -776,6 +776,5 @@ namespace Happy_Search
             ChangeAPIStatus(VndbConnection.APIStatus.Busy);
             return true;
         }
-
     }
 }
