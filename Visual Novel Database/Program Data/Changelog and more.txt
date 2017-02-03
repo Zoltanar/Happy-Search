@@ -2,9 +2,10 @@ Next Milestone == ??
 
 Changelog
 ---------
--1.4.4 released (test)-
+-1.4.5 released (test)-
+Added: VN Options to VNControl; Display of VN Notes and Groups in VNControl.
 Fixed: Wait for DB to be free before attempting to LoadDataFromAPI in VNControl
--1.4.4 released (test)-
+-1.4.4-
 Fixed: VN tab downloads screenshots asynchronously.
 Changed: Double click to open vn tab, it will auto-switch to it unless holding alt.
 Fixed: Information tab fits in minimum size window.
@@ -104,7 +105,6 @@ No Work
 	Easy Tasks
 	----------
 	 Ordering VN list, wishlist/vnlist should go in proper order, not alphabetic.
-	 Add list controls to vn window.
 	 
 	Medium Tasks
 	----------
@@ -142,6 +142,7 @@ test removing from local db user related titles
 add 'exclude tag' filters
 filter trait search by character's status such as main or side
 login with userid and password?
+problem with vn in multiple lists (wishlist/vnlist)
 
 
 
