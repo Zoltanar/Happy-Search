@@ -31,7 +31,7 @@ namespace Happy_Search
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
-        
+
         /// <summary>
         /// Toggle between wide view (see more results) and normal view
         /// </summary>
@@ -105,19 +105,22 @@ namespace Happy_Search
             foreach (var title in titles)
             {
                 var screenItems = JsonConvert.DeserializeObject<ScreenItem[]>(title.Screens);
-                foreach (var screen in screenItems)
+                if (screenItems != null)
                 {
+                    foreach (var screen in screenItems)
+                    {
+                        try
+                        {
+                            File.Delete(screen.StoredLocation());
+                        }
+                        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
+                    }
                     try
                     {
-                        File.Delete(screen.StoredLocation());
+                        File.Delete($"{VNImagesFolder}\\{title.VNID}{Path.GetExtension(title.ImageURL)}");
                     }
                     catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
                 }
-                try
-                {
-                    File.Delete($"{VNImagesFolder}\\{title.VNID}{Path.GetExtension(title.ImageURL)}");
-                }
-                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
             }
             DBConn.BeginTransaction();
             foreach (var title in titles) DBConn.RemoveVisualNovel(title.VNID);
@@ -153,12 +156,12 @@ namespace Happy_Search
         {
             if (ListByTB.Text == "") //check if box is empty
             {
-                WriteError(replyText, Resources.enter_vn_title, true);
+                WriteError(replyText, Resources.enter_vn_title);
                 return;
             }
             if (ListByTB.Text.Length < 3)
             {
-                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
+                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)");
                 return;
             }
             var result = StartQuery(replyText, "Search_ByName");
@@ -202,14 +205,14 @@ namespace Happy_Search
         {
             if (ListByTB.Text == "") //check if box is empty
             {
-                WriteError(replyText, Resources.enter_year, true);
+                WriteError(replyText, Resources.enter_year);
                 return;
             }
             int year;
             var userIsNumber = int.TryParse(ListByTB.Text, out year);
             if (userIsNumber == false) //check if box has integer
             {
-                WriteError(replyText, Resources.must_be_integer, true);
+                WriteError(replyText, Resources.must_be_integer);
                 return;
             }
             var result = StartQuery(replyText, "Search_ByYear");
@@ -249,7 +252,7 @@ namespace Happy_Search
             WriteText(replyText,
                 span < TimeSpan.FromMinutes(1)
                     ? $"Got VNs for {year} in <1 min. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added."
-                    : $"Got VNs for {year} in {span:HH:mm}. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.", true);
+                    : $"Got VNs for {year} in {span:HH:mm}. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -318,34 +321,47 @@ namespace Happy_Search
             {
                 case (int)ListBy.Name:
                     ListByTB.Visible = true;
-                    groupListBox.Visible = false;
+                    ListByCBQuery.Visible = false;
                     ListByUpdateButton.Enabled = true;
                     ListByGoButton.Enabled = true;
                     ListByTB.AutoCompleteMode = AutoCompleteMode.None;
                     break;
                 case (int)ListBy.Producer:
                     ListByTB.Visible = true;
-                    groupListBox.Visible = false;
+                    ListByCBQuery.Visible = false;
                     ListByUpdateButton.Enabled = true;
                     ListByGoButton.Enabled = true;
                     PopulateProducerSearchBox();
                     break;
                 case (int)ListBy.Year:
                     ListByTB.Visible = true;
-                    groupListBox.Visible = false;
+                    ListByCBQuery.Visible = false;
                     ListByUpdateButton.Enabled = true;
                     ListByGoButton.Enabled = true;
                     ListByTB.AutoCompleteMode = AutoCompleteMode.None;
                     break;
                 case (int)ListBy.Group:
                     ListByTB.Visible = false;
-                    groupListBox.Visible = true;
+                    ListByCBQuery.Visible = true;
                     ListByUpdateButton.Enabled = false;
                     ListByGoButton.Enabled = false;
+                    ListByCBQuery.SelectedIndexChanged += List_Group;
+                    ListByCBQuery.SelectedIndexChanged -= List_Language;
+                    PopulateGroupSearchBox();
+                    return;
+                case (int)ListBy.Language:
+                    ListByTB.Visible = false;
+                    ListByCBQuery.Visible = true;
+                    ListByUpdateButton.Enabled = false;
+                    ListByGoButton.Enabled = true;
+                    ListByCBQuery.SelectedIndexChanged += List_Language;
+                    ListByCBQuery.SelectedIndexChanged -= List_Group;
+                    PopulateLangSearchBox();
                     return;
 
             }
         }
+
 
         /// <summary>
         /// Only allow Digits in input for List By Year.
@@ -374,9 +390,6 @@ namespace Happy_Search
                 case (int)ListBy.Year:
                     if (e.KeyCode == Keys.Enter) List_Year();
                     return;
-                case (int)ListBy.Group:
-                    if (e.KeyCode == Keys.Enter) List_Group(null, null);
-                    return;
             }
         }
 
@@ -399,21 +412,27 @@ namespace Happy_Search
             }
         }
 
+        /// <summary>
+        /// List by name or alias.
+        /// </summary>
         private void List_Name()
         {
             if (ListByTB.Text == "") //check if box is empty
             {
-                WriteError(replyText, Resources.enter_vn_title, true);
+                WriteError(replyText, Resources.enter_vn_title);
                 return;
             }
             if (ListByTB.Text.Length < 3)
             {
-                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)", true);
+                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)");
                 return;
             }
             var searchString = ListByTB.Text.ToLowerInvariant();
             List_ClearOther(skipListBox: true);
-            _currentList = vn => vn.Title.ToLowerInvariant().Contains(searchString) || vn.KanjiTitle.ToLowerInvariant().Contains(searchString);
+            _currentList = vn =>
+            vn.Title.ToLowerInvariant().Contains(searchString) ||
+            vn.KanjiTitle.ToLowerInvariant().Contains(searchString) ||
+            vn.Aliases.ToLowerInvariant().Contains(searchString);
             _currentListLabel = $"{searchString} (Search)";
             LoadVNListToGui();
         }
@@ -425,14 +444,14 @@ namespace Happy_Search
         {
             if (ListByTB.Text == "") //check if box is empty
             {
-                WriteError(replyText, Resources.enter_year, true);
+                WriteError(replyText, Resources.enter_year);
                 return;
             }
             int year;
             var userIsNumber = int.TryParse(ListByTB.Text, out year);
             if (userIsNumber == false) //check if box has integer
             {
-                WriteError(replyText, Resources.must_be_integer, true);
+                WriteError(replyText, Resources.must_be_integer);
                 return;
             }
             List_ClearOther(skipListBox: true);
@@ -473,7 +492,7 @@ namespace Happy_Search
             List_ClearOther();
             if (olFavoriteProducers.Items.Count == 0)
             {
-                WriteError(replyText, "No Favorite Producers.", true);
+                WriteError(replyText, "No Favorite Producers.");
                 return;
             }
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.Objects
@@ -580,19 +599,35 @@ namespace Happy_Search
         /// </summary>
         internal void List_Group(object sender, EventArgs e)
         {
-            var groupName = groupListBox.Text;
+            if (((ComboBox)sender).SelectedIndex < 1) return;
+            var groupName = ListByCBQuery.Text;
             if (groupName.Equals("(Group)")) return;
             List_ClearOther();
             _currentList = x => x.IsInGroup(groupName);
             _currentListLabel = $"{groupName} (Group)";
-            LoadVNListToGui(skipGroupSearch: true);
+            LoadVNListToGui(skipComboSearch: true);
         }
 
-        private void List_GroupEnter(object sender, KeyEventArgs e)
+        /// <summary>
+        /// Display VNs in user-defined group that is typed/selected in box.
+        /// </summary>
+        internal void List_Language(object sender, EventArgs e)
+        {
+            if(((ComboBox)sender).SelectedIndex < 1) return;
+            var language = ListByCBQuery.Text;
+            if (language.Equals("(Language)")) return;
+            List_ClearOther();
+            _currentList = x => x.Languages != null && x.Languages.All.Contains(language);
+            _currentListLabel = $"{language} (Language)";
+            LoadVNListToGui(skipComboSearch: true);
+        }
+
+        private void ListByCbEnter(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
-            if (groupListBox.Text.Equals("")) return;
-            List_Group(null, null);
+            if (ListByCBQuery.Text.Equals("")) return;
+            if(ListByCB.SelectedIndex == (int)ListBy.Group) List_Group(sender, e);
+            else if (ListByCB.SelectedIndex == (int)ListBy.Language) List_Language(sender,e);
         }
 
         /// <summary>
@@ -884,7 +919,7 @@ namespace Happy_Search
             if (e == null) return;
             e.MenuStrip = VNContextMenu(e.Model);
         }
-        
+
         /// <summary>
         /// Prepare and display context menu for visual novel.
         /// </summary>
@@ -972,7 +1007,7 @@ namespace Happy_Search
         {
             if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
-                WriteError(replyText, "Not Logged In", true);
+                WriteError(replyText, "Not Logged In");
                 return;
             }
             var nitem = e.ClickedItem;
@@ -1057,10 +1092,11 @@ namespace Happy_Search
                     ? (double)droppedCount / (droppedCount + finishedCount)
                     : -1;
             }
+            var producer = ProducerList.Find(x => x.Name == vn.Producer);
             var addProducerList = new List<ListedProducer>
             {
                 new ListedProducer(vn.Producer, producerVNs.Length, DateTime.UtcNow,
-                    ProducerList.Find(x => x.Name == vn.Producer).ID,
+                    producer.ID, producer.Language,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
             DBConn.BeginTransaction();
@@ -1078,7 +1114,7 @@ namespace Happy_Search
         {
             if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
-                WriteError(replyText, "Not Logged In", true);
+                WriteError(replyText, "Not Logged In");
                 return;
             }
             var vn = tileOLV.SelectedObject as ListedVN;
@@ -1104,7 +1140,7 @@ namespace Happy_Search
         {
             if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
-                WriteError(replyText, "Not Logged In", true);
+                WriteError(replyText, "Not Logged In");
                 return;
             }
             var vn = tileOLV.SelectedObject as ListedVN;
@@ -1194,7 +1230,7 @@ namespace Happy_Search
         /// <summary>
         /// Specifies ListBy mode.
         /// </summary>
-        private enum ListBy { Name, Producer, Year, Group }
+        private enum ListBy { Name, Producer, Year, Group, Language }
 
         /// <summary>
         /// Specifies toggle filter

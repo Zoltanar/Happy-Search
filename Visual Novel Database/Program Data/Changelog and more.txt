@@ -2,6 +2,7 @@ Next Milestone == ??
 
 Changelog
 ---------
+Added: Language support. Flags in VN tiles represent languages of original release, in VN tabs all languages available are shown.
 -1.4.5 released (test)-
 Added: VN Options to VNControl; Display of VN Notes and Groups in VNControl.
 Fixed: Wait for DB to be free before attempting to LoadDataFromAPI in VNControl
@@ -105,10 +106,13 @@ No Work
 	Easy Tasks
 	----------
 	 Ordering VN list, wishlist/vnlist should go in proper order, not alphabetic.
+	 Give friendly names to languages.
 	 
 	Medium Tasks
 	----------
+	 user-configurable tag alerts (like EH)
 	 Allow user configurated color scheme (for vn list)
+	 Add language features
 
 
 	Hard Tasks
@@ -211,9 +215,12 @@ Help Buttons
 
 Currently Not Possible
 -------------------------
-add search by artist or search by voice actor (staff database not in api)
 show "list not public" error if list is hidden (it can only happen if user is not logged in with username/pass)
 make things pretty textured backgrounds (slows down loading form)
+
+
+For The Developer
+---------------------------------------------------------------------------------------------------
 
 Testing Procedure
 -----------------------
@@ -228,3 +235,15 @@ Click VN in List
 Create Tag and trait filters
 Restart Program
 Verify integrity of tag/trait filters, favorite producers and titles in database
+
+When Modifying Database
+----------------------
+Change CreateTableDetails
+Change UpdateTable
+Change GetCurrentVersion
+Change SetDbVersion
+Change CreateTable scripts
+Change enum DatabaseVersion
+
+
+---------------------------------------------------------------------------------------------------

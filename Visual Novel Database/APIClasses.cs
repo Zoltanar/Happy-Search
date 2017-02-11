@@ -229,16 +229,14 @@ namespace Happy_Search
 
 
         /// <summary>
-        /// Convert ListedSearchedProducer to ListedProducer.
+        /// Convert ProducerItem to ListedProducer.
         /// </summary>
-        /// <param name="searchedProducer">Producer to be converted</param>
-        /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
-        public static explicit operator ListedProducer(ProducerItem searchedProducer)
+        /// <param name="producer">Producer to be converted</param>
+        public static explicit operator ListedProducer(ProducerItem producer)
         {
-            return new ListedProducer(searchedProducer.Name, -1, DateTime.MinValue, searchedProducer.ID);
+            return new ListedProducer(producer.Name, -1, DateTime.MinValue, producer.ID, producer.Language);
         }
-
-
+        
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>

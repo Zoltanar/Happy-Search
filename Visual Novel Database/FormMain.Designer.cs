@@ -142,8 +142,8 @@ namespace Happy_Search
             this.label4 = new System.Windows.Forms.Label();
             this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
             this.quickFilter1 = new System.Windows.Forms.Button();
-            this.UnreleasedToggleBox = new System.Windows.Forms.ComboBox();
             this.ListByTB = new System.Windows.Forms.TextBox();
+            this.UnreleasedToggleBox = new System.Windows.Forms.ComboBox();
             this.URTToggleBox = new System.Windows.Forms.ComboBox();
             this.quickFilter0 = new System.Windows.Forms.Button();
             this.viewPicker = new System.Windows.Forms.ComboBox();
@@ -151,7 +151,7 @@ namespace Happy_Search
             this.resultLabel = new System.Windows.Forms.Label();
             this.replyText = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
-            this.groupListBox = new System.Windows.Forms.ComboBox();
+            this.ListByCBQuery = new System.Windows.Forms.ComboBox();
             this.wlStatusDropDown = new System.Windows.Forms.ComboBox();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tagFilteringBox = new System.Windows.Forms.TabPage();
@@ -589,7 +589,8 @@ namespace Happy_Search
             "By Name/Alias",
             "By Producer",
             "By Year",
-            "By Group"});
+            "By Group",
+            "By Language"});
             this.ListByCB.Location = new System.Drawing.Point(36, 1);
             this.ListByCB.Name = "ListByCB";
             this.ListByCB.Size = new System.Drawing.Size(95, 21);
@@ -1460,8 +1461,8 @@ namespace Happy_Search
             this.panel3.Controls.Add(this.ListByUpdateButton);
             this.panel3.Controls.Add(this.BlacklistToggleBox);
             this.panel3.Controls.Add(this.quickFilter1);
-            this.panel3.Controls.Add(this.UnreleasedToggleBox);
             this.panel3.Controls.Add(this.ListByTB);
+            this.panel3.Controls.Add(this.UnreleasedToggleBox);
             this.panel3.Controls.Add(this.URTToggleBox);
             this.panel3.Controls.Add(this.quickFilter0);
             this.panel3.Controls.Add(this.viewPicker);
@@ -1472,7 +1473,7 @@ namespace Happy_Search
             this.panel3.Controls.Add(this.replyText);
             this.panel3.Controls.Add(this.traitSignaler);
             this.panel3.Controls.Add(this.statusLabel);
-            this.panel3.Controls.Add(this.groupListBox);
+            this.panel3.Controls.Add(this.ListByCBQuery);
             this.panel3.Controls.Add(this.SearchingAndFilteringButton);
             this.panel3.Controls.Add(this.wlStatusDropDown);
             this.panel3.Controls.Add(this.listResultsButton);
@@ -1523,6 +1524,16 @@ namespace Happy_Search
             this.quickFilter1.UseVisualStyleBackColor = false;
             this.quickFilter1.Click += new System.EventHandler(this.List_FavoriteProducers);
             // 
+            // ListByTB
+            // 
+            this.ListByTB.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.ListByTB.Location = new System.Drawing.Point(137, 3);
+            this.ListByTB.Name = "ListByTB";
+            this.ListByTB.Size = new System.Drawing.Size(119, 20);
+            this.ListByTB.TabIndex = 105;
+            this.ListByTB.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ListByTB_KeyPress);
+            this.ListByTB.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ListByTB_KeyUp);
+            // 
             // UnreleasedToggleBox
             // 
             this.UnreleasedToggleBox.BackColor = System.Drawing.Color.Navy;
@@ -1540,16 +1551,6 @@ namespace Happy_Search
             this.UnreleasedToggleBox.Size = new System.Drawing.Size(114, 21);
             this.UnreleasedToggleBox.TabIndex = 86;
             this.UnreleasedToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_Unreleased);
-            // 
-            // ListByTB
-            // 
-            this.ListByTB.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.ListByTB.Location = new System.Drawing.Point(137, 2);
-            this.ListByTB.Name = "ListByTB";
-            this.ListByTB.Size = new System.Drawing.Size(119, 20);
-            this.ListByTB.TabIndex = 105;
-            this.ListByTB.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ListByTB_KeyPress);
-            this.ListByTB.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ListByTB_KeyUp);
             // 
             // URTToggleBox
             // 
@@ -1654,26 +1655,26 @@ namespace Happy_Search
             this.statusLabel.Text = "(statusLabel)";
             this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // groupListBox
+            // ListByCBQuery
             // 
-            this.groupListBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.groupListBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.groupListBox.BackColor = System.Drawing.Color.White;
-            this.groupListBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.groupListBox.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.groupListBox.FormattingEnabled = true;
-            this.groupListBox.Items.AddRange(new object[] {
+            this.ListByCBQuery.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.ListByCBQuery.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.ListByCBQuery.BackColor = System.Drawing.Color.White;
+            this.ListByCBQuery.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ListByCBQuery.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.ListByCBQuery.FormattingEnabled = true;
+            this.ListByCBQuery.Items.AddRange(new object[] {
             "Show URT",
             "Hide URT",
             "Only URT",
             "Only Unplayed"});
-            this.groupListBox.Location = new System.Drawing.Point(137, 2);
-            this.groupListBox.Name = "groupListBox";
-            this.groupListBox.Size = new System.Drawing.Size(119, 21);
-            this.groupListBox.TabIndex = 100;
-            this.groupListBox.Visible = false;
-            this.groupListBox.SelectedIndexChanged += new System.EventHandler(this.List_Group);
-            this.groupListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.List_GroupEnter);
+            this.ListByCBQuery.Location = new System.Drawing.Point(137, 2);
+            this.ListByCBQuery.Name = "ListByCBQuery";
+            this.ListByCBQuery.Size = new System.Drawing.Size(119, 21);
+            this.ListByCBQuery.TabIndex = 100;
+            this.ListByCBQuery.Visible = false;
+            this.ListByCBQuery.SelectedIndexChanged += new System.EventHandler(this.List_Group);
+            this.ListByCBQuery.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ListByCbEnter);
             // 
             // wlStatusDropDown
             // 
@@ -2138,7 +2139,8 @@ namespace Happy_Search
             "Get All VN Stats",
             "Get All Character Data",
             "Get Missing Covers",
-            "Update Title Data (All)"});
+            "Update Title Data (All)",
+            "Get All Languages"});
             this.otherMethodsCB.Location = new System.Drawing.Point(3, 120);
             this.otherMethodsCB.Name = "otherMethodsCB";
             this.otherMethodsCB.Size = new System.Drawing.Size(131, 21);
@@ -2818,7 +2820,7 @@ namespace Happy_Search
         private ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
         private Button sendQueryButton;
         private CheckBox advancedCheckBox;
-        internal ComboBox groupListBox;
+        internal ComboBox ListByCBQuery;
         private Button tagSignaler;
         private Button traitSignaler;
         private CheckBox ToggleFiltersModeButton;

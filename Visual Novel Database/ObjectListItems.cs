@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -8,15 +9,64 @@ using System.Linq;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
+using Newtonsoft.Json;
 using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
+
+    /// <summary>
+    /// Contains original and other languages available for vn.
+    /// </summary>
+    [Serializable]
+    public class VNLanguages
+    {
+        /// <summary>
+        /// Languages for original release
+        /// </summary>
+        public string[] Originals { get; set; }
+        /// <summary>
+        /// Languages for other releases
+        /// </summary>
+        public string[] Others { get; set; }
+
+        /// <summary>
+        /// Languages for all releases
+        /// </summary>
+        public IEnumerable<string> All => Originals.Concat(Others);
+
+        /// <summary>
+        /// Empty Constructor for serialization
+        /// </summary>
+        public VNLanguages() { }
+
+        /// <summary>
+        /// Constructor for vn languages.
+        /// </summary>
+        /// <param name="originals">Languages for original release</param>
+        /// <param name="all">Languages for all releases</param>
+        public VNLanguages(string[] originals, string[] all)
+        {
+            Originals = originals;
+            Others = all.Except(originals).ToArray();
+        }
+
+        /// <summary>
+        /// Displays a json-serialized string.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+    }
+
     /// <summary>
     /// Object for displaying Visual Novel in Object List View.
     /// </summary>
     public class ListedVN
     {
+
         internal static readonly string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
         internal static readonly string[] PriorityWL = { "High", "Medium", "Low", "Blacklist" };
 
@@ -53,10 +103,12 @@ namespace Happy_Search
         /// <param name="relations">JSON Array string containing List of Relation Items</param>
         /// <param name="screens">JSON Array string containing List of Screenshot Items</param>
         /// <param name="anime">JSON Array string containing List of Anime Items</param>
+        /// <param name="aliases">Newline separated string of aliases</param>
+        /// <param name="language">Language of producer</param>
         public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus,
             int uladded, string ulnote, int wlstatus, int wladded, int vote, int voteadded,
             string tags, int vnid, DateTime updatedDate, string imageURL, bool imageNSFW, string description,
-            double popularity, double rating, int voteCount, string relations, string screens, string anime)
+            double popularity, double rating, int voteCount, string relations, string screens, string anime, string aliases, string language)
         {
             if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
             ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
@@ -84,7 +136,10 @@ namespace Happy_Search
             Relations = relations;
             Screens = screens;
             Anime = anime;
+            Aliases = aliases;
+            Languages = JsonConvert.DeserializeObject<VNLanguages>(language);
         }
+
 
         /// <summary>
         /// Constructor for empty ListedVN for when null cannot be used.
@@ -255,6 +310,18 @@ namespace Happy_Search
         [OLVIgnore]
         public string Anime { get; set; }
 
+        /// <summary>
+        /// Newline separated string of aliases
+        /// </summary>
+        [OLVIgnore]
+        public string Aliases { get; set; }
+
+        /// <summary>
+        /// Language of producer
+        /// </summary>
+        [OLVIgnore]
+        public VNLanguages Languages { get; set; }
+
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
@@ -376,12 +443,14 @@ namespace Happy_Search
         /// <param name="numberOfTitles">Number of Producer's titles</param>
         /// <param name="updated">Date of last update to Producer</param>
         /// <param name="id">Producer ID</param>
-        public ListedProducer(string name, int numberOfTitles, DateTime updated, int id)
+        /// <param name="language">Language of producer</param>
+        public ListedProducer(string name, int numberOfTitles, DateTime updated, int id, string language)
         {
             Name = name;
             NumberOfTitles = numberOfTitles;
             Updated = DaysSince(updated);
             ID = id;
+            Language = language;
         }
 
         /// <summary>
@@ -391,15 +460,17 @@ namespace Happy_Search
         /// <param name="numberOfTitles">Number of Producer's titles</param>
         /// <param name="updated">Date of last update to Producer</param>
         /// <param name="id">Producer ID</param>
+        /// <param name="language">Language of producer</param>
         /// <param name="userAverageVote">User's average vote on Producer titles. (Only titles with votes)</param>
         /// <param name="userDropRate">User's average drop rate on Producer titles. (Dropped / (Finished+Dropped)</param>
-        public ListedProducer(string name, int numberOfTitles, DateTime updated, int id,
+        public ListedProducer(string name, int numberOfTitles, DateTime updated, int id, string language,
             double userAverageVote, int userDropRate)
         {
             Name = name;
             NumberOfTitles = numberOfTitles;
             Updated = DaysSince(updated);
             ID = id;
+            Language = language;
             UserAverageVote = Math.Round(userAverageVote, 2);
             UserDropRate = userDropRate;
         }
@@ -421,6 +492,10 @@ namespace Happy_Search
         /// </summary>
         public int ID { get; set; }
         /// <summary>
+        /// Language of Producer
+        /// </summary>
+        public string Language { get; set; }
+        /// <summary>
         /// User's average vote on Producer titles. (Only titles with votes)
         /// </summary>
         public double UserAverageVote { get; set; }
@@ -432,6 +507,7 @@ namespace Happy_Search
         /// Bayesian average score of votes by all users.
         /// </summary>
         public double GeneralRating { get; set; }
+
 
         /// <summary>
         /// Get Days passed since date of last update.
@@ -462,13 +538,15 @@ namespace Happy_Search
         /// <param name="name">Name of producer</param>
         /// <param name="inList">Is producer already in favorite producers list? (Yes/No)</param>
         /// <param name="id">ID of producer</param>
+        /// <param name="language">Language of producer</param>
         /// <param name="finishedTitles">Number of producer's titles finished by user</param>
         /// <param name="urtTitles">Number of producer's titles related to user</param>
-        public ListedSearchedProducer(string name, string inList, int id, int finishedTitles, int urtTitles)
+        public ListedSearchedProducer(string name, string inList, int id, string language, int finishedTitles, int urtTitles)
         {
             Name = name;
             InList = inList;
             ID = id;
+            Language = language;
             FinishedTitles = finishedTitles;
             URTTitles = urtTitles;
 
@@ -481,7 +559,7 @@ namespace Happy_Search
         /// <returns>ListedProducer with name and ID of ListedSearchedProducer</returns>
         public static explicit operator ListedProducer(ListedSearchedProducer searchedProducer)
         {
-            return new ListedProducer(searchedProducer.Name, -1, DateTime.MinValue, searchedProducer.ID);
+            return new ListedProducer(searchedProducer.Name, -1, DateTime.MinValue, searchedProducer.ID, searchedProducer.Language);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>
@@ -501,6 +579,10 @@ namespace Happy_Search
         /// ID of producer
         /// </summary>
         public int ID { get; set; }
+        /// <summary>
+        /// Language of Producer
+        /// </summary>
+        public string Language { get; set; }
         /// <summary>
         /// Number of producer's titles finished by user
         /// </summary>
@@ -625,6 +707,20 @@ namespace Happy_Search
                 DrawImageFitToSize(g, photoArea, photoFile);
             }
             else g.DrawImage(Resources.no_image, photoArea);
+            if (vn.Languages != null)
+            {
+                var startingY = photoArea.Y;
+                foreach (var language in vn.Languages.Originals)
+                {
+                    var flagPath = $"{FlagsFolder}{language}.png";
+                    if (!File.Exists(flagPath)) continue;
+                    //g.DrawImage(Image.FromFile(flagPath), new Point(photoArea.X + photoArea.Width - 24, startingY));
+                    var point = new Point(photoArea.X + photoArea.Width - 24, startingY);
+                    var size = new Size(24,12);
+                    g.DrawImageUnscaledAndClipped(Image.FromFile(flagPath), new Rectangle(point,size));
+                    startingY += 16;
+                }
+            }
             DrawTileText(photoArea, textHeight, g, vn, olv);
         }
 

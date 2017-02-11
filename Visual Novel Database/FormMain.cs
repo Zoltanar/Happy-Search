@@ -32,12 +32,12 @@ namespace Happy_Search
         //constants / definables
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.5";
-        public const string APIVersion = "2.25";
-        public const int APIMaxResults = 25;
+        public const string ClientVersion = "1.4.6";
+        private const string APIVersion = "2.25";
+        private const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-        public const string TagTypeAll = "checkBox";
-        public const string TagTypeUrt = "mctULLabel";
+        private const string TagTypeAll = "checkBox";
+        private const string TagTypeUrt = "mctULLabel";
         public static readonly Color ErrorColor = Color.Red;
         public static readonly Color NormalColor = SystemColors.ControlLightLight;
         public static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
@@ -425,7 +425,7 @@ https://github.com/FredTheBarber/VndbClient";
             var oldCount = titlesWithoutStats.Length;
             if (oldCount == 0)
             {
-                WriteWarning(userListReply, "There are no titles missing stats.", true);
+                WriteWarning(userListReply, "There are no titles missing stats.");
                 return;
             }
             var messageBox =
@@ -445,7 +445,7 @@ https://github.com/FredTheBarber/VndbClient";
         }
 
         /// <summary>
-        ///     Update tags of titles that haven't been updated in over 7 days.
+        ///     Update tags/traits/stats of titles that haven't been updated in over 7 days.
         /// </summary>
         private async void UpdateTitleDataClick(object sender, EventArgs e)
         {
@@ -554,6 +554,9 @@ https://github.com/FredTheBarber/VndbClient";
                 case 5:
                     await UpdateAllTitlesSkipLimit();
                     break;
+                case 6:
+                    await GetAllAliasesLanguages();
+                    break;
                 default:
                     return;
             }
@@ -593,7 +596,7 @@ https://github.com/FredTheBarber/VndbClient";
             var doubleEstimatedSizeString = BytesToString(missingCount * averageImageSizeBytes * 2);
             if (missingCount == 0)
             {
-                WriteWarning(userListReply, "There are no titles missing their cover image.", true);
+                WriteWarning(userListReply, "There are no titles missing their cover image.");
                 return;
             }
             var messageBox =
@@ -626,6 +629,26 @@ This will take a long time if you have a lot of titles in your local database.",
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Finished getting characters for all titles.");
+            ChangeAPIStatus(Conn.Status);
+        }
+
+
+        private async Task GetAllAliasesLanguages()
+        {
+            var messageBox2 =
+                MessageBox.Show(
+                    @"Do you wish to get language data about all VNs and Producers?
+You only need to this once and only if you used Happy Search prior to version 1.4.6
+This will take a long time if you have a lot of titles in your local database.",
+                    Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox2 != DialogResult.Yes) return;
+            var result = StartQuery(userListReply, "Get All Languages");
+            if (!result) return;
+            await GetLanguagesForMultipleVN(_vnList.Where(x=>x.Languages == null).Select(x => x.VNID).ToArray(), userListReply);
+            await GetLanguagesForProducers(ProducerList.Select(x => x.ID).ToArray(), userListReply);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            WriteText(userListReply, "Finished getting language data.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -696,7 +719,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LoadVNListToGui();
             UpdateUserStats();
             if (URTList.Count > 0) WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
-            else WriteError(userListReply, Resources.no_results, true);
+            else WriteError(userListReply, Resources.no_results);
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -911,8 +934,19 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             var groupFilterSource = new AutoCompleteStringCollection { "(Group)" };
             groupFilterSource.AddRange(_vnList.SelectMany(vn => vn.GetCustomItemNotes().Groups).Distinct().ToArray());
-            groupListBox.AutoCompleteCustomSource = groupFilterSource;
-            groupListBox.DataSource = groupFilterSource;
+            ListByCBQuery.AutoCompleteCustomSource = groupFilterSource;
+            ListByCBQuery.DataSource = groupFilterSource;
+        }
+
+
+        private void PopulateLangSearchBox()
+        {
+            var groupFilterSource = new AutoCompleteStringCollection { "(Language)" };
+            var titlesWithLanguages = _vnList.Where(vn => vn.Languages != null);
+            var languages = titlesWithLanguages.SelectMany(vn => vn.Languages.All);
+            groupFilterSource.AddRange(languages.Distinct().ToArray());
+            ListByCBQuery.AutoCompleteCustomSource = groupFilterSource;
+            ListByCBQuery.DataSource = groupFilterSource;
         }
 
         /// <summary>
@@ -1237,10 +1271,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Refresh VN OLV and repopulate group and producer search boxes.
         /// </summary>
-        internal void LoadVNListToGui(bool skipGroupSearch = false)
+        internal void LoadVNListToGui(bool skipComboSearch = false)
         {
             tileOLV.SetObjects(_vnList.Where(_currentList));
-            if (!skipGroupSearch) PopulateGroupSearchBox();
+            if (!skipComboSearch)
+            {
+                PopulateGroupSearchBox();
+                PopulateLangSearchBox();
+            }
             PopulateProducerSearchBox();
         }
 

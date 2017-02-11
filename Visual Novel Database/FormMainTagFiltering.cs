@@ -119,7 +119,7 @@ namespace Happy_Search
                 PlainTags.Find(item => item.Name.Equals(tagName, StringComparison.InvariantCultureIgnoreCase));
             if (writtenTag == null)
             {
-                WriteError(tagReply, $"Tag {tagName} not found", true);
+                WriteError(tagReply, $"Tag {tagName} not found");
                 return;
             }
             AddFilterTag(writtenTag);
@@ -133,7 +133,7 @@ namespace Happy_Search
         {
             if (writtenTag == null)
             {
-                WriteError(tagReply, "Tag not found.", true);
+                WriteError(tagReply, "Tag not found.");
                 return;
             }
             foreach (var filter in _activeTagFilter)
@@ -386,7 +386,7 @@ namespace Happy_Search
             tagSearchResultBox.Visible = false;
             if (tagSearchBox.Text == "") //check if box is empty
             {
-                WriteError(tagReply, "Enter tag name.", true);
+                WriteError(tagReply, "Enter tag name.");
                 return;
             }
             var tb = (TextBox)sender;
@@ -425,7 +425,7 @@ namespace Happy_Search
             {
                 if (tagSearchBox.Text == "") //check if box is empty
                 {
-                    WriteError(tagReply, "Enter tag name.", true);
+                    WriteError(tagReply, "Enter tag name.");
                     return;
                 }
             }
@@ -435,7 +435,7 @@ namespace Happy_Search
             //if no results, return not found
             if (results.Length == 0)
             {
-                WriteError(tagReply, $"Tag {tagSearchBox.Text} not found.", true);
+                WriteError(tagReply, $"Tag {tagSearchBox.Text} not found.");
                 return;
             }
             //if only one result, add it

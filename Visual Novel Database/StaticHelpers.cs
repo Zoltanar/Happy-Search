@@ -30,6 +30,7 @@ namespace Happy_Search
         public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
         public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
         public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
+        public const string FlagsFolder = "Program Data\\Flags\\";
 
 #if DEBUG
         public const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
@@ -152,15 +153,12 @@ namespace Happy_Search
         /// </summary>
         /// <param name="label">Label to which the message is written</param>
         /// <param name="message">Message to be written</param>
-        /// <param name="disableFade"></param>
-        public static void WriteText(Label label, string message, bool disableFade = false)
+        public static void WriteText(Label label, string message)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = FormMain.NormalLinkColor;
             else label.ForeColor = FormMain.NormalColor;
             label.Text = message;
-            if (disableFade) return;
-            FadeLabel(label);
         }
 
         /// <summary>
@@ -168,14 +166,12 @@ namespace Happy_Search
         /// </summary>
         /// <param name="label">Label to which the message is written</param>
         /// <param name="message">Message to be written</param>
-        /// <param name="fade">Should message disappear after a few seconds?</param>
-        public static void WriteWarning(Label label, string message, bool fade = false)
+        public static void WriteWarning(Label label, string message)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = FormMain.WarningColor;
             else label.ForeColor = FormMain.WarningColor;
             label.Text = message;
-            if (fade) FadeLabel(label);
         }
 
         /// <summary>
@@ -183,14 +179,12 @@ namespace Happy_Search
         /// </summary>
         /// <param name="label">Label to which the message is written</param>
         /// <param name="message">Message to be written</param>
-        /// <param name="fade">Should message disappear after a few seconds?</param>
-        public static void WriteError(Label label, string message, bool fade = false)
+        public static void WriteError(Label label, string message)
         {
             var linkLabel = label as LinkLabel;
             if (linkLabel != null) linkLabel.LinkColor = FormMain.ErrorColor;
             else label.ForeColor = FormMain.ErrorColor;
             label.Text = message;
-            if (fade) FadeLabel(label);
         }
 
         /// <summary>

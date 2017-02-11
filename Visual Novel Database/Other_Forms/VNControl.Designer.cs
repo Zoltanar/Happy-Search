@@ -58,7 +58,7 @@
             this.vnDesc = new System.Windows.Forms.RichTextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.vnProducer = new System.Windows.Forms.LinkLabel();
+            this.producerLabel = new System.Windows.Forms.LinkLabel();
             this.statusChangeButton = new System.Windows.Forms.Button();
             this.ContextMenuVNControl = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.userlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -94,8 +94,22 @@
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vnNotes = new System.Windows.Forms.Label();
             this.vnGroups = new System.Windows.Forms.ComboBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.pictureBox4 = new System.Windows.Forms.PictureBox();
+            this.pictureBox5 = new System.Windows.Forms.PictureBox();
+            this.pictureBox6 = new System.Windows.Forms.PictureBox();
+            this.producerFlag = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.ContextMenuVNControl.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.producerFlag)).BeginInit();
             this.SuspendLayout();
             // 
             // label2
@@ -435,18 +449,18 @@
             this.label1.Text = "Title";
             this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
-            // vnProducer
+            // producerLabel
             // 
-            this.vnProducer.LinkColor = System.Drawing.Color.White;
-            this.vnProducer.Location = new System.Drawing.Point(148, 67);
-            this.vnProducer.Name = "vnProducer";
-            this.vnProducer.Size = new System.Drawing.Size(341, 22);
-            this.vnProducer.TabIndex = 105;
-            this.vnProducer.TabStop = true;
-            this.vnProducer.Text = "(vnProducer)";
-            this.vnProducer.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.vnProducer.VisitedLinkColor = System.Drawing.Color.White;
-            this.vnProducer.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DisplayProducerTitles);
+            this.producerLabel.LinkColor = System.Drawing.Color.White;
+            this.producerLabel.Location = new System.Drawing.Point(175, 67);
+            this.producerLabel.Name = "producerLabel";
+            this.producerLabel.Size = new System.Drawing.Size(314, 22);
+            this.producerLabel.TabIndex = 105;
+            this.producerLabel.TabStop = true;
+            this.producerLabel.Text = "(vnProducer)";
+            this.producerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.producerLabel.VisitedLinkColor = System.Drawing.Color.White;
+            this.producerLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DisplayProducerTitles);
             // 
             // statusChangeButton
             // 
@@ -494,37 +508,37 @@
             // noneToolStripMenuItem
             // 
             this.noneToolStripMenuItem.Name = "noneToolStripMenuItem";
-            this.noneToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.noneToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.noneToolStripMenuItem.Text = "(None)";
             // 
             // unknownToolStripMenuItem
             // 
             this.unknownToolStripMenuItem.Name = "unknownToolStripMenuItem";
-            this.unknownToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.unknownToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.unknownToolStripMenuItem.Text = "Unknown";
             // 
             // playingToolStripMenuItem
             // 
             this.playingToolStripMenuItem.Name = "playingToolStripMenuItem";
-            this.playingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.playingToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.playingToolStripMenuItem.Text = "Playing";
             // 
             // finishedToolStripMenuItem
             // 
             this.finishedToolStripMenuItem.Name = "finishedToolStripMenuItem";
-            this.finishedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.finishedToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.finishedToolStripMenuItem.Text = "Finished";
             // 
             // stalledToolStripMenuItem
             // 
             this.stalledToolStripMenuItem.Name = "stalledToolStripMenuItem";
-            this.stalledToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.stalledToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.stalledToolStripMenuItem.Text = "Stalled";
             // 
             // droppedToolStripMenuItem
             // 
             this.droppedToolStripMenuItem.Name = "droppedToolStripMenuItem";
-            this.droppedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.droppedToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.droppedToolStripMenuItem.Text = "Dropped";
             // 
             // wishlistToolStripMenuItem
@@ -543,31 +557,31 @@
             // noneToolStripMenuItem1
             // 
             this.noneToolStripMenuItem1.Name = "noneToolStripMenuItem1";
-            this.noneToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.noneToolStripMenuItem1.Size = new System.Drawing.Size(119, 22);
             this.noneToolStripMenuItem1.Text = "(None)";
             // 
             // highToolStripMenuItem
             // 
             this.highToolStripMenuItem.Name = "highToolStripMenuItem";
-            this.highToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.highToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.highToolStripMenuItem.Text = "High";
             // 
             // mediumToolStripMenuItem
             // 
             this.mediumToolStripMenuItem.Name = "mediumToolStripMenuItem";
-            this.mediumToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.mediumToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.mediumToolStripMenuItem.Text = "Medium";
             // 
             // lowToolStripMenuItem
             // 
             this.lowToolStripMenuItem.Name = "lowToolStripMenuItem";
-            this.lowToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.lowToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.lowToolStripMenuItem.Text = "Low";
             // 
             // blacklistToolStripMenuItem
             // 
             this.blacklistToolStripMenuItem.Name = "blacklistToolStripMenuItem";
-            this.blacklistToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.blacklistToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.blacklistToolStripMenuItem.Text = "Blacklist";
             // 
             // voteToolStripMenuItem
@@ -720,16 +734,79 @@
             this.vnGroups.TabIndex = 108;
             this.vnGroups.SelectedIndexChanged += new System.EventHandler(this.vnGroups_SelectedIndexChanged);
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(8, 86);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(24, 12);
+            this.pictureBox1.TabIndex = 109;
+            this.pictureBox1.TabStop = false;
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Location = new System.Drawing.Point(8, 104);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(24, 12);
+            this.pictureBox2.TabIndex = 110;
+            this.pictureBox2.TabStop = false;
+            // 
+            // pictureBox3
+            // 
+            this.pictureBox3.Location = new System.Drawing.Point(8, 123);
+            this.pictureBox3.Name = "pictureBox3";
+            this.pictureBox3.Size = new System.Drawing.Size(24, 12);
+            this.pictureBox3.TabIndex = 111;
+            this.pictureBox3.TabStop = false;
+            // 
+            // pictureBox4
+            // 
+            this.pictureBox4.Location = new System.Drawing.Point(8, 141);
+            this.pictureBox4.Name = "pictureBox4";
+            this.pictureBox4.Size = new System.Drawing.Size(24, 12);
+            this.pictureBox4.TabIndex = 112;
+            this.pictureBox4.TabStop = false;
+            // 
+            // pictureBox5
+            // 
+            this.pictureBox5.Location = new System.Drawing.Point(8, 159);
+            this.pictureBox5.Name = "pictureBox5";
+            this.pictureBox5.Size = new System.Drawing.Size(24, 12);
+            this.pictureBox5.TabIndex = 113;
+            this.pictureBox5.TabStop = false;
+            // 
+            // pictureBox6
+            // 
+            this.pictureBox6.Location = new System.Drawing.Point(8, 177);
+            this.pictureBox6.Name = "pictureBox6";
+            this.pictureBox6.Size = new System.Drawing.Size(24, 12);
+            this.pictureBox6.TabIndex = 114;
+            this.pictureBox6.TabStop = false;
+            // 
+            // producerFlag
+            // 
+            this.producerFlag.Location = new System.Drawing.Point(148, 74);
+            this.producerFlag.Name = "producerFlag";
+            this.producerFlag.Size = new System.Drawing.Size(24, 12);
+            this.producerFlag.TabIndex = 115;
+            this.producerFlag.TabStop = false;
+            // 
             // VNControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.DimGray;
+            this.Controls.Add(this.producerFlag);
+            this.Controls.Add(this.pictureBox6);
+            this.Controls.Add(this.pictureBox5);
+            this.Controls.Add(this.pictureBox4);
+            this.Controls.Add(this.pictureBox3);
+            this.Controls.Add(this.pictureBox2);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.vnGroups);
             this.Controls.Add(this.vnNotes);
             this.Controls.Add(this.statusChangeButton);
-            this.Controls.Add(this.vnProducer);
+            this.Controls.Add(this.producerLabel);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.vnKanjiName);
             this.Controls.Add(this.vnName);
@@ -766,6 +843,13 @@
             this.Resize += new System.EventHandler(this.OnResize);
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).EndInit();
             this.ContextMenuVNControl.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.producerFlag)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -801,7 +885,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.LinkLabel vnProducer;
+        private System.Windows.Forms.LinkLabel producerLabel;
         private System.Windows.Forms.Button statusChangeButton;
         private System.Windows.Forms.ContextMenuStrip ContextMenuVNControl;
         private System.Windows.Forms.ToolStripMenuItem userlistToolStripMenuItem;
@@ -837,5 +921,12 @@
         private System.Windows.Forms.ToolStripMenuItem addChangeVNGroupsToolStripMenuItem;
         internal System.Windows.Forms.Label vnNotes;
         internal System.Windows.Forms.ComboBox vnGroups;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pictureBox3;
+        private System.Windows.Forms.PictureBox pictureBox4;
+        private System.Windows.Forms.PictureBox pictureBox5;
+        private System.Windows.Forms.PictureBox pictureBox6;
+        private System.Windows.Forms.PictureBox producerFlag;
     }
 }

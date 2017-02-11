@@ -87,7 +87,7 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void UpdateVNToLatestVersion(VNItem vnItem)
+        public void SetVNStats(VNItem vnItem)
         {
             var insertString =
                 $"UPDATE vnlist SET Popularity = {vnItem.Popularity.ToString("0.00", CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
@@ -100,7 +100,7 @@ namespace Happy_Search
         {
             var tags = ListToJsonArray(new List<object>(vnItem.Tags));
             var insertString =
-                $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity.ToString("0.00",CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
+                $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity.ToString("0.00", CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             if (_printSetMethods) LogToFile(insertString);
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
@@ -149,7 +149,7 @@ namespace Happy_Search
                     }
                     break;
                 case ChangeType.Vote:
-                    int vote = (int) Math.Abs(newVoteValue * 10);
+                    int vote = (int)Math.Abs(newVoteValue * 10);
                     switch (command)
                     {
                         case Command.New:
@@ -182,6 +182,25 @@ namespace Happy_Search
             }
         }
 
+        public void SetProducerLanguage(ListedProducer producer)
+        {
+            var insertString =
+                $"UPDATE producerlist SET Language = '{producer.Language}' WHERE ProducerID = {producer.ID};";
+            if (_printSetMethods) LogToFile(insertString);
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
+        public void SetVNLanguages(Tuple<int,VNLanguages> vn)
+        {
+            string languagesString = vn.Item2?.ToString() ?? "";
+            var insertString =
+                $"UPDATE vnlist SET Languages = '{languagesString}' WHERE VNID = {vn.Item1};";
+            if (_printSetMethods) LogToFile(insertString);
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
         internal bool IsBusy()
         {
             return DbConn.State != ConnectionState.Closed;
@@ -195,9 +214,9 @@ namespace Happy_Search
         public void InsertProducer(ListedProducer producer, bool setDateNull = false)
         {
             var name = Regex.Replace(producer.Name, "'", "''");
-            var commandString = setDateNull ? 
-                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles, Updated) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles}, NULL);" :
-                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Titles) VALUES ({producer.ID}, '{name}', {producer.NumberOfTitles});";
+            var commandString = setDateNull ?
+                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Language, Titles, Updated) VALUES ({producer.ID}, '{name}', '{producer.Language}', {producer.NumberOfTitles}, NULL);" :
+                $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Language, Titles) VALUES ({producer.ID}, '{name}', '{producer.Language}', {producer.NumberOfTitles});";
             if (_printSetMethods) LogToFile(commandString);
             var cmd = new SQLiteCommand(commandString, DbConn);
             cmd.ExecuteNonQuery();
@@ -269,17 +288,26 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void UpsertSingleVN(VNItem item, int producerid)
+        public void UpsertSingleVN(VNItem item, ProducerItem producer, VNLanguages languages)
         {
             var tags = ListToJsonArray(new List<object>(item.Tags));
             var title = Regex.Replace(item.Title, "'", "''");
+            var aliases = item.Aliases != null ? Regex.Replace(item.Aliases, "'", "''") : "";
             var kanjiTitle = item.Original != null ? Regex.Replace(item.Original, "'", "''") : "";
             var description = item.Description != null ? Regex.Replace(item.Description, "'", "''") : "";
             int? length = item.Length ?? 0;
+            string languagesString = languages?.ToString() ?? "";
             var insertString =
-                "INSERT OR REPLACE INTO vnlist (Title, KanjiTitle, ProducerID, RelDate, Tags, Description, ImageURL, ImageNSFW, LengthTime, Popularity, Rating, VoteCount, VNID)" +
-                $"VALUES('{title}', '{kanjiTitle}', {producerid}, '{item.Released}', '{tags}', '{description}', '{item.Image}', {SetImageStatus(item.Image_Nsfw)}, " +
-                $"{length}, {item.Popularity.ToString("0.00", CultureInfo.InvariantCulture)},{item.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, {item.VoteCount}, {item.ID});";
+                "INSERT OR REPLACE INTO vnlist (" +
+                "Title, KanjiTitle, ProducerID, RelDate, Tags, Description, " +
+                "ImageURL, ImageNSFW, LengthTime, " +
+                "Popularity, Rating, " +
+                "VoteCount, VNID, Aliases, Languages)" +
+                "VALUES(" +
+                $"'{title}', '{kanjiTitle}', {producer?.ID ?? -1}, '{item.Released}', '{tags}', '{description}', " +
+                $"'{item.Image}', {SetImageStatus(item.Image_Nsfw)}, {length}, " +
+                $"{item.Popularity.ToString("0.00", CultureInfo.InvariantCulture)},{item.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, " +
+                $"{item.VoteCount}, {item.ID}, '{aliases}', '{languagesString}');";
             if (_printSetMethods) LogToFile(insertString);
             var command = new SQLiteCommand(insertString, DbConn);
             command.ExecuteNonQuery();
@@ -413,7 +441,7 @@ namespace Happy_Search
 
         #region Other
 
-        private CharacterItem GetCharacterItem(SQLiteDataReader reader)
+        private static CharacterItem GetCharacterItem(SQLiteDataReader reader)
         {
             return new CharacterItem
             {
@@ -423,7 +451,7 @@ namespace Happy_Search
             };
         }
 
-        private ListedVN GetListedVN(SQLiteDataReader reader)
+        private static ListedVN GetListedVN(SQLiteDataReader reader)
         {
             return new ListedVN(
                 reader["Title"].ToString(),
@@ -449,25 +477,29 @@ namespace Happy_Search
                 DbInt(reader["VoteCount"]),
                 reader["Relations"].ToString(),
                 reader["Screens"].ToString(),
-                reader["Anime"].ToString());
+                reader["Anime"].ToString(),
+                reader["Aliases"].ToString(),
+                reader["Languages"].ToString());
         }
 
-        private ListedProducer GetListedProducer(SQLiteDataReader reader)
-        {
-            return new ListedProducer(
-                reader["Name"].ToString(),
-                DbInt(reader["Titles"]),
-                DbDateTime(reader["Updated"]),
-                DbInt(reader["ProducerID"]));
-        }
-
-        private ListedProducer GetFavoriteProducer(SQLiteDataReader reader)
+        private static ListedProducer GetListedProducer(SQLiteDataReader reader)
         {
             return new ListedProducer(
                 reader["Name"].ToString(),
                 DbInt(reader["Titles"]),
                 DbDateTime(reader["Updated"]),
                 DbInt(reader["ProducerID"]),
+                reader["Language"].ToString());
+        }
+
+        private static ListedProducer GetFavoriteProducer(SQLiteDataReader reader)
+        {
+            return new ListedProducer(
+                reader["Name"].ToString(),
+                DbInt(reader["Titles"]),
+                DbDateTime(reader["Updated"]),
+                DbInt(reader["ProducerID"]),
+                reader["Language"].ToString(),
                 DbDouble(reader["UserAverageVote"]),
                 DbInt(reader["UserDropRate"]));
         }
@@ -535,10 +567,10 @@ namespace Happy_Search
                 //check database version and update if necessary.
                 Open();
                 var version = GetCurrentVersion();
-                if ((int)version < (int)DatabaseVersion.Latest)
+                if (version < DatabaseVersion.Latest)
                 {
                     if (_dbLog) LogToFile("Updating Database");
-                    UpdateTable(DatabaseVersion.Pre);
+                    UpdateTable(version);
                     if (_dbLog) LogToFile("Finished Updating Database");
                 }
                 Close();
@@ -576,7 +608,8 @@ namespace Happy_Search
             {
                 case "V1_4_0":
                     return DatabaseVersion.V1_4_0;
-                    break;
+                case "V1_4_6":
+                    return DatabaseVersion.V1_4_6;
                 default:
                     return DatabaseVersion.Pre;
             }
@@ -584,7 +617,7 @@ namespace Happy_Search
 
         private void UpdateTable(DatabaseVersion current)
         {
-            if ((int)current < (int)DatabaseVersion.V1_4_0)
+            if (current < DatabaseVersion.V1_4_0)
             {
                 //remove update producerlist date trigger
                 var commandString = "DROP TRIGGER UpdateTimestampProducerList;";
@@ -599,11 +632,28 @@ namespace Happy_Search
                 //create tabledetails table
                 CreateTableDetails();
             }
+            if (current < DatabaseVersion.V1_4_6)
+            {
+                //Add columns to vnlist table (aliases, languages)
+                var commandString = @"ALTER TABLE vnlist
+  ADD Aliases TEXT;
+ALTER TABLE vnlist
+ ADD Languages TEXT;";
+                if (_printGetMethods) LogToFile(commandString);
+                var command = new SQLiteCommand(commandString, DbConn);
+                command.ExecuteNonQuery();
+                //Add columns to vnlist table (aliases, languages)
+                commandString = @"ALTER TABLE producerlist ADD Language TEXT;";
+                if (_printGetMethods) LogToFile(commandString);
+                command = new SQLiteCommand(commandString, DbConn);
+                command.ExecuteNonQuery();
+                SetDbVersion(DatabaseVersion.V1_4_6);
+            }
         }
 
         private void CreateTableDetails()
         {
-            const string createCommand = 
+            const string createCommand =
                 @"CREATE TABLE `tabledetails` (
 	`Key`	TEXT NOT NULL,
 	`Value`	TEXT,
@@ -611,7 +661,7 @@ namespace Happy_Search
 );";
             var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
-             string insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('databaseversion','V1_4_0');";
+            string insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('databaseversion','V1_4_6');";
             command = new SQLiteCommand(insertCommand, DbConn);
             command.ExecuteNonQuery();
             insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('programname','Happy Search');";
@@ -624,27 +674,49 @@ namespace Happy_Search
             command = new SQLiteCommand(insertCommand, DbConn);
             command.ExecuteNonQuery();
         }
+        
+        private void SetDbVersion(DatabaseVersion version)
+        {
+            string versionString;
+            switch (version)
+            {
+                case DatabaseVersion.V1_4_0:
+                    versionString = "V1_4_0";
+                    break;
+                case DatabaseVersion.V1_4_6:
+                    versionString = "V1_4_6";
+                    break;
+                default:
+                    return;
+            }
+            string insertCommand = $@"INSERT OR REPLACE INTO tabledetails  (Key,Value) VALUES ('databaseversion','{versionString}');";
+            var command = new SQLiteCommand(insertCommand, DbConn);
+            command.ExecuteNonQuery();
+        }
 
         private static void CreateVNListTable()
         {
-            const string createCommand = @"CREATE TABLE ""vnlist"" ( `VNID` INTEGER NOT NULL UNIQUE,
-`Title` TEXT,
-`KanjiTitle` TEXT,
-`RelDate` TEXT,
-`ProducerID` INTEGER,
-`Tags` TEXT,
-`DateUpdated` DATE DEFAULT CURRENT_TIMESTAMP,
-`ImageURL` TEXT,
-`ImageNSFW` INTEGER,
-`Description` TEXT,
-`LengthTime` INTEGER,
-`Popularity` NUMERIC,
-`Rating` NUMERIC,
-`VoteCount` INTEGER,
-`Relations` TEXT,
-`Screens` TEXT,
-`Anime` TEXT,
-PRIMARY KEY(`VNID`),
+            const string createCommand = @"CREATE TABLE ""vnlist"" ( 
+`VNID` INTEGER NOT NULL UNIQUE, 
+`Title` TEXT, 
+`KanjiTitle` TEXT, 
+`RelDate` TEXT, 
+`ProducerID` INTEGER, 
+`Tags` TEXT, 
+`DateUpdated` DATE DEFAULT CURRENT_TIMESTAMP, 
+`ImageURL` TEXT, 
+`ImageNSFW` INTEGER, 
+`Description` TEXT, 
+`LengthTime` INTEGER, 
+`Popularity` NUMERIC, 
+`Rating` NUMERIC, 
+`VoteCount` INTEGER, 
+`Relations` TEXT, 
+`Screens` TEXT, 
+`Anime` TEXT, 
+`Aliases` TEXT, 
+`Languages` TEXT, 
+PRIMARY KEY(`VNID`), 
 FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
             var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
@@ -656,9 +728,11 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
 	`ProducerID`	INTEGER NOT NULL,
 	`Name`	TEXT,
 	`Titles`	INTEGER,
+	`Loaded`	TEXT,
 	`Updated`	DATE DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY(ProducerID)
-)";
+	`Language`	TEXT,
+	PRIMARY KEY(`ProducerID`)
+);";
             var command = new SQLiteCommand(createCommand, DbConn);
             command.ExecuteNonQuery();
         }
@@ -753,29 +827,29 @@ END";
             return JsonConvert.SerializeObject(objects);
         }
 
-/*
-        /// <summary>
-        /// Row describing table from sqlite_master
-        /// </summary>
-        private class TableRow
-        {
-            private int Cid { get; set; }
-            private string Name { get; set; }
-            private string Type { get; set; }
-            private int Notnull { get; set; }
-            private string Dflt_value { get; set; }
-            private int Pk { get; set; }
-            private TableRow(int cid, string name, string type, int notnull, string dflt_value, int pk)
-            {
-                Cid = cid;
-                Name = name;
-                Type = type;
-                Notnull = notnull;
-                Dflt_value = dflt_value;
-                Pk = pk;
-            }
-        }
-*/
+        /*
+                /// <summary>
+                /// Row describing table from sqlite_master
+                /// </summary>
+                private class TableRow
+                {
+                    private int Cid { get; set; }
+                    private string Name { get; set; }
+                    private string Type { get; set; }
+                    private int Notnull { get; set; }
+                    private string Dflt_value { get; set; }
+                    private int Pk { get; set; }
+                    private TableRow(int cid, string name, string type, int notnull, string dflt_value, int pk)
+                    {
+                        Cid = cid;
+                        Name = name;
+                        Type = type;
+                        Notnull = notnull;
+                        Dflt_value = dflt_value;
+                        Pk = pk;
+                    }
+                }
+        */
 
         // ReSharper disable InconsistentNaming
         /// <summary>
@@ -785,7 +859,8 @@ END";
         {
             Pre = 0,
             V1_4_0 = 1,
-            Latest = 1
+            V1_4_6 = 2,
+            Latest = 2
         }
         // ReSharper restore InconsistentNaming
         #endregion

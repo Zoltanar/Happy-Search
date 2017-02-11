@@ -37,7 +37,7 @@ namespace Happy_Search
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 }
                 favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles,
-                    DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100)));
+                    DateTime.UtcNow, producer.ID,producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             DBConn.BeginTransaction();
             DBConn.InsertFavoriteProducers(favoriteProducerList, Settings.UserID);
@@ -77,7 +77,7 @@ namespace Happy_Search
         {
             if (olFavoriteProducers.SelectedObjects.Count == 0)
             {
-                WriteError(prodReply, Resources.no_items_selected, true);
+                WriteError(prodReply, Resources.no_items_selected);
                 return;
             }
             DBConn.BeginTransaction();
@@ -96,7 +96,7 @@ namespace Happy_Search
         {
             if (olFavoriteProducers.Items.Count == 0)
             {
-                WriteError(prodReply, "No Items in list.", true);
+                WriteError(prodReply, "No Items in list.");
                 return;
             }
             var vnCount = olFavoriteProducers.Objects.Cast<ListedProducer>().Sum(producer => producer.NumberOfTitles);
@@ -126,7 +126,7 @@ This may take a while...",
         {
             if (olFavoriteProducers.SelectedItems.Count == 0)
             {
-                WriteError(prodReply, Resources.no_items_selected, true);
+                WriteError(prodReply, Resources.no_items_selected);
                 return;
             }
             IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.SelectedObjects
@@ -144,7 +144,7 @@ This may take a while...",
         {
             if (olFavoriteProducers.Items.Count == 0)
             {
-                WriteWarning(prodReply, "You have no favorite producers.", true);
+                WriteWarning(prodReply, "You have no favorite producers.");
                 return;
             }
             var askBox =
@@ -154,7 +154,7 @@ This may take a while...",
                 olFavoriteProducers.Objects.Cast<ListedProducer>().Where(item => item.Updated > 2 || item.Updated == -1).ToList();
             if (producers.Count == 0)
             {
-                WriteWarning(prodReply, "No producers require an update.", true);
+                WriteWarning(prodReply, "No producers require an update.");
                 return;
             }
             var result = StartQuery(prodReply, "Get New FP Titles");
@@ -205,7 +205,7 @@ This may take a while...",
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(Settings.UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
-                producer.ID));
+                producer.ID, producer.Language));
             DBConn.Close();
             LogToFile($"Finished getting titles for Producer= {producer}, {producerTitles.Count} titles.");
         }
@@ -254,7 +254,7 @@ This may take a while...",
                 userDropRate = finishedCount + droppedCount != 0 ? (double)droppedCount / (droppedCount + finishedCount) : -1;
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
             }
-            producer = new ListedProducer(producer.Name, producer.NumberOfTitles, DateTime.UtcNow, producer.ID, userAverageVote, (int)Math.Round(userDropRate * 100));
+            producer = new ListedProducer(producer.Name, producer.NumberOfTitles, DateTime.UtcNow, producer.ID, producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100));
             DBConn.BeginTransaction();
             DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, Settings.UserID);
             DBConn.EndTransaction();

@@ -191,7 +191,7 @@ namespace Happy_Search
             var trait = PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
             if (trait == null)
             {
-                WriteError(traitReply, "Root trait not found.", true);
+                WriteError(traitReply, "Root trait not found.");
                 return;
             }
             var traitSource = new AutoCompleteStringCollection();
@@ -208,7 +208,7 @@ namespace Happy_Search
             traitSearchResultBox.Visible = false;
             if (traitSearchBox.Text == "") //check if box is empty
             {
-                WriteError(traitReply, "Enter trait name.", true);
+                WriteError(traitReply, "Enter trait name.");
                 return;
             }
             var traitName = traitSearchBox.Text;
@@ -237,12 +237,12 @@ namespace Happy_Search
         {
             if (trait == null)
             {
-                WriteError(traitReply, "Trait not found.", true);
+                WriteError(traitReply, "Trait not found.");
                 return;
             }
             if (_activeTraitFilter.Contains(trait))
             {
-                WriteError(traitReply, "Trait is already in filter.", true);
+                WriteError(traitReply, "Trait is already in filter.");
                 return;
             }
             _activeTraitFilter.Add(trait);
@@ -257,7 +257,7 @@ namespace Happy_Search
             traitSearchResultBox.Visible = false;
             if (traitSearchBox.Text == "") //check if box is empty
             {
-                WriteError(traitReply, "Enter trait name.", true);
+                WriteError(traitReply, "Enter trait name.");
                 return;
             }
             var text = traitSearchBox.Text.ToLowerInvariant();

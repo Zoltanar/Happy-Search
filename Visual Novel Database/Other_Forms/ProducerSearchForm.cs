@@ -42,7 +42,7 @@ namespace Happy_Search.Other_Forms
                 if (_favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
                 int finishedTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
                 int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
-                if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, finishedTitles, urtTitles));
+                if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, producer.Language, finishedTitles, urtTitles));
             }
             if (!suggestions.Any())
             {
@@ -69,7 +69,7 @@ namespace Happy_Search.Other_Forms
         {
             if (producerSearchBox.Text.Equals("")) //check if box is empty
             {
-                WriteError(prodSearchReply, Resources.enter_producer_name, true);
+                WriteError(prodSearchReply, Resources.enter_producer_name);
                 return;
             }
             var result = _parentForm.StartQuery(prodSearchReply, "Producer Search");
@@ -163,7 +163,7 @@ namespace Happy_Search.Other_Forms
                         : -1;
                 }
                 addProducerList.Add(new ListedProducer(producer.Name, -1, DateTime.UtcNow, producer.ID,
-                    userAverageVote, (int)Math.Round(userDropRate * 100)));
+                    producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             _parentForm.DBConn.BeginTransaction();
             _parentForm.DBConn.InsertFavoriteProducers(addProducerList, FormMain.Settings.UserID);
@@ -178,7 +178,7 @@ namespace Happy_Search.Other_Forms
             string inList = _favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
             int finished = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
             int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
-            return new ListedSearchedProducer(producer.Name, inList, producer.ID, finished, urtTitles);
+            return new ListedSearchedProducer(producer.Name, inList, producer.ID, producer.Language, finished, urtTitles);
         }
     }
 }

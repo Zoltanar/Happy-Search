@@ -29,7 +29,7 @@ namespace Happy_Search
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                WriteError(replyLabel, "API Connection isn't ready.", true);
+                WriteError(replyLabel, "API Connection isn't ready.");
                 return false;
             }
             await Task.Run(() =>
@@ -66,7 +66,9 @@ namespace Happy_Search
                 {
                     minWait = Math.Min(5 * 60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
                     string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
-                    string additionalWarning = $" Added {_vnsAdded}/skipped {_vnsSkipped}...";
+                    string additionalWarning = "";
+                    if(_vnsAdded > 0) additionalWarning +=  $" Added {_vnsAdded}.";
+                    if(_vnsSkipped > 0) additionalWarning += $" Skipped {_vnsSkipped}.";
                     fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 });
                 WriteWarning(replyLabel, fullThrottleMessage);
@@ -132,7 +134,6 @@ namespace Happy_Search
             var response = JsonConvert.DeserializeObject<UserRootItem>(Conn.LastResponse.JsonPayload);
             return response.Items.Any() ? response.Items[0].Username : "";
         }
-
 
         /// <summary>
         /// Get user ID from VNDB username, returns -1 if error.
@@ -211,7 +212,56 @@ namespace Happy_Search
                 }
                 done += APIMaxResults;
             }
-            await ReloadListsFromDbAsync();
+        }
+
+
+        private async Task GetLanguagesForMultipleVN(int[] vnIDs, Label replyLabel)
+        {
+            if (!vnIDs.Any()) return;
+            _vnsAdded = 0;
+            var vnList = new List<Tuple<int, VNLanguages>>();
+            foreach (var vnID in vnIDs)
+            {
+                var releases = await GetReleases(vnID, "GetLanguagesForMultipleVN Error", replyLabel, true,true);
+                var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
+                var languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
+                vnList.Add(new Tuple<int, VNLanguages>(vnID, languages));
+                _vnsAdded++;
+                if (vnList.Count > 24)
+                {
+                    DBConn.BeginTransaction();
+                    foreach (var vn in vnList) DBConn.SetVNLanguages(vn);
+                    DBConn.EndTransaction();
+                    vnList.Clear();
+                }
+            }
+            DBConn.BeginTransaction();
+            foreach (var vn in vnList) DBConn.SetVNLanguages(vn);
+            DBConn.EndTransaction();
+        }
+
+        private async Task GetLanguagesForProducers(int[] producerIDs, Label replyLabel)
+        {
+            if (!producerIDs.Any()) return;
+            _vnsAdded = 0;
+            var producerList = new List<ListedProducer>();
+            foreach (var producerID in producerIDs)
+            {
+                var result = await GetProducer(producerID, "GetLanguagesForProducers Error", replyLabel, true, true, true);
+                if (!result.Item1 || result.Item2 == null) continue;
+                producerList.Add(result.Item2);
+                _vnsAdded++;
+                if (producerList.Count > 24)
+                {
+                    DBConn.BeginTransaction();
+                    foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
+                    DBConn.EndTransaction();
+                    producerList.Clear();
+                }
+            }
+            DBConn.BeginTransaction();
+            foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
+            DBConn.EndTransaction();
         }
 
         /// <summary>
@@ -239,16 +289,27 @@ namespace Happy_Search
             }
             var vnItem = vnRoot.Items[0];
             SaveImage(vnItem, true);
-            var relProducer = await GetDeveloper(vnid, Resources.usvn_query_error, updateLink);
-            var gpResult = await GetProducer(relProducer, Resources.usvn_query_error, updateLink);
-            if (!gpResult.Item1)
+            var releases = await GetReleases(vnid, Resources.svn_query_error, updateLink);
+            var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
+            var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
+            var languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
+            if (relProducer != null)
             {
-                ChangeAPIStatus(Conn.Status);
-                return null;
+                var gpResult = await GetProducer(relProducer.ID, Resources.usvn_query_error, updateLink);
+                if (!gpResult.Item1)
+                {
+                    ChangeAPIStatus(Conn.Status);
+                    return null;
+                }
+                if (gpResult.Item2 != null)
+                {
+                    DBConn.Open();
+                    DBConn.InsertProducer(gpResult.Item2, true);
+                    DBConn.Close();
+                }
             }
             DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer);
-            if (gpResult.Item2 != null) DBConn.InsertProducer(gpResult.Item2, true);
+            DBConn.UpsertSingleVN(vnItem, relProducer, languages);
             var vn = DBConn.GetSingleVN(vnid, Settings.UserID);
             DBConn.Close();
             await ReloadListsFromDbAsync();
@@ -256,6 +317,7 @@ namespace Happy_Search
             ChangeAPIStatus(Conn.Status);
             return vn;
         }
+
 
         /// <summary>
         /// Searches VNDB for producers by name, independent.
@@ -342,20 +404,30 @@ namespace Happy_Search
                 foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
                 DBConn.EndTransaction();
             }
-            List<Tuple<VNItem, int>> vnsToBeUpserted = new List<Tuple<VNItem, int>>();
-            List<ListedProducer> producersToBeUpserted = new List<ListedProducer>();
+            var vnsToBeUpserted = new List<Tuple<VNItem, ProducerItem, VNLanguages>>();
+            var producersToBeUpserted = new List<ListedProducer>();
             foreach (var vnItem in vnRoot.Items)
             {
                 SaveImage(vnItem);
-                var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                var gpResult = await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                if (!gpResult.Item1) return;
-                if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
+                var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel);
+                var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
+                var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
+                VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
+                if (relProducer != null)
+                {
+                    var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, replyLabel);
+                    if (!gpResult.Item1)
+                    {
+                        ChangeAPIStatus(Conn.Status);
+                        return;
+                    }
+                    if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
+                }
                 _vnsAdded++;
-                vnsToBeUpserted.Add(new Tuple<VNItem, int>(vnItem, relProducer));
+                vnsToBeUpserted.Add(new Tuple<VNItem, ProducerItem, VNLanguages>(vnItem, relProducer, languages));
             }
             DBConn.BeginTransaction();
-            foreach (Tuple<VNItem, int> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2);
+            foreach (Tuple<VNItem, ProducerItem, VNLanguages> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2, vn.Item3);
             foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
             DBConn.EndTransaction();
             await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
@@ -385,15 +457,25 @@ namespace Happy_Search
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
-                    var relProducer = await GetDeveloper(vnItem.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                    var gpResult = await GetProducer(relProducer, Resources.gmvn_query_error, replyLabel, true, refreshList);
-                    if (!gpResult.Item1) return;
-                    if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
+                    var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel);
+                    var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
+                    var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
+                    VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
+                    if (relProducer != null)
+                    {
+                        var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, replyLabel);
+                        if (!gpResult.Item1)
+                        {
+                            ChangeAPIStatus(Conn.Status);
+                            return;
+                        }
+                        if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
+                    }
                     _vnsAdded++;
-                    vnsToBeUpserted.Add(new Tuple<VNItem, int>(vnItem, relProducer));
+                    vnsToBeUpserted.Add(new Tuple<VNItem, ProducerItem, VNLanguages>(vnItem, relProducer, languages));
                 }
                 DBConn.BeginTransaction();
-                foreach (Tuple<VNItem, int> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2);
+                foreach (Tuple<VNItem, ProducerItem, VNLanguages> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2, vn.Item3);
                 foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
                 DBConn.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
@@ -430,7 +512,7 @@ namespace Happy_Search
             DBConn.BeginTransaction();
             foreach (var vnItem in vnRoot.Items)
             {
-                DBConn.UpdateVNToLatestVersion(vnItem);
+                DBConn.SetVNStats(vnItem);
                 _vnsAdded++;
             }
             DBConn.EndTransaction();
@@ -455,7 +537,7 @@ namespace Happy_Search
                 DBConn.BeginTransaction();
                 foreach (var vnItem in vnRoot.Items)
                 {
-                    DBConn.UpdateVNToLatestVersion(vnItem);
+                    DBConn.SetVNStats(vnItem);
                     _vnsAdded++;
                 }
                 DBConn.EndTransaction();
@@ -463,6 +545,8 @@ namespace Happy_Search
             }
             await ReloadListsFromDbAsync();
         }
+
+
 
         /// <summary>
         /// Update tags, traits and stats of titles.
@@ -529,30 +613,24 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Get Developer for VN by VNID.
+        /// Get Releases for VN.
         /// </summary>
         /// <param name="vnid">ID of VN</param>
         /// <param name="errorMessage">Message to be printed in case of error</param>
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
-        /// <returns></returns>
-        internal async Task<int> GetDeveloper(int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task<List<ReleaseItem>> GetReleases(int vnid, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
         {
             string developerQuery = $"get release basic,producers (vn =\"{vnid}\") {{{MaxResultsString}}}";
             var releaseResult =
                 await TryQuery(developerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
-            if (!releaseResult) return -1;
+            if (!releaseResult) return null;
             var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
-            List<ReleaseItem> relItem = relInfo.Items;
-            relItem.Sort((x, y) => DateTime.Compare(StringToDate(x.Released), StringToDate(y.Released)));
-            if (!relItem.Any()) return -1;
-            foreach (var item in relItem)
-            {
-                var dev = item.Producers.Find(x => x.Developer);
-                if (dev != null) return dev.ID;
-            }
-            return -1;
+            List<ReleaseItem> releaseItems = relInfo.Items.Where(rel => !rel.Type.Equals("trial")).ToList();
+            if (!releaseItems.Any()) releaseItems = relInfo.Items;
+            releaseItems.Sort((x, y) => DateTime.Compare(StringToDate(x.Released), StringToDate(y.Released)));
+            return releaseItems;
         }
 
         /// <summary>
@@ -564,11 +642,11 @@ namespace Happy_Search
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="additionalMessage">Should added/skipped message be printed if connection is throttled?</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
+        /// <param name="update">Should producer data be fetched even if it is already present in local db?</param>
         /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
-        internal async Task<Tuple<bool, ListedProducer>> GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false)
+        internal async Task<Tuple<bool, ListedProducer>> GetProducer(int producerID, string errorMessage, Label replyLabel, bool additionalMessage = false, bool refreshList = false, bool update = false)
         {
-            int[] producerIDList = ProducerList.Select(x => x.ID).ToArray();
-            if (producerID == -1 || producerIDList.Contains(producerID)) return new Tuple<bool, ListedProducer>(true, null);
+            if (!update && (producerID == -1 || ProducerList.Exists(p => p.ID == producerID))) return new Tuple<bool, ListedProducer>(true, null);
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
                 await TryQuery(producerQuery, errorMessage, replyLabel, additionalMessage, refreshList);
@@ -776,5 +854,6 @@ namespace Happy_Search
             ChangeAPIStatus(VndbConnection.APIStatus.Busy);
             return true;
         }
+
     }
 }
