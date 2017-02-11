@@ -2,7 +2,8 @@ Next Milestone == ??
 
 Changelog
 ---------
-Added: Language support. Flags in VN tiles represent languages of original release, in VN tabs all languages available are shown.
+Improved: Middle click a vn tab to close it.
+Added: Language support. Flags in VN tiles represent languages of original release, in VN tabs all languages available are shown. List By Language added.
 -1.4.5 released (test)-
 Added: VN Options to VNControl; Display of VN Notes and Groups in VNControl.
 Fixed: Wait for DB to be free before attempting to LoadDataFromAPI in VNControl
@@ -112,7 +113,6 @@ No Work
 	----------
 	 user-configurable tag alerts (like EH)
 	 Allow user configurated color scheme (for vn list)
-	 Add language features
 
 
 	Hard Tasks

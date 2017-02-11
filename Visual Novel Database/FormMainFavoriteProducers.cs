@@ -169,7 +169,6 @@ This may take a while...",
             WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.");
             ChangeAPIStatus(Conn.Status);
         }
-
         
 
         /// <summary>
@@ -281,6 +280,12 @@ This may take a while...",
                 if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
             }
         }
-
+        
+        private void FavoriteProducerDoubleClick(object sender, CellClickEventArgs e)
+        {
+            if (e.ClickCount < 2) return;
+            var producer = (ListedProducer)e.Model;
+            List_Producer(producer.Name);
+        }
     }
 }

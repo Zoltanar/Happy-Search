@@ -1386,6 +1386,7 @@ namespace Happy_Search
             this.olFavoriteProducers.TabIndex = 0;
             this.olFavoriteProducers.UseCompatibleStateImageBehavior = false;
             this.olFavoriteProducers.View = System.Windows.Forms.View.Details;
+            this.olFavoriteProducers.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.FavoriteProducerDoubleClick);
             this.olFavoriteProducers.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatRowFavoriteProducers);
             // 
             // ol2Name
@@ -2257,7 +2258,7 @@ namespace Happy_Search
             this.tileOLV.UseCompatibleStateImageBehavior = false;
             this.tileOLV.UseFiltering = true;
             this.tileOLV.View = System.Windows.Forms.View.Tile;
-            this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.VisualNovelLeftClick);
+            this.tileOLV.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.VisualNovelDoubleClick);
             this.tileOLV.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.ShowContextMenu);
             this.tileOLV.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.VNToolTip);
             this.tileOLV.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.FormatVNCell);
@@ -2353,6 +2354,7 @@ namespace Happy_Search
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(1204, 621);
             this.tabControl1.TabIndex = 0;
+            this.tabControl1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.CloseTabMiddleClick);
             // 
             // ContextMenuVN
             // 

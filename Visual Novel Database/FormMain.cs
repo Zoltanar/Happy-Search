@@ -526,6 +526,21 @@ https://github.com/FredTheBarber/VndbClient";
             while(tabpages.Count > 2) tabpages.RemoveAt(2);
         }
 
+        private void CloseTabMiddleClick(object sender, MouseEventArgs e)
+        {
+            var tabControl = sender as TabControl;
+            Debug.Assert(tabControl != null, "tabControl != null");
+            var tabs = tabControl.TabPages;
+
+            if (e.Button == MouseButtons.Middle)
+            {
+                var tab = tabs.Cast<TabPage>()
+                    .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
+                    .First();
+                if(tab.TabIndex > 2) tabs.Remove(tab);
+            }
+        }
+
         /// <summary>
         ///     Display html file explaining how to get started.
         /// </summary>
@@ -1456,6 +1471,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             WL,
             Vote
         }
+
         #endregion
 
     }

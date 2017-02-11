@@ -821,13 +821,11 @@ namespace Happy_Search
         /// <summary>
         /// Load Visual Novel Form with details of visual novel that was double clicked.
         /// </summary>
-        private void VisualNovelLeftClick(object sender, CellClickEventArgs e)
+        private void VisualNovelDoubleClick(object sender, CellClickEventArgs e)
         {
             if (e.ClickCount < 2) return;
             if (ModifierKeys.HasFlag(Keys.Control)) return;
-            var listView = (ObjectListView)sender;
-            if (listView.SelectedIndices.Count <= 0) return;
-            var vnItem = (ListedVN)listView.SelectedObjects[0];
+            var vnItem = (ListedVN)e.Model;
             var tabPage = new TabPage();
             VNControl vnf;
             if (CurrentFeatureName.Equals(""))
