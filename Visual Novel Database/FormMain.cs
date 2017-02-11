@@ -454,7 +454,7 @@ https://github.com/FredTheBarber/VndbClient";
             IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(Settings.UserID).Select(x => x.Name);
             DBConn.Close();
             var tier1Titles =
-                _vnList.Where(x => x.UpdatedDate > 7 && x.ReleasedBetweenNowAnd(DateTime.UtcNow.AddMonths(-6)))
+                _vnList.Where(x => x.UpdatedDate > 7 && x.DateForSorting >= DateTime.UtcNow.AddMonths(-6))
                     .ToArray();
             var tier2Titles =
                 _vnList.Where(
@@ -523,7 +523,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void CloseVNTabs(object sender, EventArgs e)
         {
             var tabpages = tabControl1.TabPages;
-            while(tabpages.Count > 2) tabpages.RemoveAt(2);
+            while (tabpages.Count > 2) tabpages.RemoveAt(2);
         }
 
         private void CloseTabMiddleClick(object sender, MouseEventArgs e)
@@ -537,7 +537,7 @@ https://github.com/FredTheBarber/VndbClient";
                 var tab = tabs.Cast<TabPage>()
                     .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
                     .First();
-                if(tab.TabIndex > 2) tabs.Remove(tab);
+                if (tab.TabIndex > 2) tabs.Remove(tab);
             }
         }
 
@@ -570,7 +570,7 @@ https://github.com/FredTheBarber/VndbClient";
                     await UpdateAllTitlesSkipLimit();
                     break;
                 case 6:
-                    await GetAllAliasesLanguages();
+                    await GetAllLanguages();
                     break;
                 default:
                     return;
@@ -648,7 +648,7 @@ This will take a long time if you have a lot of titles in your local database.",
         }
 
 
-        private async Task GetAllAliasesLanguages()
+        private async Task GetAllLanguages()
         {
             var messageBox2 =
                 MessageBox.Show(
@@ -659,7 +659,7 @@ This will take a long time if you have a lot of titles in your local database.",
             if (messageBox2 != DialogResult.Yes) return;
             var result = StartQuery(userListReply, "Get All Languages");
             if (!result) return;
-            await GetLanguagesForMultipleVN(_vnList.Where(x=>x.Languages == null).Select(x => x.VNID).ToArray(), userListReply);
+            await GetLanguagesForMultipleVN(_vnList.Where(x => x.Languages == null).Select(x => x.VNID).ToArray(), userListReply);
             await GetLanguagesForProducers(ProducerList.Select(x => x.ID).ToArray(), userListReply);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();

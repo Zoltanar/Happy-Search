@@ -70,6 +70,7 @@ namespace Happy_Search
         /// <summary>
         /// Constructor for parsing from file.
         /// </summary>
+        // ReSharper disable once UnusedMember.Global
         public UserSettings(string username, int userID, bool contentTags, bool sexualTags, bool technicalTags, bool nsfwImages, bool autoUpdate, bool decadeLimit, bool rememberPassword, DateTime dumpfileDate, DateTime statsDate, DateTime urtDate)
         {
             Username = username;
@@ -126,7 +127,7 @@ namespace Happy_Search
         {
             try
             {
-                File.WriteAllText(SettingsJson, JsonConvert.SerializeObject(this,Formatting.Indented));
+                File.WriteAllText(SettingsJson, JsonConvert.SerializeObject(this, Formatting.Indented));
             }
             catch (JsonException exception)
             {

@@ -52,7 +52,7 @@ namespace Happy_Search.Other_Forms
             tagTypeT.CheckedChanged += DisplayTags;
             picturePanel.MouseWheel += ScrollScreens;
             _displayedVN = vnItem;
-            _flagBoxes = new[] { pictureBox1, pictureBox2, pictureBox3, pictureBox4,pictureBox5,pictureBox6};
+            _flagBoxes = new[] { pictureBox1, pictureBox2, pictureBox3, pictureBox4, pictureBox5, pictureBox6 };
             Load += LoadForm;
         }
 
@@ -152,8 +152,10 @@ namespace Happy_Search.Other_Forms
         /// <param name="update">Whether to refetch anime, relations and screenshots</param>
         private async Task SetData(ListedVN vnItem, bool update = false)
         {
+#if DEBUG
             try
             {
+#endif
                 if (vnItem == null || vnItem.VNID <= 0)
                 {
                     SetDeletedData();
@@ -227,14 +229,8 @@ namespace Happy_Search.Other_Forms
                         SetDeletedData();
                         break;
                     case FetchStatus.Throttled:
-                        vnRelationsCB.DataSource = new List<string>
-                        {
-                            "Relations cannot be fetched until API connection is ready."
-                        };
-                        vnAnimeCB.DataSource = new List<string>
-                        {
-                            "Anime cannot be fetched until API connection is ready."
-                        };
+                        vnRelationsCB.DataSource = new List<string> { "Relations cannot be fetched until API connection is ready." };
+                        vnAnimeCB.DataSource = new List<string> { "Anime cannot be fetched until API connection is ready." };
                         picturePanel.Controls.Clear();
                         DisplayTextOnScreenshotArea("Screenshots cannot be fetched until API connection is ready");
                         break;
@@ -244,11 +240,14 @@ namespace Happy_Search.Other_Forms
                         DisplayScreenshots(loadResult.Screens);
                         break;
                 }
+#if DEBUG
             }
+            // ReSharper disable once UnusedVariable
             catch (Exception e)
             {
-                
+                // ignored
             }
+#endif
         }
 
         private void DisplayGroups(CustomItemNotes notes)
@@ -260,8 +259,7 @@ namespace Happy_Search.Other_Forms
                 vnGroups.SelectedIndex = 0;
                 return;
             }
-            if(groupCount == 1) vnGroups.Items.Add("1 Group");
-            else vnGroups.Items.Add($"{groupCount} Groups");
+            vnGroups.Items.Add(groupCount == 1 ? "1 Group" : $"{groupCount} Groups");
             vnGroups.Items.Add("----------");
             foreach (var groupString in notes.Groups)
             {
@@ -515,7 +513,8 @@ namespace Happy_Search.Other_Forms
                 ForeColor = Color.White
             });
         }
-        private async void vnUpdateLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+
+        private async void UpdateVN(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
             if (vnUpdateLink.Text.Equals("Updating...") || vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
@@ -524,7 +523,7 @@ namespace Happy_Search.Other_Forms
             await SetData(vnItem, true);
         }
 
-        private void vnID_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void OpenVndbPage(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (vnID.Text.Equals("")) return;
             Process.Start("http://vndb.org/v" + vnID.Text + '/');
@@ -601,17 +600,17 @@ namespace Happy_Search.Other_Forms
             var releases = await _parentForm.GetReleases(vnid, Resources.svn_query_error, replyLabel);
             if (releases == null)
             {
-                
+
             }
             var mainRelease = releases?.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
             if (mainRelease == null)
             {
-                
+
             }
             var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
             if (relProducer == null)
             {
-                
+
             }
             VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
             if (relProducer != null)
@@ -638,7 +637,6 @@ namespace Happy_Search.Other_Forms
             });
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
         }
-
 
         /// <summary>
         /// DrawImage to fit a space with maxWdith, all image is shown but to stay in ratio, there can be space left below or to the right.
@@ -701,48 +699,6 @@ namespace Happy_Search.Other_Forms
             return newWidth;
         }
 
-        /// <summary>
-        /// Class holding VN information fetched via API on VN Form Load.
-        /// </summary>
-        private class APILoadStruct
-        {
-            /// <summary>
-            /// Status of info fetch (error, success, throttled)
-            /// </summary>
-            public FetchStatus Status;
-            /// <summary>
-            /// VN Relations
-            /// </summary>
-            public RelationsItem[] Relations;
-            /// <summary>
-            /// VN Anime
-            /// </summary>
-            public AnimeItem[] Anime;
-            /// <summary>
-            /// VN Screenshots
-            /// </summary>
-            public ScreenItem[] Screens;
-        }
-
-        /// <summary>
-        /// Status of info fetch (error, success, throttled)
-        /// </summary>
-        private enum FetchStatus
-        {
-            /// <summary>
-            /// There was an error in fetching (probably a deleted VN)
-            /// </summary>
-            Error = 0,
-            /// <summary>
-            /// Fetch was successful
-            /// </summary>
-            Success = 1,
-            /// <summary>
-            /// Fetch could not be done because connection was not ready
-            /// </summary>
-            Throttled = 2
-        }
-
         #region TabPage Controls
         private void CloseButton(object sender, EventArgs e)
         {
@@ -753,7 +709,6 @@ namespace Happy_Search.Other_Forms
         {
             if (e.KeyCode == Keys.Escape) CloseButton(null, null);
         }
-
 
         private void OnResize(object sender, EventArgs e)
         {
@@ -790,7 +745,6 @@ namespace Happy_Search.Other_Forms
             _parentForm.tabControl1.SelectTab(0);
             _parentForm.List_Producer(_displayedVN.Producer);
         }
-
 
         /// <summary>
         /// Prepare and display context menu for visual novel.
@@ -943,7 +897,6 @@ namespace Happy_Search.Other_Forms
             _working = false;
         }
 
-
         private async void AddProducer(object sender, EventArgs e)
         {
             if (_displayedVN == null || _working) return;
@@ -1085,6 +1038,48 @@ namespace Happy_Search.Other_Forms
                     _parentForm.List_Group(null, null);
                     return;
             }
+        }
+
+        /// <summary>
+        /// Class holding VN information fetched via API on VN Form Load.
+        /// </summary>
+        private class APILoadStruct
+        {
+            /// <summary>
+            /// Status of info fetch (error, success, throttled)
+            /// </summary>
+            public FetchStatus Status;
+            /// <summary>
+            /// VN Relations
+            /// </summary>
+            public RelationsItem[] Relations;
+            /// <summary>
+            /// VN Anime
+            /// </summary>
+            public AnimeItem[] Anime;
+            /// <summary>
+            /// VN Screenshots
+            /// </summary>
+            public ScreenItem[] Screens;
+        }
+
+        /// <summary>
+        /// Status of info fetch (error, success, throttled)
+        /// </summary>
+        private enum FetchStatus
+        {
+            /// <summary>
+            /// There was an error in fetching (probably a deleted VN)
+            /// </summary>
+            Error = 0,
+            /// <summary>
+            /// Fetch was successful
+            /// </summary>
+            Success = 1,
+            /// <summary>
+            /// Fetch could not be done because connection was not ready
+            /// </summary>
+            Throttled = 2
         }
     }
 }

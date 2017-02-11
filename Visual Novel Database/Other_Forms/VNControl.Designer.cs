@@ -364,7 +364,7 @@
             this.vnID.Text = "(vnID)";
             this.vnID.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.vnID.VisitedLinkColor = System.Drawing.Color.Blue;
-            this.vnID.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.vnID_LinkClicked);
+            this.vnID.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OpenVndbPage);
             // 
             // pcbImages
             // 
@@ -391,7 +391,7 @@
             this.vnUpdateLink.Text = "(vnUpdateLink)";
             this.vnUpdateLink.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.vnUpdateLink.VisitedLinkColor = System.Drawing.Color.Blue;
-            this.vnUpdateLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.vnUpdateLink_LinkClicked);
+            this.vnUpdateLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.UpdateVN);
             // 
             // vnTagCB
             // 

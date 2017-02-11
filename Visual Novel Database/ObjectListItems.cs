@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -411,15 +410,6 @@ namespace Happy_Search
             List<string> groups = groupsString.Equals("") ? new List<string>() : groupsString.Split(',').ToList();
             return new CustomItemNotes(notes, groups);
         }
-        /// <summary>
-        /// Checks if title was released between now and a past date, the current date is included.
-        /// Make sure to enter arguments in correct order.
-        /// </summary>
-        /// <param name="oldDate">Date furthest from the present</param>
-        public bool ReleasedBetweenNowAnd(DateTime oldDate)
-        {
-            return DateForSorting > oldDate && DateForSorting <= DateTime.UtcNow;
-        }
 
         /// <summary>
         /// Check if title was released in specified year.
@@ -716,8 +706,8 @@ namespace Happy_Search
                     if (!File.Exists(flagPath)) continue;
                     //g.DrawImage(Image.FromFile(flagPath), new Point(photoArea.X + photoArea.Width - 24, startingY));
                     var point = new Point(photoArea.X + photoArea.Width - 24, startingY);
-                    var size = new Size(24,12);
-                    g.DrawImageUnscaledAndClipped(Image.FromFile(flagPath), new Rectangle(point,size));
+                    var size = new Size(24, 12);
+                    g.DrawImageUnscaledAndClipped(Image.FromFile(flagPath), new Rectangle(point, size));
                     startingY += 16;
                 }
             }

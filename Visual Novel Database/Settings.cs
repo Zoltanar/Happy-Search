@@ -1,4 +1,5 @@
-﻿namespace Happy_Search.Properties {
+﻿// ReSharper disable All
+namespace Happy_Search.Properties {
     
     
     // This class allows you to handle specific events on the settings class:
