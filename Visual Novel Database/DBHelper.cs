@@ -310,6 +310,15 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
+        public void SetProducerLanguage(ListedProducer producer)
+        {
+            var insertString =
+                $"UPDATE producerlist SET Language = '{producer.Language}' WHERE ProducerID = {producer.ID};";
+            if (_printSetMethods) LogToFile(insertString);
+            var command = new SQLiteCommand(insertString, DbConn);
+            command.ExecuteNonQuery();
+        }
+
         public void RemoveFavoriteProducer(int producerID, int userid)
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
@@ -657,8 +666,8 @@ namespace Happy_Search
             {
                 case "V1_4_0":
                     return DatabaseVersion.V1_4_0;
-                case "V1_4_6":
-                    return DatabaseVersion.V1_4_6;
+                case "V1_4_7":
+                    return DatabaseVersion.V1_4_7;
                 default:
                     return DatabaseVersion.Pre;
             }
@@ -681,7 +690,7 @@ namespace Happy_Search
                 //create tabledetails table
                 CreateTableDetails();
             }
-            if (current < DatabaseVersion.V1_4_6)
+            if (current < DatabaseVersion.V1_4_7)
             {
                 //Add columns to vnlist table (aliases, languages)
                 var commandString = @"ALTER TABLE vnlist
@@ -697,7 +706,7 @@ ALTER TABLE vnlist
                 if (_printGetMethods) LogToFile(commandString);
                 command = new SQLiteCommand(commandString, DbConn);
                 command.ExecuteNonQuery();
-                SetDbVersion(DatabaseVersion.V1_4_6);
+                SetDbVersion(DatabaseVersion.V1_4_7);
             }
         }
 
@@ -733,8 +742,8 @@ ALTER TABLE vnlist
                 case DatabaseVersion.V1_4_0:
                     versionString = "V1_4_0";
                     break;
-                case DatabaseVersion.V1_4_6:
-                    versionString = "V1_4_6";
+                case DatabaseVersion.V1_4_7:
+                    versionString = "V1_4_7";
                     break;
                 default:
                     return;
@@ -903,7 +912,7 @@ END";
         {
             Pre = 0,
             V1_4_0 = 1,
-            V1_4_6 = 2,
+            V1_4_7 = 2,
             Latest = 2
         }
         // ReSharper restore InconsistentNaming

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -66,6 +67,11 @@ namespace Happy_Search
         private async void MultiActionSelect(object sender, EventArgs e)
         {
             if (multiActionBox.SelectedIndex < 1) return;
+            if (multiActionBox.SelectedIndex == 1)
+            {
+                multiActionBox.SelectedIndex = 0;
+                return;
+            }
             if (tileOLV.SelectedObjects.Count < 1)
             {
                 WriteText(replyText, "No titles selected.");
@@ -75,13 +81,13 @@ namespace Happy_Search
             var titles = tileOLV.SelectedObjects.Cast<ListedVN>().ToArray();
             switch (multiActionBox.SelectedIndex)
             {
-                case 1:
+                case 2:
                     tileOLV.SelectedObjects = null;
                     break;
-                case 2:
-                    string message = $"You've selected {titles.Length} titles.\nAre you sure you wish to remove them from local database?";
-                    var messageBox = MessageBox.Show(message, "Confirm Action", MessageBoxButtons.YesNo);
-                    if (messageBox != DialogResult.Yes)
+                case 3:
+                    string message3 = $"You've selected {titles.Length} titles.\nAre you sure you wish to remove them from local database?";
+                    var messageBox3 = MessageBox.Show(message3, "Confirm Action", MessageBoxButtons.YesNo);
+                    if (messageBox3 != DialogResult.Yes)
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
@@ -91,8 +97,45 @@ namespace Happy_Search
                     await ReloadListsFromDbAsync();
                     LoadVNListToGui();
                     WriteText(replyText, "Titles Removed.");
+                    multiActionBox.SelectedIndex = 0;
+                    return;
+                case 4:
+                    string message4 = $"You've selected {titles.Length} titles.\nAre you sure you wish to update tags traits and stats for them?";
+                    var messageBox4 = MessageBox.Show(message4, "Confirm Action", MessageBoxButtons.YesNo);
+                    if (messageBox4 != DialogResult.Yes)
+                    {
+                        multiActionBox.SelectedIndex = 0;
+                        return;
+                    }
+                    if (!StartQuery(replyText, "UpdateTagsTraitsStats (MA)"))
+                    {
+                        multiActionBox.SelectedIndex = 0;
+                        return;
+                    }
+                    WriteWarning(replyText, "Updating titles...");
+                    await UpdateTagsTraitsStats(titles.Select(vn => vn.VNID));
+                    break;
+                case 5:
+                    string message5 = $"You've selected {titles.Length} titles.\nAre you sure you wish to update all data for them?";
+                    var messageBox5 = MessageBox.Show(message5, "Confirm Action", MessageBoxButtons.YesNo);
+                    if (messageBox5 != DialogResult.Yes)
+                    {
+                        multiActionBox.SelectedIndex = 0;
+                        return;
+                    }
+                    if (!StartQuery(replyText, "Update All Data (MA)"))
+                    {
+                        multiActionBox.SelectedIndex = 0;
+                        return;
+                    }
+                    WriteWarning(replyText, "Updating titles...");
+                    await GetMultipleVN(titles.Select(vn => vn.VNID),replyText,true,true);
                     break;
             }
+            ChangeAPIStatus(Conn.Status);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            WriteText(replyText, "Titles updated.");
             multiActionBox.SelectedIndex = 0;
         }
 
@@ -422,11 +465,6 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title);
                 return;
             }
-            if (ListByTB.Text.Length < 3)
-            {
-                WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)");
-                return;
-            }
             var searchString = ListByTB.Text.ToLowerInvariant();
             List_ClearOther(skipListBox: true);
             _currentList = vn =>
@@ -566,23 +604,23 @@ namespace Happy_Search
                     dropdownlist.SelectedIndex = 0;
                     return;
                 case 2:
-                    _currentList = x => !x.WLStatus.Equals("");
+                    _currentList = x => x.WLStatus > WishlistStatus.Null;
                     _currentListLabel = "Wishlist Titles";
                     break;
                 case 3:
-                    _currentList = x => x.WLStatus.Equals("High");
+                    _currentList = x => x.WLStatus == WishlistStatus.High;
                     _currentListLabel = "WL High";
                     break;
                 case 4:
-                    _currentList = x => x.WLStatus.Equals("Medium");
+                    _currentList = x => x.WLStatus == WishlistStatus.Medium;
                     _currentListLabel = "WL Medium";
                     break;
                 case 5:
-                    _currentList = x => x.WLStatus.Equals("Low");
+                    _currentList = x => x.WLStatus == WishlistStatus.Low;
                     _currentListLabel = "WL Low";
                     break;
                 case 6:
-                    _currentList = x => x.WLStatus.Equals("Blacklist");
+                    _currentList = x => x.WLStatus == WishlistStatus.Blacklist;
                     _currentListLabel = "WL Blacklist";
                     break;
             }
@@ -617,7 +655,16 @@ namespace Happy_Search
             var language = ListByCBQuery.Text;
             if (language.Equals("(Language)")) return;
             List_ClearOther();
-            _currentList = x => x.Languages != null && x.Languages.All.Contains(language);
+            var cultureString =
+                CultureInfo.GetCultures(CultureTypes.AllCultures)
+                    .FirstOrDefault(c => c.DisplayName.Equals(language))?.Name;
+            if (cultureString == null)
+            {
+                //should never happen
+                WriteError(replyText, $"Language {language} not found.");
+                return;
+            }
+            _currentList = x => x.Languages != null && x.Languages.All.Contains(cultureString.ToLower());
             _currentListLabel = $"{language} (Language)";
             LoadVNListToGui(skipComboSearch: true);
         }
@@ -729,9 +776,9 @@ namespace Happy_Search
                         case ToggleSetting.Show:
                             return function;
                         case ToggleSetting.Hide:
-                            return x => !x.WLStatus.Equals("Blacklist");
+                            return x => x.WLStatus != WishlistStatus.Blacklist;
                         case ToggleSetting.Only:
-                            return x => x.WLStatus.Equals("Blacklist");
+                            return x => x.WLStatus == WishlistStatus.Blacklist;
                         default: return function;
                     }
                 default:
@@ -852,13 +899,13 @@ namespace Happy_Search
             //ULStatus takes priority over WLStatus
             switch (listedVN.WLStatus)
             {
-                case "High":
+                case WishlistStatus.High:
                     e.Item.BackColor = WLHighBrush.Color;
                     break;
-                case "Medium":
+                case WishlistStatus.Medium:
                     e.Item.BackColor = WLMediumBrush.Color;
                     break;
-                case "Low":
+                case WishlistStatus.Low:
                     e.Item.BackColor = WLLowBrush.Color;
                     break;
             }
@@ -936,7 +983,7 @@ namespace Happy_Search
             //set new
             var vn = (ListedVN)model;
             userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
-            wishlistToolStripMenuItem.Checked = !vn.WLStatus.Equals("");
+            wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.Null;
             voteToolStripMenuItem.Checked = vn.Vote > 0;
             switch (vn.ULStatus)
             {
@@ -959,24 +1006,7 @@ namespace Happy_Search
                     ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
                     break;
             }
-            switch (vn.WLStatus)
-            {
-                case "":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
-                    break;
-                case "High":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
-                    break;
-                case "Medium":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
-                    break;
-                case "Low":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
-                    break;
-                case "Blacklist":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
-                    break;
-            }
+            ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
             if (vn.Vote > 0)
             {
                 var vote = (int)Math.Floor(vn.Vote);
@@ -1026,12 +1056,12 @@ namespace Happy_Search
                     success = await ChangeVNStatus(vn, ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
-                    if (vn.WLStatus.Equals(nitem.Text))
+                    if (vn.WLStatus.ToString().Equals(nitem.Text))
                     {
                         WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
-                    statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
+                    statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
                     success = await ChangeVNStatus(vn, ChangeType.WL, statusInt);
                     break;
                 case "Vote":

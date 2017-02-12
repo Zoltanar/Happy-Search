@@ -2,6 +2,11 @@ Next Milestone == ??
 
 Changelog
 ---------
+-1.4.7 released (test)-
+Changed: Update VN in tab moved into 'Options' menu.
+Added: Multi-actions: Update Tags/StatsTraits and All Data.
+Fixed: Sorting by wishlist now in proper order ( high > medium > low > blacklist)
+Added: Update All Data (tiered and all titles).
 Improved: Middle click a vn tab to close it.
 Added: Language support. Flags in VN tiles represent languages of original release, in VN tabs all languages available are shown. List By Language added.
 -1.4.5 released (test)-
@@ -106,9 +111,9 @@ No Work
 ---------------
 	Easy Tasks
 	----------
-	 Ordering VN list, wishlist/vnlist should go in proper order, not alphabetic.
-	 Give friendly names to languages.
-	 
+	 Sorting and filtering by length
+	 Update Help files
+
 	Medium Tasks
 	----------
 	 user-configurable tag alerts (like EH)
@@ -122,7 +127,7 @@ No Work
 
 	Not Currently Possible (Not supported by VNDB API)
 	----------
-	 Add release controls to vn window.
+	 Add release controls to vn tab.
 	 Staff functionality
 	 
 
@@ -138,21 +143,13 @@ better vn character display?
 -
 allow adding titles to multiple groups via comma separation
 see current groups when adding title to groups
-add alias to database fetching, add get all alias info in other functions, add alias check for local search by name.
-ability to remove titles from database
 cancel current function
 test removing from local db user related titles
 -
 add 'exclude tag' filters
 filter trait search by character's status such as main or side
-login with userid and password?
 problem with vn in multiple lists (wishlist/vnlist)
 
-
-
-Incomplete
----------------
-multi-select titles and batch functions
 
 Completed (Feature List)
 ---------------
@@ -244,6 +241,7 @@ Change GetCurrentVersion
 Change SetDbVersion
 Change CreateTable scripts
 Change enum DatabaseVersion
+Additionally test upgrading old version to new version of Happy Search.
 
 
 ---------------------------------------------------------------------------------------------------

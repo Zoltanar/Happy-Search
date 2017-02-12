@@ -42,6 +42,7 @@ namespace Happy_Search.Other_Forms
             _parentForm = parentForm;
             _loadFromDb = loadFromDb;
             InitializeComponent();
+            vnReplyText.Text ="";
             _tabPage = tabPage;
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             tagTypeC.Checked = FormMain.Settings.ContentTags;
@@ -128,12 +129,12 @@ namespace Happy_Search.Other_Forms
         }
 
         /// <summary>
-        /// Replaces the displayed vn with a new vn (or updates it)
+        /// Replaces the displayed vn with a new vn or refreshes it
         /// </summary>
         /// <param name="vnid">ID of vn to be displayed</param>
-        private async Task SetNewData(int vnid)
+        /// <param name="updateAPIStruct">Whether to update anime/relations/screenshots</param>
+        private async Task SetNewData(int vnid, bool updateAPIStruct = false)
         {
-            await GetSingleVN(vnid, vnUpdateLink);
             ListedVN vn = null;
             await Task.Run(() =>
             {
@@ -142,7 +143,7 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DBConn.Close();
             });
             SetDeletedData(); //clear before setting new data
-            await SetData(vn);
+            await SetData(vn, updateAPIStruct);
         }
 
         /// <summary>
@@ -204,9 +205,10 @@ namespace Happy_Search.Other_Forms
             vnPopularity.Text = $@"Popularity: {vnItem.Popularity:0.00}";
             vnLength.Text = vnItem.Length;
             vnUserStatus.Text = vnItem.UserRelatedStatus();
-            vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
             var notes = vnItem.GetCustomItemNotes();
             vnNotes.Text = notes.Notes.Length > 0 ? $"Notes: {notes.Notes}" : "No notes.";
+            vnUpdate.Text = $@"Days since last updates (Tags/Traits/Stats and full):  {vnItem.UpdatedDate}/{vnItem.DateFullyUpdated}";
+            if (update) WriteText(vnReplyText,"Just updated.");
             DisplayGroups(notes);
             if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc))
@@ -303,10 +305,11 @@ namespace Happy_Search.Other_Forms
             vnUserStatus.Text = "";
             vnLength.Text = "";
             vnID.Text = "";
-            vnUpdateLink.Text = "";
+            vnReplyText.Text = "";
             vnRating.Text = "";
             vnPopularity.Text = "";
             vnNotes.Text = "";
+            vnUpdate.Text = "";
             vnGroups.Items.Clear();
             vnTagCB.DataSource = null;
             vnRelationsCB.DataSource = null;
@@ -350,7 +353,7 @@ namespace Happy_Search.Other_Forms
             {
                 return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnUpdateLink);
+            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnReplyText);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
@@ -384,7 +387,7 @@ namespace Happy_Search.Other_Forms
             {
                 return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnUpdateLink);
+            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnReplyText);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
@@ -425,7 +428,7 @@ namespace Happy_Search.Other_Forms
             {
                 return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnUpdateLink);
+            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnReplyText);
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
@@ -514,13 +517,12 @@ namespace Happy_Search.Other_Forms
             });
         }
 
-        private async void UpdateVN(object sender, LinkLabelLinkClickedEventArgs e)
+        private async void UpdateVN(object sender, EventArgs e)
         {
-            if (vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
-            if (vnUpdateLink.Text.Equals("Updating...") || vnUpdateLink.Text.Equals(Resources.vn_updated)) return;
-            vnUpdateLink.Text = @"Updating...";
-            var vnItem = await _parentForm.UpdateSingleVN(Convert.ToInt32(vnID.Text), vnUpdateLink);
-            await SetData(vnItem, true);
+            if (vnReplyText.Text.Equals("Updating...")) return;
+            WriteWarning(vnReplyText, "Updating...");
+            await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID }, vnReplyText, false, true);
+            await SetNewData(_displayedVN.VNID, true);
         }
 
         private void OpenVndbPage(object sender, LinkLabelLinkClickedEventArgs e)
@@ -568,74 +570,6 @@ namespace Happy_Search.Other_Forms
         {
             if (_displayedVN == null) return;
             await SetNewData(_displayedVN.VNID);
-        }
-
-        /// <summary>
-        /// Get data about a single visual novel.
-        /// </summary>
-        /// <param name="vnid">ID of VN to be retrieved.</param>
-        /// <param name="replyLabel">Label where reply will be printed.</param>
-        internal async Task GetSingleVN(int vnid, Label replyLabel)
-        {
-            var result = _parentForm.StartQuery(replyLabel, "Get Single VN");
-            if (!result) return;
-            string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
-            result = await _parentForm.TryQuery(singleVNQuery, Resources.svn_query_error, replyLabel);
-
-            if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num == 0)
-            {
-                //this vn has been deleted (or something along those lines)
-                await Task.Run(() =>
-                {
-                    _parentForm.DBConn.Open();
-                    _parentForm.DBConn.RemoveVisualNovel(vnid);
-                    _parentForm.DBConn.Close();
-                });
-                return;
-            }
-            var vnItem = vnRoot.Items[0];
-            SaveImage(vnItem);
-            var releases = await _parentForm.GetReleases(vnid, Resources.svn_query_error, replyLabel);
-            if (releases == null)
-            {
-
-            }
-            var mainRelease = releases?.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
-            if (mainRelease == null)
-            {
-
-            }
-            var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
-            if (relProducer == null)
-            {
-
-            }
-            VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
-            if (relProducer != null)
-            {
-                var gpResult = await _parentForm.GetProducer(relProducer.ID, Resources.svn_query_error, replyLabel);
-                if (!gpResult.Item1)
-                {
-                    _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
-                    return;
-                }
-                if (gpResult.Item2 != null)
-                {
-                    _parentForm.DBConn.Open();
-                    _parentForm.DBConn.InsertProducer(gpResult.Item2, true);
-                    _parentForm.DBConn.Close();
-                }
-            }
-            //TODO
-            await _parentForm.GetCharactersForMultipleVN(new[] { vnid }, replyLabel);
-            await Task.Run(() =>
-            {
-                _parentForm.DBConn.Open();
-                _parentForm.DBConn.UpsertSingleVN(vnItem, relProducer, languages, true);
-            });
-            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
         }
 
         /// <summary>
@@ -761,7 +695,7 @@ namespace Happy_Search.Other_Forms
 
             //set new
             userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
-            wishlistToolStripMenuItem.Checked = !vn.WLStatus.Equals("");
+            wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.Null;
             voteToolStripMenuItem.Checked = vn.Vote > 0;
             switch (vn.ULStatus)
             {
@@ -784,24 +718,7 @@ namespace Happy_Search.Other_Forms
                     ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
                     break;
             }
-            switch (vn.WLStatus)
-            {
-                case "":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[0]).Checked = true;
-                    break;
-                case "High":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[1]).Checked = true;
-                    break;
-                case "Medium":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[2]).Checked = true;
-                    break;
-                case "Low":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[3]).Checked = true;
-                    break;
-                case "Blacklist":
-                    ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[4]).Checked = true;
-                    break;
-            }
+            ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
             if (vn.Vote > 0)
             {
                 var vote = (int)Math.Floor(vn.Vote);
@@ -827,7 +744,7 @@ namespace Happy_Search.Other_Forms
 
             if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
-                WriteError(vnUpdateLink, "Not Logged In");
+                WriteError(vnReplyText, "Not Logged In");
                 return;
             }
             var nitem = e.ClickedItem;
@@ -840,7 +757,7 @@ namespace Happy_Search.Other_Forms
                 case "Userlist":
                     if (_displayedVN.ULStatus.Equals(nitem.Text))
                     {
-                        WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
+                        WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
                     _working = true;
@@ -848,13 +765,13 @@ namespace Happy_Search.Other_Forms
                     success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
-                    if (_displayedVN.WLStatus.Equals(nitem.Text))
+                    if (_displayedVN.WLStatus.ToString().Equals(nitem.Text))
                     {
-                        WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
+                        WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
                     _working = true;
-                    statusInt = Array.IndexOf(ListedVN.PriorityWL, nitem.Text);
+                    statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
                     success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.WL, statusInt);
                     break;
                 case "Vote":
@@ -877,7 +794,7 @@ namespace Happy_Search.Other_Forms
                     }
                     if (Math.Abs(_displayedVN.Vote - newVoteValue) < 0.001)
                     {
-                        WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
+                        WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
                     _working = true;
@@ -892,7 +809,7 @@ namespace Happy_Search.Other_Forms
                 _working = false;
                 return;
             }
-            WriteText(vnUpdateLink, $"{TruncateString(_displayedVN.Title, 20)} status changed.");
+            WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} status changed.");
             await SetNewData(_displayedVN.VNID);
             _working = false;
         }
@@ -925,7 +842,7 @@ namespace Happy_Search.Other_Forms
             _parentForm.DBConn.EndTransaction();
             await _parentForm.ReloadListsFromDbAsync();
             _parentForm.LoadFPListToGui();
-            WriteText(vnUpdateLink, $"{_displayedVN.Producer} added to list.");
+            WriteText(vnReplyText, $"{_displayedVN.Producer} added to list.");
             await SetNewData(_displayedVN.VNID);
 
             _working = false;
@@ -935,7 +852,7 @@ namespace Happy_Search.Other_Forms
         {
             if (_working)
             {
-                vnUpdateLink.Text = @"Please wait...";
+                vnReplyText.Text = @"Please wait...";
                 return;
             }
             VNControlContextMenu(_displayedVN).Show(Cursor.Position.X, Cursor.Position.Y + statusChangeButton.Height);
@@ -955,7 +872,7 @@ namespace Happy_Search.Other_Forms
             if (_working) return;
             if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
-                WriteError(vnUpdateLink, "Not Logged In");
+                WriteError(vnReplyText, "Not Logged In");
                 return;
             }
             if (_displayedVN == null) return;
@@ -965,7 +882,7 @@ namespace Happy_Search.Other_Forms
             if (result != DialogResult.OK) return;
             if (notesSb.ToString().Contains('\n'))
             {
-                WriteError(vnUpdateLink, "Note cannot contain newline characters.");
+                WriteError(vnReplyText, "Note cannot contain newline characters.");
                 return;
             }
             itemNotes.Notes = notesSb.ToString();
@@ -981,7 +898,7 @@ namespace Happy_Search.Other_Forms
             if (_working) return;
             if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
-                WriteError(vnUpdateLink, "Not Logged In");
+                WriteError(vnReplyText, "Not Logged In");
                 return;
             }
             if (_displayedVN == null) return;
@@ -990,7 +907,7 @@ namespace Happy_Search.Other_Forms
             if (result != DialogResult.OK) return;
             if (itemNotes.Groups.Any(group => group.Contains('\n')))
             {
-                WriteError(vnUpdateLink, "Group name cannot contain newline characters.");
+                WriteError(vnReplyText, "Group name cannot contain newline characters.");
                 return;
             }
             await UpdateItemNotes("Added title to group(s).", _displayedVN.VNID, itemNotes);
@@ -1006,18 +923,18 @@ namespace Happy_Search.Other_Forms
         {
             if (_working) return;
             _working = true;
-            var result = _parentForm.StartQuery(vnUpdateLink, "Update Item Notes");
+            var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes");
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
-            var apiResult = await _parentForm.TryQuery(query, "UIN Query Error", vnUpdateLink);
+            var apiResult = await _parentForm.TryQuery(query, "UIN Query Error", vnReplyText);
             if (!apiResult) return;
             _parentForm.DBConn.Open();
             _parentForm.DBConn.AddNoteToVN(vnid, serializedNotes, FormMain.Settings.UserID);
             _parentForm.DBConn.Close();
             await _parentForm.ReloadListsFromDbAsync();
             _parentForm.LoadVNListToGui();
-            WriteText(vnUpdateLink, replyMessage);
+            WriteText(vnReplyText, replyMessage);
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             await SetNewData(_displayedVN.VNID);
             _working = false;

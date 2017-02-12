@@ -60,6 +60,20 @@ namespace Happy_Search
         }
     }
 
+#pragma warning disable 1591
+    /// <summary>
+    /// Map Wishlist status numbers to words.
+    /// </summary>
+    public enum WishlistStatus
+    {
+        Null = -1,
+        High = 0,
+        Medium = 1,
+        Low = 2,
+        Blacklist = 3
+    }
+#pragma warning restore 1591
+
     /// <summary>
     /// Object for displaying Visual Novel in Object List View.
     /// </summary>
@@ -67,12 +81,11 @@ namespace Happy_Search
     {
 
         internal static readonly string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
-        internal static readonly string[] PriorityWL = { "High", "Medium", "Low", "Blacklist" };
 
         internal static readonly string[] LengthTime =
         {
-            "", "Very short (< 2 hours)", "Short (2 - 10 hours)",
-            "Medium (10 - 30 hours)", "Long (30 - 50 hours)", "Very long(> 50 hours)"
+            "", "Very short (<2 hours)", "Short (2-10 hours)",
+            "Medium (10-30 hours)", "Long (30-50 hours)", "Very long(>50 hours)"
         };
 
         /// <summary>
@@ -116,7 +129,7 @@ namespace Happy_Search
 #endif
                 if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
                 ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
-                WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
+                WLStatus = (WishlistStatus)wlstatus;
                 if (vote != -1) Vote = (double)vote / 10;
                 Title = title;
                 KanjiTitle = kanjiTitle;
@@ -152,7 +165,7 @@ namespace Happy_Search
             }
 #endif
         }
-
+        
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
@@ -170,16 +183,7 @@ namespace Happy_Search
         /// Days since all fields were updated
         /// </summary>
         public int DateFullyUpdated { get; }
-
-
-        /// <summary>
-        /// Constructor for empty ListedVN for when null cannot be used.
-        /// </summary>
-        public ListedVN()
-        {
-            VNID = -1;
-        }
-
+        
         /// <summary>
         /// List of Tags, must be set prior to use.
         /// </summary>
@@ -256,8 +260,9 @@ namespace Happy_Search
 
         /// <summary>
         /// User's wishlist priority of VN
+        /// -1: null, 0: high, 1: medium, 2: low, 3: blacklist
         /// </summary>
-        public string WLStatus { get; set; }
+        public WishlistStatus WLStatus { get; set; }
 
         /// <summary>
         /// Date of WLStatus change
@@ -370,10 +375,10 @@ namespace Happy_Search
                 parts[0] = "Userlist: ";
                 parts[1] = ULStatus;
             }
-            else if (!WLStatus.Equals(""))
+            else if (WLStatus> WishlistStatus.Null)
             {
                 parts[0] = "Wishlist: ";
-                parts[1] = WLStatus;
+                parts[1] = WLStatus.ToString();
             }
             if (Vote > 0) parts[2] = $" (Vote: {Vote:0.#})";
             return string.Join(" ", parts);
@@ -684,13 +689,13 @@ namespace Happy_Search
             var path = GetRoundedRect(itemBounds, rounding);
             switch (vn?.WLStatus)
             {
-                case "High":
+                case WishlistStatus.High:
                     backBrush = WLHighBrush;
                     break;
-                case "Medium":
+                case WishlistStatus.Medium:
                     backBrush = WLMediumBrush;
                     break;
-                case "Low":
+                case WishlistStatus.Low:
                     backBrush = WLLowBrush;
                     break;
             }

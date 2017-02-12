@@ -41,12 +41,7 @@ namespace Happy_Search
                 LogToFile(query);
                 Conn.Query(query);
             });
-            if (AdvancedMode)
-            {
-                if (serverR.TextLength > 10000) ClearLog(null, null);
-                serverQ.Text += query + Environment.NewLine;
-                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            }
+            HandleAdvancedMode(query);
             if (Conn.LastResponse.Type == ResponseType.Unknown)
             {
                 ChangeAPIStatus(VndbConnection.APIStatus.Error);
@@ -92,6 +87,22 @@ namespace Happy_Search
                 }
             }
             return true;
+        }
+
+        private void HandleAdvancedMode(string query)
+        {
+            if (AdvancedMode)
+            {
+                if (serverR.TextLength > 10000) ClearLog(null, null);
+                if (serverQ.InvokeRequired)
+                    serverQ.Invoke(new MethodInvoker(() => serverQ.Text += query + Environment.NewLine));
+                else
+                    serverQ.Text += query + Environment.NewLine;
+                if (serverR.InvokeRequired)
+                    serverR.Invoke(new MethodInvoker(() => serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine));
+                else
+                    serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+            }
         }
 
         /// <summary>
@@ -213,61 +224,30 @@ namespace Happy_Search
                 done += APIMaxResults;
             }
         }
-
-        /// <summary>
-        /// Get new data about a single visual novel.
-        /// </summary>
-        /// <param name="vnid">ID of VN to be updated</param>
-        /// <param name="updateLink">Linklabel where reply will be printed</param>
-        /// <returns></returns>
-        internal async Task<ListedVN> UpdateSingleVN(int vnid, LinkLabel updateLink)
+        
+        private async Task GetLanguagesForProducers(int[] producerIDs, Label replyLabel)
         {
-            string singleVNQuery = $"get vn basic,details,tags,stats (id = {vnid})";
-            var result = StartQuery(userListReply, "Update Single VN");
-            if (!result) return null;
-            result = await TryQuery(singleVNQuery, Resources.usvn_query_error, updateLink);
-            if (!result) return null;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num == 0)
+            if (!producerIDs.Any()) return;
+            _vnsAdded = 0;
+            var producerList = new List<ListedProducer>();
+            foreach (var producerID in producerIDs)
             {
-                //this vn has been deleted (or something along those lines)
-                DBConn.Open();
-                DBConn.RemoveVisualNovel(vnid);
-                DBConn.Close();
-                ChangeAPIStatus(Conn.Status);
-                return new ListedVN();
-            }
-            var vnItem = vnRoot.Items[0];
-            SaveImage(vnItem, true);
-            var releases = await GetReleases(vnid, Resources.svn_query_error, updateLink);
-            var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
-            var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
-            var languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
-            if (relProducer != null)
-            {
-                var gpResult = await GetProducer(relProducer.ID, Resources.usvn_query_error, updateLink);
-                if (!gpResult.Item1)
+                var result = await GetProducer(producerID, "GetLanguagesForProducers Error", replyLabel, true, true, true);
+                if (!result.Item1 || result.Item2 == null) continue;
+                producerList.Add(result.Item2);
+                _vnsAdded++;
+                if (producerList.Count > 24)
                 {
-                    ChangeAPIStatus(Conn.Status);
-                    return null;
-                }
-                if (gpResult.Item2 != null)
-                {
-                    DBConn.Open();
-                    DBConn.InsertProducer(gpResult.Item2, true);
-                    DBConn.Close();
+                    DBConn.BeginTransaction();
+                    foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
+                    DBConn.EndTransaction();
+                    producerList.Clear();
                 }
             }
-            DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer, languages, true);
-            var vn = DBConn.GetSingleVN(vnid, Settings.UserID);
-            DBConn.Close();
-            await ReloadListsFromDbAsync();
-            WriteText(updateLink, Resources.vn_updated);
-            ChangeAPIStatus(Conn.Status);
-            return vn;
+            DBConn.BeginTransaction();
+            foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
+            DBConn.EndTransaction();
         }
-
 
         /// <summary>
         /// Searches VNDB for producers by name, independent.
@@ -313,7 +293,7 @@ namespace Happy_Search
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="updateAll">Should VNs be updated even if they;re already in local database?</param>
-        private async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList, bool updateAll)
+        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList, bool updateAll)
         {
             var vnsToGet = new List<int>();
             await Task.Run(() =>
@@ -550,35 +530,36 @@ namespace Happy_Search
         /// <param name="apiStatus">Status of API Connection</param>
         internal void ChangeAPIStatus(VndbConnection.APIStatus apiStatus)
         {
+            var loginString = TruncateString(LoginString, 28) + Environment.NewLine;
             switch (apiStatus)
             {
                 case VndbConnection.APIStatus.Ready:
                     if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Ended");
                     CurrentFeatureName = "";
-                    statusLabel.Text = LoginString + Environment.NewLine + @"Ready";
+                    statusLabel.Text = loginString + @"Ready";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
                     if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Started");
-                    statusLabel.Text = LoginString + Environment.NewLine + $@"Busy ({CurrentFeatureName})";
+                    statusLabel.Text = loginString + $@"Busy ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Throttled:
                     if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Throttled");
-                    statusLabel.Text = LoginString + Environment.NewLine + $@"Throttled ({CurrentFeatureName})";
+                    statusLabel.Text = loginString + $@"Throttled ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.DarkRed;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Error:
-                    statusLabel.Text = LoginString + Environment.NewLine + $@"Error ({CurrentFeatureName})";
+                    statusLabel.Text = loginString + $@"Error ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.Red;
                     Conn.Close();
                     break;
                 case VndbConnection.APIStatus.Closed:
-                    statusLabel.Text = LoginString + Environment.NewLine + $@"Closed ({CurrentFeatureName})";
+                    statusLabel.Text = loginString + $@"Closed ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.White;
                     statusLabel.BackColor = Color.Black;
                     break;
@@ -596,7 +577,7 @@ namespace Happy_Search
         internal async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
         {
             var hasULStatus = vn.ULStatus != null && !vn.ULStatus.Equals("");
-            var hasWLStatus = vn.WLStatus != null && !vn.WLStatus.Equals("");
+            var hasWLStatus = vn.WLStatus > WishlistStatus.Null;
             var hasVote = vn.Vote > 0;
             string queryString;
             var result = StartQuery(replyText, "Change VN Status");

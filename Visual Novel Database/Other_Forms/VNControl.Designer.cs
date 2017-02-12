@@ -52,7 +52,6 @@
             this.vnDate = new System.Windows.Forms.Label();
             this.vnID = new System.Windows.Forms.LinkLabel();
             this.pcbImages = new System.Windows.Forms.PictureBox();
-            this.vnUpdateLink = new System.Windows.Forms.LinkLabel();
             this.vnTagCB = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.vnDesc = new System.Windows.Forms.RichTextBox();
@@ -101,6 +100,10 @@
             this.pictureBox5 = new System.Windows.Forms.PictureBox();
             this.pictureBox6 = new System.Windows.Forms.PictureBox();
             this.producerFlag = new System.Windows.Forms.PictureBox();
+            this.vnUpdate = new System.Windows.Forms.Label();
+            this.vnReplyText = new System.Windows.Forms.Label();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.updateDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pcbImages)).BeginInit();
             this.ContextMenuVNControl.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -309,9 +312,9 @@
             // 
             this.vnLength.BackColor = System.Drawing.Color.Transparent;
             this.vnLength.ForeColor = System.Drawing.SystemColors.Control;
-            this.vnLength.Location = new System.Drawing.Point(480, 196);
+            this.vnLength.Location = new System.Drawing.Point(495, 196);
             this.vnLength.Name = "vnLength";
-            this.vnLength.Size = new System.Drawing.Size(126, 22);
+            this.vnLength.Size = new System.Drawing.Size(111, 22);
             this.vnLength.TabIndex = 88;
             this.vnLength.Text = "(vnLength)";
             this.vnLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -320,9 +323,9 @@
             // 
             this.vnUserStatus.BackColor = System.Drawing.Color.Transparent;
             this.vnUserStatus.ForeColor = System.Drawing.SystemColors.Control;
-            this.vnUserStatus.Location = new System.Drawing.Point(270, 196);
+            this.vnUserStatus.Location = new System.Drawing.Point(333, 196);
             this.vnUserStatus.Name = "vnUserStatus";
-            this.vnUserStatus.Size = new System.Drawing.Size(204, 22);
+            this.vnUserStatus.Size = new System.Drawing.Size(156, 22);
             this.vnUserStatus.TabIndex = 87;
             this.vnUserStatus.Text = "(vnUserStatus)";
             this.vnUserStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -371,27 +374,12 @@
             this.pcbImages.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.pcbImages.BackColor = System.Drawing.Color.Transparent;
-            this.pcbImages.Location = new System.Drawing.Point(8, 221);
+            this.pcbImages.Location = new System.Drawing.Point(8, 246);
             this.pcbImages.Name = "pcbImages";
-            this.pcbImages.Size = new System.Drawing.Size(256, 342);
+            this.pcbImages.Size = new System.Drawing.Size(256, 317);
             this.pcbImages.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pcbImages.TabIndex = 75;
             this.pcbImages.TabStop = false;
-            // 
-            // vnUpdateLink
-            // 
-            this.vnUpdateLink.BackColor = System.Drawing.Color.Transparent;
-            this.vnUpdateLink.DisabledLinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.vnUpdateLink.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.vnUpdateLink.Location = new System.Drawing.Point(5, 205);
-            this.vnUpdateLink.Name = "vnUpdateLink";
-            this.vnUpdateLink.Size = new System.Drawing.Size(196, 13);
-            this.vnUpdateLink.TabIndex = 82;
-            this.vnUpdateLink.TabStop = true;
-            this.vnUpdateLink.Text = "(vnUpdateLink)";
-            this.vnUpdateLink.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.vnUpdateLink.VisitedLinkColor = System.Drawing.Color.Blue;
-            this.vnUpdateLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.UpdateVN);
             // 
             // vnTagCB
             // 
@@ -423,7 +411,7 @@
             this.vnDesc.Location = new System.Drawing.Point(270, 273);
             this.vnDesc.Name = "vnDesc";
             this.vnDesc.ReadOnly = true;
-            this.vnDesc.Size = new System.Drawing.Size(336, 290);
+            this.vnDesc.Size = new System.Drawing.Size(336, 263);
             this.vnDesc.TabIndex = 79;
             this.vnDesc.Text = "";
             // 
@@ -469,7 +457,7 @@
             this.statusChangeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.statusChangeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.statusChangeButton.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.statusChangeButton.Location = new System.Drawing.Point(207, 196);
+            this.statusChangeButton.Location = new System.Drawing.Point(270, 196);
             this.statusChangeButton.Name = "statusChangeButton";
             this.statusChangeButton.Size = new System.Drawing.Size(57, 22);
             this.statusChangeButton.TabIndex = 106;
@@ -480,6 +468,8 @@
             // ContextMenuVNControl
             // 
             this.ContextMenuVNControl.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.updateDataToolStripMenuItem,
+            this.toolStripSeparator2,
             this.userlistToolStripMenuItem,
             this.wishlistToolStripMenuItem,
             this.voteToolStripMenuItem,
@@ -489,7 +479,7 @@
             this.addChangeVNNoteToolStripMenuItem,
             this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVNControl.Name = "contextMenuStrip1";
-            this.ContextMenuVNControl.Size = new System.Drawing.Size(214, 164);
+            this.ContextMenuVNControl.Size = new System.Drawing.Size(214, 192);
             // 
             // userlistToolStripMenuItem
             // 
@@ -790,12 +780,48 @@
             this.producerFlag.TabIndex = 115;
             this.producerFlag.TabStop = false;
             // 
+            // vnUpdate
+            // 
+            this.vnUpdate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.vnUpdate.BackColor = System.Drawing.Color.Transparent;
+            this.vnUpdate.ForeColor = System.Drawing.SystemColors.Control;
+            this.vnUpdate.Location = new System.Drawing.Point(270, 539);
+            this.vnUpdate.Name = "vnUpdate";
+            this.vnUpdate.Size = new System.Drawing.Size(336, 22);
+            this.vnUpdate.TabIndex = 117;
+            this.vnUpdate.Text = "(vnUpdate)";
+            this.vnUpdate.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // vnReplyText
+            // 
+            this.vnReplyText.ForeColor = System.Drawing.SystemColors.Control;
+            this.vnReplyText.Location = new System.Drawing.Point(8, 201);
+            this.vnReplyText.Name = "vnReplyText";
+            this.vnReplyText.Size = new System.Drawing.Size(256, 42);
+            this.vnReplyText.TabIndex = 118;
+            this.vnReplyText.Text = "(vnReplyText)";
+            this.vnReplyText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(210, 6);
+            // 
+            // updateDataToolStripMenuItem
+            // 
+            this.updateDataToolStripMenuItem.Name = "updateDataToolStripMenuItem";
+            this.updateDataToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.updateDataToolStripMenuItem.Text = "Update Data";
+            this.updateDataToolStripMenuItem.Click += new System.EventHandler(this.UpdateVN);
+            // 
             // VNControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.DimGray;
+            this.Controls.Add(this.vnReplyText);
+            this.Controls.Add(this.vnUpdate);
             this.Controls.Add(this.producerFlag);
             this.Controls.Add(this.pictureBox6);
             this.Controls.Add(this.pictureBox5);
@@ -830,7 +856,6 @@
             this.Controls.Add(this.vnDate);
             this.Controls.Add(this.vnID);
             this.Controls.Add(this.pcbImages);
-            this.Controls.Add(this.vnUpdateLink);
             this.Controls.Add(this.vnTagCB);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.vnDesc);
@@ -874,7 +899,6 @@
         internal System.Windows.Forms.Label vnDate;
         internal System.Windows.Forms.LinkLabel vnID;
         internal System.Windows.Forms.PictureBox pcbImages;
-        internal System.Windows.Forms.LinkLabel vnUpdateLink;
         internal System.Windows.Forms.ComboBox vnTagCB;
         internal System.Windows.Forms.RichTextBox vnDesc;
         private System.Windows.Forms.Label label2;
@@ -928,5 +952,9 @@
         private System.Windows.Forms.PictureBox pictureBox5;
         private System.Windows.Forms.PictureBox pictureBox6;
         private System.Windows.Forms.PictureBox producerFlag;
+        internal System.Windows.Forms.Label vnUpdate;
+        private System.Windows.Forms.Label vnReplyText;
+        private System.Windows.Forms.ToolStripMenuItem updateDataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
     }
 }

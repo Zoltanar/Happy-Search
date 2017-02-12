@@ -726,9 +726,9 @@ namespace Happy_Search
             this.toggleViewButton.FlatAppearance.BorderSize = 0;
             this.toggleViewButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.toggleViewButton.ForeColor = System.Drawing.Color.White;
-            this.toggleViewButton.Location = new System.Drawing.Point(910, 1);
+            this.toggleViewButton.Location = new System.Drawing.Point(937, 1);
             this.toggleViewButton.Name = "toggleViewButton";
-            this.toggleViewButton.Size = new System.Drawing.Size(267, 23);
+            this.toggleViewButton.Size = new System.Drawing.Size(240, 23);
             this.toggleViewButton.TabIndex = 93;
             this.toggleViewButton.Text = "▲ Hide Options ▲";
             this.toolTip.SetToolTip(this.toggleViewButton, "Show/hide settings, filtering and favorite producers sections.");
@@ -744,11 +744,14 @@ namespace Happy_Search
             this.multiActionBox.FormattingEnabled = true;
             this.multiActionBox.Items.AddRange(new object[] {
             "Multi Actions",
+            "--------------",
             "Deselect All",
-            "Remove From DB"});
+            "Remove From DB",
+            "Update Tags/Trait/Stats",
+            "Update All Data"});
             this.multiActionBox.Location = new System.Drawing.Point(817, 3);
             this.multiActionBox.Name = "multiActionBox";
-            this.multiActionBox.Size = new System.Drawing.Size(89, 21);
+            this.multiActionBox.Size = new System.Drawing.Size(114, 21);
             this.multiActionBox.TabIndex = 108;
             this.toolTip.SetToolTip(this.multiActionBox, "Perform actions on all selected titles. Select by Ctrl+clicking.");
             this.multiActionBox.SelectedIndexChanged += new System.EventHandler(this.MultiActionSelect);
@@ -2153,7 +2156,8 @@ namespace Happy_Search
             "----------------",
             "Get Missing Covers",
             "Update Tags/Traits/Stats (All)",
-            "Updata All Data (All)"});
+            "Updata All Data (All)",
+            "Get Producer Languages"});
             this.otherMethodsCB.Location = new System.Drawing.Point(-1, 120);
             this.otherMethodsCB.Name = "otherMethodsCB";
             this.otherMethodsCB.Size = new System.Drawing.Size(140, 21);

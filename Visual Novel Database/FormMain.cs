@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -32,7 +33,7 @@ namespace Happy_Search
         //constants / definables
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.6";
+        public const string ClientVersion = "1.4.7";
         private const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -597,10 +598,29 @@ https://github.com/FredTheBarber/VndbClient";
                 case 4:
                     await UpdateAllDataSkipLimit();
                     break;
+                case 5:
+                    await GetProducerLanguages();
+                    break;
                 default:
                     return;
             }
             otherMethodsCB.SelectedIndex = 0;
+        }
+
+        private async Task GetProducerLanguages()
+        {
+            var messageBox = MessageBox.Show(
+                "This will get language info on all producers, only required once when upgrading from versions before 1.4.7" + Environment.NewLine +
+                "It could take a while, Are you sure?",
+                "Are you sure?", MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            var result = StartQuery(userListReply, "Get Producer Languages");
+            if (!result) return;
+            await GetLanguagesForProducers(ProducerList.Select(t => t.ID).ToArray(), userListReply);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            WriteText(userListReply, "Got producer languages.");
+            ChangeAPIStatus(Conn.Status);
         }
 
         private async Task UpdateAllDataSkipLimit()
@@ -885,7 +905,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             foreach (var item in URTList)
             {
                 if (item.ULStatus.Length > 0) ulCount++;
-                if (item.WLStatus.Length > 0) wlCount++;
+                if (item.WLStatus > WishlistStatus.Null) wlCount++;
                 if (!(item.Vote > 0)) continue;
                 vlCount++;
                 cumulativeScore += item.Vote;
@@ -966,7 +986,10 @@ be displayed by clicking the User Related Titles (URT) filter.",
             var groupFilterSource = new AutoCompleteStringCollection { "(Language)" };
             var titlesWithLanguages = _vnList.Where(vn => vn.Languages != null);
             var languages = titlesWithLanguages.SelectMany(vn => vn.Languages.All);
-            groupFilterSource.AddRange(languages.Distinct().ToArray());
+            foreach (var language in languages.Distinct())
+            {
+                groupFilterSource.Add(new CultureInfo(language).DisplayName);
+            }
             ListByCBQuery.AutoCompleteCustomSource = groupFilterSource;
             ListByCBQuery.DataSource = groupFilterSource;
         }
@@ -1361,8 +1384,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void ClearLog(object sender, EventArgs e) //clear log
         {
-            serverQ.Text = "";
-            serverR.Text = "";
+            if (serverQ.InvokeRequired)
+                serverQ.Invoke(new MethodInvoker(() => serverQ.Text = ""));
+            else
+                serverQ.Text = "";
+            if (serverR.InvokeRequired)
+                serverR.Invoke(new MethodInvoker(() => serverR.Text = ""));
+            else
+                serverR.Text = "";
         }
 
 

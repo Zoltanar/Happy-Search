@@ -71,7 +71,7 @@ namespace Happy_Search
         //tile background colors
         public static readonly SolidBrush DefaultTileBrush = new SolidBrush(Color.LightBlue);
         public static readonly SolidBrush WLHighBrush = new SolidBrush(Color.DeepPink);
-        public static readonly SolidBrush WLMediumBrush = new SolidBrush(Color.Pink);
+        public static readonly SolidBrush WLMediumBrush = new SolidBrush(Color.HotPink);
         public static readonly SolidBrush WLLowBrush = new SolidBrush(Color.LightPink);
         public static readonly SolidBrush ULFinishedBrush = new SolidBrush(Color.LightGreen);
         public static readonly SolidBrush ULStalledBrush = new SolidBrush(Color.DarkKhaki);
@@ -328,7 +328,8 @@ namespace Happy_Search
         /// <returns>Truncated string</returns>
         public static string TruncateString(string value, int maxChars)
         {
-            return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
+            if (maxChars < 4) return value;
+            return value.Length <= maxChars ? value : value.Substring(0, maxChars-3) + "...";
         }
 
         /// <summary>
