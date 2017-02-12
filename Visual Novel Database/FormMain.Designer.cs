@@ -73,6 +73,7 @@ namespace Happy_Search
             this.refreshAllProducersButton = new System.Windows.Forms.Button();
             this.toggleViewButton = new System.Windows.Forms.Button();
             this.multiActionBox = new System.Windows.Forms.ComboBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.logGB = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -189,7 +190,6 @@ namespace Happy_Search
             this.panel1 = new System.Windows.Forms.Panel();
             this.otherMethodsCB = new System.Windows.Forms.ComboBox();
             this.nsfwToggle = new System.Windows.Forms.CheckBox();
-            this.loginReply = new System.Windows.Forms.Label();
             this.loginButton = new System.Windows.Forms.Button();
             this.userListButt = new System.Windows.Forms.Button();
             this.userListReply = new System.Windows.Forms.Label();
@@ -447,15 +447,15 @@ namespace Happy_Search
             this.updateTagsAndTraitsButton.FlatAppearance.BorderSize = 0;
             this.updateTagsAndTraitsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.updateTagsAndTraitsButton.ForeColor = System.Drawing.Color.Black;
-            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 91);
+            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(-1, 61);
             this.updateTagsAndTraitsButton.Name = "updateTagsAndTraitsButton";
-            this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(131, 23);
+            this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(139, 23);
             this.updateTagsAndTraitsButton.TabIndex = 91;
-            this.updateTagsAndTraitsButton.Text = "Update Title Data";
+            this.updateTagsAndTraitsButton.Text = "Update Tags/Traits/Stats";
             this.toolTip.SetToolTip(this.updateTagsAndTraitsButton, "Update tags, traits and stats of titles that haven\'t been updated in over 7 days." +
         "");
             this.updateTagsAndTraitsButton.UseVisualStyleBackColor = false;
-            this.updateTagsAndTraitsButton.Click += new System.EventHandler(this.UpdateTitleDataClick);
+            this.updateTagsAndTraitsButton.Click += new System.EventHandler(this.UpdateTagsTraitsStatsClick);
             // 
             // traitSearchBox
             // 
@@ -752,6 +752,21 @@ namespace Happy_Search
             this.multiActionBox.TabIndex = 108;
             this.toolTip.SetToolTip(this.multiActionBox, "Perform actions on all selected titles. Select by Ctrl+clicking.");
             this.multiActionBox.SelectedIndexChanged += new System.EventHandler(this.MultiActionSelect);
+            // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.MistyRose;
+            this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.ForeColor = System.Drawing.Color.Black;
+            this.button1.Location = new System.Drawing.Point(0, 89);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(139, 23);
+            this.button1.TabIndex = 93;
+            this.button1.Text = "Update All Data";
+            this.toolTip.SetToolTip(this.button1, "Update all data for titles that haven\'t been updated in over 7 days.");
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.UpdateAllDataClick);
             // 
             // infoTab
             // 
@@ -2110,7 +2125,7 @@ namespace Happy_Search
             // 
             // panel1
             // 
-            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.otherMethodsCB);
             this.panel1.Controls.Add(this.yearLimitBox);
             this.panel1.Controls.Add(this.GetStartedHelpButton);
@@ -2118,7 +2133,6 @@ namespace Happy_Search
             this.panel1.Controls.Add(this.updateTagsAndTraitsButton);
             this.panel1.Controls.Add(this.nsfwToggle);
             this.panel1.Controls.Add(this.closeAllFormsButton);
-            this.panel1.Controls.Add(this.loginReply);
             this.panel1.Controls.Add(this.loginButton);
             this.panel1.Controls.Add(this.userListButt);
             this.panel1.Controls.Add(this.userListReply);
@@ -2137,14 +2151,12 @@ namespace Happy_Search
             this.otherMethodsCB.Items.AddRange(new object[] {
             "Other Functions",
             "----------------",
-            "Get All VN Stats",
-            "Get All Character Data",
             "Get Missing Covers",
-            "Update Title Data (All)",
-            "Get All Languages"});
-            this.otherMethodsCB.Location = new System.Drawing.Point(3, 120);
+            "Update Tags/Traits/Stats (All)",
+            "Updata All Data (All)"});
+            this.otherMethodsCB.Location = new System.Drawing.Point(-1, 120);
             this.otherMethodsCB.Name = "otherMethodsCB";
-            this.otherMethodsCB.Size = new System.Drawing.Size(131, 21);
+            this.otherMethodsCB.Size = new System.Drawing.Size(140, 21);
             this.otherMethodsCB.TabIndex = 92;
             this.otherMethodsCB.SelectedIndexChanged += new System.EventHandler(this.OtherMethodChosen);
             // 
@@ -2160,26 +2172,15 @@ namespace Happy_Search
             this.nsfwToggle.UseVisualStyleBackColor = true;
             this.nsfwToggle.Click += new System.EventHandler(this.ToggleNSFWImages);
             // 
-            // loginReply
-            // 
-            this.loginReply.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.loginReply.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.loginReply.Location = new System.Drawing.Point(3, 4);
-            this.loginReply.Name = "loginReply";
-            this.loginReply.Size = new System.Drawing.Size(131, 26);
-            this.loginReply.TabIndex = 30;
-            this.loginReply.Text = "(loginReply)";
-            this.loginReply.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // loginButton
             // 
             this.loginButton.BackColor = System.Drawing.Color.MistyRose;
             this.loginButton.FlatAppearance.BorderSize = 0;
             this.loginButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.loginButton.ForeColor = System.Drawing.Color.Black;
-            this.loginButton.Location = new System.Drawing.Point(3, 33);
+            this.loginButton.Location = new System.Drawing.Point(-1, 3);
             this.loginButton.Name = "loginButton";
-            this.loginButton.Size = new System.Drawing.Size(131, 23);
+            this.loginButton.Size = new System.Drawing.Size(139, 23);
             this.loginButton.TabIndex = 82;
             this.loginButton.Text = "Log In";
             this.loginButton.UseVisualStyleBackColor = false;
@@ -2191,9 +2192,9 @@ namespace Happy_Search
             this.userListButt.FlatAppearance.BorderSize = 0;
             this.userListButt.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.userListButt.ForeColor = System.Drawing.Color.Black;
-            this.userListButt.Location = new System.Drawing.Point(3, 62);
+            this.userListButt.Location = new System.Drawing.Point(-1, 32);
             this.userListButt.Name = "userListButt";
-            this.userListButt.Size = new System.Drawing.Size(131, 23);
+            this.userListButt.Size = new System.Drawing.Size(139, 23);
             this.userListButt.TabIndex = 27;
             this.userListButt.Text = "Update List";
             this.userListButt.UseVisualStyleBackColor = false;
@@ -2202,7 +2203,7 @@ namespace Happy_Search
             // userListReply
             // 
             this.userListReply.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.userListReply.Location = new System.Drawing.Point(3, 149);
+            this.userListReply.Location = new System.Drawing.Point(4, 149);
             this.userListReply.Name = "userListReply";
             this.userListReply.Size = new System.Drawing.Size(131, 35);
             this.userListReply.TabIndex = 28;
@@ -2642,7 +2643,6 @@ namespace Happy_Search
         private GroupBox aboutGB;
         private RichTextBox aboutTextBox;
         private TabPage vnTab;
-        internal Label loginReply;
         private Label userListReply;
         private Button userListButt;
         private Label resultLabel;
@@ -2840,6 +2840,7 @@ namespace Happy_Search
         private ComboBox multiActionBox;
         private ToolStripMenuItem preciseNumberToolStripMenuItem;
         internal TabControl tabControl1;
+        private Button button1;
     }
 }
 

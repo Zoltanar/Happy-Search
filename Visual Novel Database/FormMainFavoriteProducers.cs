@@ -37,7 +37,7 @@ namespace Happy_Search
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 }
                 favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles,
-                    DateTime.UtcNow, producer.ID,producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
+                    DateTime.UtcNow, producer.ID, producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
             DBConn.BeginTransaction();
             DBConn.InsertFavoriteProducers(favoriteProducerList, Settings.UserID);
@@ -169,7 +169,7 @@ This may take a while...",
             WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.");
             ChangeAPIStatus(Conn.Status);
         }
-        
+
 
         /// <summary>
         /// Get titles developed/published by producer.
@@ -200,7 +200,7 @@ This may take a while...",
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;
             }
-            await GetMultipleVN(producerVNList.Distinct(), replyLabel, true, refreshAll);
+            await GetMultipleVN(producerVNList.Distinct(), replyLabel, refreshList: true, updateAll: refreshAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(Settings.UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
@@ -280,7 +280,7 @@ This may take a while...",
                 if (listedProducer.NumberOfTitles < 0) e.Item.GetSubItem(ol2ItemCount.Index).Text = "";
             }
         }
-        
+
         private void FavoriteProducerDoubleClick(object sender, CellClickEventArgs e)
         {
             if (e.ClickCount < 2) return;

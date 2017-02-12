@@ -31,6 +31,9 @@ namespace Happy_Search
         public int ID { get; set; }
         //flag: basic
         public string Title { get; set; }
+        /// <summary>
+        /// Original title (Kanji title)
+        /// </summary>
         public string Original { get; set; }
         public string Released { get; set; }
         public List<string> Languages { get; set; }

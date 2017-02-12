@@ -188,7 +188,7 @@ namespace Happy_Search
                 vnItems.AddRange(vnRoot.Items);
                 moreResults = vnRoot.More;
             }
-            await GetMultipleVN(vnItems.Select(x => x.ID), replyText, true);
+            await GetMultipleVN(vnItems.Select(x => x.ID), replyText, true, false);
             WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} titles, {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
@@ -231,7 +231,7 @@ namespace Happy_Search
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyText, true);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyText, true, false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -243,7 +243,7 @@ namespace Happy_Search
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), replyText, true);
+                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), replyText, true, false);
                 moreResults = vnMoreRoot.More;
             }
             var span = DateTime.UtcNow.ToLocalTime() - startTime;
@@ -613,7 +613,7 @@ namespace Happy_Search
         /// </summary>
         internal void List_Language(object sender, EventArgs e)
         {
-            if(((ComboBox)sender).SelectedIndex < 1) return;
+            if (((ComboBox)sender).SelectedIndex < 1) return;
             var language = ListByCBQuery.Text;
             if (language.Equals("(Language)")) return;
             List_ClearOther();
@@ -626,8 +626,8 @@ namespace Happy_Search
         {
             if (e.KeyCode != Keys.Enter) return;
             if (ListByCBQuery.Text.Equals("")) return;
-            if(ListByCB.SelectedIndex == (int)ListBy.Group) List_Group(sender, e);
-            else if (ListByCB.SelectedIndex == (int)ListBy.Language) List_Language(sender,e);
+            if (ListByCB.SelectedIndex == (int)ListBy.Group) List_Group(sender, e);
+            else if (ListByCB.SelectedIndex == (int)ListBy.Language) List_Language(sender, e);
         }
 
         /// <summary>

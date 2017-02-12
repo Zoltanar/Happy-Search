@@ -62,6 +62,7 @@ namespace Happy_Search
         private byte _mctCount;
         private bool _wideView;
         internal static UserSettings Settings;
+        internal string LoginString;
 
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
@@ -96,7 +97,7 @@ namespace Happy_Search
                 replyText.Text = "";
                 userListReply.Text = "";
                 resultLabel.Text = "";
-                loginReply.Text = "";
+                LoginString = "";
                 prodReply.Text = "";
                 tagReply.Text = "";
                 traitReply.Text = "";
@@ -376,31 +377,32 @@ https://github.com/FredTheBarber/VndbClient";
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                loginReply.ForeColor = Color.Red;
                 string user = Settings.Username.Equals("") ? Settings.UserID.ToString() : $"{Settings.Username}({Settings.UserID})";
-                loginReply.Text = $"Connection error, showing data for {user}.";
+                LoginString = $"Connection error, showing data for {user}.";
+                ChangeAPIStatus(Conn.Status);
                 return;
             }
             switch (Conn.LogIn)
             {
                 case VndbConnection.LogInStatus.YesWithPassword:
-                    loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = $"Logged in as {Settings.Username}({Settings.UserID}).";
+                    LoginString = $"Logged in as {Settings.Username}({Settings.UserID}).";
+                    ChangeAPIStatus(Conn.Status);
                     return;
                 case VndbConnection.LogInStatus.Yes:
-                    loginReply.ForeColor = Color.LightGreen;
                     if (Settings.UserID < 1)
                     {
-                        loginReply.Text = "Connected.";
+                        LoginString = "Connected.";
+                        ChangeAPIStatus(Conn.Status);
                         return;
                     }
-                    loginReply.Text = !Settings.Username.Equals("")
+                    LoginString = !Settings.Username.Equals("")
                         ? $"Connected as {Settings.Username}({Settings.UserID})."
                         : $"Connected as {Settings.UserID}.";
+                    ChangeAPIStatus(Conn.Status);
                     return;
                 case VndbConnection.LogInStatus.No:
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = "Not logged in.";
+                    LoginString = "Not logged in.";
+                    ChangeAPIStatus(Conn.Status);
                     return;
             }
         }
@@ -414,88 +416,117 @@ https://github.com/FredTheBarber/VndbClient";
 
         #region Settings Area / Get Started
 
-
-        /// <summary>
-        ///     Update titles to include all fields in latest version of Happy Search.
-        /// </summary>
-        private async Task GetOldVNStatsClick()
-        {
-            //popularity, rating and votecount were added, check for votecount
-            int[] titlesWithoutStats = _vnList.Where(x => Math.Abs(x.Popularity) < 0.001).Select(x => x.VNID).ToArray();
-            var oldCount = titlesWithoutStats.Length;
-            if (oldCount == 0)
-            {
-                WriteWarning(userListReply, "There are no titles missing stats.");
-                return;
-            }
-            var messageBox =
-                MessageBox.Show(
-                    $@"You only need to do this once and only if you used Happy Search prior to version 1.2.
-{oldCount} need to be updated, if this is over 6000 it may take a while, are you sure?",
-                    Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Get Old VN Stats");
-            if (!result) return;
-            await GetOldVNStats(titlesWithoutStats);
-            await ReloadListsFromDbAsync();
-            LoadVNListToGui();
-            LoadFPListToGui();
-            WriteText(userListReply, $"Got stats for {_vnsAdded} titles.");
-            ChangeAPIStatus(Conn.Status);
-        }
-
         /// <summary>
         ///     Update tags/traits/stats of titles that haven't been updated in over 7 days.
         /// </summary>
-        private async void UpdateTitleDataClick(object sender, EventArgs e)
+        private async void UpdateTagsTraitsStatsClick(object sender, EventArgs e)
         {
             //limit to titles release in last 10 years but include all favorite producers' titles
             DBConn.Open();
             IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(Settings.UserID).Select(x => x.Name);
             DBConn.Close();
-            var tier1Titles =
-                _vnList.Where(x => x.UpdatedDate > 7 && x.DateForSorting >= DateTime.UtcNow.AddMonths(-6))
-                    .ToArray();
-            var tier2Titles =
-                _vnList.Where(
-                    x =>
-                        x.UpdatedDate > 14 &&
-                        x.ReleasedBetween(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow.AddMonths(-6))).ToArray();
-            var tier3Titles =
-                _vnList.Where(
-                    x =>
-                        x.UpdatedDate > 28 &&
-                        x.ReleasedBetween(DateTime.UtcNow.AddYears(-2), DateTime.UtcNow.AddYears(-1))).ToArray();
-            var tier4Titles =
-                _vnList.Where(
-                    x =>
-                        x.UpdatedDate > 56 &&
-                        x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).ToArray();
-            var titlesToUpdate =
-                tier1Titles.Concat(tier2Titles).Concat(tier3Titles).Concat(tier4Titles).Select(x => x.VNID);
-            //update title data - put vns in tiers by date of release eg[under 6 months old = 7 days] [6 months to a year = 14 days][1-2 year = 28 days][2+ years = 56 days]
-            int[] favProTitles =
-                _vnList.Where(x => x.UpdatedDate > 7 && favProList.Contains(x.Producer)).Select(x => x.VNID).ToArray();
-            int[] listOfTitlesToUpdate = titlesToUpdate.Concat(favProTitles).Distinct().ToArray();
+            var tieredVns = new TieredVNs(_vnList, favProList, false);
             var messageBox =
-                MessageBox.Show(
-                    $@"{listOfTitlesToUpdate.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?
-{tier1Titles.Length} Titles released in last 6 months.
-{tier2Titles.Length} Titles released 6 months - 1 year ago.
-{tier3Titles.Length} Titles released 1 year - 2 years ago.
-{tier4Titles.Length} Titles released 2+ years ago.
-{favProTitles.Length} Titles by Favorite Producers.
-",
-                    Resources.are_you_sure, MessageBoxButtons.YesNo);
+                MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Title Data");
+            var result = StartQuery(userListReply, "Update Tags/Traits/Stats");
             if (!result) return;
-            await UpdateTitleData(listOfTitlesToUpdate);
+            await UpdateTagsTraitsStats(tieredVns.AllVns);
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            WriteText(userListReply, $"Updated tags, traits and stats on {_vnsAdded} titles.");
+            ChangeAPIStatus(Conn.Status);
+        }
+
+        private async void UpdateAllDataClick(object sender, EventArgs e)
+        {
+            //limit to titles release in last 10 years but include all favorite producers' titles
+            DBConn.Open();
+            IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(Settings.UserID).Select(x => x.Name);
+            DBConn.Close();
+            var tieredVns = new TieredVNs(_vnList, favProList, true);
+            var messageBox =
+                MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            var result = StartQuery(userListReply, "Update All Data");
+            if (!result) return;
+            await GetMultipleVN(tieredVns.AllVns, userListReply, true, true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, $"Updated data on {_vnsAdded} titles.");
             ChangeAPIStatus(Conn.Status);
         }
+
+        private struct TieredVNs
+        {
+            /*
+            /// <summary>
+            /// Updated over 7 days ago, released under 6 months ago
+            /// </summary>
+            public int Tier1Count { get; }
+
+            /// <summary>
+            /// Updated over 14 days ago, released 6 months to 1 year ago
+            /// </summary>
+            public int Tier2Count { get; }
+
+            /// <summary>
+            /// Updated over 28 days ago, released 1 to 2 years ago
+            /// </summary>
+            public int Tier3Count { get; }
+
+            /// <summary>
+            /// Updated over 56 days ago, released 2 to 10 years ago
+            /// </summary>
+            public int Tier4Count { get; }
+
+            /// <summary>
+            /// Updated over 7 days ago, released by favorite producers
+            /// </summary>
+            public int FPTitleCount { get; }
+                        
+            public int AllVnsCount => AllVns.Length;
+            */
+
+            public int[] AllVns { get; }
+
+
+            public string MessageString { get; }
+
+            /// <summary>
+            /// Creates a tiered list of vns that need an update.
+            /// </summary>
+            /// <param name="allTitles"></param>
+            /// <param name="favoriteProducers"></param>
+            /// <param name="fullyUpdate">If true, gets list for vns that need full update, else, gets list of vns that need tags/stats/traits update</param>
+            public TieredVNs(IReadOnlyCollection<ListedVN> allTitles, IEnumerable<string> favoriteProducers, bool fullyUpdate)
+            {
+                var tier1 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(7, fullyUpdate) &&
+                              x.DateForSorting >= DateTime.UtcNow.AddMonths(-6)).Select(t => t.VNID).ToArray();
+                var tier1Count = tier1.Length;
+                var tier2 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(14, fullyUpdate) &&
+                             x.ReleasedBetween(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow.AddMonths(-6))).Select(t => t.VNID).ToArray();
+                var tier2Count = tier2.Length;
+                var tier3 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(28, fullyUpdate) &&
+                             x.ReleasedBetween(DateTime.UtcNow.AddYears(-2), DateTime.UtcNow.AddYears(-1))).Select(t => t.VNID).ToArray();
+                var tier3Count = tier3.Length;
+                var tier4 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(56, fullyUpdate) &&
+                             x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).Select(t => t.VNID).ToArray();
+                var tier4Count = tier4.Length;
+                var fpTitles = allTitles.Where(x => x.LastUpdatedOverDaysAgo(7, fullyUpdate) &&
+                             favoriteProducers.Contains(x.Producer)).Select(t => t.VNID).ToArray();
+                var fpTitleCount = fpTitles.Length;
+                AllVns = tier1.Concat(tier2).Concat(tier3).Concat(tier4).Concat(fpTitles).Distinct().ToArray();
+                MessageString =
+                    $@"{AllVns.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?
+{tier1Count} Titles released in last 6 months.
+{tier2Count} Titles released 6 months - 1 year ago.
+{tier3Count} Titles released 1 year - 2 years ago.
+{tier4Count} Titles released 2+ years ago.
+{fpTitleCount} Titles by Favorite Producers.";
+            }
+        }
+
 
 
         private void ToggleNSFWImages(object sender, EventArgs e)
@@ -558,19 +589,13 @@ https://github.com/FredTheBarber/VndbClient";
                 case 1:
                     break;
                 case 2:
-                    await GetOldVNStatsClick();
-                    break;
-                case 3:
-                    await GetAllCharacterData();
-                    break;
-                case 4:
                     await GetAllMissingImages();
                     break;
-                case 5:
-                    await UpdateAllTitlesSkipLimit();
+                case 3:
+                    await UpdateTagsTraitsStatsSkipLimit();
                     break;
-                case 6:
-                    await GetAllLanguages();
+                case 4:
+                    await UpdateAllDataSkipLimit();
                     break;
                 default:
                     return;
@@ -578,23 +603,43 @@ https://github.com/FredTheBarber/VndbClient";
             otherMethodsCB.SelectedIndex = 0;
         }
 
-        /// <summary>
-        /// Update title data of all titles regardless of release date/last update date.
-        /// </summary>
-        private async Task UpdateAllTitlesSkipLimit()
+        private async Task UpdateAllDataSkipLimit()
         {
             var messageBox = MessageBox.Show(
-                "This will update title data for all titles, regardless of their release date and date of last update.\n" +
+                "This will update data for all titles, regardless of their release date and date of last update.\n" +
                 "It will take a long time if you have over 1000 titles.\n" +
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Title Data (All)");
+            var result = StartQuery(userListReply, "Update All Data (All)");
             if (!result) return;
-            await UpdateTitleData(_vnList.Select(t => t.VNID));
+            await GetMultipleVN(_vnList.Select(t => t.VNID), userListReply, true, true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Updated data on all titles.");
+            ChangeAPIStatus(Conn.Status);
+        }
+
+
+
+
+        /// <summary>
+        /// Update title data of all titles regardless of release date/last update date.
+        /// </summary>
+        private async Task UpdateTagsTraitsStatsSkipLimit()
+        {
+            var messageBox = MessageBox.Show(
+                "This will update tags, traits and stats for all titles, regardless of their release date and date of last update.\n" +
+                "It will take a long time if you have over 1000 titles.\n" +
+                "Are you sure?",
+                "Are you sure?", MessageBoxButtons.YesNo);
+            if (messageBox != DialogResult.Yes) return;
+            var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)");
+            if (!result) return;
+            await UpdateTagsTraitsStats(_vnList.Select(t => t.VNID));
+            await ReloadListsFromDbAsync();
+            LoadVNListToGui();
+            WriteText(userListReply, "Updated tags/traits/stats on all titles.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -627,44 +672,6 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
                 await SaveImageAsync(vn);
             }
             WriteText(userListReply, "Finished getting missing cover images.");
-        }
-
-        private async Task GetAllCharacterData()
-        {
-            var messageBox2 =
-                MessageBox.Show(
-                    @"Do you wish to get character data about all VNs?
-You only need to this once and only if you used Happy Search prior to version 1.3
-This will take a long time if you have a lot of titles in your local database.",
-                    Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (messageBox2 != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Get All Char Data");
-            if (!result) return;
-            await GetCharactersForMultipleVN(_vnList.Select(x => x.VNID).ToArray(), userListReply);
-            await ReloadListsFromDbAsync();
-            LoadVNListToGui();
-            WriteText(userListReply, "Finished getting characters for all titles.");
-            ChangeAPIStatus(Conn.Status);
-        }
-
-
-        private async Task GetAllLanguages()
-        {
-            var messageBox2 =
-                MessageBox.Show(
-                    @"Do you wish to get language data about all VNs and Producers?
-You only need to this once and only if you used Happy Search prior to version 1.4.6
-This will take a long time if you have a lot of titles in your local database.",
-                    Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (messageBox2 != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Get All Languages");
-            if (!result) return;
-            await GetLanguagesForMultipleVN(_vnList.Where(x => x.Languages == null).Select(x => x.VNID).ToArray(), userListReply);
-            await GetLanguagesForProducers(ProducerList.Select(x => x.ID).ToArray(), userListReply);
-            await ReloadListsFromDbAsync();
-            LoadVNListToGui();
-            WriteText(userListReply, "Finished getting language data.");
-            ChangeAPIStatus(Conn.Status);
         }
 
         #endregion
@@ -855,7 +862,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 DBConn.Close();
             });
             if (unfetchedTitles == null || !unfetchedTitles.Any()) return;
-            await GetMultipleVN(unfetchedTitles, userListReply, true);
+            await GetMultipleVN(unfetchedTitles, userListReply, true, false);
             await ReloadListsFromDbAsync();
         }
 

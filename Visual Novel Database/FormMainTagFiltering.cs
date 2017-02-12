@@ -282,7 +282,7 @@ namespace Happy_Search
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyLabel, true);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyLabel, true, false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -294,7 +294,7 @@ namespace Happy_Search
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyLabel, true);
+                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyLabel, true, false);
                 moreResults = moreVNRoot.More;
             }
             await ReloadListsFromDbAsync();

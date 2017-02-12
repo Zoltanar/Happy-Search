@@ -28,7 +28,7 @@ namespace Happy_Search
         private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
         //Pooling=True;Max Pool Size=100;
 
-        public static SQLiteConnection DbConn;
+        public readonly SQLiteConnection DbConn;
         private static bool _dbLog;
 
         public DbHelper(bool dbLog = false)
@@ -87,16 +87,7 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void SetVNStats(VNItem vnItem)
-        {
-            var insertString =
-                $"UPDATE vnlist SET Popularity = {vnItem.Popularity.ToString("0.00", CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
-            if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        public void UpdateVNData(VNItem vnItem)
+        public void UpdateVNTagsStats(VNItem vnItem)
         {
             var tags = ListToJsonArray(new List<object>(vnItem.Tags));
             var insertString =
@@ -182,24 +173,6 @@ namespace Happy_Search
             }
         }
 
-        public void SetProducerLanguage(ListedProducer producer)
-        {
-            var insertString =
-                $"UPDATE producerlist SET Language = '{producer.Language}' WHERE ProducerID = {producer.ID};";
-            if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        public void SetVNLanguages(Tuple<int,VNLanguages> vn)
-        {
-            string languagesString = vn.Item2?.ToString() ?? "";
-            var insertString =
-                $"UPDATE vnlist SET Languages = '{languagesString}' WHERE VNID = {vn.Item1};";
-            if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
-            command.ExecuteNonQuery();
-        }
 
         internal bool IsBusy()
         {
@@ -278,7 +251,6 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-
         public void UpsertSingleCharacter(CharacterItem character)
         {
             var insertString =
@@ -288,28 +260,53 @@ namespace Happy_Search
             command.ExecuteNonQuery();
         }
 
-        public void UpsertSingleVN(VNItem item, ProducerItem producer, VNLanguages languages)
+        public void UpsertSingleVN(VNItem item, ProducerItem producer, VNLanguages languages, bool setFullyUpdated)
         {
             var tags = ListToJsonArray(new List<object>(item.Tags));
-            var title = Regex.Replace(item.Title, "'", "''");
-            var aliases = item.Aliases != null ? Regex.Replace(item.Aliases, "'", "''") : "";
-            var kanjiTitle = item.Original != null ? Regex.Replace(item.Original, "'", "''") : "";
-            var description = item.Description != null ? Regex.Replace(item.Description, "'", "''") : "";
-            int? length = item.Length ?? 0;
-            string languagesString = languages?.ToString() ?? "";
-            var insertString =
-                "INSERT OR REPLACE INTO vnlist (" +
-                "Title, KanjiTitle, ProducerID, RelDate, Tags, Description, " +
-                "ImageURL, ImageNSFW, LengthTime, " +
-                "Popularity, Rating, " +
-                "VoteCount, VNID, Aliases, Languages)" +
-                "VALUES(" +
-                $"'{title}', '{kanjiTitle}', {producer?.ID ?? -1}, '{item.Released}', '{tags}', '{description}', " +
-                $"'{item.Image}', {SetImageStatus(item.Image_Nsfw)}, {length}, " +
-                $"{item.Popularity.ToString("0.00", CultureInfo.InvariantCulture)},{item.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, " +
-                $"{item.VoteCount}, {item.ID}, '{aliases}', '{languagesString}');";
-            if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(DbConn);
+            if (setFullyUpdated)
+            {
+                command.CommandText = "INSERT OR REPLACE INTO vnlist (" +
+                   "Title, KanjiTitle, ProducerID, RelDate, Tags, Description, " +
+                   "ImageURL, ImageNSFW, LengthTime, " +
+                   "Popularity, Rating, " +
+                   "VoteCount, VNID, Aliases, Languages, DateFullyUpdated)" +
+                   "VALUES(" +
+                   "@title, @kanjititle, @producerid, @reldate, @tags, @description, " +
+                   "@imageurl, @imagensfw, @lengthtime, " +
+                   "@popularity,@rating, " +
+                   "@votecount, @vnid, @aliases, @languages, @datefullyupdated);";
+                command.Parameters.Add(new SQLiteParameter("@datefullyupdated", DateTime.UtcNow));
+            }
+            else
+            {
+                command.CommandText = "INSERT OR REPLACE INTO vnlist (" +
+                   "Title, KanjiTitle, ProducerID, RelDate, Tags, Description, " +
+                   "ImageURL, ImageNSFW, LengthTime, " +
+                   "Popularity, Rating, " +
+                   "VoteCount, VNID, Aliases, Languages)" +
+                   "VALUES(" +
+                   "@title, @kanjititle, @producerid, @reldate, @tags, @description, " +
+                   "@imageurl, @imagensfw, @lengthtime, " +
+                   "@popularity,@rating, " +
+                   "@votecount, @vnid, @aliases, @languages);";
+            }
+            command.Parameters.Add(new SQLiteParameter("@title", item.Title));
+            command.Parameters.Add(new SQLiteParameter("@kanjititle", item.Original));
+            command.Parameters.Add(new SQLiteParameter("@producerid", producer.ID));
+            command.Parameters.Add(new SQLiteParameter("@reldate", item.Released));
+            command.Parameters.Add(new SQLiteParameter("@tags", tags));
+            command.Parameters.Add(new SQLiteParameter("@description", item.Description));
+            command.Parameters.Add(new SQLiteParameter("@imageurl", item.Image));
+            command.Parameters.Add(new SQLiteParameter("@imagensfw", item.Image_Nsfw));
+            command.Parameters.Add(new SQLiteParameter("@lengthtime", item.Length));
+            command.Parameters.Add(new SQLiteParameter("@popularity", item.Popularity));
+            command.Parameters.Add(new SQLiteParameter("@rating", item.Rating));
+            command.Parameters.Add(new SQLiteParameter("@votecount", item.VoteCount));
+            command.Parameters.Add(new SQLiteParameter("@vnid", item.ID));
+            command.Parameters.Add(new SQLiteParameter("@aliases", item.Aliases));
+            command.Parameters.Add(new SQLiteParameter("@languages", languages?.ToString()));
+            if (_printSetMethods) LogToFile(command.CommandText);
             command.ExecuteNonQuery();
         }
 
@@ -372,6 +369,7 @@ namespace Happy_Search
             }
             return list;
         }
+
         public List<ListedProducer> GetFavoriteProducersForUser(int userid)
         {
             var readerList = new List<ListedProducer>();
@@ -453,8 +451,55 @@ namespace Happy_Search
 
         private static ListedVN GetListedVN(SQLiteDataReader reader)
         {
+#if DEBUG
+            try
+            {
+                var t = reader["Title"].ToString();
+                var k = reader["KanjiTitle"].ToString();
+                var r = reader["RelDate"].ToString();
+                var pn = reader["Name"].ToString();
+                var l = DbInt(reader["LengthTime"]);
+                var us = DbInt(reader["ULStatus"]);
+                var ua = DbInt(reader["ULAdded"]);
+                var un = reader["ULNote"].ToString();
+                var ws = DbInt(reader["WLStatus"]);
+                var wa = DbInt(reader["WLAdded"]);
+                var v = DbInt(reader["Vote"]);
+                var va = DbInt(reader["VoteAdded"]);
+                var ta = reader["Tags"].ToString();
+                var id = DbInt(reader["VNID"]);
+                var du = DbDateTime(reader["DateUpdated"]);
+                var i = reader["ImageURL"].ToString();
+                var iN = GetImageStatus(reader["ImageNSFW"]);
+                var d = reader["Description"].ToString();
+                var p = DbDouble(reader["Popularity"]);
+                var ra = DbDouble(reader["Rating"]);
+                var vc = DbInt(reader["VoteCount"]);
+                var re = reader["Relations"].ToString();
+                var sc = reader["Screens"].ToString();
+                var an = reader["Anime"].ToString();
+                var al = reader["Aliases"].ToString();
+                var la = reader["Languages"].ToString();
+                var dfu = DbDateTime(reader["DateFullyUpdated"]);
+                try
+                {
+                    return new ListedVN(t, k, r, pn, l, us, ua, un, ws, wa, v, va, ta, id, du, i, iN, d, p, ra, vc, re, sc, an, al, la, dfu);
+                }
+                // ReSharper disable once UnusedVariable
+                catch (Exception exc)
+                {
+                    // ignored
+                }
+            }
+            // ReSharper disable once UnusedVariable
+            catch (Exception exc)
+            {
+                // ignored
+            }
+            return null;
+# else
             return new ListedVN(
-                reader["Title"].ToString(),
+            reader["Title"].ToString(),
                 reader["KanjiTitle"].ToString(),
                 reader["RelDate"].ToString(),
                 reader["Name"].ToString(),
@@ -479,7 +524,11 @@ namespace Happy_Search
                 reader["Screens"].ToString(),
                 reader["Anime"].ToString(),
                 reader["Aliases"].ToString(),
-                reader["Languages"].ToString());
+                reader["Languages"].ToString(),
+            DbDateTime(reader["DateFullyUpdated"]));
+#endif
+
+
         }
 
         private static ListedProducer GetListedProducer(SQLiteDataReader reader)
@@ -638,11 +687,12 @@ namespace Happy_Search
                 var commandString = @"ALTER TABLE vnlist
   ADD Aliases TEXT;
 ALTER TABLE vnlist
- ADD Languages TEXT;";
+ ADD Languages TEXT;
+ALTER TABLE vnlist
+ ADD DateFullyUpdated DATE;";
                 if (_printGetMethods) LogToFile(commandString);
                 var command = new SQLiteCommand(commandString, DbConn);
                 command.ExecuteNonQuery();
-                //Add columns to vnlist table (aliases, languages)
                 commandString = @"ALTER TABLE producerlist ADD Language TEXT;";
                 if (_printGetMethods) LogToFile(commandString);
                 command = new SQLiteCommand(commandString, DbConn);
@@ -674,7 +724,7 @@ ALTER TABLE vnlist
             command = new SQLiteCommand(insertCommand, DbConn);
             command.ExecuteNonQuery();
         }
-        
+
         private void SetDbVersion(DatabaseVersion version)
         {
             string versionString;
@@ -694,7 +744,7 @@ ALTER TABLE vnlist
             command.ExecuteNonQuery();
         }
 
-        private static void CreateVNListTable()
+        private void CreateVNListTable()
         {
             const string createCommand = @"CREATE TABLE ""vnlist"" ( 
 `VNID` INTEGER NOT NULL UNIQUE, 
@@ -722,7 +772,7 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
             command.ExecuteNonQuery();
         }
 
-        private static void CreateProducerListTable()
+        private void CreateProducerListTable()
         {
             const string createCommand = @"CREATE TABLE `producerlist` (
 	`ProducerID`	INTEGER NOT NULL,
@@ -737,7 +787,7 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
             command.ExecuteNonQuery();
         }
 
-        private static void CreateCharacterListTable()
+        private void CreateCharacterListTable()
         {
             var createCommand = @"CREATE TABLE ""charlist"" ( 
 `CharacterID` INTEGER NOT NULL UNIQUE, 
@@ -751,7 +801,7 @@ PRIMARY KEY(`CharacterID`) )";
             command.ExecuteNonQuery();
         }
 
-        private static void CreateUserlistTable()
+        private void CreateUserlistTable()
         {
             const string createCommand = @"CREATE TABLE `userlist` (
  `VNID`	INTEGER,
@@ -769,7 +819,7 @@ PRIMARY KEY(`CharacterID`) )";
             command.ExecuteNonQuery();
         }
 
-        private static void CreateUserProdListTable()
+        private void CreateUserProdListTable()
         {
             const string createCommand = @"CREATE TABLE `userprodlist`(
 	`ProducerID`	INTEGER NOT NULL,
@@ -782,7 +832,7 @@ PRIMARY KEY(`CharacterID`) )";
             command.ExecuteNonQuery();
         }
 
-        private static void CreateTriggers()
+        private void CreateTriggers()
         {
             const string createCommand = @"CREATE TRIGGER [UpdateTimestamp]
     AFTER UPDATE    ON vnlist    FOR EACH ROW
@@ -801,12 +851,6 @@ END";
             command.ExecuteNonQuery();
             var command3 = new SQLiteCommand(createCommand3, DbConn);
             command3.ExecuteNonQuery();
-        }
-
-        private static int SetImageStatus(bool imageNSFW)
-        {
-            var i = imageNSFW ? 1 : 0;
-            return i;
         }
 
         private static bool GetImageStatus(object imageNSFW)

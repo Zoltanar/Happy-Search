@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -316,8 +317,7 @@ namespace Happy_Search
         public static int DaysSince(DateTime updatedDate)
         {
             if (updatedDate == DateTime.MinValue) return -1;
-            var days = (DateTime.UtcNow - updatedDate).Days;
-            return days;
+            return (DateTime.UtcNow - updatedDate).Days;
         }
 
         /// <summary>
@@ -371,8 +371,8 @@ namespace Happy_Search
                     }
                 }
             }
-            catch (Exception ex) 
-            when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
+            catch (Exception ex)
+            when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException || ex is ExternalException)
             {
                 LogToFile(ex);
             }

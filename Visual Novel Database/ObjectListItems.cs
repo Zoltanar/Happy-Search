@@ -104,40 +104,72 @@ namespace Happy_Search
         /// <param name="anime">JSON Array string containing List of Anime Items</param>
         /// <param name="aliases">Newline separated string of aliases</param>
         /// <param name="language">Language of producer</param>
-        public ListedVN(string title, string kanjiTitle, string reldate, string producer, int length, int ulstatus,
+        /// <param name="dateFullyUpdated">Date when all fields were updated</param>
+        public ListedVN(string title, string kanjiTitle, string reldate, string producer, int? length, int ulstatus,
             int uladded, string ulnote, int wlstatus, int wladded, int vote, int voteadded,
             string tags, int vnid, DateTime updatedDate, string imageURL, bool imageNSFW, string description,
-            double popularity, double rating, int voteCount, string relations, string screens, string anime, string aliases, string language)
+            double popularity, double rating, int voteCount, string relations, string screens, string anime, string aliases, string language, DateTime? dateFullyUpdated)
         {
-            if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
-            ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
-            WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
-            if (vote != -1) Vote = (double)vote / 10;
-            Title = title;
-            KanjiTitle = kanjiTitle;
-            RelDate = reldate;
-            DateForSorting = StringToDate(reldate);
-            Producer = producer;
-            Length = LengthTime[length];
-            ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
-            ULNote = ulnote;
-            WLAdded = DateTimeOffset.FromUnixTimeSeconds(wladded).UtcDateTime;
-            VoteAdded = DateTimeOffset.FromUnixTimeSeconds(voteadded).UtcDateTime;
-            Tags = tags;
-            VNID = vnid;
-            UpdatedDate = DaysSince(updatedDate);
-            ImageURL = imageURL;
-            ImageNSFW = imageNSFW;
-            Description = description;
-            Popularity = popularity;
-            Rating = rating;
-            VoteCount = voteCount;
-            Relations = relations;
-            Screens = screens;
-            Anime = anime;
-            Aliases = aliases;
-            Languages = JsonConvert.DeserializeObject<VNLanguages>(language);
+#if DEBUG
+            try
+            {
+#endif
+                if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
+                ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
+                WLStatus = wlstatus != -1 ? PriorityWL[wlstatus] : "";
+                if (vote != -1) Vote = (double)vote / 10;
+                Title = title;
+                KanjiTitle = kanjiTitle;
+                RelDate = reldate;
+                DateForSorting = StringToDate(reldate);
+                Producer = producer;
+                Length = length != null && length != -1 ? LengthTime[length.Value] : LengthTime[0];
+                ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
+                ULNote = ulnote;
+                WLAdded = DateTimeOffset.FromUnixTimeSeconds(wladded).UtcDateTime;
+                VoteAdded = DateTimeOffset.FromUnixTimeSeconds(voteadded).UtcDateTime;
+                Tags = tags;
+                VNID = vnid;
+                UpdatedDate = DaysSince(updatedDate);
+                ImageURL = imageURL;
+                ImageNSFW = imageNSFW;
+                Description = description;
+                Popularity = popularity;
+                Rating = rating;
+                VoteCount = voteCount;
+                Relations = relations;
+                Screens = screens;
+                Anime = anime;
+                Aliases = aliases;
+                Languages = JsonConvert.DeserializeObject<VNLanguages>(language);
+                DateFullyUpdated = DaysSince(dateFullyUpdated ?? DateTime.MinValue);
+#if DEBUG
+            }
+            // ReSharper disable once UnusedVariable
+            catch (Exception exc)
+            {
+                // ignored
+            }
+#endif
         }
+
+        /// <summary>
+        /// Returns true if a title was last updated over x days ago.
+        /// </summary>
+        /// <param name="days">Days since last update</param>
+        /// <param name="fullyUpdated">Use days since full update</param>
+        /// <returns></returns>
+        public bool LastUpdatedOverDaysAgo(int days, bool fullyUpdated = false)
+        {
+            var dateToUse = fullyUpdated ? DateFullyUpdated : UpdatedDate;
+            if (dateToUse == -1) return true;
+            return dateToUse > days;
+        }
+
+        /// <summary>
+        /// Days since all fields were updated
+        /// </summary>
+        public int DateFullyUpdated { get; }
 
 
         /// <summary>
@@ -269,7 +301,7 @@ namespace Happy_Search
         public string Tags { get; set; }
 
         /// <summary>
-        /// Date of last VN update
+        /// Days since last tags/stats/traits update
         /// </summary>
         public int UpdatedDate { get; set; }
 

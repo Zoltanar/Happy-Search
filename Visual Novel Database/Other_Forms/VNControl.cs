@@ -156,90 +156,90 @@ namespace Happy_Search.Other_Forms
             try
             {
 #endif
-                if (vnItem == null || vnItem.VNID <= 0)
+            if (vnItem == null || vnItem.VNID <= 0)
+            {
+                SetDeletedData();
+                return;
+            }
+            Text = $@"{vnItem.Title} - {FormMain.ClientName}";
+            _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
+            //prepare data
+            _displayedVN = vnItem;
+            _producer = _parentForm.ProducerList.Find(p => p.Name == _displayedVN.Producer);
+            var ext = Path.GetExtension(vnItem.ImageURL);
+            var imageLoc = $"{VNImagesFolder}{vnItem.VNID}{ext}";
+            DisplayTags(null, null);
+            DisplayVNCharacterTraits(vnItem);
+            //set data
+            vnName.Text = vnItem.Title;
+            vnID.Text = vnItem.VNID.ToString();
+            vnKanjiName.Text = vnItem.KanjiTitle;
+            producerLabel.Text = vnItem.Producer;
+            if (!string.IsNullOrEmpty(_producer?.Language))
+            {
+                var prodFlag = $"{FlagsFolder}{_producer.Language}.png"; //TODO make a getflag method
+                if (File.Exists(prodFlag)) producerFlag.ImageLocation = prodFlag;
+            }
+            if (vnItem.Languages != null)
+            {
+                int boxIndex = 0;
+                foreach (var language in vnItem.Languages.All)
                 {
+                    if (boxIndex > 5) break;
+                    var flagPath = $"{FlagsFolder}{language}.png";
+                    if (File.Exists(flagPath)) _flagBoxes[boxIndex].ImageLocation = flagPath;
+                    else _flagBoxes[boxIndex].Text = language;
+                    boxIndex++;
+                }
+            }
+            if (_parentForm.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
+            {
+                producerLabel.LinkColor = FavoriteProducerBrush.Color;
+                producerLabel.ActiveLinkColor = FavoriteProducerBrush.Color;
+                producerLabel.VisitedLinkColor = FavoriteProducerBrush.Color;
+            }
+            vnDate.Text = vnItem.RelDate;
+            vnDesc.Text = vnItem.Description;
+            vnRating.Text = vnItem.RatingAndVoteCount();
+            vnPopularity.Text = $@"Popularity: {vnItem.Popularity:0.00}";
+            vnLength.Text = vnItem.Length;
+            vnUserStatus.Text = vnItem.UserRelatedStatus();
+            vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
+            var notes = vnItem.GetCustomItemNotes();
+            vnNotes.Text = notes.Notes.Length > 0 ? $"Notes: {notes.Notes}" : "No notes.";
+            DisplayGroups(notes);
+            if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
+            else if (File.Exists(imageLoc))
+            {
+                Image coverImage;
+                using (var ms = new MemoryStream(File.ReadAllBytes(imageLoc))) coverImage = Image.FromStream(ms);
+                pcbImages.Image = coverImage;
+            }
+            else pcbImages.Image = Resources.no_image;
+            //relations, anime and screenshots are only fetched here but are saved to database/disk
+            DisplayTextOnScreenshotArea("Getting data from VNDB...");
+            while (_parentForm.DBConn.IsBusy()) await Task.Delay(25);
+            var loadResult = await LoadFromAPI(vnItem, update);
+            switch (loadResult.Status)
+            {
+                case FetchStatus.Error:
+                    _parentForm.DBConn.Open();
+                    _parentForm.DBConn.RemoveVisualNovel(vnItem.VNID);
+                    _parentForm.DBConn.Close();
                     SetDeletedData();
-                    return;
-                }
-                Text = $@"{vnItem.Title} - {FormMain.ClientName}";
-                _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
-                //prepare data
-                _displayedVN = vnItem;
-                _producer = _parentForm.ProducerList.Find(p => p.Name == _displayedVN.Producer);
-                var ext = Path.GetExtension(vnItem.ImageURL);
-                var imageLoc = $"{VNImagesFolder}{vnItem.VNID}{ext}";
-                DisplayTags(null, null);
-                DisplayVNCharacterTraits(vnItem);
-                //set data
-                vnName.Text = vnItem.Title;
-                vnID.Text = vnItem.VNID.ToString();
-                vnKanjiName.Text = vnItem.KanjiTitle;
-                producerLabel.Text = vnItem.Producer;
-                if (!string.IsNullOrEmpty(_producer?.Language))
-                {
-                    var prodFlag = $"{FlagsFolder}{_producer.Language}.png"; //TODO make a getflag method
-                    if (File.Exists(prodFlag)) producerFlag.ImageLocation = prodFlag;
-                }
-                if (vnItem.Languages != null)
-                {
-                    int boxIndex = 0;
-                    foreach (var language in vnItem.Languages.All)
-                    {
-                        if (boxIndex > 5) break;
-                        var flagPath = $"{FlagsFolder}{language}.png";
-                        if (File.Exists(flagPath)) _flagBoxes[boxIndex].ImageLocation = flagPath;
-                        else _flagBoxes[boxIndex].Text = language;
-                        boxIndex++;
-                    }
-                }
-                if (_parentForm.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
-                {
-                    producerLabel.LinkColor = FavoriteProducerBrush.Color;
-                    producerLabel.ActiveLinkColor = FavoriteProducerBrush.Color;
-                    producerLabel.VisitedLinkColor = FavoriteProducerBrush.Color;
-                }
-                vnDate.Text = vnItem.RelDate;
-                vnDesc.Text = vnItem.Description;
-                vnRating.Text = vnItem.RatingAndVoteCount();
-                vnPopularity.Text = $@"Popularity: {vnItem.Popularity:0.00}";
-                vnLength.Text = vnItem.Length;
-                vnUserStatus.Text = vnItem.UserRelatedStatus();
-                vnUpdateLink.Text = $@"Updated {vnItem.UpdatedDate} days ago. Click to update.";
-                var notes = vnItem.GetCustomItemNotes();
-                vnNotes.Text = notes.Notes.Length > 0 ? $"Notes: {notes.Notes}" : "No notes.";
-                DisplayGroups(notes);
-                if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
-                else if (File.Exists(imageLoc))
-                {
-                    Image coverImage;
-                    using (var ms = new MemoryStream(File.ReadAllBytes(imageLoc))) coverImage = Image.FromStream(ms);
-                    pcbImages.Image = coverImage;
-                }
-                else pcbImages.Image = Resources.no_image;
-                //relations, anime and screenshots are only fetched here but are saved to database/disk
-                DisplayTextOnScreenshotArea("Getting data from VNDB...");
-                while (_parentForm.DBConn.IsBusy()) await Task.Delay(25);
-                var loadResult = await LoadFromAPI(vnItem, update);
-                switch (loadResult.Status)
-                {
-                    case FetchStatus.Error:
-                        _parentForm.DBConn.Open();
-                        _parentForm.DBConn.RemoveVisualNovel(vnItem.VNID);
-                        _parentForm.DBConn.Close();
-                        SetDeletedData();
-                        break;
-                    case FetchStatus.Throttled:
-                        vnRelationsCB.DataSource = new List<string> { "Relations cannot be fetched until API connection is ready." };
-                        vnAnimeCB.DataSource = new List<string> { "Anime cannot be fetched until API connection is ready." };
-                        picturePanel.Controls.Clear();
-                        DisplayTextOnScreenshotArea("Screenshots cannot be fetched until API connection is ready");
-                        break;
-                    case FetchStatus.Success:
-                        DisplayRelations(loadResult.Relations);
-                        DisplayAnime(loadResult.Anime);
-                        DisplayScreenshots(loadResult.Screens);
-                        break;
-                }
+                    break;
+                case FetchStatus.Throttled:
+                    vnRelationsCB.DataSource = new List<string> { "Relations cannot be fetched until API connection is ready." };
+                    vnAnimeCB.DataSource = new List<string> { "Anime cannot be fetched until API connection is ready." };
+                    picturePanel.Controls.Clear();
+                    DisplayTextOnScreenshotArea("Screenshots cannot be fetched until API connection is ready");
+                    break;
+                case FetchStatus.Success:
+                    DisplayRelations(loadResult.Relations);
+                    DisplayAnime(loadResult.Anime);
+                    DisplayScreenshots(loadResult.Screens);
+                    break;
+            }
 #if DEBUG
             }
             // ReSharper disable once UnusedVariable
@@ -633,7 +633,7 @@ namespace Happy_Search.Other_Forms
             await Task.Run(() =>
             {
                 _parentForm.DBConn.Open();
-                _parentForm.DBConn.UpsertSingleVN(vnItem, relProducer, languages);
+                _parentForm.DBConn.UpsertSingleVN(vnItem, relProducer, languages, true);
             });
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
         }

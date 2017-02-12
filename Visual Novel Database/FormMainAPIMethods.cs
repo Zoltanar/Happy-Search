@@ -67,8 +67,8 @@ namespace Happy_Search
                     minWait = Math.Min(5 * 60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
                     string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
                     string additionalWarning = "";
-                    if(_vnsAdded > 0) additionalWarning +=  $" Added {_vnsAdded}.";
-                    if(_vnsSkipped > 0) additionalWarning += $" Skipped {_vnsSkipped}.";
+                    if (_vnsAdded > 0) additionalWarning += $" Added {_vnsAdded}.";
+                    if (_vnsSkipped > 0) additionalWarning += $" Skipped {_vnsSkipped}.";
                     fullThrottleMessage = additionalMessage ? normalWarning + additionalWarning : normalWarning;
                 });
                 WriteWarning(replyLabel, fullThrottleMessage);
@@ -214,56 +214,6 @@ namespace Happy_Search
             }
         }
 
-
-        private async Task GetLanguagesForMultipleVN(int[] vnIDs, Label replyLabel)
-        {
-            if (!vnIDs.Any()) return;
-            _vnsAdded = 0;
-            var vnList = new List<Tuple<int, VNLanguages>>();
-            foreach (var vnID in vnIDs)
-            {
-                var releases = await GetReleases(vnID, "GetLanguagesForMultipleVN Error", replyLabel, true,true);
-                var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
-                var languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
-                vnList.Add(new Tuple<int, VNLanguages>(vnID, languages));
-                _vnsAdded++;
-                if (vnList.Count > 24)
-                {
-                    DBConn.BeginTransaction();
-                    foreach (var vn in vnList) DBConn.SetVNLanguages(vn);
-                    DBConn.EndTransaction();
-                    vnList.Clear();
-                }
-            }
-            DBConn.BeginTransaction();
-            foreach (var vn in vnList) DBConn.SetVNLanguages(vn);
-            DBConn.EndTransaction();
-        }
-
-        private async Task GetLanguagesForProducers(int[] producerIDs, Label replyLabel)
-        {
-            if (!producerIDs.Any()) return;
-            _vnsAdded = 0;
-            var producerList = new List<ListedProducer>();
-            foreach (var producerID in producerIDs)
-            {
-                var result = await GetProducer(producerID, "GetLanguagesForProducers Error", replyLabel, true, true, true);
-                if (!result.Item1 || result.Item2 == null) continue;
-                producerList.Add(result.Item2);
-                _vnsAdded++;
-                if (producerList.Count > 24)
-                {
-                    DBConn.BeginTransaction();
-                    foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
-                    DBConn.EndTransaction();
-                    producerList.Clear();
-                }
-            }
-            DBConn.BeginTransaction();
-            foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
-            DBConn.EndTransaction();
-        }
-
         /// <summary>
         /// Get new data about a single visual novel.
         /// </summary>
@@ -309,7 +259,7 @@ namespace Happy_Search
                 }
             }
             DBConn.Open();
-            DBConn.UpsertSingleVN(vnItem, relProducer, languages);
+            DBConn.UpsertSingleVN(vnItem, relProducer, languages, true);
             var vn = DBConn.GetSingleVN(vnid, Settings.UserID);
             DBConn.Close();
             await ReloadListsFromDbAsync();
@@ -363,7 +313,7 @@ namespace Happy_Search
         /// <param name="replyLabel">Label where reply will be printed.</param>
         /// <param name="refreshList">Should OLV be refreshed on throttled connection?</param>
         /// <param name="updateAll">Should VNs be updated even if they;re already in local database?</param>
-        private async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList = false, bool updateAll = false)
+        private async Task GetMultipleVN(IEnumerable<int> vnIDs, Label replyLabel, bool refreshList, bool updateAll)
         {
             var vnsToGet = new List<int>();
             await Task.Run(() =>
@@ -427,7 +377,7 @@ namespace Happy_Search
                 vnsToBeUpserted.Add(new Tuple<VNItem, ProducerItem, VNLanguages>(vnItem, relProducer, languages));
             }
             DBConn.BeginTransaction();
-            foreach (Tuple<VNItem, ProducerItem, VNLanguages> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2, vn.Item3);
+            foreach (Tuple<VNItem, ProducerItem, VNLanguages> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2, vn.Item3, true);
             foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
             DBConn.EndTransaction();
             await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
@@ -475,7 +425,7 @@ namespace Happy_Search
                     vnsToBeUpserted.Add(new Tuple<VNItem, ProducerItem, VNLanguages>(vnItem, relProducer, languages));
                 }
                 DBConn.BeginTransaction();
-                foreach (Tuple<VNItem, ProducerItem, VNLanguages> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2, vn.Item3);
+                foreach (Tuple<VNItem, ProducerItem, VNLanguages> vn in vnsToBeUpserted) DBConn.UpsertSingleVN(vn.Item1, vn.Item2, vn.Item3, true);
                 foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
                 DBConn.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray, replyLabel, true, refreshList);
@@ -485,74 +435,10 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Update titles to include all fields in latest version of Happy Search.
-        /// </summary>
-        /// <param name="vnIDs">List of visual novel IDs</param>
-        private async Task GetOldVNStats(IEnumerable<int> vnIDs)
-        {
-            var replyLabel = userListReply;
-            _vnsAdded = 0;
-            List<int> vnsToGet = vnIDs.ToList();
-            if (!vnsToGet.Any()) return;
-            int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
-            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
-            string multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
-            if (!queryResult) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num < currentArray.Length)
-            {
-                //some vns were deleted, find which ones and remove them
-                var root = vnRoot;
-                IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                DBConn.BeginTransaction();
-                foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                DBConn.EndTransaction();
-            }
-            DBConn.BeginTransaction();
-            foreach (var vnItem in vnRoot.Items)
-            {
-                DBConn.SetVNStats(vnItem);
-                _vnsAdded++;
-            }
-            DBConn.EndTransaction();
-            int done = APIMaxResults;
-            while (done < vnsToGet.Count)
-            {
-                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
-                currentArrayString = '[' + string.Join(",", currentArray) + ']';
-                multiVNQuery = $"get vn stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, true);
-                if (!queryResult) return;
-                vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num < currentArray.Length)
-                {
-                    //some vns were deleted, find which ones and remove them
-                    var root = vnRoot;
-                    IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    DBConn.BeginTransaction();
-                    foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                    DBConn.EndTransaction();
-                }
-                DBConn.BeginTransaction();
-                foreach (var vnItem in vnRoot.Items)
-                {
-                    DBConn.SetVNStats(vnItem);
-                    _vnsAdded++;
-                }
-                DBConn.EndTransaction();
-                done += APIMaxResults;
-            }
-            await ReloadListsFromDbAsync();
-        }
-
-
-
-        /// <summary>
         /// Update tags, traits and stats of titles.
         /// </summary>
         /// <param name="vnIDs">List of IDs of titles to be updated.</param>
-        private async Task UpdateTitleData(IEnumerable<int> vnIDs)
+        private async Task UpdateTagsTraitsStats(IEnumerable<int> vnIDs)
         {
             var replyLabel = userListReply;
             _vnsAdded = 0;
@@ -576,7 +462,7 @@ namespace Happy_Search
             DBConn.BeginTransaction();
             foreach (var vnItem in vnRoot.Items)
             {
-                DBConn.UpdateVNData(vnItem);
+                DBConn.UpdateVNTagsStats(vnItem);
                 _vnsAdded++;
             }
             DBConn.EndTransaction();
@@ -602,7 +488,7 @@ namespace Happy_Search
                 DBConn.BeginTransaction();
                 foreach (var vnItem in vnRoot.Items)
                 {
-                    DBConn.UpdateVNData(vnItem);
+                    DBConn.UpdateVNTagsStats(vnItem);
                     _vnsAdded++;
                 }
                 DBConn.EndTransaction();
@@ -669,30 +555,30 @@ namespace Happy_Search
                 case VndbConnection.APIStatus.Ready:
                     if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Ended");
                     CurrentFeatureName = "";
-                    statusLabel.Text = @"Ready";
+                    statusLabel.Text = LoginString + Environment.NewLine + @"Ready";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
                     if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Started");
-                    statusLabel.Text = $@"Busy ({CurrentFeatureName})";
+                    statusLabel.Text = LoginString + Environment.NewLine + $@"Busy ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Throttled:
                     if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{CurrentFeatureName} Throttled");
-                    statusLabel.Text = $@"Throttled ({CurrentFeatureName})";
+                    statusLabel.Text = LoginString + Environment.NewLine + $@"Throttled ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.DarkRed;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Error:
-                    statusLabel.Text = $@"Error ({CurrentFeatureName})";
+                    statusLabel.Text = LoginString + Environment.NewLine + $@"Error ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.Red;
                     Conn.Close();
                     break;
                 case VndbConnection.APIStatus.Closed:
-                    statusLabel.Text = $@"Closed ({CurrentFeatureName})";
+                    statusLabel.Text = LoginString + Environment.NewLine + $@"Closed ({CurrentFeatureName})";
                     statusLabel.ForeColor = Color.White;
                     statusLabel.BackColor = Color.Black;
                     break;
@@ -781,18 +667,16 @@ namespace Happy_Search
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))
                     {
                         //should never happen
-                        loginReply.ForeColor = Color.LightGreen;
-                        loginReply.Text = Resources.already_logged_in;
+                        LoginString = Resources.already_logged_in;
                         break;
                     }
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.connection_failed;
+                    LoginString = Resources.connection_failed;
                     break;
                 default:
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.login_unknown_error;
+                    LoginString = Resources.login_unknown_error;
                     break;
             }
+            ChangeAPIStatus(Conn.Status);
             if (AdvancedMode) serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
 
@@ -807,30 +691,25 @@ namespace Happy_Search
             switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
+                    LoginString = $@"Logged in as {Settings.Username}.";
                     ChangeAPIStatus(Conn.Status);
-                    loginReply.ForeColor = Color.LightGreen;
-                    loginReply.Text = $@"Logged in as {Settings.Username}.";
                     return;
                 case ResponseType.Error:
                     if (Conn.LastResponse.Error.ID.Equals("loggedin"))
                     {
                         //should never happen
-                        loginReply.ForeColor = Color.LightGreen;
-                        loginReply.Text = Resources.already_logged_in;
+                        LoginString = Resources.already_logged_in;
                         break;
                     }
                     if (Conn.LastResponse.Error.ID.Equals("auth"))
                     {
-                        loginReply.ForeColor = Color.Red;
-                        loginReply.Text = Conn.LastResponse.Error.Msg;
+                        LoginString = Conn.LastResponse.Error.Msg;
                         break;
                     }
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.connection_failed;
+                    LoginString = Resources.connection_failed;
                     break;
                 default:
-                    loginReply.ForeColor = Color.Red;
-                    loginReply.Text = Resources.login_unknown_error;
+                    LoginString = Resources.login_unknown_error;
                     break;
             }
             serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
