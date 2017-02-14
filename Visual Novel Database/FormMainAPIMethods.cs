@@ -319,7 +319,7 @@ namespace Happy_Search
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList);
+            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error, replyLabel, true, refreshList, updateAll);
             if (!queryResult)
             {
                 return;
@@ -339,13 +339,13 @@ namespace Happy_Search
             foreach (var vnItem in vnRoot.Items)
             {
                 SaveImage(vnItem);
-                var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel);
+                var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel, true, refreshList);
                 var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
                 var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
                 VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
                 if (relProducer != null)
                 {
-                    var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, replyLabel);
+                    var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
                     if (!gpResult.Item1)
                     {
                         ChangeAPIStatus(Conn.Status);
@@ -387,13 +387,13 @@ namespace Happy_Search
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
-                    var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel);
+                    var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel,true,refreshList);
                     var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
                     var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
                     VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
                     if (relProducer != null)
                     {
-                        var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, replyLabel);
+                        var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, replyLabel, true, refreshList);
                         if (!gpResult.Item1)
                         {
                             ChangeAPIStatus(Conn.Status);

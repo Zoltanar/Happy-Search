@@ -19,6 +19,7 @@ namespace Happy_Search
 {
     internal class DbHelper
     {
+        #region Initialization
 #if DEBUG
         private const string DbFile = "..\\Release\\Stored Data\\Happy-Search-Local-DB.sqlite";
 #else
@@ -26,9 +27,7 @@ namespace Happy_Search
 #endif
 
         private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
-        //Pooling=True;Max Pool Size=100;
-
-        public readonly SQLiteConnection DbConn;
+        private readonly SQLiteConnection _conn;
         private static bool _dbLog;
 
         public DbHelper(bool dbLog = false)
@@ -37,10 +36,277 @@ namespace Happy_Search
             _printSetMethods = dbLog;
             _printGetMethods = dbLog;
 
-            DbConn = new SQLiteConnection(DbConnectionString);
+            _conn = new SQLiteConnection(DbConnectionString);
             InitDatabase();
 
         }
+
+
+        private void InitDatabase()
+        {
+            if (File.Exists(DbFile))
+            {
+                //check database version and update if necessary.
+                Open();
+                var version = GetCurrentVersion();
+                if (version < DatabaseVersion.Latest)
+                {
+                    if (_dbLog) LogToFile("Updating Database");
+                    UpgradeDatabase(version);
+                    if (_dbLog) LogToFile("Finished Updating Database");
+                }
+                Close();
+                return;
+            }
+            SQLiteConnection.CreateFile(DbFile);
+            if (_dbLog) LogToFile("Creating Database");
+            BeginTransaction();
+            //must be in this order
+            CreateProducerListTable();
+            CreateVNListTable();
+            CreateCharacterListTable();
+            CreateUserlistTable();
+            CreateUserProdListTable();
+            CreateTableDetails();
+            CreateTriggers();
+            EndTransaction();
+            if (_dbLog) LogToFile("Finished Creating Database");
+        }
+
+        private DatabaseVersion GetCurrentVersion()
+        {
+            //check if table exists
+            var selectString = "SELECT name FROM sqlite_master WHERE type='table' AND name='tabledetails';";
+            if (_printGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, _conn);
+            var returned = command.ExecuteScalar();
+            if (returned == null) return DatabaseVersion.Pre;
+            //check table version
+            selectString = "SELECT Value FROM tabledetails WHERE Key='databaseversion';";
+            if (_printGetMethods) LogToFile(selectString);
+            command = new SQLiteCommand(selectString, _conn);
+            var version = command.ExecuteScalar().ToString();
+            switch (version)
+            {
+                case "V1_4_0":
+                    return DatabaseVersion.V1_4_0;
+                case "V1_4_7":
+                    return DatabaseVersion.V1_4_7;
+                default:
+                    return DatabaseVersion.Pre;
+            }
+        }
+
+        private void UpgradeDatabase(DatabaseVersion current)
+        {
+            try
+            {
+                BackupPreviousDatabase(current);
+            }
+            catch (Exception ex) when (ex is PathTooLongException || ex is UnauthorizedAccessException)
+            {
+                LogToFile(ex);
+                LogToFile("Couldn't backup previous version.");
+            }
+            if (current < DatabaseVersion.V1_4_0)
+            {
+                //remove update producerlist date trigger
+                var commandString = "DROP TRIGGER UpdateTimestampProducerList;";
+                if (_printGetMethods) LogToFile(commandString);
+                var command = new SQLiteCommand(commandString, _conn);
+                command.ExecuteNonQuery();
+                //set Updated values to null
+                commandString = "UPDATE producerlist SET Updated = NULL;";
+                if (_printGetMethods) LogToFile(commandString);
+                command = new SQLiteCommand(commandString, _conn);
+                command.ExecuteNonQuery();
+                //create tabledetails table
+                CreateTableDetails();
+            }
+            if (current < DatabaseVersion.V1_4_7)
+            {
+                //Add columns to vnlist table (aliases, languages)
+                var commandString = @"ALTER TABLE vnlist
+  ADD Aliases TEXT;
+ALTER TABLE vnlist
+ ADD Languages TEXT;
+ALTER TABLE vnlist
+ ADD DateFullyUpdated DATE;";
+                if (_printGetMethods) LogToFile(commandString);
+                var command = new SQLiteCommand(commandString, _conn);
+                command.ExecuteNonQuery();
+                commandString = @"ALTER TABLE producerlist ADD Language TEXT;";
+                if (_printGetMethods) LogToFile(commandString);
+                command = new SQLiteCommand(commandString, _conn);
+                command.ExecuteNonQuery();
+            }
+            SetDbVersion(DatabaseVersion.Latest);
+        }
+
+        private void BackupPreviousDatabase(DatabaseVersion previous)
+        {
+            if (File.Exists(DbFile))
+            {
+                var extLength = Path.GetExtension(DbFile).Length;
+                var backupFile = $"{DbFile.Substring(0,DbFile.Length-extLength)} - {previous} Backup.sqlite";
+                if (File.Exists(backupFile)) File.Delete(backupFile);
+                File.Copy(DbFile, backupFile);
+            }
+        }
+
+        private void CreateTableDetails()
+        {
+            const string createCommand =
+                @"CREATE TABLE `tabledetails` (
+	`Key`	TEXT NOT NULL,
+	`Value`	TEXT,
+	PRIMARY KEY(`Key`)
+);";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+            string insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('databaseversion','V1_4_7');";
+            command = new SQLiteCommand(insertCommand, _conn);
+            command.ExecuteNonQuery();
+            insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('programname','Happy Search');";
+            command = new SQLiteCommand(insertCommand, _conn);
+            command.ExecuteNonQuery();
+            insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('author','zoltanar');";
+            command = new SQLiteCommand(insertCommand, _conn);
+            command.ExecuteNonQuery();
+            insertCommand = $@"INSERT INTO tabledetails  (Key,Value) VALUES ('projecturl','{ProjectURL}');";
+            command = new SQLiteCommand(insertCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void SetDbVersion(DatabaseVersion version)
+        {
+            string versionString;
+            switch (version)
+            {
+                case DatabaseVersion.V1_4_0:
+                    versionString = "V1_4_0";
+                    break;
+                case DatabaseVersion.V1_4_7:
+                    versionString = "V1_4_7";
+                    break;
+                default:
+                    return;
+            }
+            string insertCommand = $@"INSERT OR REPLACE INTO tabledetails  (Key,Value) VALUES ('databaseversion','{versionString}');";
+            var command = new SQLiteCommand(insertCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateVNListTable()
+        {
+            const string createCommand = @"CREATE TABLE ""vnlist"" ( 
+`VNID` INTEGER NOT NULL UNIQUE, 
+`Title` TEXT, 
+`KanjiTitle` TEXT, 
+`RelDate` TEXT, 
+`ProducerID` INTEGER, 
+`Tags` TEXT, 
+`DateUpdated` DATE DEFAULT CURRENT_TIMESTAMP, 
+`ImageURL` TEXT, 
+`ImageNSFW` INTEGER, 
+`Description` TEXT, 
+`LengthTime` INTEGER, 
+`Popularity` NUMERIC, 
+`Rating` NUMERIC, 
+`VoteCount` INTEGER, 
+`Relations` TEXT, 
+`Screens` TEXT, 
+`Anime` TEXT, 
+`Aliases` TEXT, 
+`Languages` TEXT, 
+PRIMARY KEY(`VNID`), 
+FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateProducerListTable()
+        {
+            const string createCommand = @"CREATE TABLE `producerlist` (
+	`ProducerID`	INTEGER NOT NULL,
+	`Name`	TEXT,
+	`Titles`	INTEGER,
+	`Loaded`	TEXT,
+	`Updated`	DATE DEFAULT CURRENT_TIMESTAMP,
+	`Language`	TEXT,
+	PRIMARY KEY(`ProducerID`)
+);";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateCharacterListTable()
+        {
+            var createCommand = @"CREATE TABLE ""charlist"" ( 
+`CharacterID` INTEGER NOT NULL UNIQUE, 
+`Name` TEXT, 
+`Image` TEXT, 
+`Traits` TEXT, 
+`VNs` TEXT, 
+`DateUpdated` INTEGER, 
+PRIMARY KEY(`CharacterID`) )";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateUserlistTable()
+        {
+            const string createCommand = @"CREATE TABLE `userlist` (
+ `VNID`	INTEGER,
+ `UserID`	INTEGER,
+ `ULStatus`	INTEGER,
+ `ULAdded`	INTEGER,
+ `ULNote`	TEXT,
+ `WLStatus`	INTEGER,
+ `WLAdded`	INTEGER,
+ `Vote`	INTEGER,
+ `VoteAdded`	INTEGER,
+ PRIMARY KEY(VNID,UserID)
+)";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateUserProdListTable()
+        {
+            const string createCommand = @"CREATE TABLE `userprodlist`(
+	`ProducerID`	INTEGER NOT NULL,
+	`UserID`	INTEGER NOT NULL,
+	`UserAverageVote`	NUMERIC,
+	`UserDropRate`	INTEGER,
+	PRIMARY KEY(ProducerID, UserID)
+)";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateTriggers()
+        {
+            const string createCommand = @"CREATE TRIGGER [UpdateTimestamp]
+    AFTER UPDATE    ON vnlist    FOR EACH ROW
+BEGIN
+    UPDATE vnlist 
+	SET DateUpdated=CURRENT_TIMESTAMP
+	WHERE VNID=OLD.VNID;
+END";
+            const string createCommand3 = @"CREATE TRIGGER [UpdateTimestampCharacterList] 
+AFTER UPDATE ON charlist FOR EACH ROW 
+BEGIN 
+UPDATE charlist SET DateUpdated=CURRENT_TIMESTAMP 
+WHERE CharacterID=OLD.CharacterID; 
+END";
+            var command = new SQLiteCommand(createCommand, _conn);
+            command.ExecuteNonQuery();
+            var command3 = new SQLiteCommand(createCommand3, _conn);
+            command3.ExecuteNonQuery();
+        }
+
+        #endregion
 
         #region Set Methods
 
@@ -52,7 +318,7 @@ namespace Happy_Search
             var insertString =
                 $"UPDATE userlist SET ULNote = '{noteString}' WHERE VNID = {vnid} AND UserID = {userID};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
         public void AddRelationsToVN(int vnid, RelationsItem[] relations)
@@ -62,7 +328,7 @@ namespace Happy_Search
             var insertString =
                 $"UPDATE vnlist SET Relations = '{relationsString}' WHERE VNID = {vnid};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -72,7 +338,7 @@ namespace Happy_Search
             var insertString =
                 $"UPDATE vnlist SET Screens = '{screensString}' WHERE VNID = {vnid};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -83,7 +349,7 @@ namespace Happy_Search
             var insertString =
                 $"UPDATE vnlist SET Anime = '{animeString}' WHERE VNID = {vnid};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -93,7 +359,7 @@ namespace Happy_Search
             var insertString =
                 $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity.ToString("0.00", CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -103,7 +369,7 @@ namespace Happy_Search
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
                 if (_printSetMethods) LogToFile(deleteString);
-                var cmd = new SQLiteCommand(deleteString, DbConn);
+                var cmd = new SQLiteCommand(deleteString, _conn);
                 cmd.ExecuteNonQuery();
                 return;
             }
@@ -157,7 +423,7 @@ namespace Happy_Search
             }
             if (commandString.Equals("")) return;
             if (_printSetMethods) LogToFile(commandString);
-            var cmd2 = new SQLiteCommand(commandString, DbConn);
+            var cmd2 = new SQLiteCommand(commandString, _conn);
             cmd2.ExecuteNonQuery();
         }
 
@@ -167,7 +433,7 @@ namespace Happy_Search
             {
                 var insertString =
                     $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote.ToString("0.00", CultureInfo.InvariantCulture)}, {item.UserDropRate});";
-                var command = new SQLiteCommand(insertString, DbConn);
+                var command = new SQLiteCommand(insertString, _conn);
                 if (_printSetMethods) LogToFile(insertString);
                 command.ExecuteNonQuery();
             }
@@ -176,7 +442,7 @@ namespace Happy_Search
 
         internal bool IsBusy()
         {
-            return DbConn.State != ConnectionState.Closed;
+            return _conn.State != ConnectionState.Closed;
         }
 
         /// <summary>
@@ -191,7 +457,7 @@ namespace Happy_Search
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Language, Titles, Updated) VALUES ({producer.ID}, '{name}', '{producer.Language}', {producer.NumberOfTitles}, NULL);" :
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Language, Titles) VALUES ({producer.ID}, '{name}', '{producer.Language}', {producer.NumberOfTitles});";
             if (_printSetMethods) LogToFile(commandString);
-            var cmd = new SQLiteCommand(commandString, DbConn);
+            var cmd = new SQLiteCommand(commandString, _conn);
             cmd.ExecuteNonQuery();
         }
 
@@ -210,7 +476,7 @@ namespace Happy_Search
                 $"(SELECT WLAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
-            var command = new SQLiteCommand(commandString, DbConn);
+            var command = new SQLiteCommand(commandString, _conn);
             if (_printSetMethods) LogToFile(commandString);
             command.ExecuteNonQuery();
         }
@@ -229,7 +495,7 @@ namespace Happy_Search
                 $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
                 $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
             if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, DbConn);
+            var command = new SQLiteCommand(commandString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -247,7 +513,7 @@ namespace Happy_Search
                 $"{item.Vote}," +
                 $"{item.Added});";
             if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, DbConn);
+            var command = new SQLiteCommand(commandString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -256,14 +522,14 @@ namespace Happy_Search
             var insertString =
                 $"INSERT OR REPLACE INTO charlist (CharacterID, Traits, VNs) VALUES ('{character.ID}', '{ListToJsonArray(new List<object>(character.Traits))}','{ListToJsonArray(new List<object>(character.VNs))}');";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
 
         public void UpsertSingleVN(VNItem item, ProducerItem producer, VNLanguages languages, bool setFullyUpdated)
         {
             var tags = ListToJsonArray(new List<object>(item.Tags));
-            var command = new SQLiteCommand(DbConn);
+            var command = new SQLiteCommand(_conn);
             if (setFullyUpdated)
             {
                 command.CommandText = "INSERT OR REPLACE INTO vnlist (" +
@@ -293,7 +559,7 @@ namespace Happy_Search
             }
             command.Parameters.Add(new SQLiteParameter("@title", item.Title));
             command.Parameters.Add(new SQLiteParameter("@kanjititle", item.Original));
-            command.Parameters.Add(new SQLiteParameter("@producerid", producer.ID));
+            command.Parameters.Add(new SQLiteParameter("@producerid", producer?.ID ?? -1));
             command.Parameters.Add(new SQLiteParameter("@reldate", item.Released));
             command.Parameters.Add(new SQLiteParameter("@tags", tags));
             command.Parameters.Add(new SQLiteParameter("@description", item.Description));
@@ -315,7 +581,7 @@ namespace Happy_Search
             var insertString =
                 $"UPDATE producerlist SET Language = '{producer.Language}' WHERE ProducerID = {producer.ID};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, DbConn);
+            var command = new SQLiteCommand(insertString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -323,7 +589,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
             if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, DbConn);
+            var command = new SQLiteCommand(commandString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -331,7 +597,7 @@ namespace Happy_Search
         {
             var commandString = $"DELETE FROM vnlist WHERE VNID={vnid};";
             if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, DbConn);
+            var command = new SQLiteCommand(commandString, _conn);
             command.ExecuteNonQuery();
         }
 
@@ -347,7 +613,7 @@ namespace Happy_Search
                 $"SELECT VNID FROM userlist WHERE VNID NOT IN (SELECT VNID FROM vnlist) AND UserID = {userid};";
             var list = new List<int>();
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) list.Add(DbInt(reader["VNID"]));
             return list;
@@ -358,7 +624,7 @@ namespace Happy_Search
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID={vnid};";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             ListedVN vn = null;
             while (reader.Read()) vn = GetListedVN(reader);
@@ -370,7 +636,7 @@ namespace Happy_Search
             var list = new List<ListedProducer>();
             var selectString = "SELECT * FROM producerlist;";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -385,7 +651,7 @@ namespace Happy_Search
             var selectString =
                 $"SELECT producerlist.*, userprodlist.UserAverageVote, userprodlist.UserDropRate FROM producerlist LEFT JOIN userprodlist ON producerlist.ProducerID = userprodlist.ProducerID WHERE userprodlist.UserID = {userid};";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetFavoriteProducer(reader));
             return readerList;
@@ -397,7 +663,7 @@ namespace Happy_Search
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist, userlist  LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID = userlist.VNID AND UserID = {userid};";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
             return readerList;
@@ -409,7 +675,7 @@ namespace Happy_Search
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE Title NOT NULL;";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
             return readerList;
@@ -420,7 +686,7 @@ namespace Happy_Search
             var readerList = new List<CharacterItem>();
             var selectString = "SELECT * FROM charlist;";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetCharacterItem(reader));
             return readerList;
@@ -438,7 +704,7 @@ namespace Happy_Search
             var selectString =
                 $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userID} WHERE vnlist.ProducerID={producerID};";
             if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
+            var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetListedVN(reader));
             return readerList;
@@ -564,9 +830,9 @@ namespace Happy_Search
 
         public void Open()
         {
-            if (DbConn.State == ConnectionState.Closed)
+            if (_conn.State == ConnectionState.Closed)
             {
-                DbConn.Open();
+                _conn.Open();
                 if (_dbLog) LogToFile("Opened Database");
             }
             else
@@ -577,7 +843,7 @@ namespace Happy_Search
 
         public void Close()
         {
-            DbConn.Close();
+            _conn.Close();
             if (_dbLog) LogToFile("Closed Database");
         }
 
@@ -585,10 +851,9 @@ namespace Happy_Search
         public void BeginTransaction()
         {
             Open();
-            _transaction = DbConn.BeginTransaction();
+            _transaction = _conn.BeginTransaction();
             if (_dbLog) LogToFile("Started Transaction");
         }
-
 
         public void EndTransaction()
         {
@@ -616,250 +881,6 @@ namespace Happy_Search
         {
             DateTime upDateTime;
             return !DateTime.TryParse(dbObject.ToString(), out upDateTime) ? DateTime.MinValue : upDateTime;
-        }
-
-        private void InitDatabase()
-        {
-            if (File.Exists(DbFile))
-            {
-                //check database version and update if necessary.
-                Open();
-                var version = GetCurrentVersion();
-                if (version < DatabaseVersion.Latest)
-                {
-                    if (_dbLog) LogToFile("Updating Database");
-                    UpdateTable(version);
-                    if (_dbLog) LogToFile("Finished Updating Database");
-                }
-                Close();
-                return;
-            }
-            SQLiteConnection.CreateFile(DbFile);
-            if (_dbLog) LogToFile("Creating Database");
-            BeginTransaction();
-            //must be in this order
-            CreateProducerListTable();
-            CreateVNListTable();
-            CreateCharacterListTable();
-            CreateUserlistTable();
-            CreateUserProdListTable();
-            CreateTableDetails();
-            CreateTriggers();
-            EndTransaction();
-            if (_dbLog) LogToFile("Finished Creating Database");
-        }
-
-        private DatabaseVersion GetCurrentVersion()
-        {
-            //check if table exists
-            var selectString = "SELECT name FROM sqlite_master WHERE type='table' AND name='tabledetails';";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, DbConn);
-            var returned = command.ExecuteScalar();
-            if (returned == null) return DatabaseVersion.Pre;
-            //check table version
-            selectString = "SELECT Value FROM tabledetails WHERE Key='databaseversion';";
-            if (_printGetMethods) LogToFile(selectString);
-            command = new SQLiteCommand(selectString, DbConn);
-            var version = command.ExecuteScalar().ToString();
-            switch (version)
-            {
-                case "V1_4_0":
-                    return DatabaseVersion.V1_4_0;
-                case "V1_4_7":
-                    return DatabaseVersion.V1_4_7;
-                default:
-                    return DatabaseVersion.Pre;
-            }
-        }
-
-        private void UpdateTable(DatabaseVersion current)
-        {
-            if (current < DatabaseVersion.V1_4_0)
-            {
-                //remove update producerlist date trigger
-                var commandString = "DROP TRIGGER UpdateTimestampProducerList;";
-                if (_printGetMethods) LogToFile(commandString);
-                var command = new SQLiteCommand(commandString, DbConn);
-                command.ExecuteNonQuery();
-                //set Updated values to null
-                commandString = "UPDATE producerlist SET Updated = NULL;";
-                if (_printGetMethods) LogToFile(commandString);
-                command = new SQLiteCommand(commandString, DbConn);
-                command.ExecuteNonQuery();
-                //create tabledetails table
-                CreateTableDetails();
-            }
-            if (current < DatabaseVersion.V1_4_7)
-            {
-                //Add columns to vnlist table (aliases, languages)
-                var commandString = @"ALTER TABLE vnlist
-  ADD Aliases TEXT;
-ALTER TABLE vnlist
- ADD Languages TEXT;
-ALTER TABLE vnlist
- ADD DateFullyUpdated DATE;";
-                if (_printGetMethods) LogToFile(commandString);
-                var command = new SQLiteCommand(commandString, DbConn);
-                command.ExecuteNonQuery();
-                commandString = @"ALTER TABLE producerlist ADD Language TEXT;";
-                if (_printGetMethods) LogToFile(commandString);
-                command = new SQLiteCommand(commandString, DbConn);
-                command.ExecuteNonQuery();
-                SetDbVersion(DatabaseVersion.V1_4_7);
-            }
-        }
-
-        private void CreateTableDetails()
-        {
-            const string createCommand =
-                @"CREATE TABLE `tabledetails` (
-	`Key`	TEXT NOT NULL,
-	`Value`	TEXT,
-	PRIMARY KEY(`Key`)
-);";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-            string insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('databaseversion','V1_4_6');";
-            command = new SQLiteCommand(insertCommand, DbConn);
-            command.ExecuteNonQuery();
-            insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('programname','Happy Search');";
-            command = new SQLiteCommand(insertCommand, DbConn);
-            command.ExecuteNonQuery();
-            insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('author','zoltanar');";
-            command = new SQLiteCommand(insertCommand, DbConn);
-            command.ExecuteNonQuery();
-            insertCommand = $@"INSERT INTO tabledetails  (Key,Value) VALUES ('projecturl','{ProjectURL}');";
-            command = new SQLiteCommand(insertCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void SetDbVersion(DatabaseVersion version)
-        {
-            string versionString;
-            switch (version)
-            {
-                case DatabaseVersion.V1_4_0:
-                    versionString = "V1_4_0";
-                    break;
-                case DatabaseVersion.V1_4_7:
-                    versionString = "V1_4_7";
-                    break;
-                default:
-                    return;
-            }
-            string insertCommand = $@"INSERT OR REPLACE INTO tabledetails  (Key,Value) VALUES ('databaseversion','{versionString}');";
-            var command = new SQLiteCommand(insertCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void CreateVNListTable()
-        {
-            const string createCommand = @"CREATE TABLE ""vnlist"" ( 
-`VNID` INTEGER NOT NULL UNIQUE, 
-`Title` TEXT, 
-`KanjiTitle` TEXT, 
-`RelDate` TEXT, 
-`ProducerID` INTEGER, 
-`Tags` TEXT, 
-`DateUpdated` DATE DEFAULT CURRENT_TIMESTAMP, 
-`ImageURL` TEXT, 
-`ImageNSFW` INTEGER, 
-`Description` TEXT, 
-`LengthTime` INTEGER, 
-`Popularity` NUMERIC, 
-`Rating` NUMERIC, 
-`VoteCount` INTEGER, 
-`Relations` TEXT, 
-`Screens` TEXT, 
-`Anime` TEXT, 
-`Aliases` TEXT, 
-`Languages` TEXT, 
-PRIMARY KEY(`VNID`), 
-FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void CreateProducerListTable()
-        {
-            const string createCommand = @"CREATE TABLE `producerlist` (
-	`ProducerID`	INTEGER NOT NULL,
-	`Name`	TEXT,
-	`Titles`	INTEGER,
-	`Loaded`	TEXT,
-	`Updated`	DATE DEFAULT CURRENT_TIMESTAMP,
-	`Language`	TEXT,
-	PRIMARY KEY(`ProducerID`)
-);";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void CreateCharacterListTable()
-        {
-            var createCommand = @"CREATE TABLE ""charlist"" ( 
-`CharacterID` INTEGER NOT NULL UNIQUE, 
-`Name` TEXT, 
-`Image` TEXT, 
-`Traits` TEXT, 
-`VNs` TEXT, 
-`DateUpdated` INTEGER, 
-PRIMARY KEY(`CharacterID`) )";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void CreateUserlistTable()
-        {
-            const string createCommand = @"CREATE TABLE `userlist` (
- `VNID`	INTEGER,
- `UserID`	INTEGER,
- `ULStatus`	INTEGER,
- `ULAdded`	INTEGER,
- `ULNote`	TEXT,
- `WLStatus`	INTEGER,
- `WLAdded`	INTEGER,
- `Vote`	INTEGER,
- `VoteAdded`	INTEGER,
- PRIMARY KEY(VNID,UserID)
-)";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void CreateUserProdListTable()
-        {
-            const string createCommand = @"CREATE TABLE `userprodlist`(
-	`ProducerID`	INTEGER NOT NULL,
-	`UserID`	INTEGER NOT NULL,
-	`UserAverageVote`	NUMERIC,
-	`UserDropRate`	INTEGER,
-	PRIMARY KEY(ProducerID, UserID)
-)";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-        }
-
-        private void CreateTriggers()
-        {
-            const string createCommand = @"CREATE TRIGGER [UpdateTimestamp]
-    AFTER UPDATE    ON vnlist    FOR EACH ROW
-BEGIN
-    UPDATE vnlist 
-	SET DateUpdated=CURRENT_TIMESTAMP
-	WHERE VNID=OLD.VNID;
-END";
-            const string createCommand3 = @"CREATE TRIGGER [UpdateTimestampCharacterList] 
-AFTER UPDATE ON charlist FOR EACH ROW 
-BEGIN 
-UPDATE charlist SET DateUpdated=CURRENT_TIMESTAMP 
-WHERE CharacterID=OLD.CharacterID; 
-END";
-            var command = new SQLiteCommand(createCommand, DbConn);
-            command.ExecuteNonQuery();
-            var command3 = new SQLiteCommand(createCommand3, DbConn);
-            command3.ExecuteNonQuery();
         }
 
         private static bool GetImageStatus(object imageNSFW)

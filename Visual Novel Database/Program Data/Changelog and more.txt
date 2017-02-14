@@ -2,6 +2,10 @@ Next Milestone == ??
 
 Changelog
 ---------
+-1.4.7.1 released (test)-
+Improved: Upgrade titles never upgraded (in tiered update titles functions)
+Improved: Backup database prior to upgrading it.
+Fixed: Tiny DB Fix that was breaking fresh installs.
 -1.4.7 released (test)-
 Changed: Update VN in tab moved into 'Options' menu.
 Added: Multi-actions: Update Tags/StatsTraits and All Data.
@@ -111,8 +115,12 @@ No Work
 ---------------
 	Easy Tasks
 	----------
+	Move query params (refreshlist/additionalmessage etc) into start query rather than passing
 	 Sorting and filtering by length
 	 Update Help files
+	 Remove Logging from database methods (or make it write to file later)
+
+
 
 	Medium Tasks
 	----------

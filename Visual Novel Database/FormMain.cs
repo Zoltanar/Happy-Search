@@ -33,7 +33,7 @@ namespace Happy_Search
         //constants / definables
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.7";
+        public const string ClientVersion = "1.4.7.1";
         private const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -490,8 +490,7 @@ https://github.com/FredTheBarber/VndbClient";
             */
 
             public int[] AllVns { get; }
-
-
+            
             public string MessageString { get; }
 
             /// <summary>
@@ -514,16 +513,20 @@ https://github.com/FredTheBarber/VndbClient";
                 var tier4 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(56, fullyUpdate) &&
                              x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).Select(t => t.VNID).ToArray();
                 var tier4Count = tier4.Length;
+                var tier5 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(56, fullyUpdate) &&
+                             x.ReleasedBetween(DateTime.MinValue,DateTime.UtcNow.AddYears(-10))).Select(t => t.VNID).ToArray();
+                var tier5Count = tier5.Length;
                 var fpTitles = allTitles.Where(x => x.LastUpdatedOverDaysAgo(7, fullyUpdate) &&
                              favoriteProducers.Contains(x.Producer)).Select(t => t.VNID).ToArray();
                 var fpTitleCount = fpTitles.Length;
-                AllVns = tier1.Concat(tier2).Concat(tier3).Concat(tier4).Concat(fpTitles).Distinct().ToArray();
+                AllVns = tier1.Concat(tier2).Concat(tier3).Concat(tier4).Concat(tier5).Concat(fpTitles).Distinct().ToArray();
                 MessageString =
                     $@"{AllVns.Length} need to be updated, if this is a large number (over 1000), it may take a while, are you sure?
 {tier1Count} Titles released in last 6 months.
 {tier2Count} Titles released 6 months - 1 year ago.
 {tier3Count} Titles released 1 year - 2 years ago.
-{tier4Count} Titles released 2+ years ago.
+{tier4Count} Titles released 2-10 years ago.
+{tier5Count} Titles released 10+ years ago but never updated.
 {fpTitleCount} Titles by Favorite Producers.";
             }
         }
