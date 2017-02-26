@@ -148,7 +148,7 @@ ALTER TABLE vnlist
             if (File.Exists(DbFile))
             {
                 var extLength = Path.GetExtension(DbFile).Length;
-                var backupFile = $"{DbFile.Substring(0,DbFile.Length-extLength)} - {previous} Backup.sqlite";
+                var backupFile = $"{DbFile.Substring(0, DbFile.Length - extLength)} - {previous} Backup.sqlite";
                 if (File.Exists(backupFile)) File.Delete(backupFile);
                 File.Copy(DbFile, backupFile);
             }
@@ -461,60 +461,39 @@ END";
             cmd.ExecuteNonQuery();
         }
 
-        public void UpsertUserList(int userid, UserListItem item)
+        /// <summary>
+        /// Adds or Updates all titles in User-related title list.
+        /// </summary>
+        /// <param name="userid">ID of User</param>
+        /// <param name="urtList">List of URT titles</param>
+        public void UpdateURTTitles(int userid, IEnumerable<UrtListItem> urtList)
         {
-            if (item.Notes == null) item.Notes = "";
-            var note = Regex.Replace(item.Notes, "'", "''");
-            var commandString =
-                "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded) " +
-                $"VALUES ({item.VN}," +
-                $"{userid}," +
-                $"{item.Status}," +
-                $"{item.Added}," +
-                $"'{note}', " +
-                $"(SELECT WLStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT WLAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
-            var command = new SQLiteCommand(commandString, _conn);
-            if (_printSetMethods) LogToFile(commandString);
-            command.ExecuteNonQuery();
-        }
-
-        public void UpsertWishList(int userid, WishListItem item)
-        {
-            var commandString =
-                "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded) " +
-                $"VALUES ({item.VN}," +
-                $"{userid}," +
-                $"(SELECT ULStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT ULAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT ULNote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}), " +
-                $"{item.Priority}," +
-                $"{item.Added}," +
-                $"(SELECT Vote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT VoteAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}));";
-            if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, _conn);
-            command.ExecuteNonQuery();
-        }
-
-        public void UpsertVoteList(int userid, VoteListItem item)
-        {
-            var commandString =
-                "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded) " +
-                $"VALUES ({item.VN}," +
-                $"{userid}," +
-                $"(SELECT ULStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT ULAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT ULNote FROM userlist WHERE VNID = {item.VN} AND UserID= {userid}), " +
-                $"(SELECT WLStatus FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"(SELECT WLAdded FROM userlist WHERE VNID = {item.VN} AND UserID= {userid})," +
-                $"{item.Vote}," +
-                $"{item.Added});";
-            if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, _conn);
-            command.ExecuteNonQuery();
+            foreach (var item in urtList)
+            {
+                var comm = new SQLiteCommand(_conn);
+                switch (item.Action)
+                {
+                    case Command.New:
+                    case Command.Update:
+                        comm.CommandText =
+                            "INSERT OR REPLACE INTO userlist (VNID, UserID, ULStatus, ULAdded, ULNote, WLStatus, WLAdded, Vote, VoteAdded)" +
+                            "VALUES (@id, @uid, @uls, @ula, @uln, @wls, @wla, @vo, @va);";
+                        comm.Parameters.Add(new SQLiteParameter("@uls", item.ULStatus));
+                        comm.Parameters.Add(new SQLiteParameter("@ula", item.ULAdded));
+                        comm.Parameters.Add(new SQLiteParameter("@uln", item.ULNote));
+                        comm.Parameters.Add(new SQLiteParameter("@wls", item.WLStatus));
+                        comm.Parameters.Add(new SQLiteParameter("@wla", item.WLAdded));
+                        comm.Parameters.Add(new SQLiteParameter("@vo", item.Vote));
+                        comm.Parameters.Add(new SQLiteParameter("@va", item.VoteAdded));
+                        break;
+                    case Command.Delete:
+                        comm.CommandText = "DELETE FROM userlist WHERE VNID = @id AND UserID = @uid";
+                        break;
+                }
+                comm.Parameters.Add(new SQLiteParameter("@id", item.ID));
+                comm.Parameters.Add(new SQLiteParameter("@uid", userid));
+                comm.ExecuteNonQuery();
+            }
         }
 
         public void UpsertSingleCharacter(CharacterItem character)
@@ -802,8 +781,6 @@ END";
                 reader["Languages"].ToString(),
             DbDateTime(reader["DateFullyUpdated"]));
 #endif
-
-
         }
 
         private static ListedProducer GetListedProducer(SQLiteDataReader reader)

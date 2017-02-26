@@ -490,7 +490,7 @@ https://github.com/FredTheBarber/VndbClient";
             */
 
             public int[] AllVns { get; }
-            
+
             public string MessageString { get; }
 
             /// <summary>
@@ -514,7 +514,7 @@ https://github.com/FredTheBarber/VndbClient";
                              x.ReleasedBetween(DateTime.UtcNow.AddYears(-10), DateTime.UtcNow.AddYears(-2))).Select(t => t.VNID).ToArray();
                 var tier4Count = tier4.Length;
                 var tier5 = allTitles.Where(x => x.LastUpdatedOverDaysAgo(56, fullyUpdate) &&
-                             x.ReleasedBetween(DateTime.MinValue,DateTime.UtcNow.AddYears(-10))).Select(t => t.VNID).ToArray();
+                             x.ReleasedBetween(DateTime.MinValue, DateTime.UtcNow.AddYears(-10))).Select(t => t.VNID).ToArray();
                 var tier5Count = tier5.Length;
                 var fpTitles = allTitles.Where(x => x.LastUpdatedOverDaysAgo(7, fullyUpdate) &&
                              favoriteProducers.Contains(x.Producer)).Select(t => t.VNID).ToArray();
@@ -736,24 +736,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
             var result = StartQuery(userListReply, featureName);
             if (!result) return;
             LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {URTList.Count} titles.");
-            List<int> userIDList = URTList.Select(x => x.VNID).ToList();
-            userIDList = await GetUserList(userIDList);
-            //
-            if (userIDList.Contains(0))
-            {
-                LogToFile($"VN of ID 0 found in {featureName}, GetUserList for {Settings.UserID}");
-            }
-            //
-            userIDList = await GetWishList(userIDList);
-            if (userIDList.Contains(0))
-            {
-                LogToFile($"VN of ID 0 found in {featureName}, GetWishList for {Settings.UserID}");
-            }
-            await GetVoteList(userIDList);
-            if (userIDList.Contains(0))
-            {
-                LogToFile($"VN of ID 0 found in {featureName}, GetVoteList for {Settings.UserID}");
-            }
+            //clone list to make sure it doesnt keep command status.
+            List<UrtListItem> localURTList = URTList.Select(UrtListItem.FromVN).ToList();
+            await GetUserList(localURTList);
+            await GetWishList(localURTList);
+            await GetVoteList(localURTList);
+            DBConn.BeginTransaction();
+            DBConn.UpdateURTTitles(Settings.UserID, localURTList);
+            DBConn.EndTransaction();
             await GetRemainingTitles();
             DBConn.Open();
             _vnList = DBConn.GetAllTitles(Settings.UserID);
@@ -763,8 +753,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LoadFPListToGui();
             LoadVNListToGui();
             UpdateUserStats();
-            if (URTList.Count > 0) WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
-            else WriteError(userListReply, Resources.no_results);
+            WriteText(userListReply, $"Updated URT ({_vnsAdded} added).");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -772,17 +761,17 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Get user's userlist from VNDB, add titles that aren't in local db already.
         /// </summary>
-        /// <param name="userIDList">list of title IDs (avoids duplicate fetching)</param>
+        /// <param name="urtList">list of title IDs (avoids duplicate fetching)</param>
         /// <returns>list of title IDs (avoids duplicate fetching)</returns>
-        private async Task<List<int>> GetUserList(List<int> userIDList)
+        private async Task GetUserList(List<UrtListItem> urtList)
         {
             LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
             var result = await TryQuery(userListQuery, Resources.gul_query_error, userListReply);
-            if (!result) return userIDList;
+            if (!result) return;
             var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
-            if (ulRoot.Num == 0) return userIDList;
+            if (ulRoot.Num == 0) return;
             List<UserListItem> ulList = ulRoot.Items; //make list of vns in list
             var pageNo = 1;
             var moreResults = ulRoot.More;
@@ -791,29 +780,30 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 pageNo++;
                 string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error, userListReply);
-                if (!moreResult) return userIDList;
+                if (!moreResult) return;
                 var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
                 ulList.AddRange(ulMoreRoot.Items);
                 moreResults = ulMoreRoot.More;
             }
-            DBConn.BeginTransaction();
             foreach (var item in ulList)
             {
-                DBConn.UpsertUserList(Settings.UserID, item);
-                if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
+                if (item.VN == 20170) { }
+                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
+                //add if it doesn't exist
+                if (itemInlist == null) urtList.Add(new UrtListItem(item));
+                //update if it already exists
+                else itemInlist.Update(item);
             }
-            DBConn.EndTransaction();
-            return userIDList;
         }
 
-        private async Task<List<int>> GetWishList(List<int> userIDList)
+        private async Task GetWishList(List<UrtListItem> urtList)
         {
             LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             var result = await TryQuery(wishListQuery, Resources.gwl_query_error, userListReply);
-            if (!result) return userIDList;
+            if (!result) return;
             var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
-            if (wlRoot.Num == 0) return userIDList;
+            if (wlRoot.Num == 0) return;
             List<WishListItem> wlList = wlRoot.Items; //make list of vn in list
             var pageNo = 1;
             var moreResults = wlRoot.More;
@@ -822,32 +812,30 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 pageNo++;
                 string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error, userListReply);
-                if (!moreResult) return userIDList;
+                if (!moreResult) return;
                 var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
                 wlList.AddRange(wlMoreRoot.Items);
                 moreResults = wlMoreRoot.More;
             }
-            await Task.Run(() =>
+            foreach (var item in wlList)
             {
-                DBConn.BeginTransaction();
-                foreach (var item in wlList)
-                {
-                    DBConn.UpsertWishList(Settings.UserID, item);
-                    if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
-                }
-                DBConn.EndTransaction();
-            });
-            return userIDList;
+                if (item.VN == 20170) { }
+                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
+                //add if it doesn't exist
+                if (itemInlist == null) urtList.Add(new UrtListItem(item));
+                //update if it already exists
+                else itemInlist.Update(item);
+            }
         }
 
-        private async Task<List<int>> GetVoteList(List<int> userIDList)
+        private async Task GetVoteList(List<UrtListItem> urtList)
         {
             LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             var result = await TryQuery(voteListQuery, Resources.gvl_query_error, userListReply);
-            if (!result) return userIDList;
+            if (!result) return;
             var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
-            if (vlRoot.Num == 0) return userIDList;
+            if (vlRoot.Num == 0) return;
             List<VoteListItem> vlList = vlRoot.Items; //make list of vn in list
             var pageNo = 1;
             var moreResults = vlRoot.More;
@@ -856,22 +844,20 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 pageNo++;
                 string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error, userListReply);
-                if (!moreResult) return userIDList;
+                if (!moreResult) return;
                 var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
                 vlList.AddRange(vlMoreRoot.Items);
                 moreResults = vlMoreRoot.More;
             }
-            await Task.Run(() =>
+            foreach (var item in vlList)
             {
-                DBConn.BeginTransaction();
-                foreach (var item in vlList)
-                {
-                    DBConn.UpsertVoteList(Settings.UserID, item);
-                    if (!userIDList.Contains(item.VN)) userIDList.Add(item.VN);
-                }
-                DBConn.EndTransaction();
-            });
-            return userIDList;
+                if (item.VN == 20170) { }
+                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
+                //add if it doesn't exist
+                if (itemInlist == null) urtList.Add(new UrtListItem(item));
+                //update if it already exists
+                else itemInlist.Update(item);
+            }
         }
 
         private async Task GetRemainingTitles()
@@ -907,7 +893,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             double cumulativeScore = 0;
             foreach (var item in URTList)
             {
-                if (item.ULStatus.Length > 0) ulCount++;
+                if (item.ULStatus > UserlistStatus.Null) ulCount++;
                 if (item.WLStatus > WishlistStatus.Null) wlCount++;
                 if (!(item.Vote > 0)) continue;
                 vlCount++;
@@ -1441,10 +1427,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #region Classes/Enums
 
         private class IdentifiableBackgroundWorker : BackgroundWorker
-        {
-            public int ID { get; set; }
-
-        }
+        { public int ID { get; set; } }
 
         /// <summary>
         ///     Class For XML File, holding saved objects.
@@ -1491,15 +1474,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             public ToggleArray XmlToggles { get; set; }
         }
 
-        /// <summary>
-        ///     Command to change VN status.
-        /// </summary>
-        internal enum Command
-        {
-            New,
-            Update,
-            Delete
-        }
 
         /// <summary>
         ///     Type of VN status to be changed.
@@ -1511,7 +1485,134 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Vote
         }
 
-        #endregion
+        /// <summary>
+        /// Object for updating user-related list.
+        /// </summary>
+        public class UrtListItem
+        {
+#pragma warning disable 1591
+            public int ID { get; }
+            public UserlistStatus? ULStatus { get; private set; }
+            public int? ULAdded { get; private set; }
+            public string ULNote { get; private set; }
+            public WishlistStatus? WLStatus { get; private set; }
+            public int? WLAdded { get; private set; }
+            public int? Vote { get; private set; }
+            public int? VoteAdded { get; private set; }
+            public Command Action { get; private set; }
+#pragma warning restore 1591
 
+            /// <summary>
+            /// Create URT item from previously fetched data. (For Method Group)
+            /// </summary>
+            public static UrtListItem FromVN(ListedVN vn)
+            {
+                return new UrtListItem(vn);
+            }
+
+            /// <summary>
+            /// Create URT item from previously fetched data.
+            /// </summary>
+            public UrtListItem(ListedVN vn)
+            {
+                ID = vn.VNID;
+                ULStatus = vn.ULStatus;
+                ULAdded = (int)DateTimeToUnixTimestamp(vn.ULAdded);
+                ULNote = vn.ULNote;
+                WLStatus = vn.WLStatus;
+                WLAdded = (int)DateTimeToUnixTimestamp(vn.WLAdded);
+                Vote = (int)(vn.Vote * 10);
+                VoteAdded = (int)DateTimeToUnixTimestamp(vn.VoteAdded);
+                //Default action is delete, until it is found in fetched data (then it will be update)
+                Action = Command.Delete;
+            }
+
+            /// <summary>
+            /// Create new URT item from user list data.
+            /// </summary>
+            public UrtListItem(UserListItem item)
+            {
+                ID = item.VN;
+                ULStatus = (UserlistStatus)item.Status;
+                ULAdded = item.Added;
+                ULNote = item.Notes;
+                Action = Command.New;
+            }
+
+            /// <summary>
+            /// Create new URT item from wish list data.
+            /// </summary>
+            public UrtListItem(WishListItem item)
+            {
+                ID = item.VN;
+                WLStatus = (WishlistStatus)item.Priority;
+                WLAdded = item.Added;
+                Action = Command.New;
+            }
+
+            /// <summary>
+            /// Create new URT item from vote list data.
+            /// </summary>
+            public UrtListItem(VoteListItem item)
+            {
+                ID = item.VN;
+                Vote = item.Vote;
+                VoteAdded = item.Added;
+                Action = Command.New;
+            }
+
+            /// <summary>
+            /// Update URT item with user list data.
+            /// </summary>
+            public void Update(UserListItem item)
+            {
+                ULStatus = (UserlistStatus)item.Status;
+                ULAdded = item.Added;
+                ULNote = item.Notes;
+                Action = Command.Update;
+            }
+
+
+            /// <summary>
+            /// Update URT item with wish list data.
+            /// </summary>
+            public void Update(WishListItem item)
+            {
+                WLStatus = (WishlistStatus)item.Priority;
+                WLAdded = item.Added;
+                Action = Command.Update;
+            }
+
+            /// <summary>
+            /// Update URT item with vote list data.
+            /// </summary>
+            public void Update(VoteListItem item)
+            {
+                Vote = item.Vote;
+                VoteAdded = item.Added;
+                Action = Command.Update;
+            }
+        }
+
+        /// <summary>
+        ///     Command to change VN status.
+        /// </summary>
+        public enum Command
+        {
+            /// <summary>
+            /// Add to URT list
+            /// </summary>
+            New,
+            /// <summary>
+            /// Update item in URT list
+            /// </summary>
+            Update,
+            /// <summary>
+            /// Delete item from URT list
+            /// </summary>
+            Delete
+        }
+        #endregion
     }
+
 }

@@ -28,8 +28,8 @@ namespace Happy_Search
                 double userAverageVote = -1;
                 if (producerVNs.Any())
                 {
-                    var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                    var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                    var finishedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Finished);
+                    var droppedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Dropped);
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userDropRate = finishedCount + droppedCount != 0
                         ? (double)droppedCount / (droppedCount + finishedCount)
@@ -247,8 +247,8 @@ This may take a while...",
             double userAverageVote = -1;
             if (producerVNs.Any())
             {
-                var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                var finishedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Finished);
+                var droppedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Dropped);
                 ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                 userDropRate = finishedCount + droppedCount != 0 ? (double)droppedCount / (droppedCount + finishedCount) : -1;
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;

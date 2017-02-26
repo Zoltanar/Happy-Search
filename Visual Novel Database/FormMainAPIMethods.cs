@@ -224,7 +224,7 @@ namespace Happy_Search
                 done += APIMaxResults;
             }
         }
-        
+
         private async Task GetLanguagesForProducers(int[] producerIDs, Label replyLabel)
         {
             if (!producerIDs.Any()) return;
@@ -387,7 +387,7 @@ namespace Happy_Search
                 foreach (var vnItem in vnRoot.Items)
                 {
                     SaveImage(vnItem);
-                    var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel,true,refreshList);
+                    var releases = await GetReleases(vnItem.ID, Resources.svn_query_error, replyLabel, true, refreshList);
                     var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
                     var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
                     VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
@@ -576,7 +576,7 @@ namespace Happy_Search
         /// <returns>Returns whether it as successful.</returns>
         internal async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
         {
-            var hasULStatus = vn.ULStatus != null && !vn.ULStatus.Equals("");
+            var hasULStatus = vn.ULStatus > UserlistStatus.Null;
             var hasWLStatus = vn.WLStatus > WishlistStatus.Null;
             var hasVote = vn.Vote > 0;
             string queryString;

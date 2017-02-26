@@ -129,7 +129,7 @@ namespace Happy_Search
                         return;
                     }
                     WriteWarning(replyText, "Updating titles...");
-                    await GetMultipleVN(titles.Select(vn => vn.VNID),replyText,true,true);
+                    await GetMultipleVN(titles.Select(vn => vn.VNID), replyText, true, true);
                     break;
             }
             ChangeAPIStatus(Conn.Status);
@@ -556,27 +556,27 @@ namespace Happy_Search
                     dropdownlist.SelectedIndex = 0;
                     return;
                 case 2:
-                    _currentList = x => !x.ULStatus.Equals("");
+                    _currentList = x => x.ULStatus > UserlistStatus.Null;
                     _currentListLabel = "Userlist Titles";
                     break;
                 case 3:
-                    _currentList = x => x.ULStatus.Equals("Unknown");
+                    _currentList = x => x.ULStatus == UserlistStatus.Unknown;
                     _currentListLabel = "UL Unknown";
                     break;
                 case 4:
-                    _currentList = x => x.ULStatus.Equals("Playing");
+                    _currentList = x => x.ULStatus == UserlistStatus.Playing;
                     _currentListLabel = "UL Playing";
                     break;
                 case 5:
-                    _currentList = x => x.ULStatus.Equals("Finished");
+                    _currentList = x => x.ULStatus == UserlistStatus.Finished;
                     _currentListLabel = "UL Finished";
                     break;
                 case 6:
-                    _currentList = x => x.ULStatus.Equals("Stalled");
+                    _currentList = x => x.ULStatus == UserlistStatus.Stalled;
                     _currentListLabel = "UL Stalled";
                     break;
                 case 7:
-                    _currentList = x => x.ULStatus.Equals("Dropped");
+                    _currentList = x => x.ULStatus == UserlistStatus.Dropped;
                     _currentListLabel = "UL Dropped";
                     break;
             }
@@ -754,7 +754,7 @@ namespace Happy_Search
                         case ToggleSetting.Only:
                             return x => URTList.Find(y => y.VNID == x.VNID) != null;
                         case ToggleSetting.OnlyUnplayed:
-                            return x => !x.ULStatus.Equals("Finished") && !x.ULStatus.Equals("Dropped");
+                            return x => x.ULStatus != UserlistStatus.Finished && x.ULStatus != UserlistStatus.Dropped;
                         default: return function;
                     }
                 case ToggleFilter.Unreleased:
@@ -911,20 +911,20 @@ namespace Happy_Search
             }
             switch (listedVN.ULStatus)
             {
-                case "Finished":
+                case UserlistStatus.Finished:
                     e.Item.BackColor = ULFinishedBrush.Color;
                     break;
-                case "Stalled":
+                case UserlistStatus.Stalled:
                     e.Item.BackColor = ULStalledBrush.Color;
                     break;
-                case "Dropped":
+                case UserlistStatus.Dropped:
                     e.Item.BackColor = ULDroppedBrush.Color;
                     break;
-                case "Unknown":
+                case UserlistStatus.Unknown:
                     e.Item.BackColor = ULUnknownBrush.Color;
                     break;
             }
-            if (listedVN.ULStatus.Equals("Playing")) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
+            if (listedVN.ULStatus == UserlistStatus.Playing) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
             if (FavoriteProducerList.Any() && FavoriteProducerList.Exists(x => x.Name == listedVN.Producer))
             {
                 //e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
@@ -947,7 +947,7 @@ namespace Happy_Search
             if (vn == null) return;
             if (e.ColumnIndex == tileColumnULS.Index)
             {
-                if (vn.ULStatus.Equals("Playing")) e.SubItem.ForeColor = ULPlayingBrush.Color;
+                if (vn.ULStatus == UserlistStatus.Playing) e.SubItem.ForeColor = ULPlayingBrush.Color;
             }
             else if (e.ColumnIndex == tileColumnProducer.Index)
             {
@@ -982,30 +982,10 @@ namespace Happy_Search
 
             //set new
             var vn = (ListedVN)model;
-            userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
+            userlistToolStripMenuItem.Checked = vn.ULStatus > UserlistStatus.Null;
             wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.Null;
             voteToolStripMenuItem.Checked = vn.Vote > 0;
-            switch (vn.ULStatus)
-            {
-                case "":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
-                    break;
-                case "Unknown":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
-                    break;
-                case "Playing":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
-                    break;
-                case "Finished":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
-                    break;
-                case "Stalled":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
-                    break;
-                case "Dropped":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
-                    break;
-            }
+            ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
             ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
             if (vn.Vote > 0)
             {
@@ -1014,7 +994,7 @@ namespace Happy_Search
             }
             else
                 ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
-            if (!vn.ULStatus.Equals(""))
+            if (vn.ULStatus > UserlistStatus.Null)
             {
                 addChangeVNNoteToolStripMenuItem.Enabled = true;
                 addChangeVNGroupsToolStripMenuItem.Enabled = true;
@@ -1047,12 +1027,12 @@ namespace Happy_Search
             switch (nitem.OwnerItem.Text)
             {
                 case "Userlist":
-                    if (vn.ULStatus.Equals(nitem.Text))
+                    if (vn.ULStatus.ToString().Equals(nitem.Text))
                     {
                         WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
-                    statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
+                    statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
                     success = await ChangeVNStatus(vn, ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
@@ -1112,8 +1092,8 @@ namespace Happy_Search
             double userDropRate = -1;
             if (producerVNs.Any())
             {
-                var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                var finishedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Finished);
+                var droppedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Dropped);
                 ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 userDropRate = finishedCount + droppedCount != 0

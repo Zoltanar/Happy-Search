@@ -40,7 +40,7 @@ namespace Happy_Search.Other_Forms
             foreach (var producer in _parentForm.ProducerList)
             {
                 if (_favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                int finishedTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
+                int finishedTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
                 int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
                 if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, producer.Language, finishedTitles, urtTitles));
             }
@@ -154,8 +154,8 @@ namespace Happy_Search.Other_Forms
                 double userDropRate = -1;
                 if (producerVNs.Any())
                 {
-                    var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                    var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                    var finishedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Finished);
+                    var droppedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Dropped);
                     ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                     userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                     userDropRate = finishedCount + droppedCount != 0
@@ -176,7 +176,7 @@ namespace Happy_Search.Other_Forms
         private ListedSearchedProducer NewListedSearchedProducer(ProducerItem producer)
         {
             string inList = _favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
-            int finished = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus.Equals("Finished"));
+            int finished = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
             int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
             return new ListedSearchedProducer(producer.Name, inList, producer.ID, producer.Language, finished, urtTitles);
         }

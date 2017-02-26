@@ -694,30 +694,10 @@ namespace Happy_Search.Other_Forms
             voteToolStripMenuItem.Checked = false;
 
             //set new
-            userlistToolStripMenuItem.Checked = !vn.ULStatus.Equals("");
+            userlistToolStripMenuItem.Checked = vn.ULStatus > UserlistStatus.Null;
             wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.Null;
             voteToolStripMenuItem.Checked = vn.Vote > 0;
-            switch (vn.ULStatus)
-            {
-                case "":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[0]).Checked = true;
-                    break;
-                case "Unknown":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[1]).Checked = true;
-                    break;
-                case "Playing":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[2]).Checked = true;
-                    break;
-                case "Finished":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[3]).Checked = true;
-                    break;
-                case "Stalled":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[4]).Checked = true;
-                    break;
-                case "Dropped":
-                    ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[5]).Checked = true;
-                    break;
-            }
+            ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[(int)vn.ULStatus + 1]).Checked = true;
             ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
             if (vn.Vote > 0)
             {
@@ -726,7 +706,7 @@ namespace Happy_Search.Other_Forms
             }
             else
                 ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
-            if (!vn.ULStatus.Equals(""))
+            if (vn.ULStatus > UserlistStatus.Null)
             {
                 addChangeVNNoteToolStripMenuItem.Enabled = true;
                 addChangeVNGroupsToolStripMenuItem.Enabled = true;
@@ -755,13 +735,13 @@ namespace Happy_Search.Other_Forms
             switch (nitem.OwnerItem.Text)
             {
                 case "Userlist":
-                    if (_displayedVN.ULStatus.Equals(nitem.Text))
+                    if (_displayedVN.ULStatus.ToString().Equals(nitem.Text))
                     {
                         WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
                     _working = true;
-                    statusInt = Array.IndexOf(ListedVN.StatusUL, nitem.Text);
+                    statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
                     success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
@@ -823,8 +803,8 @@ namespace Happy_Search.Other_Forms
             double userDropRate = -1;
             if (producerVNs.Any())
             {
-                var finishedCount = producerVNs.Count(x => x.ULStatus.Equals("Finished"));
-                var droppedCount = producerVNs.Count(x => x.ULStatus.Equals("Dropped"));
+                var finishedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Finished);
+                var droppedCount = producerVNs.Count(x => x.ULStatus == UserlistStatus.Dropped);
                 ListedVN[] producerVotedVNs = producerVNs.Where(x => x.Vote > 0).ToArray();
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
                 userDropRate = finishedCount + droppedCount != 0 ?

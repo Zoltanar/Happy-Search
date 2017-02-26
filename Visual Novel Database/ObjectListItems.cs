@@ -72,6 +72,16 @@ namespace Happy_Search
         Low = 2,
         Blacklist = 3
     }
+
+    public enum UserlistStatus
+    {
+        Null = -1,
+        Unknown = 0,
+        Playing = 1,
+        Finished = 2,
+        Stalled = 3,
+        Dropped = 4
+    }
 #pragma warning restore 1591
 
     /// <summary>
@@ -79,9 +89,6 @@ namespace Happy_Search
     /// </summary>
     public class ListedVN
     {
-
-        internal static readonly string[] StatusUL = { "Unknown", "Playing", "Finished", "Stalled", "Dropped" };
-
         internal static readonly string[] LengthTime =
         {
             "", "Very short (<2 hours)", "Short (2-10 hours)",
@@ -128,7 +135,7 @@ namespace Happy_Search
             {
 #endif
                 if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
-                ULStatus = ulstatus != -1 ? StatusUL[ulstatus] : "";
+                ULStatus = (UserlistStatus)ulstatus;
                 WLStatus = (WishlistStatus)wlstatus;
                 if (vote != -1) Vote = (double)vote / 10;
                 Title = title;
@@ -165,7 +172,7 @@ namespace Happy_Search
             }
 #endif
         }
-        
+
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
@@ -183,7 +190,7 @@ namespace Happy_Search
         /// Days since all fields were updated
         /// </summary>
         public int DateFullyUpdated { get; }
-        
+
         /// <summary>
         /// List of Tags, must be set prior to use.
         /// </summary>
@@ -216,68 +223,68 @@ namespace Happy_Search
         /// <summary>
         /// VN title
         /// </summary>
-        public string Title { get; set; }
+        public string Title { get; }
 
         /// <summary>
         /// VN kanji title
         /// </summary>
-        public string KanjiTitle { get; set; }
+        public string KanjiTitle { get;  }
 
         /// <summary>
         /// VN's first non-trial release date
         /// </summary>
-        public string RelDate { get; set; }
+        public string RelDate { get; }
 
         /// <summary>
         /// Date used for sorting rather than display string.
         /// </summary>
-        public DateTime DateForSorting { get; set; }
+        public DateTime DateForSorting { get; }
 
         /// <summary>
         /// VN producer
         /// </summary>
-        public string Producer { get; set; }
+        public string Producer { get; }
 
         /// <summary>
         /// VN length
         /// </summary>
-        public string Length { get; set; }
+        public string Length { get; }
 
         /// <summary>
         /// User's userlist status of VN
         /// </summary>
-        public string ULStatus { get; set; }
+        public UserlistStatus ULStatus { get; }
 
         /// <summary>
         /// Date of ULStatus change
         /// </summary>
-        public DateTime ULAdded { get; set; }
+        public DateTime ULAdded { get; private set; }
 
         /// <summary>
         /// User's note
         /// </summary>
-        public string ULNote { get; set; }
+        public string ULNote { get; }
 
         /// <summary>
         /// User's wishlist priority of VN
         /// -1: null, 0: high, 1: medium, 2: low, 3: blacklist
         /// </summary>
-        public WishlistStatus WLStatus { get; set; }
+        public WishlistStatus WLStatus { get; }
 
         /// <summary>
         /// Date of WLStatus change
         /// </summary>
-        public DateTime WLAdded { get; set; }
+        public DateTime WLAdded { get; private set; }
 
         /// <summary>
         /// User's Vote
         /// </summary>
-        public double Vote { get; set; }
+        public double Vote { get; }
 
         /// <summary>
         /// Date of Vote change
         /// </summary>
-        public DateTime VoteAdded { get; set; }
+        public DateTime VoteAdded { get; private set; }
 
         /// <summary>
         /// Popularity of VN, percentage of most popular VN
@@ -292,12 +299,12 @@ namespace Happy_Search
         /// <summary>
         /// Number of votes cast on VN
         /// </summary>
-        public int VoteCount { get; set; }
+        public int VoteCount { get; }
 
         /// <summary>
         /// VN's ID
         /// </summary>
-        public int VNID { get; set; }
+        public int VNID { get; }
 
         /// <summary>
         /// VN's tags (in JSON array)
@@ -370,12 +377,12 @@ namespace Happy_Search
         public string UserRelatedStatus()
         {
             string[] parts = { "", "", "" };
-            if (!ULStatus.Equals(""))
+            if (ULStatus > UserlistStatus.Null)
             {
                 parts[0] = "Userlist: ";
-                parts[1] = ULStatus;
+                parts[1] = ULStatus.ToString();
             }
-            else if (WLStatus> WishlistStatus.Null)
+            else if (WLStatus > WishlistStatus.Null)
             {
                 parts[0] = "Wishlist: ";
                 parts[1] = WLStatus.ToString();
@@ -383,7 +390,6 @@ namespace Happy_Search
             if (Vote > 0) parts[2] = $" (Vote: {Vote:0.#})";
             return string.Join(" ", parts);
         }
-
 
         /// <summary>
         /// Get VN's rating, votecount and popularity as a string.
@@ -701,16 +707,16 @@ namespace Happy_Search
             }
             switch (vn?.ULStatus)
             {
-                case "Finished":
+                case UserlistStatus.Finished:
                     backBrush = ULFinishedBrush;
                     break;
-                case "Stalled":
+                case UserlistStatus.Stalled:
                     backBrush = ULStalledBrush;
                     break;
-                case "Dropped":
+                case UserlistStatus.Dropped:
                     backBrush = ULDroppedBrush;
                     break;
-                case "Unknown":
+                case UserlistStatus.Unknown:
                     backBrush = ULUnknownBrush;
                     break;
             }
@@ -785,7 +791,7 @@ namespace Happy_Search
             textBoxRect.Width = photoArea.Width;
             g.DrawString(vn.RelDate, NormalFont, dateBrush, textBoxRect, fmtFar); //line 3 right: vn release date
             textBoxRect.Y += textHeight;
-            if (vn.ULStatus.Equals("Playing"))
+            if (vn.ULStatus == UserlistStatus.Playing)
             {
                 var ulWidth = g.MeasureString("Userlist: ", NormalFont).Width;
                 var playingRectangle = new RectangleF(textBoxRect.X + ulWidth, textBoxRect.Y, textBoxRect.Width - ulWidth, textBoxRect.Height);
