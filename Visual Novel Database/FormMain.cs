@@ -701,6 +701,8 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
 
         #region Get User-Related Titles
 
+        private int _vnidToDebug = 20367;
+
         //Get user's user/wish/votelists from VNDB
         /// <summary>
         ///     Get user's userlist, wishlist and votelist from VNDB.
@@ -787,7 +789,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             foreach (var item in ulList)
             {
-                if (item.VN == 20170) { }
+                if (item.VN == _vnidToDebug) { }
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
                 if (itemInlist == null) urtList.Add(new UrtListItem(item));
@@ -819,7 +821,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             foreach (var item in wlList)
             {
-                if (item.VN == 20170) { }
+                if (item.VN == _vnidToDebug) { }
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
                 if (itemInlist == null) urtList.Add(new UrtListItem(item));
@@ -851,7 +853,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             foreach (var item in vlList)
             {
-                if (item.VN == 20170) { }
+                if (item.VN == _vnidToDebug) { }
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
                 if (itemInlist == null) urtList.Add(new UrtListItem(item));
@@ -1516,13 +1518,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
             public UrtListItem(ListedVN vn)
             {
                 ID = vn.VNID;
-                ULStatus = vn.ULStatus;
+                //dont pre populate with current data, otherwise it will keep old data that may not be true anymore
+                /*ULStatus = vn.ULStatus;
                 ULAdded = (int)DateTimeToUnixTimestamp(vn.ULAdded);
                 ULNote = vn.ULNote;
                 WLStatus = vn.WLStatus;
                 WLAdded = (int)DateTimeToUnixTimestamp(vn.WLAdded);
                 Vote = (int)(vn.Vote * 10);
-                VoteAdded = (int)DateTimeToUnixTimestamp(vn.VoteAdded);
+                VoteAdded = (int)DateTimeToUnixTimestamp(vn.VoteAdded);*/
                 //Default action is delete, until it is found in fetched data (then it will be update)
                 Action = Command.Delete;
             }
@@ -1592,6 +1595,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 VoteAdded = item.Added;
                 Action = Command.Update;
             }
+
+            public override string ToString() => $"{Action} - {ID}";
         }
 
         /// <summary>

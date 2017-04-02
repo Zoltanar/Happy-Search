@@ -66,6 +66,7 @@ namespace Happy_Search
     /// </summary>
     public enum WishlistStatus
     {
+        None = -1,
         Null = -1,
         High = 0,
         Medium = 1,
@@ -75,6 +76,7 @@ namespace Happy_Search
 
     public enum UserlistStatus
     {
+        None = -1,
         Null = -1,
         Unknown = 0,
         Playing = 1,

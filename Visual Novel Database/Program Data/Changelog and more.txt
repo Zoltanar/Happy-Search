@@ -2,6 +2,8 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Fixed: Changing VN statuses to none.
+--
 Fixed: Update URT List wasn't deleting statuses that it no longer had, only adding or updating, now fixed.
 -1.4.7.1 released (test)-
 Improved: Upgrade titles never upgraded (in tiered update titles functions)
@@ -125,8 +127,10 @@ No Work
 
 	Medium Tasks
 	----------
+	Search by traits in a single character of vn, not all characters of vn - option
 	 user-configurable tag alerts (like EH)
 	 Allow user configurated color scheme (for vn list)
+	 Save time between URT state playing and finished (requires db update for new column)
 
 
 	Hard Tasks

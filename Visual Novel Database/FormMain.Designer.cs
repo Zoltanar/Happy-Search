@@ -2373,7 +2373,7 @@ namespace Happy_Search
             this.addChangeVNNoteToolStripMenuItem,
             this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 164);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
             // 
             // userlistToolStripMenuItem
             // 
@@ -2392,37 +2392,37 @@ namespace Happy_Search
             // noneToolStripMenuItem
             // 
             this.noneToolStripMenuItem.Name = "noneToolStripMenuItem";
-            this.noneToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
-            this.noneToolStripMenuItem.Text = "(None)";
+            this.noneToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.noneToolStripMenuItem.Text = "None";
             // 
             // unknownToolStripMenuItem
             // 
             this.unknownToolStripMenuItem.Name = "unknownToolStripMenuItem";
-            this.unknownToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.unknownToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.unknownToolStripMenuItem.Text = "Unknown";
             // 
             // playingToolStripMenuItem
             // 
             this.playingToolStripMenuItem.Name = "playingToolStripMenuItem";
-            this.playingToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.playingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.playingToolStripMenuItem.Text = "Playing";
             // 
             // finishedToolStripMenuItem
             // 
             this.finishedToolStripMenuItem.Name = "finishedToolStripMenuItem";
-            this.finishedToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.finishedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.finishedToolStripMenuItem.Text = "Finished";
             // 
             // stalledToolStripMenuItem
             // 
             this.stalledToolStripMenuItem.Name = "stalledToolStripMenuItem";
-            this.stalledToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.stalledToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.stalledToolStripMenuItem.Text = "Stalled";
             // 
             // droppedToolStripMenuItem
             // 
             this.droppedToolStripMenuItem.Name = "droppedToolStripMenuItem";
-            this.droppedToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.droppedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.droppedToolStripMenuItem.Text = "Dropped";
             // 
             // wishlistToolStripMenuItem
@@ -2441,31 +2441,31 @@ namespace Happy_Search
             // noneToolStripMenuItem1
             // 
             this.noneToolStripMenuItem1.Name = "noneToolStripMenuItem1";
-            this.noneToolStripMenuItem1.Size = new System.Drawing.Size(119, 22);
-            this.noneToolStripMenuItem1.Text = "(None)";
+            this.noneToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.noneToolStripMenuItem1.Text = "None";
             // 
             // highToolStripMenuItem
             // 
             this.highToolStripMenuItem.Name = "highToolStripMenuItem";
-            this.highToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
+            this.highToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.highToolStripMenuItem.Text = "High";
             // 
             // mediumToolStripMenuItem
             // 
             this.mediumToolStripMenuItem.Name = "mediumToolStripMenuItem";
-            this.mediumToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
+            this.mediumToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.mediumToolStripMenuItem.Text = "Medium";
             // 
             // lowToolStripMenuItem
             // 
             this.lowToolStripMenuItem.Name = "lowToolStripMenuItem";
-            this.lowToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
+            this.lowToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.lowToolStripMenuItem.Text = "Low";
             // 
             // blacklistToolStripMenuItem
             // 
             this.blacklistToolStripMenuItem.Name = "blacklistToolStripMenuItem";
-            this.blacklistToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
+            this.blacklistToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.blacklistToolStripMenuItem.Text = "Blacklist";
             // 
             // voteToolStripMenuItem
@@ -2492,7 +2492,7 @@ namespace Happy_Search
             // 
             this.noneToolStripMenuItem2.Name = "noneToolStripMenuItem2";
             this.noneToolStripMenuItem2.Size = new System.Drawing.Size(158, 22);
-            this.noneToolStripMenuItem2.Text = "(None)";
+            this.noneToolStripMenuItem2.Text = "None";
             // 
             // toolStripMenuItem2
             // 

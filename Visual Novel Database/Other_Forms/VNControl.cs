@@ -758,7 +758,7 @@ namespace Happy_Search.Other_Forms
                     double newVoteValue = -1;
                     switch (nitem.Text)
                     {
-                        case "(None)":
+                        case "None":
                             break;
                         case "Precise Number":
                             StringBuilder input = new StringBuilder();
