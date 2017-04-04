@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,6 +51,7 @@ namespace Happy_Search
         private void Help_FavoriteProducers(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "path != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\favoriteproducers.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -105,12 +107,11 @@ namespace Happy_Search
 This may take a while...",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var result = StartQuery(prodReply, "Refresh Favorite Producer Titles");
+            var result = StartQuery(prodReply, "Refresh Favorite Producer Titles", true, true, true);
             if (!result) return;
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            foreach (ListedProducer producer in olFavoriteProducers.Objects)
-                await GetProducerTitles(producer, prodReply, true);
+            foreach (ListedProducer producer in olFavoriteProducers.Objects) await GetProducerTitles(producer,true);
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
             WriteText(prodReply, Resources.update_fp_titles_success + $" ({_vnsAdded} new titles)");
@@ -157,12 +158,12 @@ This may take a while...",
                 WriteWarning(prodReply, "No producers require an update.");
                 return;
             }
-            var result = StartQuery(prodReply, "Get New FP Titles");
+            var result = StartQuery(prodReply, "Get New FP Titles",true,true,true);
             if (!result) return;
             LogToFile($"{producers.Count} to be updated");
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            foreach (var producer in producers) await GetProducerTitles(producer, prodReply);
+            foreach (var producer in producers) await GetProducerTitles(producer,false);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             LoadFPListToGui();
@@ -175,13 +176,12 @@ This may take a while...",
         /// Get titles developed/published by producer.
         /// </summary>
         /// <param name="producer">Producer whose titles should be found</param>
-        /// <param name="replyLabel">Label that should receive reply</param>
-        /// <param name="refreshAll">Should already known titles be refreshed as well?</param>
-        private async Task GetProducerTitles(ListedProducer producer, Label replyLabel, bool refreshAll = false)
+        /// <param name="updateAll">Should already known fetched titles be updated as well?</param>
+        private async Task GetProducerTitles(ListedProducer producer, bool updateAll)
         {
             LogToFile($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
-            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
+            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
@@ -193,14 +193,14 @@ This may take a while...",
                 pageNo++;
                 string prodReleaseMoreQuery =
                     $"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error, replyLabel, true, ignoreDateLimit: true);
+                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error);
                 if (!moreResult) return;
                 releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
                 releaseItems = releaseRoot.Items;
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;
             }
-            await GetMultipleVN(producerVNList.Distinct(), replyLabel, refreshList: true, updateAll: refreshAll);
+            await GetMultipleVN(producerVNList.Distinct(), updateAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(Settings.UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,

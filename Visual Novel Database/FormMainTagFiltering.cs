@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Happy_Search
         private void Help_TagFiltering(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "path != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\tagfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -250,9 +252,9 @@ namespace Happy_Search
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result = StartQuery(tagReply, "Update Filter Results");
+                var result = StartQuery(tagReply, "Update Filter Results",true,true,false);
                 if (!result) return;
-                await UpdateFilterResults(tagReply);
+                await UpdateFilterResults();
                 _customTagFilters[customTagFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
                 SaveMainXML();
             }
@@ -260,9 +262,9 @@ namespace Happy_Search
             {
                 var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                var result = StartQuery(tagReply, "Update Filter Results");
+                var result = StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
-                await UpdateFilterResults(tagReply);
+                await UpdateFilterResults();
             }
             ChangeAPIStatus(VndbConnection.APIStatus.Ready);
         }
@@ -270,37 +272,37 @@ namespace Happy_Search
         /// <summary>
         /// Get all VNs that match the list of active filters which were not already in local database, if '10 Year Limit' is enabled, only titles released in the last 10 years will be fetched.
         /// </summary>
-        private async Task UpdateFilterResults(Label replyLabel)
+        private async Task UpdateFilterResults()
         {
             _vnsAdded = 0;
             _vnsSkipped = 0;
             IEnumerable<string> betterTags = _activeTagFilter.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
-            var result = await TryQuery(tagQuery, "UCF Query Error", replyLabel, true, true);
+            var result = await TryQuery(tagQuery, "UCF Query Error");
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyLabel, true, false);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(),false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error", replyLabel, true, true);
+                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error");
                 if (!moreResult) return;
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), replyLabel, true, false);
+                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), false);
                 moreResults = moreVNRoot.More;
             }
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             ApplyListFilters();
-            WriteText(replyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
+            WriteText(ActiveQuery.ReplyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
         }
 
         /// <summary>

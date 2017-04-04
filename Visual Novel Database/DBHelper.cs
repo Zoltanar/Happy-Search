@@ -5,6 +5,8 @@ using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.Xml;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using static Happy_Search.FormMain;
@@ -505,8 +507,9 @@ END";
             command.ExecuteNonQuery();
         }
 
-        public void UpsertSingleVN(VNItem item, ProducerItem producer, VNLanguages languages, bool setFullyUpdated)
+        public void UpsertSingleVN((VNItem item, ProducerItem producer, VNLanguages languages) data, bool setFullyUpdated)
         {
+            var (item, producer, languages) = data;
             var tags = ListToJsonArray(new List<object>(item.Tags));
             var command = new SQLiteCommand(_conn);
             if (setFullyUpdated)

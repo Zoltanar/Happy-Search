@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
@@ -28,6 +29,7 @@ namespace Happy_Search
         private void Help_SearchingAndFiltering(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\searchingandfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -107,7 +109,7 @@ namespace Happy_Search
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
-                    if (!StartQuery(replyText, "UpdateTagsTraitsStats (MA)"))
+                    if (!StartQuery(replyText, "UpdateTagsTraitsStats (MA)",true,true,false))
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
@@ -123,13 +125,13 @@ namespace Happy_Search
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
-                    if (!StartQuery(replyText, "Update All Data (MA)"))
+                    if (!StartQuery(replyText, "Update All Data (MA)",true,true,true))
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
                     WriteWarning(replyText, "Updating titles...");
-                    await GetMultipleVN(titles.Select(vn => vn.VNID), replyText, true, true);
+                    await GetMultipleVN(titles.Select(vn => vn.VNID), true);
                     break;
             }
             ChangeAPIStatus(Conn.Status);
@@ -207,14 +209,12 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)");
                 return;
             }
-            var result = StartQuery(replyText, "Search_ByName");
+            var result = StartQuery(replyText, "Search_ByName",false,false,true);
             if (!result) return;
             var searchString = ListByTB.Text;
             ListByTB.Text = "";
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
             string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+            var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
@@ -225,13 +225,13 @@ namespace Happy_Search
             {
                 pageNo++;
                 vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error, replyText, ignoreDateLimit: true);
+                queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 vnItems.AddRange(vnRoot.Items);
                 moreResults = vnRoot.More;
             }
-            await GetMultipleVN(vnItems.Select(x => x.ID), replyText, true, false);
+            await GetMultipleVN(vnItems.Select(x => x.ID), false);
             WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} titles, {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
@@ -258,7 +258,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.must_be_integer);
                 return;
             }
-            var result = StartQuery(replyText, "Search_ByYear");
+            var result = StartQuery(replyText, "Search_ByYear",true,true,true);
             if (!result) return;
             var startTime = DateTime.UtcNow.ToLocalTime();
             var startTimeString = startTime.ToString("HH:mm");
@@ -266,15 +266,13 @@ namespace Happy_Search
             ListByTB.Text = "";
             _currentList = x => x.RelDate.StartsWith(ListByTB.Text);
             _currentListLabel = $"{ListByTB.Text} (Year)";
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
             string vnInfoQuery =
                 $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}}}";
-            result = await TryQuery(vnInfoQuery, Resources.gyt_query_error, replyText, true, true, true);
+            result = await TryQuery(vnInfoQuery, Resources.gyt_query_error);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), replyText, true, false);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -282,11 +280,11 @@ namespace Happy_Search
                 pageNo++;
                 string vnInfoMoreQuery =
                     $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error, replyText, true, true, true);
+                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), replyText, true, false);
+                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), false);
                 moreResults = vnMoreRoot.More;
             }
             var span = DateTime.UtcNow.ToLocalTime() - startTime;
@@ -317,9 +315,9 @@ namespace Happy_Search
             {
                 var askBox2 = MessageBox.Show($"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result2 = StartQuery(replyText, "Update Producer Titles");
+                var result2 = StartQuery(replyText, "Update Producer Titles",false,false,false);
                 if (!result2) return;
-                var producers = await AddProducersBySearchedName(producer, replyText);
+                var producers = await AddProducersBySearchedName(producer);
                 if (producers == null) return;
                 if (producers.Count == 0)
                 {
@@ -339,11 +337,11 @@ namespace Happy_Search
                 producerItem = ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
                 ListByTB.Text = producer;
             }
-            var result = StartQuery(replyText, "Update Producer Titles");
+            var result = StartQuery(replyText, "Update Producer Titles", false, false, false);
             if (!result) return;
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            await GetProducerTitles(producerItem, replyText);
+            await GetProducerTitles(producerItem,false);
             WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
@@ -861,6 +859,7 @@ namespace Happy_Search
         private void Help_ListResults(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listresults.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -875,12 +874,12 @@ namespace Happy_Search
             var vnItem = (ListedVN)e.Model;
             var tabPage = new TabPage();
             VNControl vnf;
-            if (CurrentFeatureName.Equals(""))
+            if (ActiveQuery.Completed)
             {
                 DBConn.Open();
                 vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
                 DBConn.Close();
-                vnf = new VNControl(vnItem, this, tabPage);
+                vnf = new VNControl(vnItem, this, tabPage, true);
             }
             else vnf = new VNControl(vnItem, this, tabPage, false);
             vnf.Dock = DockStyle.Fill;
@@ -1172,11 +1171,11 @@ namespace Happy_Search
         /// <param name="itemNotes">Object containing new data to replace old</param>
         private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
         {
-            var result = StartQuery(replyText, "Update Item Notes");
+            var result = StartQuery(replyText, "Update Item Notes",false,false,false);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
-            var apiResult = await TryQuery(query, "UIN Query Error", replyText);
+            var apiResult = await TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
             DBConn.Open();
             DBConn.AddNoteToVN(vnid, serializedNotes, Settings.UserID);

@@ -304,7 +304,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void InitAPIConnection()
         {
             Conn.Open();
-            CurrentFeatureName = "Open";
+            ActiveQuery = new ApiQuery(true,this);
             if (Conn.Status == VndbConnection.APIStatus.Error)
             {
                 ChangeAPIStatus(Conn.Status);
@@ -430,7 +430,7 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Tags/Traits/Stats");
+            var result = StartQuery(userListReply, "Update Tags/Traits/Stats",true,true,false);
             if (!result) return;
             await UpdateTagsTraitsStats(tieredVns.AllVns);
             await ReloadListsFromDbAsync();
@@ -449,9 +449,9 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update All Data");
+            var result = StartQuery(userListReply, "Update All Data",true,true,true);
             if (!result) return;
-            await GetMultipleVN(tieredVns.AllVns, userListReply, true, true);
+            await GetMultipleVN(tieredVns.AllVns,true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, $"Updated data on {_vnsAdded} titles.");
@@ -582,6 +582,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void Help_GetStarted(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\getstarted.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -617,9 +618,9 @@ https://github.com/FredTheBarber/VndbClient";
                 "It could take a while, Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Get Producer Languages");
+            var result = StartQuery(userListReply, "Get Producer Languages",true,true,true);
             if (!result) return;
-            await GetLanguagesForProducers(ProducerList.Select(t => t.ID).ToArray(), userListReply);
+            await GetLanguagesForProducers(ProducerList.Select(t => t.ID).ToArray());
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Got producer languages.");
@@ -634,9 +635,9 @@ https://github.com/FredTheBarber/VndbClient";
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update All Data (All)");
+            var result = StartQuery(userListReply, "Update All Data (All)",true,true,true);
             if (!result) return;
-            await GetMultipleVN(_vnList.Select(t => t.VNID), userListReply, true, true);
+            await GetMultipleVN(_vnList.Select(t => t.VNID), true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Updated data on all titles.");
@@ -657,7 +658,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)");
+            var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)",true,true,true);
             if (!result) return;
             await UpdateTagsTraitsStats(_vnList.Select(t => t.VNID));
             await ReloadListsFromDbAsync();
@@ -735,7 +736,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async Task UpdateURT(string featureName)
         {
             if (Settings.UserID < 1) return;
-            var result = StartQuery(userListReply, featureName);
+            var result = StartQuery(userListReply, featureName,true,true,true);
             if (!result) return;
             LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {URTList.Count} titles.");
             //clone list to make sure it doesnt keep command status.
@@ -770,7 +771,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
-            var result = await TryQuery(userListQuery, Resources.gul_query_error, userListReply);
+            var result = await TryQuery(userListQuery, Resources.gul_query_error);
             if (!result) return;
             var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
             if (ulRoot.Num == 0) return;
@@ -781,7 +782,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error, userListReply);
+                var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error);
                 if (!moreResult) return;
                 var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
                 ulList.AddRange(ulMoreRoot.Items);
@@ -802,7 +803,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            var result = await TryQuery(wishListQuery, Resources.gwl_query_error, userListReply);
+            var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
             if (!result) return;
             var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
             if (wlRoot.Num == 0) return;
@@ -813,7 +814,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error, userListReply);
+                var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error);
                 if (!moreResult) return;
                 var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
                 wlList.AddRange(wlMoreRoot.Items);
@@ -834,7 +835,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            var result = await TryQuery(voteListQuery, Resources.gvl_query_error, userListReply);
+            var result = await TryQuery(voteListQuery, Resources.gvl_query_error);
             if (!result) return;
             var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
             if (vlRoot.Num == 0) return;
@@ -845,7 +846,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error, userListReply);
+                var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error);
                 if (!moreResult) return;
                 var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
                 vlList.AddRange(vlMoreRoot.Items);
@@ -873,7 +874,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 DBConn.Close();
             });
             if (unfetchedTitles == null || !unfetchedTitles.Any()) return;
-            await GetMultipleVN(unfetchedTitles, userListReply, true, false);
+            await GetMultipleVN(unfetchedTitles, false);
             await ReloadListsFromDbAsync();
         }
 
@@ -1596,6 +1597,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 Action = Command.Update;
             }
 
+            /// <summary>Returns a string that represents the current object.</summary>
+            /// <returns>A string that represents the current object.</returns>
+            /// <filterpriority>2</filterpriority>
             public override string ToString() => $"{Action} - {ID}";
         }
 

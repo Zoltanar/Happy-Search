@@ -108,7 +108,7 @@ namespace Happy_Search.Other_Forms
         {
             int userID;
             string username;
-            _parentForm.CurrentFeatureName = "Login with credentials";
+            _parentForm.ActiveQuery = new FormMain.ApiQuery(true,_parentForm);
             switch (GetIDMethod(out userID))
             {
                 case 0:

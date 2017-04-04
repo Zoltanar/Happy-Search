@@ -37,7 +37,7 @@ namespace Happy_Search.Other_Forms
         /// <param name="parentForm">Parent form</param>
         /// <param name="tabPage">Tab which holds this control</param>
         /// <param name="loadFromDb">Should anime/relations/screenshots also be loaded?</param>
-        public VNControl(ListedVN vnItem, FormMain parentForm, TabPage tabPage, bool loadFromDb = true)
+        public VNControl(ListedVN vnItem, FormMain parentForm, TabPage tabPage, bool loadFromDb)
         {
             _parentForm = parentForm;
             _loadFromDb = loadFromDb;
@@ -335,29 +335,29 @@ namespace Happy_Search.Other_Forms
             vnTraitsCB.SelectedIndex = 0;
         }
 
-        private async Task<Tuple<FetchStatus, RelationsItem[]>> GetVNRelations(ListedVN vnItem, bool update)
+        private async Task<(FetchStatus, RelationsItem[])> GetVNRelations(ListedVN vnItem, bool update)
         {
             //relations were fetched before but nothing was found
             if (vnItem.Relations.Equals("Empty") && update == false)
             {
-                return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, null);
+                return (FetchStatus.Success, null);
             }
             //relations were fetched before and something was found
             if (!vnItem.Relations.Equals("") && update == false)
             {
                 var loadedRelations = JsonConvert.DeserializeObject<RelationsItem[]>(vnItem.Relations);
-                return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, loadedRelations);
+                return (FetchStatus.Success, loadedRelations);
             }
             //relations haven't been fetched before
             if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Throttled, null);
+                return (FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error", vnReplyText);
+            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error");
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
-                return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Error, null);
+                return (FetchStatus.Error, null);
             }
             RelationsItem[] relations = root.Items[0].Relations;
             await Task.Run(() =>
@@ -366,32 +366,32 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DBConn.AddRelationsToVN(vnItem.VNID, relations);
                 _parentForm.DBConn.Close();
             });
-            return new Tuple<FetchStatus, RelationsItem[]>(FetchStatus.Success, relations);
+            return (FetchStatus.Success, relations);
         }
 
-        private async Task<Tuple<FetchStatus, AnimeItem[]>> GetVNAnime(ListedVN vnItem, bool update)
+        private async Task<(FetchStatus, AnimeItem[])> GetVNAnime(ListedVN vnItem, bool update)
         {
             //anime was fetched before but nothing was found
             if (vnItem.Anime.Equals("Empty") && update == false)
             {
-                return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, null);
+                return (FetchStatus.Success, null);
             }
             //anime was fetched before and something was found
             if (!vnItem.Anime.Equals("") && update == false)
             {
                 var loadedAnime = JsonConvert.DeserializeObject<AnimeItem[]>(vnItem.Anime);
-                return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, loadedAnime);
+                return (FetchStatus.Success, loadedAnime);
             }
             //anime hasn't been fetched before
             if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Throttled, null);
+                return (FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error", vnReplyText);
+            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error");
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
-                return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Error, null);
+                return (FetchStatus.Error, null);
             }
             AnimeItem[] animeItems = root.Items[0].Anime;
             await Task.Run(() =>
@@ -400,13 +400,13 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DBConn.AddAnimeToVN(vnItem.VNID, animeItems);
                 _parentForm.DBConn.Close();
             });
-            return new Tuple<FetchStatus, AnimeItem[]>(FetchStatus.Success, animeItems);
+            return (FetchStatus.Success, animeItems);
         }
 
-        private async Task<Tuple<FetchStatus, ScreenItem[]>> GetVNScreenshots(ListedVN vnItem, bool update)
+        private async Task<(FetchStatus, ScreenItem[])> GetVNScreenshots(ListedVN vnItem, bool update)
         {
             //screenshots were fetched before but nothing was found
-            if (vnItem.Screens.Equals("Empty") && update == false) return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, null);
+            if (vnItem.Screens.Equals("Empty") && update == false) return (FetchStatus.Success, null);
             ScreenItem[] screens = null;
             //screenshots were fetched before and something was found
             if (!vnItem.Screens.Equals("") && update == false)
@@ -421,18 +421,18 @@ namespace Happy_Search.Other_Forms
                         SaveScreenshot(screenItem.Image, screenLocation);
                     }
                 }
-                return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
+                return (FetchStatus.Success, screens);
             }
             //screenshots haven't been fetched yet
             if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
             {
-                return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Throttled, null);
+                return (FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error", vnReplyText);
+            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error");
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
-                return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Error, null);
+                return (FetchStatus.Error, null);
             }
             await Task.Run(() =>
             {
@@ -442,7 +442,7 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DBConn.Close();
             });
             _screens = screens;
-            return new Tuple<FetchStatus, ScreenItem[]>(FetchStatus.Success, screens);
+            return (FetchStatus.Success, screens);
         }
 
         private void DisplayRelations(RelationsItem[] relationItems)
@@ -521,7 +521,8 @@ namespace Happy_Search.Other_Forms
         {
             if (vnReplyText.Text.Equals("Updating...")) return;
             WriteWarning(vnReplyText, "Updating...");
-            await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID }, vnReplyText, false, true);
+            _parentForm.StartQuery(vnReplyText, "Update VN", false, true, true);
+            await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID },true);
             await SetNewData(_displayedVN.VNID, true);
         }
 
@@ -903,11 +904,11 @@ namespace Happy_Search.Other_Forms
         {
             if (_working) return;
             _working = true;
-            var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes");
+            var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes",false,false,true);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
-            var apiResult = await _parentForm.TryQuery(query, "UIN Query Error", vnReplyText);
+            var apiResult = await _parentForm.TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
             _parentForm.DBConn.Open();
             _parentForm.DBConn.AddNoteToVN(vnid, serializedNotes, FormMain.Settings.UserID);
