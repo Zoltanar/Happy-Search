@@ -124,8 +124,8 @@ namespace Happy_Search.Other_Forms
         /// <returns>The text associated with this control.</returns>
         public sealed override string Text
         {
-            get { return base.Text; }
-            set { base.Text = value; }
+            get => base.Text;
+            set => base.Text = value;
         }
 
         /// <summary>
@@ -245,7 +245,9 @@ namespace Happy_Search.Other_Forms
 #if DEBUG
             }
             // ReSharper disable once UnusedVariable
+#pragma warning disable 168
             catch (Exception e)
+#pragma warning restore 168
             {
                 // ignored
             }

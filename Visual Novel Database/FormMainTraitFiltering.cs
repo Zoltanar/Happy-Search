@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace Happy_Search
         private void Help_TraitFiltering(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "path != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\traitfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }

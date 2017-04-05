@@ -5,8 +5,6 @@ using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.Xml;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using static Happy_Search.FormMain;
@@ -738,21 +736,14 @@ END";
                 var al = reader["Aliases"].ToString();
                 var la = reader["Languages"].ToString();
                 var dfu = DbDateTime(reader["DateFullyUpdated"]);
-                try
-                {
-                    return new ListedVN(t, k, r, pn, l, us, ua, un, ws, wa, v, va, ta, id, du, i, iN, d, p, ra, vc, re, sc, an, al, la, dfu);
-                }
-                // ReSharper disable once UnusedVariable
-                catch (Exception exc)
-                {
-                    // ignored
-                }
+                return new ListedVN(t, k, r, pn, l, us, ua, un, ws, wa, v, va, ta, id, du, i, iN, d, p, ra, vc, re, sc, an, al, la, dfu);
             }
-            // ReSharper disable once UnusedVariable
+#pragma warning disable 168
             catch (Exception exc)
             {
                 // ignored
             }
+#pragma warning restore 168
             return null;
 # else
             return new ListedVN(

@@ -152,20 +152,20 @@ namespace Happy_Search
     {
         public int ID
         {
-            get { return (int)this[0]; }
-            set { this[0] = value; }
+            get => (int)this[0];
+            set => this[0] = value;
         }
 
         public double Score
         {
-            get { return this[1]; }
-            set { this[1] = value; }
+            get => this[1];
+            set => this[1] = value;
         }
 
         public int Spoiler
         {
-            get { return (int)this[2]; }
-            set { this[2] = value; }
+            get => (int)this[2];
+            set => this[2] = value;
         }
 
         public TagCategory Category { get; set; }
@@ -395,13 +395,13 @@ namespace Happy_Search
     {
         public int ID
         {
-            get { return this[0]; }
-            set { this[0] = value; }
+            get => this[0];
+            set => this[0] = value;
         }
         public int Spoiler
         {
-            get { return this[1]; }
-            set { this[1] = value; }
+            get => this[1];
+            set => this[1] = value;
         }
     }
 
@@ -409,23 +409,23 @@ namespace Happy_Search
     {
         public int ID
         {
-            get { return Convert.ToInt32(this[0]); }
-            set { this[0] = value; }
+            get => Convert.ToInt32(this[0]);
+            set => this[0] = value;
         }
         public int RID
         {
-            get { return Convert.ToInt32(this[1]); }
-            set { this[1] = value; }
+            get => Convert.ToInt32(this[1]);
+            set => this[1] = value;
         }
         public int Spoiler
         {
-            get { return Convert.ToInt32(this[2]); }
-            set { this[2] = value; }
+            get => Convert.ToInt32(this[2]);
+            set => this[2] = value;
         }
         public string Role
         {
-            get { return Convert.ToString(this[3]); }
-            set { this[3] = value; }
+            get => Convert.ToString(this[3]);
+            set => this[3] = value;
         }
     }
 

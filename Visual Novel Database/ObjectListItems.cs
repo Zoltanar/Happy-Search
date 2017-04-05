@@ -66,6 +66,7 @@ namespace Happy_Search
     /// </summary>
     public enum WishlistStatus
     {
+        // ReSharper disable once UnusedMember.Global
         None = -1,
         Null = -1,
         High = 0,
@@ -76,6 +77,7 @@ namespace Happy_Search
 
     public enum UserlistStatus
     {
+        // ReSharper disable once UnusedMember.Global
         None = -1,
         Null = -1,
         Unknown = 0,
@@ -168,7 +170,9 @@ namespace Happy_Search
 #if DEBUG
             }
             // ReSharper disable once UnusedVariable
+#pragma warning disable 168
             catch (Exception exc)
+#pragma warning restore 168
             {
                 // ignored
             }
@@ -260,7 +264,7 @@ namespace Happy_Search
         /// <summary>
         /// Date of ULStatus change
         /// </summary>
-        public DateTime ULAdded { get; private set; }
+        public DateTime ULAdded { get; }
 
         /// <summary>
         /// User's note
@@ -276,7 +280,7 @@ namespace Happy_Search
         /// <summary>
         /// Date of WLStatus change
         /// </summary>
-        public DateTime WLAdded { get; private set; }
+        public DateTime WLAdded { get; }
 
         /// <summary>
         /// User's Vote
@@ -286,7 +290,7 @@ namespace Happy_Search
         /// <summary>
         /// Date of Vote change
         /// </summary>
-        public DateTime VoteAdded { get; private set; }
+        public DateTime VoteAdded { get; }
 
         /// <summary>
         /// Popularity of VN, percentage of most popular VN
@@ -341,31 +345,31 @@ namespace Happy_Search
         /// JSON Array string containing List of Relation Items
         /// </summary>
         [OLVIgnore]
-        public string Relations { get; set; }
+        public string Relations { get; }
 
         /// <summary>
         /// JSON Array string containing List of Screenshot Items
         /// </summary>
         [OLVIgnore]
-        public string Screens { get; set; }
+        public string Screens { get; }
 
         /// <summary>
         /// JSON Array string containing List of Anime Items
         /// </summary>
         [OLVIgnore]
-        public string Anime { get; set; }
+        public string Anime { get; }
 
         /// <summary>
         /// Newline separated string of aliases
         /// </summary>
         [OLVIgnore]
-        public string Aliases { get; set; }
+        public string Aliases { get; }
 
         /// <summary>
         /// Language of producer
         /// </summary>
         [OLVIgnore]
-        public VNLanguages Languages { get; set; }
+        public VNLanguages Languages { get; }
 
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
