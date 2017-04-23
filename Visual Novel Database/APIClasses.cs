@@ -129,13 +129,8 @@ namespace Happy_Search
             { "orig", "Original Game"}
         };
 
-        public string Print() => $"{OfficialStatus()}{relationDict[Relation]} - {Title} - {ID}";
-
-        public string OfficialStatus()
-        {
-            return Official ? "" : "[Unofficial] ";
-        }
-
+        public string Print() => $"{(Official ? "" : "[Unofficial] ")}{relationDict[Relation]} - {Title} - {ID}";
+        
         public override string ToString() => $"ID={ID} Title={Title}";
     }
 
@@ -370,17 +365,11 @@ namespace Happy_Search
             IEnumerable<int> listOfVNIDs = VNs.Select(x => x.ID);
             return listOfVNIDs.Contains(vnid);
         }
-
-        public bool ContainsTraits(List<WrittenTrait> traitFilters)
+        public bool ContainsTraits(IEnumerable<WrittenTrait> traitFilters)
         {
             //remove all numbers in traits from traitIDs, if nothing is left then it matched all
             int[] traits = Traits.Select(x => x.ID).ToArray();
-            var traitsToMatch = new List<WrittenTrait>(traitFilters);
-            foreach (var writtenTrait in traitsToMatch)
-            {
-                if (!traits.Any(characterTrait => writtenTrait.AllIDs.Contains(characterTrait))) return false;
-            }
-            return true;
+            return traitFilters.All(writtenTrait => traits.Any(characterTrait => writtenTrait.AllIDs.Contains(characterTrait)));
         }
     }
 

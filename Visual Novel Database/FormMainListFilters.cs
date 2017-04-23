@@ -251,8 +251,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_year);
                 return;
             }
-            int year;
-            var userIsNumber = int.TryParse(ListByTB.Text, out year);
+            var userIsNumber = int.TryParse(ListByTB.Text, out int year);
             if (userIsNumber == false) //check if box has integer
             {
                 WriteError(replyText, Resources.must_be_integer);
@@ -483,9 +482,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_year);
                 return;
             }
-            int year;
-            var userIsNumber = int.TryParse(ListByTB.Text, out year);
-            if (userIsNumber == false) //check if box has integer
+            if (!int.TryParse(ListByTB.Text, out int year)) //check if box has integer
             {
                 WriteError(replyText, Resources.must_be_integer);
                 return;
@@ -497,139 +494,15 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Display all Visual Novels in local database.
-        /// </summary>
-        private void List_All(object sender, EventArgs e)
-        {
-            List_ClearOther();
-            _currentList = x => true;
-            _currentListLabel = "All Titles";
-            LoadVNListToGui();
-        }
-
-        /// <summary>
         /// Clear other listing options.
         /// </summary>
         private void List_ClearOther(bool skipListBox = false)
         {
             DontTriggerEvent = true;
-            ulStatusDropDown.SelectedIndex = 0;
-            wlStatusDropDown.SelectedIndex = 0;
             if (!skipListBox) ListByTB.Text = "";
             DontTriggerEvent = false;
         }
-
-        /// <summary>
-        /// Display VNs by producers in Favorite Producers list.
-        /// </summary>
-        private void List_FavoriteProducers(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            List_ClearOther();
-            if (olFavoriteProducers.Items.Count == 0)
-            {
-                WriteError(replyText, "No Favorite Producers.");
-                return;
-            }
-            IEnumerable<string> prodList = from ListedProducer producer in olFavoriteProducers.Objects
-                                           select producer.Name;
-            _currentList = vn => prodList.Contains(vn.Producer);
-            _currentListLabel = "Favorite Producers";
-            LoadVNListToGui();
-        }
-
-        /// <summary>
-        /// Display VNs with selected Userlist status.
-        /// </summary>
-        private void List_ULStatus(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            var dropdownlist = (ComboBox)sender;
-            switch (dropdownlist.SelectedIndex)
-            {
-                case 0:
-                    List_All(null, null);
-                    return;
-                case 1:
-                    dropdownlist.SelectedIndex = 0;
-                    return;
-                case 2:
-                    _currentList = x => x.ULStatus > UserlistStatus.Null;
-                    _currentListLabel = "Userlist Titles";
-                    break;
-                case 3:
-                    _currentList = x => x.ULStatus == UserlistStatus.Unknown;
-                    _currentListLabel = "UL Unknown";
-                    break;
-                case 4:
-                    _currentList = x => x.ULStatus == UserlistStatus.Playing;
-                    _currentListLabel = "UL Playing";
-                    break;
-                case 5:
-                    _currentList = x => x.ULStatus == UserlistStatus.Finished;
-                    _currentListLabel = "UL Finished";
-                    break;
-                case 6:
-                    _currentList = x => x.ULStatus == UserlistStatus.Stalled;
-                    _currentListLabel = "UL Stalled";
-                    break;
-                case 7:
-                    _currentList = x => x.ULStatus == UserlistStatus.Dropped;
-                    _currentListLabel = "UL Dropped";
-                    break;
-            }
-            var value = dropdownlist.SelectedIndex;
-            List_ClearOther();
-            DontTriggerEvent = true;
-            ulStatusDropDown.SelectedIndex = value;
-            DontTriggerEvent = false;
-            LoadVNListToGui();
-        }
-
-        /// <summary>
-        /// Display VNs with selected Wishlist status.
-        /// </summary>
-        private void List_WLStatus(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            var dropdownlist = (ComboBox)sender;
-            switch (dropdownlist.SelectedIndex)
-            {
-                case 0:
-                    List_All(null, null);
-                    return;
-                case 1:
-                    dropdownlist.SelectedIndex = 0;
-                    return;
-                case 2:
-                    _currentList = x => x.WLStatus > WishlistStatus.Null;
-                    _currentListLabel = "Wishlist Titles";
-                    break;
-                case 3:
-                    _currentList = x => x.WLStatus == WishlistStatus.High;
-                    _currentListLabel = "WL High";
-                    break;
-                case 4:
-                    _currentList = x => x.WLStatus == WishlistStatus.Medium;
-                    _currentListLabel = "WL Medium";
-                    break;
-                case 5:
-                    _currentList = x => x.WLStatus == WishlistStatus.Low;
-                    _currentListLabel = "WL Low";
-                    break;
-                case 6:
-                    _currentList = x => x.WLStatus == WishlistStatus.Blacklist;
-                    _currentListLabel = "WL Blacklist";
-                    break;
-            }
-            var value = dropdownlist.SelectedIndex;
-            List_ClearOther();
-            DontTriggerEvent = true;
-            wlStatusDropDown.SelectedIndex = value;
-            DontTriggerEvent = false;
-            LoadVNListToGui();
-        }
-
+        
         /// <summary>
         /// Display VNs in user-defined group that is typed/selected in box.
         /// </summary>
@@ -693,167 +566,7 @@ namespace Happy_Search
         }
 
         #endregion
-
-        #region Filtering
-
-        /// <summary>
-        /// Filter titles by URT status.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Filter_URT(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
-            ApplyListFilters();
-        }
-
-        /// <summary>
-        /// Filter titles by released status.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Filter_Unreleased(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
-            ApplyListFilters();
-        }
-
-        /// <summary>
-        /// Filter titles by blacklist status.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Filter_Blacklist(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
-            ApplyListFilters();
-        }
-
-        /// <summary>
-        /// Get function for the specified filter.
-        /// </summary>
-        /// <param name="toggle">Which filter to get function from</param>
-        /// <returns>Function for specified filter</returns>
-        public Func<ListedVN, bool> GetFunc(ToggleFilter toggle)
-        {
-            var function = new Func<ListedVN, bool>(x => true);
-            switch (toggle)
-            {
-                case ToggleFilter.URT:
-                    switch (Toggles.URTToggleSetting)
-                    {
-                        case ToggleSetting.Show:
-                            return function;
-                        case ToggleSetting.Hide:
-                            return x => URTList.Find(y => y.VNID == x.VNID) == null;
-                        case ToggleSetting.Only:
-                            return x => URTList.Find(y => y.VNID == x.VNID) != null;
-                        case ToggleSetting.OnlyUnplayed:
-                            return x => x.ULStatus != UserlistStatus.Finished && x.ULStatus != UserlistStatus.Dropped;
-                        default: return function;
-                    }
-                case ToggleFilter.Unreleased:
-                    switch (Toggles.UnreleasedToggleSetting)
-                    {
-                        case ToggleSetting.Show:
-                            return function;
-                        case ToggleSetting.Hide:
-                            return x => !DateIsUnreleased(x.RelDate);
-                        case ToggleSetting.Only:
-                            return x => DateIsUnreleased(x.RelDate);
-                        case ToggleSetting.HideNoReleaseDate:
-                            return x => x.DateForSorting != DateTime.MaxValue;
-                        default: return function;
-                    }
-                case ToggleFilter.Blacklisted:
-                    switch (Toggles.BlacklistToggleSetting)
-                    {
-                        case ToggleSetting.Show:
-                            return function;
-                        case ToggleSetting.Hide:
-                            return x => x.WLStatus != WishlistStatus.Blacklist;
-                        case ToggleSetting.Only:
-                            return x => x.WLStatus == WishlistStatus.Blacklist;
-                        default: return function;
-                    }
-                default:
-                    return function;
-            }
-        }
-
-        /// <summary>
-        /// Apply toggle filters to list.
-        /// </summary>
-        private void ApplyListFilters()
-        {
-            tagSignaler.BackColor = _activeTagFilter.Any() ? SignalerActive : SignalerDefault;
-            traitSignaler.BackColor = _activeTraitFilter.Any() ? SignalerActive : SignalerDefault;
-            Func<ListedVN, bool>[] funcArray;
-            //do OR for tag/trait filters
-            if (ToggleFiltersModeButton.Checked)
-            {
-                //if both are active
-                if (_activeTagFilter.Any() && _activeTraitFilter.Any())
-                {
-                    funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted),
-                    vn => VNMatchesTagFilter(vn) || _traitFunction(vn) };
-
-                }
-                //if only tagfilter is active
-                else if (_activeTagFilter.Any() && !_activeTraitFilter.Any())
-                {
-                    funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted),
-                    VNMatchesTagFilter };
-                }
-                //if only traitfilter is active
-                else if (!_activeTagFilter.Any() && _activeTraitFilter.Any())
-                {
-                    funcArray = new[]
-                    {
-                        GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted),
-                        _traitFunction
-                    };
-                }
-                //if none are active
-                else
-                {
-                    funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted) };
-                }
-            }
-            else
-            {
-                funcArray = new[] { GetFunc(ToggleFilter.URT), GetFunc(ToggleFilter.Unreleased), GetFunc(ToggleFilter.Blacklisted), VNMatchesTagFilter, _traitFunction };
-            }
-            tileOLV.ModelFilter = new ModelFilter(vn => funcArray.Select(filter => filter((ListedVN)vn)).All(valid => valid));
-            objectList_ItemsChanged(null, null);
-            SaveMainXML();
-        }
-
-        private void ToggleFiltersMode(object sender, EventArgs e)
-        {
-            if (ToggleFiltersModeButton.Checked)
-            {
-                ToggleFiltersModeButton.BackColor = Color.LightGreen;
-                ToggleFiltersModeButton.ForeColor = Color.Black;
-                ToggleFiltersModeButton.Text = @"Or";
-            }
-            else
-            {
-                ToggleFiltersModeButton.BackColor = Color.Black;
-                ToggleFiltersModeButton.ForeColor = Color.White;
-                ToggleFiltersModeButton.Text = @"And";
-            }
-            //only reapply filters if both are active (if only one is active, the result would be the same)
-            if (_activeTagFilter.Any() && _activeTraitFilter.Any())
-            {
-                ApplyListFilters();
-            }
-        }
-        #endregion
-
+        
         #region List Results
 
         private void Help_ListResults(object sender, EventArgs e)
@@ -884,10 +597,10 @@ namespace Happy_Search
             else vnf = new VNControl(vnItem, this, tabPage, false);
             vnf.Dock = DockStyle.Fill;
             tabPage.Controls.Add(vnf);
-            tabControl1.TabPages.Add(tabPage);
+            TabsControl.TabPages.Add(tabPage);
             //dont auto-switch to tab if holding alt
             if (ModifierKeys.HasFlag(Keys.Alt)) return;
-            tabControl1.SelectTab(tabPage);
+            TabsControl.SelectTab(tabPage);
         }
 
         //format list rows, color according to userlist status, only for Details View
@@ -933,6 +646,7 @@ namespace Happy_Search
             if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnULAdded.Index).Text = "";
             if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnWLAdded.Index).Text = "";
             if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
+            e.Item.GetSubItem(tileColumnLength.Index).Text = listedVN.LengthString;
             e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
             e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
             e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
@@ -1207,22 +921,19 @@ namespace Happy_Search
         /// <summary>
         /// Update result label when items in Visual Novel OLV are changed.
         /// </summary>
-        private void objectList_ItemsChanged(object sender, ItemsChangedEventArgs e)
+        private void OLV_ItemsChanged(object sender, ItemsChangedEventArgs e)
         {
-            if (tileOLV.FilteredObjects == null) return;
-            var count = tileOLV.FilteredObjects.Cast<object>().Count();
-            var totalcount = tileOLV.Objects.Cast<object>().Count();
-            string itemCountString = tileOLV.ModelFilter != null
-                ? $"{count}/{totalcount} items."
-                : $"{tileOLV.Items.Count} items.";
+            if (tileOLV.Objects == null) return;
+            var count = tileOLV.Objects.Cast<object>().Count();
+            var totalcount = _vnList.Count;
+            string itemCountString = count == totalcount ? $"{totalcount} items." : $"{count}/{totalcount} items.";
             resultLabel.Text = $@"List: {_currentListLabel} {itemCountString}";
-            DisplayCommonTags(null, null);
         }
 
         /// <summary>
         /// Adjust tile size on OLV resize to avoid empty spaces.
         /// </summary>
-        private void tileOLV_Resize(object sender, EventArgs e)
+        private void OLV_Resize(object sender, EventArgs e)
         {
             var width = tileOLV.Width - 24;
             var s = (int)Math.Round((double)width / 230);
@@ -1238,29 +949,7 @@ namespace Happy_Search
         /// Specifies ListBy mode.
         /// </summary>
         private enum ListBy { Name, Producer, Year, Group, Language }
-
-        /// <summary>
-        /// Specifies toggle filter
-        /// </summary>
-        public enum ToggleFilter
-        {
-            URT,
-            Unreleased,
-            Blacklisted
-        }
-
-        /// <summary>
-        /// Specifies toggle setting
-        /// </summary>
-        public enum ToggleSetting
-        {
-            Show,
-            Hide,
-            Only,
-            OnlyUnplayed = 3,
-            HideNoReleaseDate = 3
-        }
-
+        
         /// <summary>
         /// Class holding toggle filter settings.
         /// </summary>
@@ -1272,16 +961,17 @@ namespace Happy_Search
             /// </summary>
             public ToggleArray()
             {
-                URTToggleSetting = 0;
+                //URTToggleSetting = 0;
                 UnreleasedToggleSetting = 0;
                 BlacklistToggleSetting = 0;
             }
-            public ToggleSetting URTToggleSetting { get; set; }
-            public ToggleSetting UnreleasedToggleSetting { get; set; }
-            public ToggleSetting BlacklistToggleSetting { get; set; }
+            //public ToggleSetting URTToggleSetting { get; set; }
+            public YesNoFilter UnreleasedToggleSetting { get; set; }
+            public YesNoFilter BlacklistToggleSetting { get; set; }
 
         }
-#pragma warning restore 1591
         #endregion
     }
+
+#pragma warning restore 1591
 }

@@ -734,7 +734,7 @@
             this.vnGroups.Name = "vnGroups";
             this.vnGroups.Size = new System.Drawing.Size(333, 21);
             this.vnGroups.TabIndex = 108;
-            this.vnGroups.SelectedIndexChanged += new System.EventHandler(this.vnGroups_SelectedIndexChanged);
+            this.vnGroups.SelectedIndexChanged += new System.EventHandler(this.VnGroups_SelectedIndexChanged);
             // 
             // pictureBox1
             // 

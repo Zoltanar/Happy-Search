@@ -141,6 +141,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
+    <Compile Include="Filters.cs" />
+    <Compile Include="FiltersTab.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FiltersTab.Designer.cs">
+      <DependentUpon>FiltersTab.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormMainAPIMethods.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
@@ -223,6 +230,9 @@
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </Compile>
     <Compile Include="XmlHelper.cs" />
+    <EmbeddedResource Include="FiltersTab.resx">
+      <DependentUpon>FiltersTab.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Designer</SubType>

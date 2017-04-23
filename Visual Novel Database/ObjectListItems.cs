@@ -93,10 +93,15 @@ namespace Happy_Search
     /// </summary>
     public class ListedVN
     {
-        internal static readonly string[] LengthTime =
+        private static readonly Dictionary<int, LengthFilter> LengthMap = new Dictionary<int, LengthFilter>
         {
-            "", "Very short (<2 hours)", "Short (2-10 hours)",
-            "Medium (10-30 hours)", "Long (30-50 hours)", "Very long(>50 hours)"
+            {-1, LengthFilter.NA},
+            {0, LengthFilter.NA},
+            {1, LengthFilter.UnderTwoHours},
+            {2, LengthFilter.TwoToTenHours},
+            {3, LengthFilter.TenToThirtyHours},
+            {4, LengthFilter.ThirtyToFiftyHours},
+            {5, LengthFilter.OverFiftyHours}
         };
 
         /// <summary>
@@ -147,12 +152,14 @@ namespace Happy_Search
                 RelDate = reldate;
                 DateForSorting = StringToDate(reldate);
                 Producer = producer;
-                Length = length != null && length != -1 ? LengthTime[length.Value] : LengthTime[0];
+                Length = length != null ? LengthMap[length.Value] : LengthFilter.NA; //&& length != -1 ? LengthTime[length.Value] : LengthTime[0];
                 ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
                 ULNote = ulnote;
                 WLAdded = DateTimeOffset.FromUnixTimeSeconds(wladded).UtcDateTime;
                 VoteAdded = DateTimeOffset.FromUnixTimeSeconds(voteadded).UtcDateTime;
-                Tags = tags;
+                var tagList = StringToTags(tags);
+                foreach (TagItem tag in tagList)tag.SetCategory(FormMain.PlainTags);
+                TagList = tagList;
                 VNID = vnid;
                 UpdatedDate = DaysSince(updatedDate);
                 ImageURL = imageURL;
@@ -180,6 +187,17 @@ namespace Happy_Search
         }
 
         /// <summary>
+        /// Returns whether vn is by a favorite producer.
+        /// </summary>
+        /// <param name="favoriteProducers">List of favorite producers.</param>
+        internal YesNoFilter ByFavoriteProducer(IEnumerable<ListedProducer> favoriteProducers)
+        {
+            return favoriteProducers.FirstOrDefault(fp => fp.Name == Producer) != null
+                ? YesNoFilter.Yes
+                : YesNoFilter.No;
+        }
+
+        /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
         /// <param name="days">Days since last update</param>
@@ -196,25 +214,11 @@ namespace Happy_Search
         /// Days since all fields were updated
         /// </summary>
         public int DateFullyUpdated { get; }
-
+        
         /// <summary>
-        /// List of Tags, must be set prior to use.
+        /// List of Tags in this VN.
         /// </summary>
-        public List<TagItem> TagList { get; set; }
-
-        /// <summary>
-        /// Sets TagList field.
-        /// </summary>
-        /// <param name="plainTags">List of tags from tagdump</param>
-        public void SetTags(List<WrittenTag> plainTags)
-        {
-            var tagList = StringToTags(Tags);
-            foreach (TagItem tag in tagList)
-            {
-                tag.SetCategory(plainTags);
-            }
-            TagList = tagList;
-        }
+        public List<TagItem> TagList { get; }
 
         /// <summary>
         /// Gets characters involved in VN.
@@ -234,7 +238,7 @@ namespace Happy_Search
         /// <summary>
         /// VN kanji title
         /// </summary>
-        public string KanjiTitle { get;  }
+        public string KanjiTitle { get; }
 
         /// <summary>
         /// VN's first non-trial release date
@@ -254,7 +258,12 @@ namespace Happy_Search
         /// <summary>
         /// VN length
         /// </summary>
-        public string Length { get; }
+        public LengthFilter Length { get; }
+
+        /// <summary>
+        /// String for Length
+        /// </summary>
+        public string LengthString => Length.GetDescription();
 
         /// <summary>
         /// User's userlist status of VN
@@ -311,13 +320,7 @@ namespace Happy_Search
         /// VN's ID
         /// </summary>
         public int VNID { get; }
-
-        /// <summary>
-        /// VN's tags (in JSON array)
-        /// </summary>
-        [OLVIgnore]
-        public string Tags { get; set; }
-
+        
         /// <summary>
         /// Days since last tags/stats/traits update
         /// </summary>
@@ -370,6 +373,77 @@ namespace Happy_Search
         /// </summary>
         [OLVIgnore]
         public VNLanguages Languages { get; }
+
+        /// <summary>
+        /// Return unreleased status of vn.
+        /// </summary>
+        public UnreleasedFilter Unreleased
+        {
+            get
+            {
+                if (DateForSorting == DateTime.MaxValue) return UnreleasedFilter.WithoutReleaseDate;
+                if (DateForSorting > DateTime.Today) return UnreleasedFilter.WithReleaseDate;
+                return UnreleasedFilter.Released;
+            }
+        }
+
+        /// <summary>
+        /// Gets blacklisted status of vn.
+        /// </summary>
+        public YesNoFilter Blacklisted => WLStatus == WishlistStatus.Blacklist ? YesNoFilter.Yes : YesNoFilter.No;
+
+        /// <summary>
+        /// Gets voted status of vn.
+        /// </summary>
+        public YesNoFilter Voted => Vote >= 1 ? YesNoFilter.Yes : YesNoFilter.No;
+
+        /// <summary>
+        /// Gets wishlist status of vn.
+        /// </summary>
+        public WishlistFilter Wishlist
+        {
+            get
+            {
+                switch (WLStatus)
+                {
+                    case WishlistStatus.High:
+                        return WishlistFilter.High;
+                    case WishlistStatus.Medium:
+                        return WishlistFilter.Medium;
+                    case WishlistStatus.Low:
+                        return WishlistFilter.Low;
+                    default:
+                        return WishlistFilter.NA;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns Userlist Status of vn.
+        /// </summary>
+        public UserlistFilter Userlist
+        {
+            get
+            {
+                switch (ULStatus)
+                {
+                    case UserlistStatus.Unknown:
+                        return UserlistFilter.Unknown;
+                    case UserlistStatus.Playing:
+                        return UserlistFilter.Playing;
+                    case UserlistStatus.Finished:
+                        return UserlistFilter.Finished;
+                    case UserlistStatus.Stalled:
+                        return UserlistFilter.Stalled;
+                    case UserlistStatus.Dropped:
+                        return UserlistFilter.Dropped;
+                    default:
+                        return UserlistFilter.NA;
+                }
+            }
+        }
+
+
 
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text.RegularExpressions;
@@ -39,6 +41,7 @@ namespace Happy_Search
         public const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
         public const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
         public const string SettingsJson = "..\\Release\\Stored Data\\settings.json";
+        public const string FiltersJson = "..\\Release\\Stored Data\\filters.json";
         public const string LogFile = "..\\Release\\Stored Data\\message.log";
         public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
         public const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
@@ -50,6 +53,7 @@ namespace Happy_Search
         public const string DBStatsXml = "Stored Data\\dbs.xml";
         public const string MainXmlFile = "Stored Data\\saved_objects.xml";
         public const string SettingsJson = "Stored Data\\settings.json";
+        public const string FiltersJson = "Stored Data\\filters.json";
         public const string LogFile = "Stored Data\\message.log";
         public const string TagsJsonGz = "Stored Data\\tags.json.gz";
         public const string TraitsJsonGz = "Stored Data\\traits.json.gz";
@@ -65,8 +69,6 @@ namespace Happy_Search
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
         private const int LabelFadeTime = 5000;
-        public static readonly Color SignalerDefault = Color.LightGray;
-        public static readonly Color SignalerActive = Color.IndianRed;
 
         //tile background colors
         public static readonly SolidBrush DefaultTileBrush = new SolidBrush(Color.LightBlue);
@@ -88,6 +90,56 @@ namespace Happy_Search
         /// </summary>
         public enum TagCategory { Content, Sexual, Technical }
 #pragma warning restore 1591
+
+        /// <summary>
+        /// Convert a collection of up to 16 bools into an integer.
+        /// </summary>
+        public static int BoolArrayToInt(IEnumerable<bool> bits)
+        {
+            int result = 0;
+            int index = 0;
+            foreach (var bit in bits)
+            {
+                if (index > 15) return result;
+                if (bit) result += 1 << index;
+                index++;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if two sequences have the same elements.
+        /// </summary>
+        public static bool SequenceEqualNullAware<T>(this IEnumerable<T> sequence1, IEnumerable<T> sequence2)
+        {
+            if (sequence1 == null && sequence2 == null) return true;
+            if (sequence1 == null || sequence2 == null) return false;
+            var returned =  sequence1.SequenceEqual(sequence2);
+            return returned;
+        }
+
+        /// <summary>
+        /// Pause RaiseListChangedEvents and add items then call the event when done adding.
+        /// </summary>
+        public static void AddRange<T>(this BindingList<T> list, IEnumerable<T> items)
+        {
+            list.RaiseListChangedEvents = false;
+            foreach(var item in items) list.Add(item);
+            list.RaiseListChangedEvents = true;
+            list.ResetBindings();
+        }
+
+        /// <summary>
+        /// Gets int from bool array of state of checkboxes in panel.
+        /// </summary>
+        public static int GetIntFromCheckboxes(Panel panel)
+        {
+            var name = panel.Name.Replace("Panel", "TF");
+            if (!((CheckBox)panel.Controls.Find(name, false).First()).Checked) return 0;
+            return panel.Controls.OfType<CheckBox>()
+                .Where(c => c.Appearance == Appearance.Normal && c.Checked)
+                .Sum(cc => (int)cc.Tag);
+        }
 
         /// <summary>
         /// Print message to Debug and write it to log file.
@@ -150,14 +202,41 @@ namespace Happy_Search
         }
 
         /// <summary>
+        /// Gets selected radio option's tag as Enum. T must be enum.
+        /// </summary>
+        /// <param name="panel"></param>
+        /// <typeparam name="T">Must be Enum</typeparam>
+        public static T GetRadioOption<T>(this Panel panel) where T : struct, IConvertible
+        {
+            var name = panel.Name.Replace("Panel", "TF");
+            int result;
+            if (!((CheckBox)panel.Controls.Find(name, false).First()).Checked) result = (int)YesNoFilter.Off;
+            else result = (int)(panel.Controls.OfType<RadioButton>().FirstOrDefault(c => c.Checked)?.Tag ?? (int)YesNoFilter.Off);
+            return (T)(object)result;
+        }
+
+        /// <summary>
+        /// Gets description of Enum value if available.
+        /// </summary>
+        public static string GetDescription(this Enum value)
+        {
+            FieldInfo field = value.GetType().GetField(value.ToString());
+
+            DescriptionAttribute attribute
+                = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute))
+                    as DescriptionAttribute;
+
+            return attribute == null ? value.ToString() : attribute.Description;
+        }
+
+        /// <summary>
         ///     Writes message in a label with message text color.
         /// </summary>
         /// <param name="label">Label to which the message is written</param>
         /// <param name="message">Message to be written</param>
         public static void WriteText(Label label, string message)
         {
-            var linkLabel = label as LinkLabel;
-            if (linkLabel != null) linkLabel.LinkColor = FormMain.NormalLinkColor;
+            if (label is LinkLabel linkLabel) linkLabel.LinkColor = FormMain.NormalLinkColor;
             else label.ForeColor = FormMain.NormalColor;
             label.Text = message;
         }
@@ -169,8 +248,7 @@ namespace Happy_Search
         /// <param name="message">Message to be written</param>
         public static void WriteWarning(Label label, string message)
         {
-            var linkLabel = label as LinkLabel;
-            if (linkLabel != null) linkLabel.LinkColor = FormMain.WarningColor;
+            if (label is LinkLabel linkLabel) linkLabel.LinkColor = FormMain.WarningColor;
             else label.ForeColor = FormMain.WarningColor;
             label.Text = message;
         }
@@ -182,8 +260,7 @@ namespace Happy_Search
         /// <param name="message">Message to be written</param>
         public static void WriteError(Label label, string message)
         {
-            var linkLabel = label as LinkLabel;
-            if (linkLabel != null) linkLabel.LinkColor = FormMain.ErrorColor;
+            if (label is LinkLabel linkLabel) linkLabel.LinkColor = FormMain.ErrorColor;
             else label.ForeColor = FormMain.ErrorColor;
             label.Text = message;
         }
@@ -212,8 +289,8 @@ namespace Happy_Search
         public static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
-            int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
+            if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
+            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
             if (dateRegex.IsMatch(date))
@@ -329,7 +406,7 @@ namespace Happy_Search
         public static string TruncateString(string value, int maxChars)
         {
             if (maxChars < 4) return value;
-            return value.Length <= maxChars ? value : value.Substring(0, maxChars-3) + "...";
+            return value.Length <= maxChars ? value : value.Substring(0, maxChars - 3) + "...";
         }
 
         /// <summary>

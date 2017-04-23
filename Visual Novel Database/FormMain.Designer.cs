@@ -46,25 +46,14 @@ namespace Happy_Search
             this.addProducersButton = new System.Windows.Forms.Button();
             this.selectedProducersVNButton = new System.Windows.Forms.Button();
             this.removeProducersButton = new System.Windows.Forms.Button();
-            this.tagTypeS = new System.Windows.Forms.CheckBox();
-            this.tagTypeT = new System.Windows.Forms.CheckBox();
-            this.tagTypeC = new System.Windows.Forms.CheckBox();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.customTagFilterNameBox = new System.Windows.Forms.TextBox();
-            this.tagSearchBox = new System.Windows.Forms.TextBox();
             this.updateTagsAndTraitsButton = new System.Windows.Forms.Button();
             this.traitSearchBox = new System.Windows.Forms.TextBox();
             this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
-            this.tagSignaler = new System.Windows.Forms.Button();
-            this.traitSignaler = new System.Windows.Forms.Button();
-            this.ToggleFiltersModeButton = new System.Windows.Forms.CheckBox();
-            this.tagSearchButton = new System.Windows.Forms.Button();
             this.traitSearchButton = new System.Windows.Forms.Button();
             this.ListByGoButton = new System.Windows.Forms.Button();
             this.ListByUpdateButton = new System.Windows.Forms.Button();
             this.ListByCB = new System.Windows.Forms.ComboBox();
-            this.TagFilteringHelpButton = new System.Windows.Forms.Button();
-            this.updateFilterResultsButton = new System.Windows.Forms.Button();
             this.favoriteProducersHelpButton = new System.Windows.Forms.Button();
             this.listResultsButton = new System.Windows.Forms.Button();
             this.GetStartedHelpButton = new System.Windows.Forms.Button();
@@ -74,6 +63,11 @@ namespace Happy_Search
             this.toggleViewButton = new System.Windows.Forms.Button();
             this.multiActionBox = new System.Windows.Forms.ComboBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.tagSearchButton = new System.Windows.Forms.Button();
+            this.tagSearchBox = new System.Windows.Forms.TextBox();
+            this.TagFilteringHelpButton = new System.Windows.Forms.Button();
+            this.updateFilterResultsButton = new System.Windows.Forms.Button();
+            this.customTagFilterNameBox = new System.Windows.Forms.TextBox();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.logGB = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -141,41 +135,13 @@ namespace Happy_Search
             this.prodReply = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
-            this.BlacklistToggleBox = new System.Windows.Forms.ComboBox();
-            this.quickFilter1 = new System.Windows.Forms.Button();
             this.ListByTB = new System.Windows.Forms.TextBox();
-            this.UnreleasedToggleBox = new System.Windows.Forms.ComboBox();
-            this.URTToggleBox = new System.Windows.Forms.ComboBox();
-            this.quickFilter0 = new System.Windows.Forms.Button();
             this.viewPicker = new System.Windows.Forms.ComboBox();
-            this.ulStatusDropDown = new System.Windows.Forms.ComboBox();
             this.resultLabel = new System.Windows.Forms.Label();
             this.replyText = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
             this.ListByCBQuery = new System.Windows.Forms.ComboBox();
-            this.wlStatusDropDown = new System.Windows.Forms.ComboBox();
             this.tabControl2 = new System.Windows.Forms.TabControl();
-            this.tagFilteringBox = new System.Windows.Forms.TabPage();
-            this.tagSearchResultBox = new System.Windows.Forms.ListBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.checkBox6 = new System.Windows.Forms.CheckBox();
-            this.checkBox5 = new System.Windows.Forms.CheckBox();
-            this.mctLoadingLabel = new System.Windows.Forms.Label();
-            this.tagReply = new System.Windows.Forms.Label();
-            this.checkBox10 = new System.Windows.Forms.CheckBox();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.checkBox4 = new System.Windows.Forms.CheckBox();
-            this.checkBox7 = new System.Windows.Forms.CheckBox();
-            this.saveCustomFilterButton = new System.Windows.Forms.Button();
-            this.checkBox8 = new System.Windows.Forms.CheckBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.customTagFilters = new System.Windows.Forms.ComboBox();
-            this.clearFilterButton = new System.Windows.Forms.Button();
-            this.deleteCustomTagFilterButton = new System.Windows.Forms.Button();
-            this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.traitFilteringBox = new System.Windows.Forms.TabPage();
             this.traitSearchResultBox = new System.Windows.Forms.ListBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -197,6 +163,7 @@ namespace Happy_Search
             this.tileColumnTitle = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnDate = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnProducer = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.tileColumnLength = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnULS = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnULAdded = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnULNote = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -207,7 +174,116 @@ namespace Happy_Search
             this.tileColumnPopularity = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnUpdated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tileColumnID = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.TabsControl = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tagsOrTraits = new System.Windows.Forms.CheckBox();
+            this.tagSearchResultBox = new System.Windows.Forms.ListBox();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.label24 = new System.Windows.Forms.Label();
+            this.languageTFCB = new System.Windows.Forms.ComboBox();
+            this.languageFixed = new System.Windows.Forms.CheckBox();
+            this.languageTF = new System.Windows.Forms.CheckBox();
+            this.languageTFLB = new System.Windows.Forms.ListBox();
+            this.label21 = new System.Windows.Forms.Label();
+            this.filterDropdown = new System.Windows.Forms.ComboBox();
+            this.label19 = new System.Windows.Forms.Label();
+            this.traitsPanel = new System.Windows.Forms.Panel();
+            this.traitsFixed = new System.Windows.Forms.CheckBox();
+            this.traitsTF = new System.Windows.Forms.CheckBox();
+            this.button7 = new System.Windows.Forms.Button();
+            this.traitsTFLB = new System.Windows.Forms.ListBox();
+            this.label18 = new System.Windows.Forms.Label();
+            this.tagsPanel = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.tagReply = new System.Windows.Forms.Label();
+            this.saveCustomFilterButton = new System.Windows.Forms.Button();
+            this.customTagFilters = new System.Windows.Forms.ComboBox();
+            this.clearFilterButton = new System.Windows.Forms.Button();
+            this.deleteCustomTagFilterButton = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.tagsFixed = new System.Windows.Forms.CheckBox();
+            this.tagsTF = new System.Windows.Forms.CheckBox();
+            this.button6 = new System.Windows.Forms.Button();
+            this.tagsTFLB = new System.Windows.Forms.ListBox();
+            this.label30 = new System.Windows.Forms.Label();
+            this.panel13 = new System.Windows.Forms.Panel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.originalLanguageTFCB = new System.Windows.Forms.ComboBox();
+            this.originalLanguageFixed = new System.Windows.Forms.CheckBox();
+            this.originalLanguageTF = new System.Windows.Forms.CheckBox();
+            this.originalLanguageTFLB = new System.Windows.Forms.ListBox();
+            this.label20 = new System.Windows.Forms.Label();
+            this.userlistPanel = new System.Windows.Forms.Panel();
+            this.userlistFixed = new System.Windows.Forms.CheckBox();
+            this.userlistTF = new System.Windows.Forms.CheckBox();
+            this.userlistTFDropped = new System.Windows.Forms.CheckBox();
+            this.userlistTFStalled = new System.Windows.Forms.CheckBox();
+            this.userlistTFFinished = new System.Windows.Forms.CheckBox();
+            this.userlistTFPlaying = new System.Windows.Forms.CheckBox();
+            this.userlistTFUnknown = new System.Windows.Forms.CheckBox();
+            this.userlistTFNa = new System.Windows.Forms.CheckBox();
+            this.label23 = new System.Windows.Forms.Label();
+            this.wishlistPanel = new System.Windows.Forms.Panel();
+            this.wishlistFixed = new System.Windows.Forms.CheckBox();
+            this.wishlistTF = new System.Windows.Forms.CheckBox();
+            this.wishlistTFLow = new System.Windows.Forms.CheckBox();
+            this.wishlistTFMedium = new System.Windows.Forms.CheckBox();
+            this.wishlistTFHigh = new System.Windows.Forms.CheckBox();
+            this.wishlistTFNa = new System.Windows.Forms.CheckBox();
+            this.label26 = new System.Windows.Forms.Label();
+            this.favoriteProducersPanel = new System.Windows.Forms.Panel();
+            this.favoriteProducersFixed = new System.Windows.Forms.CheckBox();
+            this.favoriteProducersTF = new System.Windows.Forms.CheckBox();
+            this.favoriteProducersTFNo = new System.Windows.Forms.RadioButton();
+            this.favoriteProducersTFYes = new System.Windows.Forms.RadioButton();
+            this.label25 = new System.Windows.Forms.Label();
+            this.votedPanel = new System.Windows.Forms.Panel();
+            this.votedFixed = new System.Windows.Forms.CheckBox();
+            this.votedTF = new System.Windows.Forms.CheckBox();
+            this.votedTFNo = new System.Windows.Forms.RadioButton();
+            this.votedTFYes = new System.Windows.Forms.RadioButton();
+            this.label17 = new System.Windows.Forms.Label();
+            this.blacklistedPanel = new System.Windows.Forms.Panel();
+            this.blacklistedFixed = new System.Windows.Forms.CheckBox();
+            this.blacklistedTF = new System.Windows.Forms.CheckBox();
+            this.blacklistedTFNo = new System.Windows.Forms.RadioButton();
+            this.blacklistedTFYes = new System.Windows.Forms.RadioButton();
+            this.label16 = new System.Windows.Forms.Label();
+            this.unreleasedPanel = new System.Windows.Forms.Panel();
+            this.unreleasedFixed = new System.Windows.Forms.CheckBox();
+            this.unreleasedTFReleased = new System.Windows.Forms.CheckBox();
+            this.unreleasedTF = new System.Windows.Forms.CheckBox();
+            this.unreleasedTFWithoutReleaseDate = new System.Windows.Forms.CheckBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.unreleasedTFWithReleaseDate = new System.Windows.Forms.CheckBox();
+            this.releaseDatePanel = new System.Windows.Forms.Panel();
+            this.releaseDateTFResponse = new System.Windows.Forms.Label();
+            this.releaseDateFixed = new System.Windows.Forms.CheckBox();
+            this.releaseDateTF = new System.Windows.Forms.CheckBox();
+            this.releaseDateTFToYear = new System.Windows.Forms.NumericUpDown();
+            this.label27 = new System.Windows.Forms.Label();
+            this.releaseDateTFToMonth = new System.Windows.Forms.DomainUpDown();
+            this.label28 = new System.Windows.Forms.Label();
+            this.label29 = new System.Windows.Forms.Label();
+            this.releaseDateTFToDay = new System.Windows.Forms.NumericUpDown();
+            this.label22 = new System.Windows.Forms.Label();
+            this.releaseDateTFFromYear = new System.Windows.Forms.NumericUpDown();
+            this.label34 = new System.Windows.Forms.Label();
+            this.releaseDateTFFromMonth = new System.Windows.Forms.DomainUpDown();
+            this.label33 = new System.Windows.Forms.Label();
+            this.label32 = new System.Windows.Forms.Label();
+            this.releaseDateTFFromDay = new System.Windows.Forms.NumericUpDown();
+            this.label31 = new System.Windows.Forms.Label();
+            this.lengthPanel = new System.Windows.Forms.Panel();
+            this.lengthFixed = new System.Windows.Forms.CheckBox();
+            this.lengthTF = new System.Windows.Forms.CheckBox();
+            this.lengthTFOverFiftyHours = new System.Windows.Forms.CheckBox();
+            this.lengthTFThirtyToFiftyHours = new System.Windows.Forms.CheckBox();
+            this.lengthTFTenToThirtyHours = new System.Windows.Forms.CheckBox();
+            this.lengthTFTwoToTenHours = new System.Windows.Forms.CheckBox();
+            this.lengthTFUnderTwoHours = new System.Windows.Forms.CheckBox();
+            this.lengthTFNa = new System.Windows.Forms.CheckBox();
+            this.label14 = new System.Windows.Forms.Label();
             this.ContextMenuVN = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.userlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.noneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -250,11 +326,27 @@ namespace Happy_Search
             ((System.ComponentModel.ISupportInitialize)(this.olFavoriteProducers)).BeginInit();
             this.panel3.SuspendLayout();
             this.tabControl2.SuspendLayout();
-            this.tagFilteringBox.SuspendLayout();
             this.traitFilteringBox.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tileOLV)).BeginInit();
-            this.tabControl1.SuspendLayout();
+            this.TabsControl.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.panel4.SuspendLayout();
+            this.traitsPanel.SuspendLayout();
+            this.tagsPanel.SuspendLayout();
+            this.panel13.SuspendLayout();
+            this.userlistPanel.SuspendLayout();
+            this.wishlistPanel.SuspendLayout();
+            this.favoriteProducersPanel.SuspendLayout();
+            this.votedPanel.SuspendLayout();
+            this.blacklistedPanel.SuspendLayout();
+            this.unreleasedPanel.SuspendLayout();
+            this.releaseDatePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFToYear)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFToDay)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFFromYear)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFFromDay)).BeginInit();
+            this.lengthPanel.SuspendLayout();
             this.ContextMenuVN.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -380,67 +472,6 @@ namespace Happy_Search
             this.removeProducersButton.UseVisualStyleBackColor = false;
             this.removeProducersButton.Click += new System.EventHandler(this.RemoveProducers);
             // 
-            // tagTypeS
-            // 
-            this.tagTypeS.AutoSize = true;
-            this.tagTypeS.Checked = true;
-            this.tagTypeS.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeS.Location = new System.Drawing.Point(152, 2);
-            this.tagTypeS.Name = "tagTypeS";
-            this.tagTypeS.Size = new System.Drawing.Size(33, 17);
-            this.tagTypeS.TabIndex = 37;
-            this.tagTypeS.Text = "S";
-            this.tagTypeS.UseVisualStyleBackColor = true;
-            this.tagTypeS.Click += new System.EventHandler(this.DisplayCommonTags);
-            // 
-            // tagTypeT
-            // 
-            this.tagTypeT.AutoSize = true;
-            this.tagTypeT.Checked = true;
-            this.tagTypeT.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeT.Location = new System.Drawing.Point(191, 2);
-            this.tagTypeT.Name = "tagTypeT";
-            this.tagTypeT.Size = new System.Drawing.Size(33, 17);
-            this.tagTypeT.TabIndex = 36;
-            this.tagTypeT.Text = "T";
-            this.tagTypeT.UseVisualStyleBackColor = true;
-            this.tagTypeT.Click += new System.EventHandler(this.DisplayCommonTags);
-            // 
-            // tagTypeC
-            // 
-            this.tagTypeC.AutoSize = true;
-            this.tagTypeC.Checked = true;
-            this.tagTypeC.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tagTypeC.Location = new System.Drawing.Point(113, 2);
-            this.tagTypeC.Name = "tagTypeC";
-            this.tagTypeC.Size = new System.Drawing.Size(33, 17);
-            this.tagTypeC.TabIndex = 35;
-            this.tagTypeC.Text = "C";
-            this.tagTypeC.UseVisualStyleBackColor = true;
-            this.tagTypeC.Click += new System.EventHandler(this.DisplayCommonTags);
-            // 
-            // customTagFilterNameBox
-            // 
-            this.customTagFilterNameBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.customTagFilterNameBox.Location = new System.Drawing.Point(446, 19);
-            this.customTagFilterNameBox.Name = "customTagFilterNameBox";
-            this.customTagFilterNameBox.Size = new System.Drawing.Size(100, 22);
-            this.customTagFilterNameBox.TabIndex = 41;
-            this.toolTip.SetToolTip(this.customTagFilterNameBox, "Enter Custom Filter name here");
-            this.customTagFilterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EnterCustomTagFilterName);
-            // 
-            // tagSearchBox
-            // 
-            this.tagSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.tagSearchBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.tagSearchBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tagSearchBox.Location = new System.Drawing.Point(274, 1);
-            this.tagSearchBox.Name = "tagSearchBox";
-            this.tagSearchBox.Size = new System.Drawing.Size(140, 22);
-            this.tagSearchBox.TabIndex = 29;
-            this.toolTip.SetToolTip(this.tagSearchBox, "Enter tag name/alias here.");
-            this.tagSearchBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.AddTagBySearch);
-            // 
             // updateTagsAndTraitsButton
             // 
             this.updateTagsAndTraitsButton.BackColor = System.Drawing.Color.MistyRose;
@@ -478,63 +509,6 @@ namespace Happy_Search
             this.customTraitFilterNameBox.TabIndex = 103;
             this.toolTip.SetToolTip(this.customTraitFilterNameBox, "Enter Custom Filter name here");
             this.customTraitFilterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EnterCustomTraitFilterName);
-            // 
-            // tagSignaler
-            // 
-            this.tagSignaler.BackColor = System.Drawing.Color.LightGray;
-            this.tagSignaler.FlatAppearance.BorderSize = 0;
-            this.tagSignaler.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.tagSignaler.Location = new System.Drawing.Point(638, 29);
-            this.tagSignaler.Name = "tagSignaler";
-            this.tagSignaler.Size = new System.Drawing.Size(23, 23);
-            this.tagSignaler.TabIndex = 101;
-            this.toolTip.SetToolTip(this.tagSignaler, "Red when tag filter is active, Gray when not active, click to clear filter.");
-            this.tagSignaler.UseVisualStyleBackColor = false;
-            this.tagSignaler.Click += new System.EventHandler(this.ClearTagFilter);
-            // 
-            // traitSignaler
-            // 
-            this.traitSignaler.BackColor = System.Drawing.Color.LightGray;
-            this.traitSignaler.FlatAppearance.BorderSize = 0;
-            this.traitSignaler.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.traitSignaler.Location = new System.Drawing.Point(684, 29);
-            this.traitSignaler.Name = "traitSignaler";
-            this.traitSignaler.Size = new System.Drawing.Size(23, 23);
-            this.traitSignaler.TabIndex = 92;
-            this.toolTip.SetToolTip(this.traitSignaler, "Red when trait filter is active, Gray when not active, click to clear filter.");
-            this.traitSignaler.UseVisualStyleBackColor = false;
-            this.traitSignaler.Click += new System.EventHandler(this.ClearTraitFilter);
-            // 
-            // ToggleFiltersModeButton
-            // 
-            this.ToggleFiltersModeButton.Appearance = System.Windows.Forms.Appearance.Button;
-            this.ToggleFiltersModeButton.BackColor = System.Drawing.Color.Black;
-            this.ToggleFiltersModeButton.FlatAppearance.BorderSize = 0;
-            this.ToggleFiltersModeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ToggleFiltersModeButton.Location = new System.Drawing.Point(638, 31);
-            this.ToggleFiltersModeButton.Name = "ToggleFiltersModeButton";
-            this.ToggleFiltersModeButton.Size = new System.Drawing.Size(69, 19);
-            this.ToggleFiltersModeButton.TabIndex = 103;
-            this.ToggleFiltersModeButton.Text = "And";
-            this.ToggleFiltersModeButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.toolTip.SetToolTip(this.ToggleFiltersModeButton, "Click to toggle between \'and\' and \'or\'. Changes how tag/trait filters are used.");
-            this.ToggleFiltersModeButton.UseVisualStyleBackColor = false;
-            this.ToggleFiltersModeButton.CheckedChanged += new System.EventHandler(this.ToggleFiltersMode);
-            // 
-            // tagSearchButton
-            // 
-            this.tagSearchButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.tagSearchButton.FlatAppearance.BorderSize = 0;
-            this.tagSearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.tagSearchButton.ForeColor = System.Drawing.Color.White;
-            this.tagSearchButton.Location = new System.Drawing.Point(420, 1);
-            this.tagSearchButton.Name = "tagSearchButton";
-            this.tagSearchButton.Size = new System.Drawing.Size(17, 22);
-            this.tagSearchButton.TabIndex = 94;
-            this.tagSearchButton.Text = "S";
-            this.toolTip.SetToolTip(this.tagSearchButton, "Search for a tag based on name and/or alias.");
-            this.tagSearchButton.UseVisualStyleBackColor = false;
-            this.tagSearchButton.Click += new System.EventHandler(this.SearchTags);
             // 
             // traitSearchButton
             // 
@@ -598,36 +572,6 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.ListByCB, "Select method by which to list titles.");
             this.ListByCB.SelectedIndexChanged += new System.EventHandler(this.ChangeListBy);
             // 
-            // TagFilteringHelpButton
-            // 
-            this.TagFilteringHelpButton.BackColor = System.Drawing.Color.Khaki;
-            this.TagFilteringHelpButton.FlatAppearance.BorderSize = 0;
-            this.TagFilteringHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.TagFilteringHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.TagFilteringHelpButton.Location = new System.Drawing.Point(446, 249);
-            this.TagFilteringHelpButton.Name = "TagFilteringHelpButton";
-            this.TagFilteringHelpButton.Size = new System.Drawing.Size(100, 23);
-            this.TagFilteringHelpButton.TabIndex = 90;
-            this.TagFilteringHelpButton.Text = "Tag Filtering";
-            this.toolTip.SetToolTip(this.TagFilteringHelpButton, "Help on Tag Filtering.");
-            this.TagFilteringHelpButton.UseVisualStyleBackColor = false;
-            this.TagFilteringHelpButton.Click += new System.EventHandler(this.Help_TagFiltering);
-            // 
-            // updateFilterResultsButton
-            // 
-            this.updateFilterResultsButton.BackColor = System.Drawing.Color.MistyRose;
-            this.updateFilterResultsButton.FlatAppearance.BorderSize = 0;
-            this.updateFilterResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.updateFilterResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.updateFilterResultsButton.Location = new System.Drawing.Point(446, 161);
-            this.updateFilterResultsButton.Name = "updateFilterResultsButton";
-            this.updateFilterResultsButton.Size = new System.Drawing.Size(100, 23);
-            this.updateFilterResultsButton.TabIndex = 50;
-            this.updateFilterResultsButton.Text = "Update Results";
-            this.toolTip.SetToolTip(this.updateFilterResultsButton, "Get titles that match active tag filter from VNDB.");
-            this.updateFilterResultsButton.UseVisualStyleBackColor = false;
-            this.updateFilterResultsButton.Click += new System.EventHandler(this.UpdateResults);
-            // 
             // favoriteProducersHelpButton
             // 
             this.favoriteProducersHelpButton.BackColor = System.Drawing.Color.Khaki;
@@ -649,11 +593,11 @@ namespace Happy_Search
             this.listResultsButton.FlatAppearance.BorderSize = 0;
             this.listResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.listResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.listResultsButton.Location = new System.Drawing.Point(558, 30);
+            this.listResultsButton.Location = new System.Drawing.Point(659, 1);
             this.listResultsButton.Name = "listResultsButton";
-            this.listResultsButton.Size = new System.Drawing.Size(74, 23);
+            this.listResultsButton.Size = new System.Drawing.Size(54, 23);
             this.listResultsButton.TabIndex = 95;
-            this.listResultsButton.Text = "List Results";
+            this.listResultsButton.Text = "Results";
             this.toolTip.SetToolTip(this.listResultsButton, "Help on Right-click functions for results.");
             this.listResultsButton.UseVisualStyleBackColor = false;
             this.listResultsButton.Click += new System.EventHandler(this.Help_ListResults);
@@ -694,11 +638,11 @@ namespace Happy_Search
             this.SearchingAndFilteringButton.FlatAppearance.BorderSize = 0;
             this.SearchingAndFilteringButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SearchingAndFilteringButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(558, 1);
+            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(546, 1);
             this.SearchingAndFilteringButton.Name = "SearchingAndFilteringButton";
-            this.SearchingAndFilteringButton.Size = new System.Drawing.Size(159, 23);
+            this.SearchingAndFilteringButton.Size = new System.Drawing.Size(107, 23);
             this.SearchingAndFilteringButton.TabIndex = 91;
-            this.SearchingAndFilteringButton.Text = "Searching, Listing and Filtering";
+            this.SearchingAndFilteringButton.Text = "Searching / Listing";
             this.toolTip.SetToolTip(this.SearchingAndFilteringButton, "Help on Searching/Listing/Filtering titles.");
             this.SearchingAndFilteringButton.UseVisualStyleBackColor = false;
             this.SearchingAndFilteringButton.Click += new System.EventHandler(this.Help_SearchingAndFiltering);
@@ -728,7 +672,7 @@ namespace Happy_Search
             this.toggleViewButton.ForeColor = System.Drawing.Color.White;
             this.toggleViewButton.Location = new System.Drawing.Point(937, 1);
             this.toggleViewButton.Name = "toggleViewButton";
-            this.toggleViewButton.Size = new System.Drawing.Size(240, 23);
+            this.toggleViewButton.Size = new System.Drawing.Size(108, 23);
             this.toggleViewButton.TabIndex = 93;
             this.toggleViewButton.Text = "▲ Hide Options ▲";
             this.toolTip.SetToolTip(this.toggleViewButton, "Show/hide settings, filtering and favorite producers sections.");
@@ -770,6 +714,73 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.button1, "Update all data for titles that haven\'t been updated in over 7 days.");
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.UpdateAllDataClick);
+            // 
+            // tagSearchButton
+            // 
+            this.tagSearchButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.tagSearchButton.FlatAppearance.BorderSize = 0;
+            this.tagSearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagSearchButton.ForeColor = System.Drawing.Color.White;
+            this.tagSearchButton.Location = new System.Drawing.Point(261, 217);
+            this.tagSearchButton.Name = "tagSearchButton";
+            this.tagSearchButton.Size = new System.Drawing.Size(17, 22);
+            this.tagSearchButton.TabIndex = 98;
+            this.tagSearchButton.Text = "S";
+            this.toolTip.SetToolTip(this.tagSearchButton, "Search for a tag based on name and/or alias.");
+            this.tagSearchButton.UseVisualStyleBackColor = false;
+            this.tagSearchButton.Click += new System.EventHandler(this.SearchTags);
+            // 
+            // tagSearchBox
+            // 
+            this.tagSearchBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            this.tagSearchBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.tagSearchBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tagSearchBox.Location = new System.Drawing.Point(53, 218);
+            this.tagSearchBox.Name = "tagSearchBox";
+            this.tagSearchBox.Size = new System.Drawing.Size(202, 22);
+            this.tagSearchBox.TabIndex = 95;
+            this.toolTip.SetToolTip(this.tagSearchBox, "Enter tag name/alias here.");
+            this.tagSearchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddTagBySearch);
+            // 
+            // TagFilteringHelpButton
+            // 
+            this.TagFilteringHelpButton.BackColor = System.Drawing.Color.Khaki;
+            this.TagFilteringHelpButton.FlatAppearance.BorderSize = 0;
+            this.TagFilteringHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.TagFilteringHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.TagFilteringHelpButton.Location = new System.Drawing.Point(284, 246);
+            this.TagFilteringHelpButton.Name = "TagFilteringHelpButton";
+            this.TagFilteringHelpButton.Size = new System.Drawing.Size(100, 23);
+            this.TagFilteringHelpButton.TabIndex = 106;
+            this.TagFilteringHelpButton.Text = "Tag Filtering";
+            this.toolTip.SetToolTip(this.TagFilteringHelpButton, "Help on Tag Filtering.");
+            this.TagFilteringHelpButton.UseVisualStyleBackColor = false;
+            this.TagFilteringHelpButton.Click += new System.EventHandler(this.Help_TagFiltering);
+            // 
+            // updateFilterResultsButton
+            // 
+            this.updateFilterResultsButton.BackColor = System.Drawing.Color.MistyRose;
+            this.updateFilterResultsButton.FlatAppearance.BorderSize = 0;
+            this.updateFilterResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.updateFilterResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.updateFilterResultsButton.Location = new System.Drawing.Point(284, 169);
+            this.updateFilterResultsButton.Name = "updateFilterResultsButton";
+            this.updateFilterResultsButton.Size = new System.Drawing.Size(100, 23);
+            this.updateFilterResultsButton.TabIndex = 103;
+            this.updateFilterResultsButton.Text = "Update Results";
+            this.toolTip.SetToolTip(this.updateFilterResultsButton, "Get titles that match active tag filter from VNDB.");
+            this.updateFilterResultsButton.UseVisualStyleBackColor = false;
+            this.updateFilterResultsButton.Click += new System.EventHandler(this.UpdateTagResults);
+            // 
+            // customTagFilterNameBox
+            // 
+            this.customTagFilterNameBox.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.customTagFilterNameBox.Location = new System.Drawing.Point(284, 27);
+            this.customTagFilterNameBox.Name = "customTagFilterNameBox";
+            this.customTagFilterNameBox.Size = new System.Drawing.Size(100, 22);
+            this.customTagFilterNameBox.TabIndex = 101;
+            this.toolTip.SetToolTip(this.customTagFilterNameBox, "Enter Custom Filter name here");
+            this.customTagFilterNameBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EnterCustomTagFilterName);
             // 
             // infoTab
             // 
@@ -1356,7 +1367,8 @@ namespace Happy_Search
             this.vnTab.Padding = new System.Windows.Forms.Padding(3);
             this.vnTab.Size = new System.Drawing.Size(1196, 595);
             this.vnTab.TabIndex = 1;
-            this.vnTab.Text = "Visual Novel Info";
+            this.vnTab.Text = "Main";
+            this.vnTab.Enter += new System.EventHandler(this.vnTab_Enter);
             // 
             // panel2
             // 
@@ -1478,25 +1490,15 @@ namespace Happy_Search
             this.panel3.Controls.Add(this.label4);
             this.panel3.Controls.Add(this.ListByGoButton);
             this.panel3.Controls.Add(this.ListByUpdateButton);
-            this.panel3.Controls.Add(this.BlacklistToggleBox);
-            this.panel3.Controls.Add(this.quickFilter1);
             this.panel3.Controls.Add(this.ListByTB);
-            this.panel3.Controls.Add(this.UnreleasedToggleBox);
-            this.panel3.Controls.Add(this.URTToggleBox);
-            this.panel3.Controls.Add(this.quickFilter0);
             this.panel3.Controls.Add(this.viewPicker);
             this.panel3.Controls.Add(this.ListByCB);
-            this.panel3.Controls.Add(this.ulStatusDropDown);
             this.panel3.Controls.Add(this.resultLabel);
-            this.panel3.Controls.Add(this.tagSignaler);
             this.panel3.Controls.Add(this.replyText);
-            this.panel3.Controls.Add(this.traitSignaler);
             this.panel3.Controls.Add(this.statusLabel);
             this.panel3.Controls.Add(this.ListByCBQuery);
             this.panel3.Controls.Add(this.SearchingAndFilteringButton);
-            this.panel3.Controls.Add(this.wlStatusDropDown);
             this.panel3.Controls.Add(this.listResultsButton);
-            this.panel3.Controls.Add(this.ToggleFiltersModeButton);
             this.panel3.Location = new System.Drawing.Point(6, 306);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1187, 58);
@@ -1512,37 +1514,6 @@ namespace Happy_Search
             this.label4.Text = "List:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // BlacklistToggleBox
-            // 
-            this.BlacklistToggleBox.BackColor = System.Drawing.Color.Navy;
-            this.BlacklistToggleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.BlacklistToggleBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.BlacklistToggleBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.BlacklistToggleBox.FormattingEnabled = true;
-            this.BlacklistToggleBox.Items.AddRange(new object[] {
-            "Show Blacklisted",
-            "Hide Blacklisted",
-            "Only Blacklisted"});
-            this.BlacklistToggleBox.Location = new System.Drawing.Point(937, 30);
-            this.BlacklistToggleBox.Name = "BlacklistToggleBox";
-            this.BlacklistToggleBox.Size = new System.Drawing.Size(108, 21);
-            this.BlacklistToggleBox.TabIndex = 87;
-            this.BlacklistToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_Blacklist);
-            // 
-            // quickFilter1
-            // 
-            this.quickFilter1.BackColor = System.Drawing.Color.SteelBlue;
-            this.quickFilter1.FlatAppearance.BorderSize = 0;
-            this.quickFilter1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.quickFilter1.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.quickFilter1.Location = new System.Drawing.Point(222, 29);
-            this.quickFilter1.Name = "quickFilter1";
-            this.quickFilter1.Size = new System.Drawing.Size(105, 23);
-            this.quickFilter1.TabIndex = 47;
-            this.quickFilter1.Text = "Favorite Producers";
-            this.quickFilter1.UseVisualStyleBackColor = false;
-            this.quickFilter1.Click += new System.EventHandler(this.List_FavoriteProducers);
-            // 
             // ListByTB
             // 
             this.ListByTB.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
@@ -1552,56 +1523,6 @@ namespace Happy_Search
             this.ListByTB.TabIndex = 105;
             this.ListByTB.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ListByTB_KeyPress);
             this.ListByTB.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ListByTB_KeyUp);
-            // 
-            // UnreleasedToggleBox
-            // 
-            this.UnreleasedToggleBox.BackColor = System.Drawing.Color.Navy;
-            this.UnreleasedToggleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.UnreleasedToggleBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.UnreleasedToggleBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.UnreleasedToggleBox.FormattingEnabled = true;
-            this.UnreleasedToggleBox.Items.AddRange(new object[] {
-            "Show Unreleased",
-            "Hide Unreleased",
-            "Only Unreleased",
-            "Hide No Release Date"});
-            this.UnreleasedToggleBox.Location = new System.Drawing.Point(817, 30);
-            this.UnreleasedToggleBox.Name = "UnreleasedToggleBox";
-            this.UnreleasedToggleBox.Size = new System.Drawing.Size(114, 21);
-            this.UnreleasedToggleBox.TabIndex = 86;
-            this.UnreleasedToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_Unreleased);
-            // 
-            // URTToggleBox
-            // 
-            this.URTToggleBox.BackColor = System.Drawing.Color.Navy;
-            this.URTToggleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.URTToggleBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.URTToggleBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.URTToggleBox.FormattingEnabled = true;
-            this.URTToggleBox.Items.AddRange(new object[] {
-            "Show URT",
-            "Hide URT",
-            "Only URT",
-            "Only Unplayed"});
-            this.URTToggleBox.Location = new System.Drawing.Point(709, 30);
-            this.URTToggleBox.Name = "URTToggleBox";
-            this.URTToggleBox.Size = new System.Drawing.Size(102, 21);
-            this.URTToggleBox.TabIndex = 85;
-            this.URTToggleBox.SelectedIndexChanged += new System.EventHandler(this.Filter_URT);
-            // 
-            // quickFilter0
-            // 
-            this.quickFilter0.BackColor = System.Drawing.Color.SteelBlue;
-            this.quickFilter0.FlatAppearance.BorderSize = 0;
-            this.quickFilter0.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.quickFilter0.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.quickFilter0.Location = new System.Drawing.Point(162, 29);
-            this.quickFilter0.Name = "quickFilter0";
-            this.quickFilter0.Size = new System.Drawing.Size(54, 23);
-            this.quickFilter0.TabIndex = 48;
-            this.quickFilter0.Text = "All Titles";
-            this.quickFilter0.UseVisualStyleBackColor = false;
-            this.quickFilter0.Click += new System.EventHandler(this.List_All);
             // 
             // viewPicker
             // 
@@ -1619,36 +1540,14 @@ namespace Happy_Search
             this.viewPicker.TabIndex = 77;
             this.viewPicker.SelectedIndexChanged += new System.EventHandler(this.OLVChangeView);
             // 
-            // ulStatusDropDown
-            // 
-            this.ulStatusDropDown.BackColor = System.Drawing.Color.SteelBlue;
-            this.ulStatusDropDown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.ulStatusDropDown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ulStatusDropDown.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.ulStatusDropDown.FormattingEnabled = true;
-            this.ulStatusDropDown.Items.AddRange(new object[] {
-            "UL Status",
-            "----------",
-            "Userlist Titles",
-            "Unknown",
-            "Playing",
-            "Finished",
-            "Stalled",
-            "Dropped"});
-            this.ulStatusDropDown.Location = new System.Drawing.Point(447, 30);
-            this.ulStatusDropDown.Name = "ulStatusDropDown";
-            this.ulStatusDropDown.Size = new System.Drawing.Size(105, 21);
-            this.ulStatusDropDown.TabIndex = 56;
-            this.ulStatusDropDown.SelectedIndexChanged += new System.EventHandler(this.List_ULStatus);
-            // 
             // resultLabel
             // 
             this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultLabel.BackColor = System.Drawing.Color.Transparent;
             this.resultLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.resultLabel.Location = new System.Drawing.Point(960, 29);
+            this.resultLabel.Location = new System.Drawing.Point(1054, 0);
             this.resultLabel.Name = "resultLabel";
-            this.resultLabel.Size = new System.Drawing.Size(222, 24);
+            this.resultLabel.Size = new System.Drawing.Size(123, 24);
             this.resultLabel.TabIndex = 43;
             this.resultLabel.Text = "(resultLabel)";
             this.resultLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1658,7 +1557,7 @@ namespace Happy_Search
             this.replyText.BackColor = System.Drawing.Color.Transparent;
             this.replyText.Location = new System.Drawing.Point(356, 2);
             this.replyText.Name = "replyText";
-            this.replyText.Size = new System.Drawing.Size(196, 20);
+            this.replyText.Size = new System.Drawing.Size(184, 20);
             this.replyText.TabIndex = 28;
             this.replyText.Text = "(replyText)";
             this.replyText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1695,290 +1594,14 @@ namespace Happy_Search
             this.ListByCBQuery.SelectedIndexChanged += new System.EventHandler(this.List_Group);
             this.ListByCBQuery.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ListByCbEnter);
             // 
-            // wlStatusDropDown
-            // 
-            this.wlStatusDropDown.BackColor = System.Drawing.Color.SteelBlue;
-            this.wlStatusDropDown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.wlStatusDropDown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.wlStatusDropDown.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.wlStatusDropDown.FormattingEnabled = true;
-            this.wlStatusDropDown.Items.AddRange(new object[] {
-            "WL Status",
-            "----------",
-            "Wishlist Titles",
-            "High",
-            "Medium",
-            "Low",
-            "Blacklist"});
-            this.wlStatusDropDown.Location = new System.Drawing.Point(333, 30);
-            this.wlStatusDropDown.Name = "wlStatusDropDown";
-            this.wlStatusDropDown.Size = new System.Drawing.Size(108, 21);
-            this.wlStatusDropDown.TabIndex = 93;
-            this.wlStatusDropDown.SelectedIndexChanged += new System.EventHandler(this.List_WLStatus);
-            // 
             // tabControl2
             // 
-            this.tabControl2.Controls.Add(this.tagFilteringBox);
             this.tabControl2.Controls.Add(this.traitFilteringBox);
             this.tabControl2.Location = new System.Drawing.Point(151, 6);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
             this.tabControl2.Size = new System.Drawing.Size(572, 299);
             this.tabControl2.TabIndex = 97;
-            // 
-            // tagFilteringBox
-            // 
-            this.tagFilteringBox.AutoScroll = true;
-            this.tagFilteringBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            this.tagFilteringBox.Controls.Add(this.tagSearchButton);
-            this.tagFilteringBox.Controls.Add(this.tagSearchResultBox);
-            this.tagFilteringBox.Controls.Add(this.label2);
-            this.tagFilteringBox.Controls.Add(this.label6);
-            this.tagFilteringBox.Controls.Add(this.TagFilteringHelpButton);
-            this.tagFilteringBox.Controls.Add(this.tagTypeS);
-            this.tagFilteringBox.Controls.Add(this.checkBox6);
-            this.tagFilteringBox.Controls.Add(this.updateFilterResultsButton);
-            this.tagFilteringBox.Controls.Add(this.checkBox5);
-            this.tagFilteringBox.Controls.Add(this.tagSearchBox);
-            this.tagFilteringBox.Controls.Add(this.mctLoadingLabel);
-            this.tagFilteringBox.Controls.Add(this.tagReply);
-            this.tagFilteringBox.Controls.Add(this.tagTypeT);
-            this.tagFilteringBox.Controls.Add(this.checkBox10);
-            this.tagFilteringBox.Controls.Add(this.checkBox3);
-            this.tagFilteringBox.Controls.Add(this.customTagFilterNameBox);
-            this.tagFilteringBox.Controls.Add(this.checkBox4);
-            this.tagFilteringBox.Controls.Add(this.checkBox7);
-            this.tagFilteringBox.Controls.Add(this.saveCustomFilterButton);
-            this.tagFilteringBox.Controls.Add(this.checkBox8);
-            this.tagFilteringBox.Controls.Add(this.tagTypeC);
-            this.tagFilteringBox.Controls.Add(this.checkBox1);
-            this.tagFilteringBox.Controls.Add(this.checkBox2);
-            this.tagFilteringBox.Controls.Add(this.label7);
-            this.tagFilteringBox.Controls.Add(this.customTagFilters);
-            this.tagFilteringBox.Controls.Add(this.clearFilterButton);
-            this.tagFilteringBox.Controls.Add(this.deleteCustomTagFilterButton);
-            this.tagFilteringBox.Controls.Add(this.checkBox9);
-            this.tagFilteringBox.Location = new System.Drawing.Point(4, 22);
-            this.tagFilteringBox.Name = "tagFilteringBox";
-            this.tagFilteringBox.Padding = new System.Windows.Forms.Padding(3);
-            this.tagFilteringBox.Size = new System.Drawing.Size(564, 273);
-            this.tagFilteringBox.TabIndex = 0;
-            this.tagFilteringBox.Text = "Tag Filtering";
-            this.tagFilteringBox.Click += new System.EventHandler(this.ClearListBox);
-            // 
-            // tagSearchResultBox
-            // 
-            this.tagSearchResultBox.FormattingEnabled = true;
-            this.tagSearchResultBox.Location = new System.Drawing.Point(274, 28);
-            this.tagSearchResultBox.Name = "tagSearchResultBox";
-            this.tagSearchResultBox.Size = new System.Drawing.Size(163, 238);
-            this.tagSearchResultBox.TabIndex = 93;
-            this.tagSearchResultBox.Visible = false;
-            this.tagSearchResultBox.SelectedIndexChanged += new System.EventHandler(this.AddTagFromList);
-            // 
-            // label2
-            // 
-            this.label2.Location = new System.Drawing.Point(443, 3);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(103, 13);
-            this.label2.TabIndex = 91;
-            this.label2.Text = "Custom Filter Name:";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 3);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(101, 13);
-            this.label6.TabIndex = 33;
-            this.label6.Text = "Most Common Tags";
-            // 
-            // checkBox6
-            // 
-            this.checkBox6.Location = new System.Drawing.Point(6, 140);
-            this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(200, 17);
-            this.checkBox6.TabIndex = 3;
-            this.checkBox6.Text = "checkBox6";
-            this.checkBox6.UseVisualStyleBackColor = true;
-            this.checkBox6.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox5
-            // 
-            this.checkBox5.Location = new System.Drawing.Point(6, 117);
-            this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(200, 17);
-            this.checkBox5.TabIndex = 4;
-            this.checkBox5.Text = "checkBox5";
-            this.checkBox5.UseVisualStyleBackColor = true;
-            this.checkBox5.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // mctLoadingLabel
-            // 
-            this.mctLoadingLabel.AutoSize = true;
-            this.mctLoadingLabel.Location = new System.Drawing.Point(6, 252);
-            this.mctLoadingLabel.Name = "mctLoadingLabel";
-            this.mctLoadingLabel.Size = new System.Drawing.Size(94, 13);
-            this.mctLoadingLabel.TabIndex = 38;
-            this.mctLoadingLabel.Text = "(mctLoadingLabel)";
-            // 
-            // tagReply
-            // 
-            this.tagReply.Location = new System.Drawing.Point(446, 187);
-            this.tagReply.Name = "tagReply";
-            this.tagReply.Size = new System.Drawing.Size(100, 57);
-            this.tagReply.TabIndex = 49;
-            this.tagReply.Text = "(tagReply)";
-            this.tagReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            // 
-            // checkBox10
-            // 
-            this.checkBox10.Location = new System.Drawing.Point(6, 232);
-            this.checkBox10.Name = "checkBox10";
-            this.checkBox10.Size = new System.Drawing.Size(200, 17);
-            this.checkBox10.TabIndex = 9;
-            this.checkBox10.Text = "checkBox10";
-            this.checkBox10.UseVisualStyleBackColor = true;
-            this.checkBox10.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox3
-            // 
-            this.checkBox3.Location = new System.Drawing.Point(6, 73);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(200, 17);
-            this.checkBox3.TabIndex = 2;
-            this.checkBox3.Text = "checkBox3";
-            this.checkBox3.UseVisualStyleBackColor = true;
-            this.checkBox3.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox4
-            // 
-            this.checkBox4.Location = new System.Drawing.Point(6, 94);
-            this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(200, 17);
-            this.checkBox4.TabIndex = 5;
-            this.checkBox4.Text = "checkBox4";
-            this.checkBox4.UseVisualStyleBackColor = true;
-            this.checkBox4.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox7
-            // 
-            this.checkBox7.Location = new System.Drawing.Point(6, 163);
-            this.checkBox7.Name = "checkBox7";
-            this.checkBox7.Size = new System.Drawing.Size(200, 17);
-            this.checkBox7.TabIndex = 8;
-            this.checkBox7.Text = "checkBox7";
-            this.checkBox7.UseVisualStyleBackColor = true;
-            this.checkBox7.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // saveCustomFilterButton
-            // 
-            this.saveCustomFilterButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.saveCustomFilterButton.FlatAppearance.BorderSize = 0;
-            this.saveCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.saveCustomFilterButton.ForeColor = System.Drawing.Color.White;
-            this.saveCustomFilterButton.Location = new System.Drawing.Point(446, 74);
-            this.saveCustomFilterButton.Name = "saveCustomFilterButton";
-            this.saveCustomFilterButton.Size = new System.Drawing.Size(100, 23);
-            this.saveCustomFilterButton.TabIndex = 39;
-            this.saveCustomFilterButton.Text = "Save Filter";
-            this.saveCustomFilterButton.UseVisualStyleBackColor = false;
-            this.saveCustomFilterButton.Click += new System.EventHandler(this.SaveCustomTagFilter);
-            // 
-            // checkBox8
-            // 
-            this.checkBox8.Location = new System.Drawing.Point(6, 186);
-            this.checkBox8.Name = "checkBox8";
-            this.checkBox8.Size = new System.Drawing.Size(200, 17);
-            this.checkBox8.TabIndex = 7;
-            this.checkBox8.Text = "checkBox8";
-            this.checkBox8.UseVisualStyleBackColor = true;
-            this.checkBox8.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.Location = new System.Drawing.Point(6, 28);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(200, 17);
-            this.checkBox1.TabIndex = 0;
-            this.checkBox1.Text = "checkBox1";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // checkBox2
-            // 
-            this.checkBox2.Location = new System.Drawing.Point(6, 50);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(200, 17);
-            this.checkBox2.TabIndex = 1;
-            this.checkBox2.Text = "checkBox2";
-            this.checkBox2.UseVisualStyleBackColor = true;
-            this.checkBox2.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(224, 3);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(44, 13);
-            this.label7.TabIndex = 34;
-            this.label7.Text = "Search:";
-            // 
-            // customTagFilters
-            // 
-            this.customTagFilters.BackColor = System.Drawing.Color.SteelBlue;
-            this.customTagFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.customTagFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.customTagFilters.ForeColor = System.Drawing.Color.White;
-            this.customTagFilters.FormattingEnabled = true;
-            this.customTagFilters.Items.AddRange(new object[] {
-            "Custom Filters",
-            "----------"});
-            this.customTagFilters.Location = new System.Drawing.Point(446, 47);
-            this.customTagFilters.Name = "customTagFilters";
-            this.customTagFilters.Size = new System.Drawing.Size(100, 21);
-            this.customTagFilters.TabIndex = 57;
-            this.customTagFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTags);
-            // 
-            // clearFilterButton
-            // 
-            this.clearFilterButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.clearFilterButton.FlatAppearance.BorderSize = 0;
-            this.clearFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.clearFilterButton.ForeColor = System.Drawing.Color.White;
-            this.clearFilterButton.Location = new System.Drawing.Point(446, 132);
-            this.clearFilterButton.Name = "clearFilterButton";
-            this.clearFilterButton.Size = new System.Drawing.Size(100, 23);
-            this.clearFilterButton.TabIndex = 40;
-            this.clearFilterButton.Text = "Clear Filter";
-            this.clearFilterButton.UseVisualStyleBackColor = false;
-            this.clearFilterButton.Click += new System.EventHandler(this.ClearTagFilter);
-            // 
-            // deleteCustomTagFilterButton
-            // 
-            this.deleteCustomTagFilterButton.BackColor = System.Drawing.Color.SteelBlue;
-            this.deleteCustomTagFilterButton.Enabled = false;
-            this.deleteCustomTagFilterButton.FlatAppearance.BorderSize = 0;
-            this.deleteCustomTagFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.deleteCustomTagFilterButton.ForeColor = System.Drawing.Color.White;
-            this.deleteCustomTagFilterButton.Location = new System.Drawing.Point(446, 103);
-            this.deleteCustomTagFilterButton.Name = "deleteCustomTagFilterButton";
-            this.deleteCustomTagFilterButton.Size = new System.Drawing.Size(100, 23);
-            this.deleteCustomTagFilterButton.TabIndex = 78;
-            this.deleteCustomTagFilterButton.Text = "Delete Filter";
-            this.deleteCustomTagFilterButton.UseVisualStyleBackColor = false;
-            this.deleteCustomTagFilterButton.Click += new System.EventHandler(this.DeleteCustomTagFilter);
-            // 
-            // checkBox9
-            // 
-            this.checkBox9.Location = new System.Drawing.Point(6, 209);
-            this.checkBox9.Name = "checkBox9";
-            this.checkBox9.Size = new System.Drawing.Size(200, 17);
-            this.checkBox9.TabIndex = 6;
-            this.checkBox9.Text = "checkBox9";
-            this.checkBox9.UseVisualStyleBackColor = true;
-            this.checkBox9.CheckedChanged += new System.EventHandler(this.TagFilterAdded);
             // 
             // traitFilteringBox
             // 
@@ -2219,6 +1842,7 @@ namespace Happy_Search
             this.tileOLV.AllColumns.Add(this.tileColumnTitle);
             this.tileOLV.AllColumns.Add(this.tileColumnDate);
             this.tileOLV.AllColumns.Add(this.tileColumnProducer);
+            this.tileOLV.AllColumns.Add(this.tileColumnLength);
             this.tileOLV.AllColumns.Add(this.tileColumnULS);
             this.tileOLV.AllColumns.Add(this.tileColumnULAdded);
             this.tileOLV.AllColumns.Add(this.tileColumnULNote);
@@ -2238,6 +1862,7 @@ namespace Happy_Search
             this.tileColumnTitle,
             this.tileColumnDate,
             this.tileColumnProducer,
+            this.tileColumnLength,
             this.tileColumnULS,
             this.tileColumnULAdded,
             this.tileColumnULNote,
@@ -2268,8 +1893,8 @@ namespace Happy_Search
             this.tileOLV.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.VNToolTip);
             this.tileOLV.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.FormatVNCell);
             this.tileOLV.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.FormatVNRow);
-            this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.objectList_ItemsChanged);
-            this.tileOLV.Resize += new System.EventHandler(this.tileOLV_Resize);
+            this.tileOLV.ItemsChanged += new System.EventHandler<BrightIdeasSoftware.ItemsChangedEventArgs>(this.OLV_ItemsChanged);
+            this.tileOLV.Resize += new System.EventHandler(this.OLV_Resize);
             // 
             // tileColumnTitle
             // 
@@ -2292,74 +1917,1566 @@ namespace Happy_Search
             this.tileColumnProducer.Text = "Producer";
             this.tileColumnProducer.Width = 176;
             // 
+            // tileColumnLength
+            // 
+            this.tileColumnLength.AspectName = "LengthString";
+            this.tileColumnLength.DisplayIndex = 13;
+            this.tileColumnLength.Text = "Length";
+            // 
             // tileColumnULS
             // 
             this.tileColumnULS.AspectName = "ULStatus";
+            this.tileColumnULS.DisplayIndex = 3;
             this.tileColumnULS.Text = "Userlist";
             this.tileColumnULS.Width = 77;
             // 
             // tileColumnULAdded
             // 
             this.tileColumnULAdded.AspectName = "ULAdded";
+            this.tileColumnULAdded.DisplayIndex = 4;
             this.tileColumnULAdded.Text = "Added to UL";
             this.tileColumnULAdded.Width = 80;
             // 
             // tileColumnULNote
             // 
             this.tileColumnULNote.AspectName = "ULNote";
+            this.tileColumnULNote.DisplayIndex = 5;
             this.tileColumnULNote.Text = "Notes";
             // 
             // tileColumnWLS
             // 
             this.tileColumnWLS.AspectName = "WLStatus";
+            this.tileColumnWLS.DisplayIndex = 6;
             this.tileColumnWLS.Text = "Wishlist";
             // 
             // tileColumnWLAdded
             // 
             this.tileColumnWLAdded.AspectName = "WLAdded";
+            this.tileColumnWLAdded.DisplayIndex = 7;
             this.tileColumnWLAdded.Text = "Added to WL";
             this.tileColumnWLAdded.Width = 82;
             // 
             // tileColumnVote
             // 
             this.tileColumnVote.AspectName = "Vote";
+            this.tileColumnVote.DisplayIndex = 8;
             this.tileColumnVote.Text = "Vote";
             this.tileColumnVote.ToolTipText = "The score given by you";
             // 
             // tileColumnRating
             // 
             this.tileColumnRating.AspectName = "Rating";
+            this.tileColumnRating.DisplayIndex = 9;
             this.tileColumnRating.Text = "Rating";
             this.tileColumnRating.ToolTipText = "Average of votes by all users";
             // 
             // tileColumnPopularity
             // 
             this.tileColumnPopularity.AspectName = "Popularity";
+            this.tileColumnPopularity.DisplayIndex = 10;
             this.tileColumnPopularity.Text = "Popularity";
             this.tileColumnPopularity.ToolTipText = "How popular in relation to most popular VN";
             // 
             // tileColumnUpdated
             // 
             this.tileColumnUpdated.AspectName = "UpdatedDate";
+            this.tileColumnUpdated.DisplayIndex = 11;
             this.tileColumnUpdated.Text = "Updated";
             // 
             // tileColumnID
             // 
             this.tileColumnID.AspectName = "VNID";
+            this.tileColumnID.DisplayIndex = 12;
             this.tileColumnID.Text = "VNID";
             // 
-            // tabControl1
+            // TabsControl
             // 
-            this.tabControl1.Controls.Add(this.vnTab);
-            this.tabControl1.Controls.Add(this.infoTab);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.Padding = new System.Drawing.Point(0, 0);
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1204, 621);
-            this.tabControl1.TabIndex = 0;
-            this.tabControl1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.CloseTabMiddleClick);
+            this.TabsControl.Controls.Add(this.vnTab);
+            this.TabsControl.Controls.Add(this.infoTab);
+            this.TabsControl.Controls.Add(this.tabPage1);
+            this.TabsControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TabsControl.Location = new System.Drawing.Point(0, 0);
+            this.TabsControl.Name = "TabsControl";
+            this.TabsControl.Padding = new System.Drawing.Point(0, 0);
+            this.TabsControl.SelectedIndex = 0;
+            this.TabsControl.Size = new System.Drawing.Size(1204, 621);
+            this.TabsControl.TabIndex = 0;
+            this.TabsControl.MouseClick += new System.Windows.Forms.MouseEventHandler(this.CloseTabMiddleClick);
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.tagsOrTraits);
+            this.tabPage1.Controls.Add(this.tagSearchResultBox);
+            this.tabPage1.Controls.Add(this.panel4);
+            this.tabPage1.Controls.Add(this.filterDropdown);
+            this.tabPage1.Controls.Add(this.label19);
+            this.tabPage1.Controls.Add(this.traitsPanel);
+            this.tabPage1.Controls.Add(this.tagsPanel);
+            this.tabPage1.Controls.Add(this.panel13);
+            this.tabPage1.Controls.Add(this.userlistPanel);
+            this.tabPage1.Controls.Add(this.wishlistPanel);
+            this.tabPage1.Controls.Add(this.favoriteProducersPanel);
+            this.tabPage1.Controls.Add(this.votedPanel);
+            this.tabPage1.Controls.Add(this.blacklistedPanel);
+            this.tabPage1.Controls.Add(this.unreleasedPanel);
+            this.tabPage1.Controls.Add(this.releaseDatePanel);
+            this.tabPage1.Controls.Add(this.lengthPanel);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(1196, 595);
+            this.tabPage1.TabIndex = 3;
+            this.tabPage1.Text = "Filters";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            this.tabPage1.Leave += new System.EventHandler(this.OnFiltersLeave);
+            // 
+            // tagsOrTraits
+            // 
+            this.tagsOrTraits.Appearance = System.Windows.Forms.Appearance.Button;
+            this.tagsOrTraits.BackColor = System.Drawing.Color.PaleTurquoise;
+            this.tagsOrTraits.FlatAppearance.BorderSize = 0;
+            this.tagsOrTraits.FlatAppearance.CheckedBackColor = System.Drawing.Color.PaleGreen;
+            this.tagsOrTraits.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagsOrTraits.ForeColor = System.Drawing.Color.Black;
+            this.tagsOrTraits.Location = new System.Drawing.Point(691, 350);
+            this.tagsOrTraits.Name = "tagsOrTraits";
+            this.tagsOrTraits.Size = new System.Drawing.Size(102, 23);
+            this.tagsOrTraits.TabIndex = 31;
+            this.tagsOrTraits.Text = "Tags AND Traits";
+            this.tagsOrTraits.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.tagsOrTraits.UseVisualStyleBackColor = false;
+            this.tagsOrTraits.CheckedChanged += new System.EventHandler(this.tagsOrTraits_CheckedChanged);
+            // 
+            // tagSearchResultBox
+            // 
+            this.tagSearchResultBox.FormattingEnabled = true;
+            this.tagSearchResultBox.Location = new System.Drawing.Point(853, 255);
+            this.tagSearchResultBox.Name = "tagSearchResultBox";
+            this.tagSearchResultBox.Size = new System.Drawing.Size(202, 238);
+            this.tagSearchResultBox.TabIndex = 97;
+            this.tagSearchResultBox.Visible = false;
+            this.tagSearchResultBox.SelectedIndexChanged += new System.EventHandler(this.AddTagFromList);
+            // 
+            // panel4
+            // 
+            this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(196)))), ((int)(((byte)(196)))), ((int)(((byte)(196)))));
+            this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel4.Controls.Add(this.label24);
+            this.panel4.Controls.Add(this.languageTFCB);
+            this.panel4.Controls.Add(this.languageFixed);
+            this.panel4.Controls.Add(this.languageTF);
+            this.panel4.Controls.Add(this.languageTFLB);
+            this.panel4.Controls.Add(this.label21);
+            this.panel4.Location = new System.Drawing.Point(6, 347);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(128, 212);
+            this.panel4.TabIndex = 40;
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(3, 164);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(122, 39);
+            this.label24.TabIndex = 103;
+            this.label24.Text = "Titles that have releases\r\nfor one of the entered\r\n languages.";
+            // 
+            // languageTFCB
+            // 
+            this.languageTFCB.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.languageTFCB.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.languageTFCB.BackColor = System.Drawing.Color.White;
+            this.languageTFCB.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.languageTFCB.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.languageTFCB.FormattingEnabled = true;
+            this.languageTFCB.Location = new System.Drawing.Point(3, 140);
+            this.languageTFCB.Name = "languageTFCB";
+            this.languageTFCB.Size = new System.Drawing.Size(120, 21);
+            this.languageTFCB.TabIndex = 102;
+            this.languageTFCB.SelectedIndexChanged += new System.EventHandler(this.AddLanguage);
+            this.languageTFCB.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddLanguageEnter);
+            // 
+            // languageFixed
+            // 
+            this.languageFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.languageFixed.AutoSize = true;
+            this.languageFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.languageFixed.FlatAppearance.BorderSize = 0;
+            this.languageFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.languageFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.languageFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.languageFixed.Location = new System.Drawing.Point(40, 6);
+            this.languageFixed.Name = "languageFixed";
+            this.languageFixed.Size = new System.Drawing.Size(62, 23);
+            this.languageFixed.TabIndex = 39;
+            this.languageFixed.Text = "Not Fixed";
+            this.languageFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.languageFixed.UseVisualStyleBackColor = false;
+            // 
+            // languageTF
+            // 
+            this.languageTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.languageTF.AutoSize = true;
+            this.languageTF.BackColor = System.Drawing.Color.DarkRed;
+            this.languageTF.FlatAppearance.BorderSize = 0;
+            this.languageTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.languageTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.languageTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.languageTF.Location = new System.Drawing.Point(3, 6);
+            this.languageTF.Name = "languageTF";
+            this.languageTF.Size = new System.Drawing.Size(31, 23);
+            this.languageTF.TabIndex = 21;
+            this.languageTF.Text = "Off";
+            this.languageTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.languageTF.UseVisualStyleBackColor = false;
+            this.languageTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // languageTFLB
+            // 
+            this.languageTFLB.FormattingEnabled = true;
+            this.languageTFLB.Location = new System.Drawing.Point(3, 52);
+            this.languageTFLB.Name = "languageTFLB";
+            this.languageTFLB.Size = new System.Drawing.Size(120, 82);
+            this.languageTFLB.TabIndex = 1;
+            this.languageTFLB.KeyDown += new System.Windows.Forms.KeyEventHandler(this.RemoveFromListBox);
+            // 
+            // label21
+            // 
+            this.label21.Location = new System.Drawing.Point(3, 32);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(100, 23);
+            this.label21.TabIndex = 0;
+            this.label21.Text = "Language";
+            this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // filterDropdown
+            // 
+            this.filterDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.filterDropdown.FormattingEnabled = true;
+            this.filterDropdown.Items.AddRange(new object[] {
+            "No Filters",
+            "Never Played",
+            "Only URT",
+            "Hide URT",
+            "By Favorite Producers"});
+            this.filterDropdown.Location = new System.Drawing.Point(552, 371);
+            this.filterDropdown.Name = "filterDropdown";
+            this.filterDropdown.Size = new System.Drawing.Size(121, 21);
+            this.filterDropdown.TabIndex = 27;
+            this.filterDropdown.SelectedIndexChanged += new System.EventHandler(this.FilterChanged);
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(568, 351);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(34, 13);
+            this.label19.TabIndex = 26;
+            this.label19.Text = "Filters";
+            // 
+            // traitsPanel
+            // 
+            this.traitsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.traitsPanel.Controls.Add(this.traitsFixed);
+            this.traitsPanel.Controls.Add(this.traitsTF);
+            this.traitsPanel.Controls.Add(this.button7);
+            this.traitsPanel.Controls.Add(this.traitsTFLB);
+            this.traitsPanel.Controls.Add(this.label18);
+            this.traitsPanel.Location = new System.Drawing.Point(799, 307);
+            this.traitsPanel.Name = "traitsPanel";
+            this.traitsPanel.Size = new System.Drawing.Size(389, 282);
+            this.traitsPanel.TabIndex = 24;
+            // 
+            // traitsFixed
+            // 
+            this.traitsFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.traitsFixed.AutoSize = true;
+            this.traitsFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.traitsFixed.FlatAppearance.BorderSize = 0;
+            this.traitsFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.traitsFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.traitsFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.traitsFixed.Location = new System.Drawing.Point(40, 6);
+            this.traitsFixed.Name = "traitsFixed";
+            this.traitsFixed.Size = new System.Drawing.Size(62, 23);
+            this.traitsFixed.TabIndex = 38;
+            this.traitsFixed.Text = "Not Fixed";
+            this.traitsFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.traitsFixed.UseVisualStyleBackColor = false;
+            // 
+            // traitsTF
+            // 
+            this.traitsTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.traitsTF.AutoSize = true;
+            this.traitsTF.BackColor = System.Drawing.Color.DarkRed;
+            this.traitsTF.FlatAppearance.BorderSize = 0;
+            this.traitsTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.traitsTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.traitsTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.traitsTF.Location = new System.Drawing.Point(3, 6);
+            this.traitsTF.Name = "traitsTF";
+            this.traitsTF.Size = new System.Drawing.Size(31, 23);
+            this.traitsTF.TabIndex = 21;
+            this.traitsTF.Text = "Off";
+            this.traitsTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.traitsTF.UseVisualStyleBackColor = false;
+            this.traitsTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // button7
+            // 
+            this.button7.Location = new System.Drawing.Point(3, 254);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(243, 23);
+            this.button7.TabIndex = 21;
+            this.button7.Text = "Change";
+            this.button7.UseVisualStyleBackColor = true;
+            // 
+            // traitsTFLB
+            // 
+            this.traitsTFLB.FormattingEnabled = true;
+            this.traitsTFLB.Location = new System.Drawing.Point(3, 39);
+            this.traitsTFLB.Name = "traitsTFLB";
+            this.traitsTFLB.Size = new System.Drawing.Size(243, 212);
+            this.traitsTFLB.TabIndex = 1;
+            // 
+            // label18
+            // 
+            this.label18.Location = new System.Drawing.Point(111, 6);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(135, 23);
+            this.label18.TabIndex = 0;
+            this.label18.Text = "Traits";
+            this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // tagsPanel
+            // 
+            this.tagsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.tagsPanel.Controls.Add(this.label2);
+            this.tagsPanel.Controls.Add(this.TagFilteringHelpButton);
+            this.tagsPanel.Controls.Add(this.updateFilterResultsButton);
+            this.tagsPanel.Controls.Add(this.tagReply);
+            this.tagsPanel.Controls.Add(this.customTagFilterNameBox);
+            this.tagsPanel.Controls.Add(this.saveCustomFilterButton);
+            this.tagsPanel.Controls.Add(this.customTagFilters);
+            this.tagsPanel.Controls.Add(this.clearFilterButton);
+            this.tagsPanel.Controls.Add(this.deleteCustomTagFilterButton);
+            this.tagsPanel.Controls.Add(this.tagSearchButton);
+            this.tagsPanel.Controls.Add(this.tagSearchBox);
+            this.tagsPanel.Controls.Add(this.label7);
+            this.tagsPanel.Controls.Add(this.tagsFixed);
+            this.tagsPanel.Controls.Add(this.tagsTF);
+            this.tagsPanel.Controls.Add(this.button6);
+            this.tagsPanel.Controls.Add(this.tagsTFLB);
+            this.tagsPanel.Controls.Add(this.label30);
+            this.tagsPanel.Location = new System.Drawing.Point(799, 14);
+            this.tagsPanel.Name = "tagsPanel";
+            this.tagsPanel.Size = new System.Drawing.Size(389, 277);
+            this.tagsPanel.TabIndex = 23;
+            // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(281, 11);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(103, 13);
+            this.label2.TabIndex = 107;
+            this.label2.Text = "Custom Filter Name:";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // tagReply
+            // 
+            this.tagReply.Location = new System.Drawing.Point(284, 195);
+            this.tagReply.Name = "tagReply";
+            this.tagReply.Size = new System.Drawing.Size(100, 48);
+            this.tagReply.TabIndex = 102;
+            this.tagReply.Text = "(tagReply)";
+            this.tagReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // saveCustomFilterButton
+            // 
+            this.saveCustomFilterButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.saveCustomFilterButton.FlatAppearance.BorderSize = 0;
+            this.saveCustomFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.saveCustomFilterButton.ForeColor = System.Drawing.Color.White;
+            this.saveCustomFilterButton.Location = new System.Drawing.Point(284, 82);
+            this.saveCustomFilterButton.Name = "saveCustomFilterButton";
+            this.saveCustomFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.saveCustomFilterButton.TabIndex = 99;
+            this.saveCustomFilterButton.Text = "Save Filter";
+            this.saveCustomFilterButton.UseVisualStyleBackColor = false;
+            this.saveCustomFilterButton.Click += new System.EventHandler(this.SaveCustomTagFilter);
+            // 
+            // customTagFilters
+            // 
+            this.customTagFilters.BackColor = System.Drawing.Color.SteelBlue;
+            this.customTagFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.customTagFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.customTagFilters.ForeColor = System.Drawing.Color.White;
+            this.customTagFilters.FormattingEnabled = true;
+            this.customTagFilters.Items.AddRange(new object[] {
+            "Custom Filters",
+            "----------"});
+            this.customTagFilters.Location = new System.Drawing.Point(284, 55);
+            this.customTagFilters.Name = "customTagFilters";
+            this.customTagFilters.Size = new System.Drawing.Size(100, 21);
+            this.customTagFilters.TabIndex = 104;
+            this.customTagFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTags);
+            // 
+            // clearFilterButton
+            // 
+            this.clearFilterButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.clearFilterButton.FlatAppearance.BorderSize = 0;
+            this.clearFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.clearFilterButton.ForeColor = System.Drawing.Color.White;
+            this.clearFilterButton.Location = new System.Drawing.Point(284, 140);
+            this.clearFilterButton.Name = "clearFilterButton";
+            this.clearFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.clearFilterButton.TabIndex = 100;
+            this.clearFilterButton.Text = "Clear Filter";
+            this.clearFilterButton.UseVisualStyleBackColor = false;
+            this.clearFilterButton.Click += new System.EventHandler(this.ClearTagFilter);
+            // 
+            // deleteCustomTagFilterButton
+            // 
+            this.deleteCustomTagFilterButton.BackColor = System.Drawing.Color.SteelBlue;
+            this.deleteCustomTagFilterButton.Enabled = false;
+            this.deleteCustomTagFilterButton.FlatAppearance.BorderSize = 0;
+            this.deleteCustomTagFilterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.deleteCustomTagFilterButton.ForeColor = System.Drawing.Color.White;
+            this.deleteCustomTagFilterButton.Location = new System.Drawing.Point(284, 111);
+            this.deleteCustomTagFilterButton.Name = "deleteCustomTagFilterButton";
+            this.deleteCustomTagFilterButton.Size = new System.Drawing.Size(100, 23);
+            this.deleteCustomTagFilterButton.TabIndex = 105;
+            this.deleteCustomTagFilterButton.Text = "Delete Filter";
+            this.deleteCustomTagFilterButton.UseVisualStyleBackColor = false;
+            this.deleteCustomTagFilterButton.Click += new System.EventHandler(this.DeleteCustomTagFilter);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(3, 220);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(44, 13);
+            this.label7.TabIndex = 96;
+            this.label7.Text = "Search:";
+            // 
+            // tagsFixed
+            // 
+            this.tagsFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.tagsFixed.AutoSize = true;
+            this.tagsFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.tagsFixed.FlatAppearance.BorderSize = 0;
+            this.tagsFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.tagsFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagsFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.tagsFixed.Location = new System.Drawing.Point(40, 6);
+            this.tagsFixed.Name = "tagsFixed";
+            this.tagsFixed.Size = new System.Drawing.Size(62, 23);
+            this.tagsFixed.TabIndex = 39;
+            this.tagsFixed.Text = "Not Fixed";
+            this.tagsFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.tagsFixed.UseVisualStyleBackColor = false;
+            // 
+            // tagsTF
+            // 
+            this.tagsTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.tagsTF.AutoSize = true;
+            this.tagsTF.BackColor = System.Drawing.Color.DarkRed;
+            this.tagsTF.FlatAppearance.BorderSize = 0;
+            this.tagsTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.tagsTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagsTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.tagsTF.Location = new System.Drawing.Point(3, 6);
+            this.tagsTF.Name = "tagsTF";
+            this.tagsTF.Size = new System.Drawing.Size(31, 23);
+            this.tagsTF.TabIndex = 21;
+            this.tagsTF.Text = "Off";
+            this.tagsTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.tagsTF.UseVisualStyleBackColor = false;
+            this.tagsTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(6, 246);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(272, 23);
+            this.button6.TabIndex = 21;
+            this.button6.Text = "Change";
+            this.button6.UseVisualStyleBackColor = true;
+            // 
+            // tagsTFLB
+            // 
+            this.tagsTFLB.FormattingEnabled = true;
+            this.tagsTFLB.Location = new System.Drawing.Point(3, 39);
+            this.tagsTFLB.Name = "tagsTFLB";
+            this.tagsTFLB.Size = new System.Drawing.Size(275, 173);
+            this.tagsTFLB.TabIndex = 1;
+            // 
+            // label30
+            // 
+            this.label30.Location = new System.Drawing.Point(108, 6);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(138, 23);
+            this.label30.TabIndex = 0;
+            this.label30.Text = "Tags";
+            this.label30.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // panel13
+            // 
+            this.panel13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(196)))), ((int)(((byte)(196)))), ((int)(((byte)(196)))));
+            this.panel13.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel13.Controls.Add(this.label6);
+            this.panel13.Controls.Add(this.originalLanguageTFCB);
+            this.panel13.Controls.Add(this.originalLanguageFixed);
+            this.panel13.Controls.Add(this.originalLanguageTF);
+            this.panel13.Controls.Add(this.originalLanguageTFLB);
+            this.panel13.Controls.Add(this.label20);
+            this.panel13.Location = new System.Drawing.Point(140, 347);
+            this.panel13.Name = "panel13";
+            this.panel13.Size = new System.Drawing.Size(128, 212);
+            this.panel13.TabIndex = 22;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(3, 164);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(114, 39);
+            this.label6.TabIndex = 102;
+            this.label6.Text = "Titles that are originally\r\nin one of the entered\r\n languages.";
+            // 
+            // originalLanguageTFCB
+            // 
+            this.originalLanguageTFCB.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.originalLanguageTFCB.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+            this.originalLanguageTFCB.BackColor = System.Drawing.Color.White;
+            this.originalLanguageTFCB.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.originalLanguageTFCB.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.originalLanguageTFCB.FormattingEnabled = true;
+            this.originalLanguageTFCB.Location = new System.Drawing.Point(3, 140);
+            this.originalLanguageTFCB.Name = "originalLanguageTFCB";
+            this.originalLanguageTFCB.Size = new System.Drawing.Size(119, 21);
+            this.originalLanguageTFCB.TabIndex = 101;
+            this.originalLanguageTFCB.SelectedIndexChanged += new System.EventHandler(this.AddOriginalLanguage);
+            this.originalLanguageTFCB.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AddOriginalLanguageEnter);
+            // 
+            // originalLanguageFixed
+            // 
+            this.originalLanguageFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.originalLanguageFixed.AutoSize = true;
+            this.originalLanguageFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.originalLanguageFixed.FlatAppearance.BorderSize = 0;
+            this.originalLanguageFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.originalLanguageFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.originalLanguageFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.originalLanguageFixed.Location = new System.Drawing.Point(40, 6);
+            this.originalLanguageFixed.Name = "originalLanguageFixed";
+            this.originalLanguageFixed.Size = new System.Drawing.Size(62, 23);
+            this.originalLanguageFixed.TabIndex = 39;
+            this.originalLanguageFixed.Text = "Not Fixed";
+            this.originalLanguageFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.originalLanguageFixed.UseVisualStyleBackColor = false;
+            // 
+            // originalLanguageTF
+            // 
+            this.originalLanguageTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.originalLanguageTF.AutoSize = true;
+            this.originalLanguageTF.BackColor = System.Drawing.Color.DarkRed;
+            this.originalLanguageTF.FlatAppearance.BorderSize = 0;
+            this.originalLanguageTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.originalLanguageTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.originalLanguageTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.originalLanguageTF.Location = new System.Drawing.Point(3, 6);
+            this.originalLanguageTF.Name = "originalLanguageTF";
+            this.originalLanguageTF.Size = new System.Drawing.Size(31, 23);
+            this.originalLanguageTF.TabIndex = 21;
+            this.originalLanguageTF.Text = "Off";
+            this.originalLanguageTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.originalLanguageTF.UseVisualStyleBackColor = false;
+            this.originalLanguageTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // originalLanguageTFLB
+            // 
+            this.originalLanguageTFLB.FormattingEnabled = true;
+            this.originalLanguageTFLB.Location = new System.Drawing.Point(3, 52);
+            this.originalLanguageTFLB.Name = "originalLanguageTFLB";
+            this.originalLanguageTFLB.Size = new System.Drawing.Size(119, 82);
+            this.originalLanguageTFLB.TabIndex = 1;
+            this.originalLanguageTFLB.KeyDown += new System.Windows.Forms.KeyEventHandler(this.RemoveFromListBox);
+            // 
+            // label20
+            // 
+            this.label20.Location = new System.Drawing.Point(3, 32);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(100, 23);
+            this.label20.TabIndex = 0;
+            this.label20.Text = "Original Language";
+            this.label20.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // userlistPanel
+            // 
+            this.userlistPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.userlistPanel.Controls.Add(this.userlistFixed);
+            this.userlistPanel.Controls.Add(this.userlistTF);
+            this.userlistPanel.Controls.Add(this.userlistTFDropped);
+            this.userlistPanel.Controls.Add(this.userlistTFStalled);
+            this.userlistPanel.Controls.Add(this.userlistTFFinished);
+            this.userlistPanel.Controls.Add(this.userlistTFPlaying);
+            this.userlistPanel.Controls.Add(this.userlistTFUnknown);
+            this.userlistPanel.Controls.Add(this.userlistTFNa);
+            this.userlistPanel.Controls.Add(this.label23);
+            this.userlistPanel.Location = new System.Drawing.Point(6, 307);
+            this.userlistPanel.Name = "userlistPanel";
+            this.userlistPanel.Size = new System.Drawing.Size(787, 37);
+            this.userlistPanel.TabIndex = 18;
+            // 
+            // userlistFixed
+            // 
+            this.userlistFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.userlistFixed.AutoSize = true;
+            this.userlistFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.userlistFixed.FlatAppearance.BorderSize = 0;
+            this.userlistFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.userlistFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.userlistFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.userlistFixed.Location = new System.Drawing.Point(40, 3);
+            this.userlistFixed.Name = "userlistFixed";
+            this.userlistFixed.Size = new System.Drawing.Size(62, 23);
+            this.userlistFixed.TabIndex = 37;
+            this.userlistFixed.Text = "Not Fixed";
+            this.userlistFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.userlistFixed.UseVisualStyleBackColor = false;
+            this.userlistFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // userlistTF
+            // 
+            this.userlistTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.userlistTF.AutoSize = true;
+            this.userlistTF.BackColor = System.Drawing.Color.DarkRed;
+            this.userlistTF.FlatAppearance.BorderSize = 0;
+            this.userlistTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.userlistTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.userlistTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.userlistTF.Location = new System.Drawing.Point(3, 3);
+            this.userlistTF.Name = "userlistTF";
+            this.userlistTF.Size = new System.Drawing.Size(31, 23);
+            this.userlistTF.TabIndex = 22;
+            this.userlistTF.Text = "Off";
+            this.userlistTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.userlistTF.UseVisualStyleBackColor = false;
+            this.userlistTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // userlistTFDropped
+            // 
+            this.userlistTFDropped.AutoSize = true;
+            this.userlistTFDropped.Location = new System.Drawing.Point(674, 7);
+            this.userlistTFDropped.Name = "userlistTFDropped";
+            this.userlistTFDropped.Size = new System.Drawing.Size(67, 17);
+            this.userlistTFDropped.TabIndex = 6;
+            this.userlistTFDropped.Text = "Dropped";
+            this.userlistTFDropped.UseVisualStyleBackColor = true;
+            this.userlistTFDropped.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // userlistTFStalled
+            // 
+            this.userlistTFStalled.AutoSize = true;
+            this.userlistTFStalled.Location = new System.Drawing.Point(582, 7);
+            this.userlistTFStalled.Name = "userlistTFStalled";
+            this.userlistTFStalled.Size = new System.Drawing.Size(58, 17);
+            this.userlistTFStalled.TabIndex = 5;
+            this.userlistTFStalled.Text = "Stalled";
+            this.userlistTFStalled.UseVisualStyleBackColor = true;
+            this.userlistTFStalled.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // userlistTFFinished
+            // 
+            this.userlistTFFinished.AutoSize = true;
+            this.userlistTFFinished.Location = new System.Drawing.Point(490, 7);
+            this.userlistTFFinished.Name = "userlistTFFinished";
+            this.userlistTFFinished.Size = new System.Drawing.Size(65, 17);
+            this.userlistTFFinished.TabIndex = 4;
+            this.userlistTFFinished.Text = "Finished";
+            this.userlistTFFinished.UseVisualStyleBackColor = true;
+            this.userlistTFFinished.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // userlistTFPlaying
+            // 
+            this.userlistTFPlaying.AutoSize = true;
+            this.userlistTFPlaying.Location = new System.Drawing.Point(398, 7);
+            this.userlistTFPlaying.Name = "userlistTFPlaying";
+            this.userlistTFPlaying.Size = new System.Drawing.Size(60, 17);
+            this.userlistTFPlaying.TabIndex = 3;
+            this.userlistTFPlaying.Text = "Playing";
+            this.userlistTFPlaying.UseVisualStyleBackColor = true;
+            this.userlistTFPlaying.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // userlistTFUnknown
+            // 
+            this.userlistTFUnknown.AutoSize = true;
+            this.userlistTFUnknown.Location = new System.Drawing.Point(306, 7);
+            this.userlistTFUnknown.Name = "userlistTFUnknown";
+            this.userlistTFUnknown.Size = new System.Drawing.Size(72, 17);
+            this.userlistTFUnknown.TabIndex = 2;
+            this.userlistTFUnknown.Text = "Unknown";
+            this.userlistTFUnknown.UseVisualStyleBackColor = true;
+            this.userlistTFUnknown.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // userlistTFNa
+            // 
+            this.userlistTFNa.AutoSize = true;
+            this.userlistTFNa.Location = new System.Drawing.Point(214, 7);
+            this.userlistTFNa.Name = "userlistTFNa";
+            this.userlistTFNa.Size = new System.Drawing.Size(46, 17);
+            this.userlistTFNa.TabIndex = 1;
+            this.userlistTFNa.Text = "N/A";
+            this.userlistTFNa.UseVisualStyleBackColor = true;
+            this.userlistTFNa.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // label23
+            // 
+            this.label23.Location = new System.Drawing.Point(108, 3);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(100, 23);
+            this.label23.TabIndex = 0;
+            this.label23.Text = "Userlist Status";
+            this.label23.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // wishlistPanel
+            // 
+            this.wishlistPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.wishlistPanel.Controls.Add(this.wishlistFixed);
+            this.wishlistPanel.Controls.Add(this.wishlistTF);
+            this.wishlistPanel.Controls.Add(this.wishlistTFLow);
+            this.wishlistPanel.Controls.Add(this.wishlistTFMedium);
+            this.wishlistPanel.Controls.Add(this.wishlistTFHigh);
+            this.wishlistPanel.Controls.Add(this.wishlistTFNa);
+            this.wishlistPanel.Controls.Add(this.label26);
+            this.wishlistPanel.Location = new System.Drawing.Point(6, 264);
+            this.wishlistPanel.Name = "wishlistPanel";
+            this.wishlistPanel.Size = new System.Drawing.Size(787, 37);
+            this.wishlistPanel.TabIndex = 18;
+            // 
+            // wishlistFixed
+            // 
+            this.wishlistFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.wishlistFixed.AutoSize = true;
+            this.wishlistFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.wishlistFixed.FlatAppearance.BorderSize = 0;
+            this.wishlistFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.wishlistFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.wishlistFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.wishlistFixed.Location = new System.Drawing.Point(40, 3);
+            this.wishlistFixed.Name = "wishlistFixed";
+            this.wishlistFixed.Size = new System.Drawing.Size(62, 23);
+            this.wishlistFixed.TabIndex = 36;
+            this.wishlistFixed.Text = "Not Fixed";
+            this.wishlistFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.wishlistFixed.UseVisualStyleBackColor = false;
+            this.wishlistFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // wishlistTF
+            // 
+            this.wishlistTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.wishlistTF.AutoSize = true;
+            this.wishlistTF.BackColor = System.Drawing.Color.DarkRed;
+            this.wishlistTF.FlatAppearance.BorderSize = 0;
+            this.wishlistTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.wishlistTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.wishlistTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.wishlistTF.Location = new System.Drawing.Point(3, 3);
+            this.wishlistTF.Name = "wishlistTF";
+            this.wishlistTF.Size = new System.Drawing.Size(31, 23);
+            this.wishlistTF.TabIndex = 23;
+            this.wishlistTF.Text = "Off";
+            this.wishlistTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.wishlistTF.UseVisualStyleBackColor = false;
+            this.wishlistTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // wishlistTFLow
+            // 
+            this.wishlistTFLow.AutoSize = true;
+            this.wishlistTFLow.Location = new System.Drawing.Point(490, 7);
+            this.wishlistTFLow.Name = "wishlistTFLow";
+            this.wishlistTFLow.Size = new System.Drawing.Size(46, 17);
+            this.wishlistTFLow.TabIndex = 4;
+            this.wishlistTFLow.Text = "Low";
+            this.wishlistTFLow.UseVisualStyleBackColor = true;
+            this.wishlistTFLow.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // wishlistTFMedium
+            // 
+            this.wishlistTFMedium.AutoSize = true;
+            this.wishlistTFMedium.Location = new System.Drawing.Point(398, 7);
+            this.wishlistTFMedium.Name = "wishlistTFMedium";
+            this.wishlistTFMedium.Size = new System.Drawing.Size(63, 17);
+            this.wishlistTFMedium.TabIndex = 3;
+            this.wishlistTFMedium.Text = "Medium";
+            this.wishlistTFMedium.UseVisualStyleBackColor = true;
+            this.wishlistTFMedium.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // wishlistTFHigh
+            // 
+            this.wishlistTFHigh.AutoSize = true;
+            this.wishlistTFHigh.Location = new System.Drawing.Point(306, 7);
+            this.wishlistTFHigh.Name = "wishlistTFHigh";
+            this.wishlistTFHigh.Size = new System.Drawing.Size(48, 17);
+            this.wishlistTFHigh.TabIndex = 2;
+            this.wishlistTFHigh.Text = "High";
+            this.wishlistTFHigh.UseVisualStyleBackColor = true;
+            this.wishlistTFHigh.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // wishlistTFNa
+            // 
+            this.wishlistTFNa.AutoSize = true;
+            this.wishlistTFNa.Location = new System.Drawing.Point(214, 7);
+            this.wishlistTFNa.Name = "wishlistTFNa";
+            this.wishlistTFNa.Size = new System.Drawing.Size(46, 17);
+            this.wishlistTFNa.TabIndex = 1;
+            this.wishlistTFNa.Text = "N/A";
+            this.wishlistTFNa.UseVisualStyleBackColor = true;
+            this.wishlistTFNa.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // label26
+            // 
+            this.label26.Location = new System.Drawing.Point(108, 3);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(100, 23);
+            this.label26.TabIndex = 0;
+            this.label26.Text = "Wishlist Status";
+            this.label26.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // favoriteProducersPanel
+            // 
+            this.favoriteProducersPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.favoriteProducersPanel.Controls.Add(this.favoriteProducersFixed);
+            this.favoriteProducersPanel.Controls.Add(this.favoriteProducersTF);
+            this.favoriteProducersPanel.Controls.Add(this.favoriteProducersTFNo);
+            this.favoriteProducersPanel.Controls.Add(this.favoriteProducersTFYes);
+            this.favoriteProducersPanel.Controls.Add(this.label25);
+            this.favoriteProducersPanel.Location = new System.Drawing.Point(6, 221);
+            this.favoriteProducersPanel.Name = "favoriteProducersPanel";
+            this.favoriteProducersPanel.Size = new System.Drawing.Size(787, 37);
+            this.favoriteProducersPanel.TabIndex = 20;
+            // 
+            // favoriteProducersFixed
+            // 
+            this.favoriteProducersFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.favoriteProducersFixed.AutoSize = true;
+            this.favoriteProducersFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.favoriteProducersFixed.FlatAppearance.BorderSize = 0;
+            this.favoriteProducersFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.favoriteProducersFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.favoriteProducersFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.favoriteProducersFixed.Location = new System.Drawing.Point(40, 3);
+            this.favoriteProducersFixed.Name = "favoriteProducersFixed";
+            this.favoriteProducersFixed.Size = new System.Drawing.Size(62, 23);
+            this.favoriteProducersFixed.TabIndex = 35;
+            this.favoriteProducersFixed.Text = "Not Fixed";
+            this.favoriteProducersFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.favoriteProducersFixed.UseVisualStyleBackColor = false;
+            this.favoriteProducersFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // favoriteProducersTF
+            // 
+            this.favoriteProducersTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.favoriteProducersTF.AutoSize = true;
+            this.favoriteProducersTF.BackColor = System.Drawing.Color.DarkRed;
+            this.favoriteProducersTF.FlatAppearance.BorderSize = 0;
+            this.favoriteProducersTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.favoriteProducersTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.favoriteProducersTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.favoriteProducersTF.Location = new System.Drawing.Point(3, 3);
+            this.favoriteProducersTF.Name = "favoriteProducersTF";
+            this.favoriteProducersTF.Size = new System.Drawing.Size(31, 23);
+            this.favoriteProducersTF.TabIndex = 24;
+            this.favoriteProducersTF.Text = "Off";
+            this.favoriteProducersTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.favoriteProducersTF.UseVisualStyleBackColor = false;
+            this.favoriteProducersTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // favoriteProducersTFNo
+            // 
+            this.favoriteProducersTFNo.AutoSize = true;
+            this.favoriteProducersTFNo.Location = new System.Drawing.Point(305, 6);
+            this.favoriteProducersTFNo.Name = "favoriteProducersTFNo";
+            this.favoriteProducersTFNo.Size = new System.Drawing.Size(39, 17);
+            this.favoriteProducersTFNo.TabIndex = 2;
+            this.favoriteProducersTFNo.TabStop = true;
+            this.favoriteProducersTFNo.Tag = "";
+            this.favoriteProducersTFNo.Text = "No";
+            this.favoriteProducersTFNo.UseVisualStyleBackColor = true;
+            // 
+            // favoriteProducersTFYes
+            // 
+            this.favoriteProducersTFYes.AutoSize = true;
+            this.favoriteProducersTFYes.Location = new System.Drawing.Point(214, 6);
+            this.favoriteProducersTFYes.Name = "favoriteProducersTFYes";
+            this.favoriteProducersTFYes.Size = new System.Drawing.Size(43, 17);
+            this.favoriteProducersTFYes.TabIndex = 1;
+            this.favoriteProducersTFYes.TabStop = true;
+            this.favoriteProducersTFYes.Tag = "";
+            this.favoriteProducersTFYes.Text = "Yes";
+            this.favoriteProducersTFYes.UseVisualStyleBackColor = true;
+            // 
+            // label25
+            // 
+            this.label25.Location = new System.Drawing.Point(108, -3);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(100, 35);
+            this.label25.TabIndex = 0;
+            this.label25.Text = "By Favorite Producer";
+            this.label25.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // votedPanel
+            // 
+            this.votedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.votedPanel.Controls.Add(this.votedFixed);
+            this.votedPanel.Controls.Add(this.votedTF);
+            this.votedPanel.Controls.Add(this.votedTFNo);
+            this.votedPanel.Controls.Add(this.votedTFYes);
+            this.votedPanel.Controls.Add(this.label17);
+            this.votedPanel.Location = new System.Drawing.Point(6, 178);
+            this.votedPanel.Name = "votedPanel";
+            this.votedPanel.Size = new System.Drawing.Size(787, 37);
+            this.votedPanel.TabIndex = 19;
+            // 
+            // votedFixed
+            // 
+            this.votedFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.votedFixed.AutoSize = true;
+            this.votedFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.votedFixed.FlatAppearance.BorderSize = 0;
+            this.votedFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.votedFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.votedFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.votedFixed.Location = new System.Drawing.Point(40, 3);
+            this.votedFixed.Name = "votedFixed";
+            this.votedFixed.Size = new System.Drawing.Size(62, 23);
+            this.votedFixed.TabIndex = 34;
+            this.votedFixed.Text = "Not Fixed";
+            this.votedFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.votedFixed.UseVisualStyleBackColor = false;
+            this.votedFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // votedTF
+            // 
+            this.votedTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.votedTF.AutoSize = true;
+            this.votedTF.BackColor = System.Drawing.Color.DarkRed;
+            this.votedTF.FlatAppearance.BorderSize = 0;
+            this.votedTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.votedTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.votedTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.votedTF.Location = new System.Drawing.Point(3, 3);
+            this.votedTF.Name = "votedTF";
+            this.votedTF.Size = new System.Drawing.Size(31, 23);
+            this.votedTF.TabIndex = 25;
+            this.votedTF.Text = "Off";
+            this.votedTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.votedTF.UseVisualStyleBackColor = false;
+            this.votedTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // votedTFNo
+            // 
+            this.votedTFNo.AutoSize = true;
+            this.votedTFNo.Location = new System.Drawing.Point(305, 6);
+            this.votedTFNo.Name = "votedTFNo";
+            this.votedTFNo.Size = new System.Drawing.Size(39, 17);
+            this.votedTFNo.TabIndex = 2;
+            this.votedTFNo.TabStop = true;
+            this.votedTFNo.Tag = "";
+            this.votedTFNo.Text = "No";
+            this.votedTFNo.UseVisualStyleBackColor = true;
+            // 
+            // votedTFYes
+            // 
+            this.votedTFYes.AutoSize = true;
+            this.votedTFYes.Location = new System.Drawing.Point(214, 6);
+            this.votedTFYes.Name = "votedTFYes";
+            this.votedTFYes.Size = new System.Drawing.Size(43, 17);
+            this.votedTFYes.TabIndex = 1;
+            this.votedTFYes.TabStop = true;
+            this.votedTFYes.Tag = "";
+            this.votedTFYes.Text = "Yes";
+            this.votedTFYes.UseVisualStyleBackColor = true;
+            // 
+            // label17
+            // 
+            this.label17.Location = new System.Drawing.Point(108, 3);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(100, 23);
+            this.label17.TabIndex = 0;
+            this.label17.Text = "Voted";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // blacklistedPanel
+            // 
+            this.blacklistedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.blacklistedPanel.Controls.Add(this.blacklistedFixed);
+            this.blacklistedPanel.Controls.Add(this.blacklistedTF);
+            this.blacklistedPanel.Controls.Add(this.blacklistedTFNo);
+            this.blacklistedPanel.Controls.Add(this.blacklistedTFYes);
+            this.blacklistedPanel.Controls.Add(this.label16);
+            this.blacklistedPanel.Location = new System.Drawing.Point(6, 135);
+            this.blacklistedPanel.Name = "blacklistedPanel";
+            this.blacklistedPanel.Size = new System.Drawing.Size(787, 37);
+            this.blacklistedPanel.TabIndex = 19;
+            // 
+            // blacklistedFixed
+            // 
+            this.blacklistedFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.blacklistedFixed.AutoSize = true;
+            this.blacklistedFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.blacklistedFixed.FlatAppearance.BorderSize = 0;
+            this.blacklistedFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.blacklistedFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.blacklistedFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.blacklistedFixed.Location = new System.Drawing.Point(40, 3);
+            this.blacklistedFixed.Name = "blacklistedFixed";
+            this.blacklistedFixed.Size = new System.Drawing.Size(62, 23);
+            this.blacklistedFixed.TabIndex = 33;
+            this.blacklistedFixed.Text = "Not Fixed";
+            this.blacklistedFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.blacklistedFixed.UseVisualStyleBackColor = false;
+            this.blacklistedFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // blacklistedTF
+            // 
+            this.blacklistedTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.blacklistedTF.AutoSize = true;
+            this.blacklistedTF.BackColor = System.Drawing.Color.DarkRed;
+            this.blacklistedTF.FlatAppearance.BorderSize = 0;
+            this.blacklistedTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.blacklistedTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.blacklistedTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.blacklistedTF.Location = new System.Drawing.Point(3, 3);
+            this.blacklistedTF.Name = "blacklistedTF";
+            this.blacklistedTF.Size = new System.Drawing.Size(31, 23);
+            this.blacklistedTF.TabIndex = 26;
+            this.blacklistedTF.Text = "Off";
+            this.blacklistedTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.blacklistedTF.UseVisualStyleBackColor = false;
+            this.blacklistedTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // blacklistedTFNo
+            // 
+            this.blacklistedTFNo.AutoSize = true;
+            this.blacklistedTFNo.Location = new System.Drawing.Point(305, 6);
+            this.blacklistedTFNo.Name = "blacklistedTFNo";
+            this.blacklistedTFNo.Size = new System.Drawing.Size(39, 17);
+            this.blacklistedTFNo.TabIndex = 2;
+            this.blacklistedTFNo.TabStop = true;
+            this.blacklistedTFNo.Tag = "";
+            this.blacklistedTFNo.Text = "No";
+            this.blacklistedTFNo.UseVisualStyleBackColor = true;
+            // 
+            // blacklistedTFYes
+            // 
+            this.blacklistedTFYes.AutoSize = true;
+            this.blacklistedTFYes.Location = new System.Drawing.Point(214, 6);
+            this.blacklistedTFYes.Name = "blacklistedTFYes";
+            this.blacklistedTFYes.Size = new System.Drawing.Size(43, 17);
+            this.blacklistedTFYes.TabIndex = 1;
+            this.blacklistedTFYes.TabStop = true;
+            this.blacklistedTFYes.Tag = "";
+            this.blacklistedTFYes.Text = "Yes";
+            this.blacklistedTFYes.UseVisualStyleBackColor = true;
+            // 
+            // label16
+            // 
+            this.label16.Location = new System.Drawing.Point(108, 3);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(100, 23);
+            this.label16.TabIndex = 0;
+            this.label16.Text = "Blacklisted";
+            this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // unreleasedPanel
+            // 
+            this.unreleasedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.unreleasedPanel.Controls.Add(this.unreleasedFixed);
+            this.unreleasedPanel.Controls.Add(this.unreleasedTFReleased);
+            this.unreleasedPanel.Controls.Add(this.unreleasedTF);
+            this.unreleasedPanel.Controls.Add(this.unreleasedTFWithoutReleaseDate);
+            this.unreleasedPanel.Controls.Add(this.label15);
+            this.unreleasedPanel.Controls.Add(this.unreleasedTFWithReleaseDate);
+            this.unreleasedPanel.Location = new System.Drawing.Point(6, 92);
+            this.unreleasedPanel.Name = "unreleasedPanel";
+            this.unreleasedPanel.Size = new System.Drawing.Size(787, 37);
+            this.unreleasedPanel.TabIndex = 18;
+            // 
+            // unreleasedFixed
+            // 
+            this.unreleasedFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.unreleasedFixed.AutoSize = true;
+            this.unreleasedFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.unreleasedFixed.FlatAppearance.BorderSize = 0;
+            this.unreleasedFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.unreleasedFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.unreleasedFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.unreleasedFixed.Location = new System.Drawing.Point(40, 3);
+            this.unreleasedFixed.Name = "unreleasedFixed";
+            this.unreleasedFixed.Size = new System.Drawing.Size(62, 23);
+            this.unreleasedFixed.TabIndex = 32;
+            this.unreleasedFixed.Text = "Not Fixed";
+            this.unreleasedFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.unreleasedFixed.UseVisualStyleBackColor = false;
+            this.unreleasedFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // unreleasedTFReleased
+            // 
+            this.unreleasedTFReleased.AutoSize = true;
+            this.unreleasedTFReleased.Location = new System.Drawing.Point(511, 7);
+            this.unreleasedTFReleased.Name = "unreleasedTFReleased";
+            this.unreleasedTFReleased.Size = new System.Drawing.Size(71, 17);
+            this.unreleasedTFReleased.TabIndex = 39;
+            this.unreleasedTFReleased.Text = "Released";
+            this.unreleasedTFReleased.UseVisualStyleBackColor = true;
+            // 
+            // unreleasedTF
+            // 
+            this.unreleasedTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.unreleasedTF.AutoSize = true;
+            this.unreleasedTF.BackColor = System.Drawing.Color.DarkRed;
+            this.unreleasedTF.FlatAppearance.BorderSize = 0;
+            this.unreleasedTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.unreleasedTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.unreleasedTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.unreleasedTF.Location = new System.Drawing.Point(3, 3);
+            this.unreleasedTF.Name = "unreleasedTF";
+            this.unreleasedTF.Size = new System.Drawing.Size(31, 23);
+            this.unreleasedTF.TabIndex = 27;
+            this.unreleasedTF.Text = "Off";
+            this.unreleasedTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.unreleasedTF.UseVisualStyleBackColor = false;
+            this.unreleasedTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // unreleasedTFWithoutReleaseDate
+            // 
+            this.unreleasedTFWithoutReleaseDate.AutoSize = true;
+            this.unreleasedTFWithoutReleaseDate.Location = new System.Drawing.Point(209, 7);
+            this.unreleasedTFWithoutReleaseDate.Name = "unreleasedTFWithoutReleaseDate";
+            this.unreleasedTFWithoutReleaseDate.Size = new System.Drawing.Size(131, 17);
+            this.unreleasedTFWithoutReleaseDate.TabIndex = 38;
+            this.unreleasedTFWithoutReleaseDate.Text = "Without Release Date";
+            this.unreleasedTFWithoutReleaseDate.UseVisualStyleBackColor = true;
+            // 
+            // label15
+            // 
+            this.label15.Location = new System.Drawing.Point(108, 3);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(100, 23);
+            this.label15.TabIndex = 0;
+            this.label15.Text = "Unreleased";
+            this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // unreleasedTFWithReleaseDate
+            // 
+            this.unreleasedTFWithReleaseDate.AutoSize = true;
+            this.unreleasedTFWithReleaseDate.Location = new System.Drawing.Point(367, 7);
+            this.unreleasedTFWithReleaseDate.Name = "unreleasedTFWithReleaseDate";
+            this.unreleasedTFWithReleaseDate.Size = new System.Drawing.Size(116, 17);
+            this.unreleasedTFWithReleaseDate.TabIndex = 37;
+            this.unreleasedTFWithReleaseDate.Text = "With Release Date";
+            this.unreleasedTFWithReleaseDate.UseVisualStyleBackColor = true;
+            // 
+            // releaseDatePanel
+            // 
+            this.releaseDatePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFResponse);
+            this.releaseDatePanel.Controls.Add(this.releaseDateFixed);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTF);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFToYear);
+            this.releaseDatePanel.Controls.Add(this.label27);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFToMonth);
+            this.releaseDatePanel.Controls.Add(this.label28);
+            this.releaseDatePanel.Controls.Add(this.label29);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFToDay);
+            this.releaseDatePanel.Controls.Add(this.label22);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFFromYear);
+            this.releaseDatePanel.Controls.Add(this.label34);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFFromMonth);
+            this.releaseDatePanel.Controls.Add(this.label33);
+            this.releaseDatePanel.Controls.Add(this.label32);
+            this.releaseDatePanel.Controls.Add(this.releaseDateTFFromDay);
+            this.releaseDatePanel.Controls.Add(this.label31);
+            this.releaseDatePanel.Location = new System.Drawing.Point(6, 53);
+            this.releaseDatePanel.Name = "releaseDatePanel";
+            this.releaseDatePanel.Size = new System.Drawing.Size(787, 37);
+            this.releaseDatePanel.TabIndex = 18;
+            // 
+            // releaseDateTFResponse
+            // 
+            this.releaseDateTFResponse.AutoSize = true;
+            this.releaseDateTFResponse.ForeColor = System.Drawing.Color.Red;
+            this.releaseDateTFResponse.Location = new System.Drawing.Point(722, 11);
+            this.releaseDateTFResponse.Name = "releaseDateTFResponse";
+            this.releaseDateTFResponse.Size = new System.Drawing.Size(64, 13);
+            this.releaseDateTFResponse.TabIndex = 32;
+            this.releaseDateTFResponse.Text = "Invalid Date";
+            // 
+            // releaseDateFixed
+            // 
+            this.releaseDateFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.releaseDateFixed.AutoSize = true;
+            this.releaseDateFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.releaseDateFixed.FlatAppearance.BorderSize = 0;
+            this.releaseDateFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.releaseDateFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.releaseDateFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.releaseDateFixed.Location = new System.Drawing.Point(40, 3);
+            this.releaseDateFixed.Name = "releaseDateFixed";
+            this.releaseDateFixed.Size = new System.Drawing.Size(62, 23);
+            this.releaseDateFixed.TabIndex = 31;
+            this.releaseDateFixed.Text = "Not Fixed";
+            this.releaseDateFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.releaseDateFixed.UseVisualStyleBackColor = false;
+            this.releaseDateFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // releaseDateTF
+            // 
+            this.releaseDateTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.releaseDateTF.AutoSize = true;
+            this.releaseDateTF.BackColor = System.Drawing.Color.DarkRed;
+            this.releaseDateTF.FlatAppearance.BorderSize = 0;
+            this.releaseDateTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.releaseDateTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.releaseDateTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.releaseDateTF.Location = new System.Drawing.Point(3, 3);
+            this.releaseDateTF.Name = "releaseDateTF";
+            this.releaseDateTF.Size = new System.Drawing.Size(31, 23);
+            this.releaseDateTF.TabIndex = 28;
+            this.releaseDateTF.Text = "Off";
+            this.releaseDateTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.releaseDateTF.UseVisualStyleBackColor = false;
+            this.releaseDateTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // releaseDateTFToYear
+            // 
+            this.releaseDateTFToYear.Location = new System.Drawing.Point(658, 13);
+            this.releaseDateTFToYear.Maximum = new decimal(new int[] {
+            2100,
+            0,
+            0,
+            0});
+            this.releaseDateTFToYear.Minimum = new decimal(new int[] {
+            1970,
+            0,
+            0,
+            0});
+            this.releaseDateTFToYear.Name = "releaseDateTFToYear";
+            this.releaseDateTFToYear.Size = new System.Drawing.Size(53, 20);
+            this.releaseDateTFToYear.TabIndex = 13;
+            this.releaseDateTFToYear.Value = new decimal(new int[] {
+            2017,
+            0,
+            0,
+            0});
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(662, 0);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(29, 13);
+            this.label27.TabIndex = 12;
+            this.label27.Text = "Year";
+            // 
+            // releaseDateTFToMonth
+            // 
+            this.releaseDateTFToMonth.Items.Add("Jan");
+            this.releaseDateTFToMonth.Items.Add("Feb");
+            this.releaseDateTFToMonth.Items.Add("Mar");
+            this.releaseDateTFToMonth.Items.Add("Apr");
+            this.releaseDateTFToMonth.Items.Add("May");
+            this.releaseDateTFToMonth.Items.Add("Jun");
+            this.releaseDateTFToMonth.Items.Add("Jul");
+            this.releaseDateTFToMonth.Items.Add("Aug");
+            this.releaseDateTFToMonth.Items.Add("Sep");
+            this.releaseDateTFToMonth.Items.Add("Oct");
+            this.releaseDateTFToMonth.Items.Add("Nov");
+            this.releaseDateTFToMonth.Items.Add("Dec");
+            this.releaseDateTFToMonth.Location = new System.Drawing.Point(599, 13);
+            this.releaseDateTFToMonth.Name = "releaseDateTFToMonth";
+            this.releaseDateTFToMonth.Size = new System.Drawing.Size(45, 20);
+            this.releaseDateTFToMonth.TabIndex = 11;
+            this.releaseDateTFToMonth.Text = "Jan";
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(603, 0);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(37, 13);
+            this.label28.TabIndex = 10;
+            this.label28.Text = "Month";
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(538, 0);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(26, 13);
+            this.label29.TabIndex = 9;
+            this.label29.Text = "Day";
+            // 
+            // releaseDateTFToDay
+            // 
+            this.releaseDateTFToDay.Location = new System.Drawing.Point(532, 13);
+            this.releaseDateTFToDay.Maximum = new decimal(new int[] {
+            31,
+            0,
+            0,
+            0});
+            this.releaseDateTFToDay.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.releaseDateTFToDay.Name = "releaseDateTFToDay";
+            this.releaseDateTFToDay.Size = new System.Drawing.Size(42, 20);
+            this.releaseDateTFToDay.TabIndex = 8;
+            this.releaseDateTFToDay.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // label22
+            // 
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(462, 12);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(25, 13);
+            this.label22.TabIndex = 7;
+            this.label22.Text = "and";
+            // 
+            // releaseDateTFFromYear
+            // 
+            this.releaseDateTFFromYear.Location = new System.Drawing.Point(367, 13);
+            this.releaseDateTFFromYear.Maximum = new decimal(new int[] {
+            2100,
+            0,
+            0,
+            0});
+            this.releaseDateTFFromYear.Minimum = new decimal(new int[] {
+            1970,
+            0,
+            0,
+            0});
+            this.releaseDateTFFromYear.Name = "releaseDateTFFromYear";
+            this.releaseDateTFFromYear.Size = new System.Drawing.Size(53, 20);
+            this.releaseDateTFFromYear.TabIndex = 6;
+            this.releaseDateTFFromYear.Value = new decimal(new int[] {
+            2017,
+            0,
+            0,
+            0});
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(366, 0);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(29, 13);
+            this.label34.TabIndex = 5;
+            this.label34.Text = "Year";
+            // 
+            // releaseDateTFFromMonth
+            // 
+            this.releaseDateTFFromMonth.Items.Add("Jan");
+            this.releaseDateTFFromMonth.Items.Add("Feb");
+            this.releaseDateTFFromMonth.Items.Add("Mar");
+            this.releaseDateTFFromMonth.Items.Add("Apr");
+            this.releaseDateTFFromMonth.Items.Add("May");
+            this.releaseDateTFFromMonth.Items.Add("Jun");
+            this.releaseDateTFFromMonth.Items.Add("Jul");
+            this.releaseDateTFFromMonth.Items.Add("Aug");
+            this.releaseDateTFFromMonth.Items.Add("Sep");
+            this.releaseDateTFFromMonth.Items.Add("Oct");
+            this.releaseDateTFFromMonth.Items.Add("Nov");
+            this.releaseDateTFFromMonth.Items.Add("Dec");
+            this.releaseDateTFFromMonth.Location = new System.Drawing.Point(305, 13);
+            this.releaseDateTFFromMonth.Name = "releaseDateTFFromMonth";
+            this.releaseDateTFFromMonth.Size = new System.Drawing.Size(45, 20);
+            this.releaseDateTFFromMonth.TabIndex = 4;
+            this.releaseDateTFFromMonth.Text = "Jan";
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(303, 0);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(37, 13);
+            this.label33.TabIndex = 3;
+            this.label33.Text = "Month";
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(250, 0);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(26, 13);
+            this.label32.TabIndex = 2;
+            this.label32.Text = "Day";
+            // 
+            // releaseDateTFFromDay
+            // 
+            this.releaseDateTFFromDay.Location = new System.Drawing.Point(246, 13);
+            this.releaseDateTFFromDay.Maximum = new decimal(new int[] {
+            31,
+            0,
+            0,
+            0});
+            this.releaseDateTFFromDay.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.releaseDateTFFromDay.Name = "releaseDateTFFromDay";
+            this.releaseDateTFFromDay.Size = new System.Drawing.Size(42, 20);
+            this.releaseDateTFFromDay.TabIndex = 1;
+            this.releaseDateTFFromDay.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // label31
+            // 
+            this.label31.Location = new System.Drawing.Point(108, 3);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(100, 23);
+            this.label31.TabIndex = 0;
+            this.label31.Text = "Released Between";
+            this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lengthPanel
+            // 
+            this.lengthPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lengthPanel.Controls.Add(this.lengthFixed);
+            this.lengthPanel.Controls.Add(this.lengthTF);
+            this.lengthPanel.Controls.Add(this.lengthTFOverFiftyHours);
+            this.lengthPanel.Controls.Add(this.lengthTFThirtyToFiftyHours);
+            this.lengthPanel.Controls.Add(this.lengthTFTenToThirtyHours);
+            this.lengthPanel.Controls.Add(this.lengthTFTwoToTenHours);
+            this.lengthPanel.Controls.Add(this.lengthTFUnderTwoHours);
+            this.lengthPanel.Controls.Add(this.lengthTFNa);
+            this.lengthPanel.Controls.Add(this.label14);
+            this.lengthPanel.Location = new System.Drawing.Point(6, 14);
+            this.lengthPanel.Name = "lengthPanel";
+            this.lengthPanel.Size = new System.Drawing.Size(787, 37);
+            this.lengthPanel.TabIndex = 17;
+            // 
+            // lengthFixed
+            // 
+            this.lengthFixed.Appearance = System.Windows.Forms.Appearance.Button;
+            this.lengthFixed.AutoSize = true;
+            this.lengthFixed.BackColor = System.Drawing.Color.DarkRed;
+            this.lengthFixed.FlatAppearance.BorderSize = 0;
+            this.lengthFixed.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.lengthFixed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.lengthFixed.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lengthFixed.Location = new System.Drawing.Point(40, 3);
+            this.lengthFixed.Name = "lengthFixed";
+            this.lengthFixed.Size = new System.Drawing.Size(62, 23);
+            this.lengthFixed.TabIndex = 30;
+            this.lengthFixed.Text = "Not Fixed";
+            this.lengthFixed.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lengthFixed.UseVisualStyleBackColor = false;
+            this.lengthFixed.CheckedChanged += new System.EventHandler(this.FilterFixedChanged);
+            // 
+            // lengthTF
+            // 
+            this.lengthTF.Appearance = System.Windows.Forms.Appearance.Button;
+            this.lengthTF.AutoSize = true;
+            this.lengthTF.BackColor = System.Drawing.Color.DarkRed;
+            this.lengthTF.FlatAppearance.BorderSize = 0;
+            this.lengthTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Green;
+            this.lengthTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.lengthTF.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lengthTF.Location = new System.Drawing.Point(3, 3);
+            this.lengthTF.Name = "lengthTF";
+            this.lengthTF.Size = new System.Drawing.Size(31, 23);
+            this.lengthTF.TabIndex = 29;
+            this.lengthTF.Text = "Off";
+            this.lengthTF.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lengthTF.UseVisualStyleBackColor = false;
+            this.lengthTF.CheckedChanged += new System.EventHandler(this.ToggleThisFilter);
+            // 
+            // lengthTFOverFiftyHours
+            // 
+            this.lengthTFOverFiftyHours.AutoSize = true;
+            this.lengthTFOverFiftyHours.Location = new System.Drawing.Point(674, 7);
+            this.lengthTFOverFiftyHours.Name = "lengthTFOverFiftyHours";
+            this.lengthTFOverFiftyHours.Size = new System.Drawing.Size(75, 17);
+            this.lengthTFOverFiftyHours.TabIndex = 6;
+            this.lengthTFOverFiftyHours.Text = ">50 Hours";
+            this.lengthTFOverFiftyHours.UseVisualStyleBackColor = true;
+            this.lengthTFOverFiftyHours.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // lengthTFThirtyToFiftyHours
+            // 
+            this.lengthTFThirtyToFiftyHours.AutoSize = true;
+            this.lengthTFThirtyToFiftyHours.Location = new System.Drawing.Point(582, 7);
+            this.lengthTFThirtyToFiftyHours.Name = "lengthTFThirtyToFiftyHours";
+            this.lengthTFThirtyToFiftyHours.Size = new System.Drawing.Size(84, 17);
+            this.lengthTFThirtyToFiftyHours.TabIndex = 5;
+            this.lengthTFThirtyToFiftyHours.Text = "30-50 Hours";
+            this.lengthTFThirtyToFiftyHours.UseVisualStyleBackColor = true;
+            this.lengthTFThirtyToFiftyHours.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // lengthTFTenToThirtyHours
+            // 
+            this.lengthTFTenToThirtyHours.AutoSize = true;
+            this.lengthTFTenToThirtyHours.Location = new System.Drawing.Point(490, 7);
+            this.lengthTFTenToThirtyHours.Name = "lengthTFTenToThirtyHours";
+            this.lengthTFTenToThirtyHours.Size = new System.Drawing.Size(84, 17);
+            this.lengthTFTenToThirtyHours.TabIndex = 4;
+            this.lengthTFTenToThirtyHours.Text = "10-30 Hours";
+            this.lengthTFTenToThirtyHours.UseVisualStyleBackColor = true;
+            this.lengthTFTenToThirtyHours.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // lengthTFTwoToTenHours
+            // 
+            this.lengthTFTwoToTenHours.AutoSize = true;
+            this.lengthTFTwoToTenHours.Location = new System.Drawing.Point(398, 7);
+            this.lengthTFTwoToTenHours.Name = "lengthTFTwoToTenHours";
+            this.lengthTFTwoToTenHours.Size = new System.Drawing.Size(78, 17);
+            this.lengthTFTwoToTenHours.TabIndex = 3;
+            this.lengthTFTwoToTenHours.Text = "2-10 Hours";
+            this.lengthTFTwoToTenHours.UseVisualStyleBackColor = true;
+            this.lengthTFTwoToTenHours.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // lengthTFUnderTwoHours
+            // 
+            this.lengthTFUnderTwoHours.AutoSize = true;
+            this.lengthTFUnderTwoHours.Location = new System.Drawing.Point(306, 7);
+            this.lengthTFUnderTwoHours.Name = "lengthTFUnderTwoHours";
+            this.lengthTFUnderTwoHours.Size = new System.Drawing.Size(69, 17);
+            this.lengthTFUnderTwoHours.TabIndex = 2;
+            this.lengthTFUnderTwoHours.Text = "<2 Hours";
+            this.lengthTFUnderTwoHours.UseVisualStyleBackColor = true;
+            this.lengthTFUnderTwoHours.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // lengthTFNa
+            // 
+            this.lengthTFNa.AutoSize = true;
+            this.lengthTFNa.Location = new System.Drawing.Point(214, 7);
+            this.lengthTFNa.Name = "lengthTFNa";
+            this.lengthTFNa.Size = new System.Drawing.Size(46, 17);
+            this.lengthTFNa.TabIndex = 1;
+            this.lengthTFNa.Text = "N/A";
+            this.lengthTFNa.UseVisualStyleBackColor = true;
+            this.lengthTFNa.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
+            // 
+            // label14
+            // 
+            this.label14.Location = new System.Drawing.Point(108, 3);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(100, 23);
+            this.label14.TabIndex = 0;
+            this.label14.Text = "Length";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // ContextMenuVN
             // 
@@ -2373,7 +3490,7 @@ namespace Happy_Search
             this.addChangeVNNoteToolStripMenuItem,
             this.addChangeVNGroupsToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 164);
             // 
             // userlistToolStripMenuItem
             // 
@@ -2392,37 +3509,37 @@ namespace Happy_Search
             // noneToolStripMenuItem
             // 
             this.noneToolStripMenuItem.Name = "noneToolStripMenuItem";
-            this.noneToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.noneToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.noneToolStripMenuItem.Text = "None";
             // 
             // unknownToolStripMenuItem
             // 
             this.unknownToolStripMenuItem.Name = "unknownToolStripMenuItem";
-            this.unknownToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.unknownToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.unknownToolStripMenuItem.Text = "Unknown";
             // 
             // playingToolStripMenuItem
             // 
             this.playingToolStripMenuItem.Name = "playingToolStripMenuItem";
-            this.playingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.playingToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.playingToolStripMenuItem.Text = "Playing";
             // 
             // finishedToolStripMenuItem
             // 
             this.finishedToolStripMenuItem.Name = "finishedToolStripMenuItem";
-            this.finishedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.finishedToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.finishedToolStripMenuItem.Text = "Finished";
             // 
             // stalledToolStripMenuItem
             // 
             this.stalledToolStripMenuItem.Name = "stalledToolStripMenuItem";
-            this.stalledToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.stalledToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.stalledToolStripMenuItem.Text = "Stalled";
             // 
             // droppedToolStripMenuItem
             // 
             this.droppedToolStripMenuItem.Name = "droppedToolStripMenuItem";
-            this.droppedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.droppedToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.droppedToolStripMenuItem.Text = "Dropped";
             // 
             // wishlistToolStripMenuItem
@@ -2441,31 +3558,31 @@ namespace Happy_Search
             // noneToolStripMenuItem1
             // 
             this.noneToolStripMenuItem1.Name = "noneToolStripMenuItem1";
-            this.noneToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.noneToolStripMenuItem1.Size = new System.Drawing.Size(119, 22);
             this.noneToolStripMenuItem1.Text = "None";
             // 
             // highToolStripMenuItem
             // 
             this.highToolStripMenuItem.Name = "highToolStripMenuItem";
-            this.highToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.highToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.highToolStripMenuItem.Text = "High";
             // 
             // mediumToolStripMenuItem
             // 
             this.mediumToolStripMenuItem.Name = "mediumToolStripMenuItem";
-            this.mediumToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.mediumToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.mediumToolStripMenuItem.Text = "Medium";
             // 
             // lowToolStripMenuItem
             // 
             this.lowToolStripMenuItem.Name = "lowToolStripMenuItem";
-            this.lowToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.lowToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.lowToolStripMenuItem.Text = "Low";
             // 
             // blacklistToolStripMenuItem
             // 
             this.blacklistToolStripMenuItem.Name = "blacklistToolStripMenuItem";
-            this.blacklistToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.blacklistToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.blacklistToolStripMenuItem.Text = "Blacklist";
             // 
             // voteToolStripMenuItem
@@ -2604,7 +3721,7 @@ namespace Happy_Search
             this.BackColor = System.Drawing.Color.Black;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1204, 621);
-            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.TabsControl);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Location = new System.Drawing.Point(50, 50);
             this.MinimumSize = new System.Drawing.Size(1220, 660);
@@ -2624,13 +3741,41 @@ namespace Happy_Search
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             this.tabControl2.ResumeLayout(false);
-            this.tagFilteringBox.ResumeLayout(false);
-            this.tagFilteringBox.PerformLayout();
             this.traitFilteringBox.ResumeLayout(false);
             this.traitFilteringBox.PerformLayout();
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.tileOLV)).EndInit();
-            this.tabControl1.ResumeLayout(false);
+            this.TabsControl.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage1.PerformLayout();
+            this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
+            this.traitsPanel.ResumeLayout(false);
+            this.traitsPanel.PerformLayout();
+            this.tagsPanel.ResumeLayout(false);
+            this.tagsPanel.PerformLayout();
+            this.panel13.ResumeLayout(false);
+            this.panel13.PerformLayout();
+            this.userlistPanel.ResumeLayout(false);
+            this.userlistPanel.PerformLayout();
+            this.wishlistPanel.ResumeLayout(false);
+            this.wishlistPanel.PerformLayout();
+            this.favoriteProducersPanel.ResumeLayout(false);
+            this.favoriteProducersPanel.PerformLayout();
+            this.votedPanel.ResumeLayout(false);
+            this.votedPanel.PerformLayout();
+            this.blacklistedPanel.ResumeLayout(false);
+            this.blacklistedPanel.PerformLayout();
+            this.unreleasedPanel.ResumeLayout(false);
+            this.unreleasedPanel.PerformLayout();
+            this.releaseDatePanel.ResumeLayout(false);
+            this.releaseDatePanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFToYear)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFToDay)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFFromYear)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.releaseDateTFFromDay)).EndInit();
+            this.lengthPanel.ResumeLayout(false);
+            this.lengthPanel.PerformLayout();
             this.ContextMenuVN.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -2651,9 +3796,6 @@ namespace Happy_Search
         private Button userListButt;
         private Label resultLabel;
         private Label label4;
-        private Button quickFilter1;
-        private Button quickFilter0;
-        private ComboBox ulStatusDropDown;
         private GroupBox statBox;
         private Label dbs9r;
         private Label dbs8r;
@@ -2764,50 +3906,19 @@ namespace Happy_Search
         private Label logReplyLabel;
         private Button clearLogButton;
         private RichTextBox serverQ;
-        private ComboBox URTToggleBox;
-        private ComboBox UnreleasedToggleBox;
-        private ComboBox BlacklistToggleBox;
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem showProducerTitlesToolStripMenuItem;
         private Button favoriteProducersHelpButton;
         private ToolStripMenuItem addProducerToFavoritesToolStripMenuItem;
         private Button GetStartedHelpButton;
         private Button SearchingAndFilteringButton;
-        private Button TagFilteringHelpButton;
-        private Label label6;
-        private Button updateFilterResultsButton;
-        private TextBox tagSearchBox;
-        private Label tagReply;
-        private CheckBox checkBox10;
-        private TextBox customTagFilterNameBox;
-        private CheckBox checkBox7;
-        private CheckBox checkBox8;
-        private CheckBox checkBox1;
-        private Label label7;
-        private Button clearFilterButton;
-        private CheckBox checkBox9;
-        private Button deleteCustomTagFilterButton;
-        private ComboBox customTagFilters;
-        private CheckBox checkBox2;
-        internal CheckBox tagTypeC;
-        private Button saveCustomFilterButton;
-        private CheckBox checkBox4;
-        private CheckBox checkBox3;
-        internal CheckBox tagTypeT;
-        private Label mctLoadingLabel;
-        private CheckBox checkBox5;
-        private CheckBox checkBox6;
-        internal CheckBox tagTypeS;
-        private Label label2;
         private OLVColumn tileColumnRating;
         private OLVColumn tileColumnPopularity;
-        private ComboBox wlStatusDropDown;
         private Panel panel1;
         private Button updateTagsAndTraitsButton;
         private Panel panel2;
         private Button listResultsButton;
         private TabControl tabControl2;
-        private TabPage tagFilteringBox;
         private TabPage traitFilteringBox;
         private ComboBox traitRootsDropdown;
         private Label traitReply;
@@ -2827,11 +3938,6 @@ namespace Happy_Search
         private Button sendQueryButton;
         private CheckBox advancedCheckBox;
         internal ComboBox ListByCBQuery;
-        private Button tagSignaler;
-        private Button traitSignaler;
-        private CheckBox ToggleFiltersModeButton;
-        private ListBox tagSearchResultBox;
-        private Button tagSearchButton;
         private ListBox traitSearchResultBox;
         private Button traitSearchButton;
         private ComboBox ListByCB;
@@ -2843,8 +3949,123 @@ namespace Happy_Search
         private Button toggleViewButton;
         private ComboBox multiActionBox;
         private ToolStripMenuItem preciseNumberToolStripMenuItem;
-        internal TabControl tabControl1;
+        internal TabControl TabsControl;
         private Button button1;
+        private OLVColumn tileColumnLength;
+        private TabPage tabPage1;
+        private Label label14;
+        private Panel lengthPanel;
+        private Panel releaseDatePanel;
+        private Label label32;
+        private Label label31;
+        private Label label33;
+        private Label label34;
+        private Panel votedPanel;
+        private Label label17;
+        private Panel blacklistedPanel;
+        private Label label16;
+        private Panel unreleasedPanel;
+        private Label label15;
+        private Label label27;
+        private Label label28;
+        private Label label29;
+        private Label label22;
+        private Panel wishlistPanel;
+        private Label label26;
+        private Panel favoriteProducersPanel;
+        private Label label25;
+        private Panel userlistPanel;
+        private Label label23;
+        private Panel tagsPanel;
+        private Button button6;
+        private ListBox tagsTFLB;
+        private Label label30;
+        private Panel panel13;
+        private ListBox originalLanguageTFLB;
+        private Label label20;
+        private Panel traitsPanel;
+        private Button button7;
+        private ListBox traitsTFLB;
+        private Label label18;
+        private ComboBox filterDropdown;
+        private Label label19;
+        internal CheckBox userlistFixed;
+        internal CheckBox wishlistFixed;
+        internal CheckBox favoriteProducersFixed;
+        internal CheckBox votedFixed;
+        internal CheckBox blacklistedFixed;
+        internal CheckBox unreleasedFixed;
+        internal CheckBox releaseDateFixed;
+        internal CheckBox lengthFixed;
+        internal CheckBox lengthTFUnderTwoHours;
+        internal CheckBox lengthTFNa;
+        internal CheckBox lengthTFThirtyToFiftyHours;
+        internal CheckBox lengthTFTenToThirtyHours;
+        internal CheckBox lengthTFTwoToTenHours;
+        internal CheckBox lengthTFOverFiftyHours;
+        internal CheckBox wishlistTFLow;
+        internal CheckBox wishlistTFMedium;
+        internal CheckBox wishlistTFHigh;
+        internal CheckBox wishlistTFNa;
+        internal CheckBox userlistTFDropped;
+        internal CheckBox userlistTFStalled;
+        internal CheckBox userlistTFFinished;
+        internal CheckBox userlistTFPlaying;
+        internal CheckBox userlistTFUnknown;
+        internal CheckBox userlistTFNa;
+        internal CheckBox tagsTF;
+        internal CheckBox traitsTF;
+        internal CheckBox userlistTF;
+        internal CheckBox wishlistTF;
+        internal CheckBox favoriteProducersTF;
+        internal CheckBox votedTF;
+        internal CheckBox blacklistedTF;
+        internal CheckBox unreleasedTF;
+        internal CheckBox releaseDateTF;
+        internal CheckBox lengthTF;
+        private RadioButton votedTFNo;
+        private RadioButton votedTFYes;
+        private RadioButton blacklistedTFNo;
+        private RadioButton blacklistedTFYes;
+        private RadioButton favoriteProducersTFNo;
+        private RadioButton favoriteProducersTFYes;
+        private Panel panel4;
+        internal CheckBox languageFixed;
+        private CheckBox languageTF;
+        private ListBox languageTFLB;
+        private Label label21;
+        internal CheckBox traitsFixed;
+        internal CheckBox tagsFixed;
+        internal CheckBox originalLanguageFixed;
+        private CheckBox originalLanguageTF;
+        private Label releaseDateTFResponse;
+        private NumericUpDown releaseDateTFFromDay;
+        private DomainUpDown releaseDateTFFromMonth;
+        private NumericUpDown releaseDateTFFromYear;
+        private NumericUpDown releaseDateTFToYear;
+        private DomainUpDown releaseDateTFToMonth;
+        private NumericUpDown releaseDateTFToDay;
+        internal CheckBox unreleasedTFReleased;
+        internal CheckBox unreleasedTFWithoutReleaseDate;
+        internal CheckBox unreleasedTFWithReleaseDate;
+        private ListBox tagSearchResultBox;
+        private Button tagSearchButton;
+        private TextBox tagSearchBox;
+        private Label label7;
+        private Label label2;
+        private Button TagFilteringHelpButton;
+        private Button updateFilterResultsButton;
+        private Label tagReply;
+        private TextBox customTagFilterNameBox;
+        private Button saveCustomFilterButton;
+        private ComboBox customTagFilters;
+        private Button clearFilterButton;
+        private Button deleteCustomTagFilterButton;
+        internal CheckBox tagsOrTraits;
+        private ComboBox languageTFCB;
+        private ComboBox originalLanguageTFCB;
+        private Label label24;
+        private Label label6;
     }
 }
 

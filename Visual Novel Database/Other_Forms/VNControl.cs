@@ -74,32 +74,26 @@ namespace Happy_Search.Other_Forms
                 {
                     case "tagTypeC":
                         FormMain.Settings.ContentTags = checkBox.Checked;
-                        _parentForm.tagTypeC.Checked = checkBox.Checked;
                         _parentForm.tagTypeC2.Checked = checkBox.Checked;
                         break;
                     case "tagTypeS":
                         FormMain.Settings.SexualTags = checkBox.Checked;
-                        _parentForm.tagTypeS.Checked = checkBox.Checked;
                         _parentForm.tagTypeS2.Checked = checkBox.Checked;
                         break;
                     case "tagTypeT":
                         FormMain.Settings.TechnicalTags = checkBox.Checked;
-                        _parentForm.tagTypeT.Checked = checkBox.Checked;
                         _parentForm.tagTypeT2.Checked = checkBox.Checked;
                         break;
                 }
                 _parentForm.DontTriggerEvent = false;
-                _parentForm.DisplayCommonTags(null, null);
                 _parentForm.DisplayCommonTagsURT(null, null);
                 FormMain.Settings.Save();
             }
-            if (_displayedVN == null || _displayedVN.Tags == string.Empty) vnTagCB.DataSource = "No Tags Found";
+            if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = "No Tags Found";
             else
             {
-                _displayedVN.SetTags(_parentForm.PlainTags);
-                List<TagItem> allTags = _displayedVN.TagList;
                 var visibleTags = new List<TagItem>();
-                foreach (var tag in allTags)
+                foreach (var tag in _displayedVN.TagList)
                 {
                     switch (tag.Category)
                     {
@@ -115,7 +109,7 @@ namespace Happy_Search.Other_Forms
                     }
                     visibleTags.Add(tag);
                 }
-                List<string> stringList = visibleTags.Select(x => x.Print(_parentForm.PlainTags)).ToList();
+                List<string> stringList = visibleTags.Select(x => x.Print(FormMain.PlainTags)).ToList();
                 stringList.Sort();
                 vnTagCB.DataSource = stringList;
             }
@@ -203,7 +197,7 @@ namespace Happy_Search.Other_Forms
             vnDesc.Text = vnItem.Description;
             vnRating.Text = vnItem.RatingAndVoteCount();
             vnPopularity.Text = $@"Popularity: {vnItem.Popularity:0.00}";
-            vnLength.Text = vnItem.Length;
+            vnLength.Text = vnItem.Length.GetDescription();
             vnUserStatus.Text = vnItem.UserRelatedStatus();
             var notes = vnItem.GetCustomItemNotes();
             vnNotes.Text = notes.Notes.Length > 0 ? $"Notes: {notes.Notes}" : "No notes.";
@@ -329,7 +323,7 @@ namespace Happy_Search.Other_Forms
                 stringList.Add($"Character {characterItem.ID}");
                 foreach (var trait in characterItem.Traits)
                 {
-                    stringList.Add(_parentForm.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
+                    stringList.Add(FormMain.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
                 }
                 stringList.Add("---------------");
             }
@@ -639,7 +633,7 @@ namespace Happy_Search.Other_Forms
         #region TabPage Controls
         private void CloseButton(object sender, EventArgs e)
         {
-            _parentForm.tabControl1.SelectedTab.Dispose();
+            _parentForm.TabsControl.SelectedTab.Dispose();
         }
 
         private void CloseByEscape(object sender, KeyEventArgs e)
@@ -679,7 +673,7 @@ namespace Happy_Search.Other_Forms
 
         private void DisplayProducerTitles(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            _parentForm.tabControl1.SelectTab(0);
+            _parentForm.TabsControl.SelectTab(0);
             _parentForm.List_Producer(_displayedVN.Producer);
         }
 
@@ -923,7 +917,7 @@ namespace Happy_Search.Other_Forms
             _working = false;
         }
 
-        private void vnGroups_SelectedIndexChanged(object sender, EventArgs e)
+        private void VnGroups_SelectedIndexChanged(object sender, EventArgs e)
         {
             switch (vnGroups.SelectedIndex)
             {
@@ -933,7 +927,7 @@ namespace Happy_Search.Other_Forms
                     vnGroups.SelectedIndex = 0;
                     return;
                 default:
-                    _parentForm.tabControl1.SelectTab(0);
+                    _parentForm.TabsControl.SelectTab(0);
                     _parentForm.ListByCBQuery.Text = (string)vnGroups.SelectedItem;
                     _parentForm.List_Group(null, null);
                     return;

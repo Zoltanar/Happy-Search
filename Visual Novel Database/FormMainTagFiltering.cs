@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,9 +16,11 @@ namespace Happy_Search
 {
     public partial class FormMain
     {
-        private const string TagLabel = "tagFilterLabel";
         private readonly List<CustomTagFilter> _customTagFilters;
-        private List<TagFilter> _activeTagFilter = new List<TagFilter>();
+        /// <summary>
+        /// Contains contents of TagsTFLB (not active tags);
+        /// </summary>
+        public readonly BindingList<TagFilter> TagsPre = new BindingList<TagFilter>();
 
         /// <summary>
         /// Bring up dialog explaining features of the 'Tag Filtering' section.
@@ -30,43 +31,6 @@ namespace Happy_Search
             Debug.Assert(path != null, "path != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\tagfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
-        }
-
-        /// <summary>
-        /// Event from checking a MostCommonTags checkbox, adds tag to list of active tag filters.
-        /// </summary>
-        private void TagFilterAdded(object sender, EventArgs e)
-        {
-            var checkbox = (CheckBox)sender;
-            if (!checkbox.Checked) return;
-            var indexOfLastBracket = checkbox.Text.LastIndexOf('(');
-            var tagName = checkbox.Text.Substring(0, indexOfLastBracket).Trim();
-            DontTriggerEvent = true;
-            customTagFilters.SelectedIndex = 0;
-            deleteCustomTagFilterButton.Enabled = false;
-            DontTriggerEvent = false;
-            AddFilterTag(tagName);
-        }
-
-        /// <summary>
-        /// Event from unchecking an active tag filter's checkbox, removes tag from list of active tag filters.
-        /// </summary>
-        private void TagFilterRemoved(object sender, EventArgs e)
-        {
-            var checkbox = (CheckBox)sender;
-            if (checkbox.Checked)
-            {
-                //shouldnt happen
-                return;
-            }
-            //Filter Removed
-            var filterNo = Convert.ToInt32(checkbox.Name.Remove(0, TagLabel.Length));
-            _activeTagFilter.RemoveAt(filterNo);
-            DontTriggerEvent = true;
-            customTagFilters.SelectedIndex = 0;
-            deleteCustomTagFilterButton.Enabled = false;
-            DontTriggerEvent = false;
-            DisplayFilterTags();
         }
 
         /// <summary>
@@ -84,20 +48,21 @@ namespace Happy_Search
             var customFilter = _customTagFilters.Find(x => x.Name.Equals(filterName));
             if (customFilter != null)
             {
-                var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?", Resources.ask_overwrite, MessageBoxButtons.YesNo);
+                var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
+                    Resources.ask_overwrite, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                customFilter.Filters = new List<TagFilter>(_activeTagFilter);
+                customFilter.Filters = TagsPre.ToList();
                 customFilter.Updated = DateTime.UtcNow;
-                SaveMainXML();
-                WriteText(tagReply, Resources.filter_saved);
                 customTagFilters.SelectedIndex = customTagFilters.Items.IndexOf(filterName);
-                return;
             }
-            customTagFilters.Items.Add(filterName);
-            _customTagFilters.Add(new CustomTagFilter(filterName, new List<TagFilter>(_activeTagFilter)));
+            else
+            {
+                customTagFilters.Items.Add(filterName);
+                _customTagFilters.Add(new CustomTagFilter(filterName, TagsPre.ToList()));
+                customTagFilters.SelectedIndex = customTagFilters.Items.Count - 1;
+            }
             SaveMainXML();
             WriteText(tagReply, Resources.filter_saved);
-            customTagFilters.SelectedIndex = customTagFilters.Items.Count - 1;
         }
 
         /// <summary>
@@ -105,26 +70,9 @@ namespace Happy_Search
         /// </summary>
         private void ClearTagFilter(object sender, EventArgs e)
         {
-            DisplayFilterTags(true);
+            TagsPre.Clear();
             customTagFilters.SelectedIndex = 0;
-            ApplyListFilters();
             WriteText(tagReply, Resources.filter_cleared);
-        }
-
-        /// <summary>
-        /// Add tag (by name) to list of active tag filters.
-        /// </summary>
-        /// <param name="tagName">Name of tag</param>
-        private void AddFilterTag(string tagName)
-        {
-            var writtenTag =
-                PlainTags.Find(item => item.Name.Equals(tagName, StringComparison.InvariantCultureIgnoreCase));
-            if (writtenTag == null)
-            {
-                WriteError(tagReply, $"Tag {tagName} not found");
-                return;
-            }
-            AddFilterTag(writtenTag);
         }
 
         /// <summary>
@@ -138,7 +86,7 @@ namespace Happy_Search
                 WriteError(tagReply, "Tag not found.");
                 return;
             }
-            foreach (var filter in _activeTagFilter)
+            foreach (var filter in TagsPre)
             {
                 //if tag is already in filter, do nothing.
                 if (filter.ID == writtenTag.ID)
@@ -150,11 +98,10 @@ namespace Happy_Search
                 if (!filter.HasChild(writtenTag.ID)) continue;
                 //if filter is parent of tag, remove filter (because it would be useless in the presence of more specific tag)
                 //eg transfer student heroine is more precise than student heroine
-                _activeTagFilter.Remove(filter);
+                TagsPre.Remove(filter);
                 break;
             }
             //save tag as tag and children
-            //var children = new List<int>();
             int[] children = Enumerable.Empty<int>().ToArray();
             var difference = 1;
             //new
@@ -178,7 +125,7 @@ namespace Happy_Search
             newFilter.Titles = count;
             TagFilter moreSpecificFilter = null;
             var notNeeded = false;
-            foreach (var filter in _activeTagFilter)
+            foreach (var filter in TagsPre)
             {
                 if (!newFilter.HasChild(filter.ID)) continue;
                 notNeeded = true;
@@ -190,59 +137,14 @@ namespace Happy_Search
                 WriteText(tagReply, $"Tag isn't needed because {moreSpecificFilter.Name} is more specific.");
                 return;
             }
-            _activeTagFilter.Add(newFilter);
+            TagsPre.Add(newFilter);
             WriteText(tagReply, $"Tag {writtenTag.Name} has {count} VNs in local database.");
-            DisplayFilterTags();
-        }
-
-        /// <summary>
-        /// Display or clear list of active tag filters.
-        /// </summary>
-        /// <param name="clear">Should list be cleared?</param>
-        private void DisplayFilterTags(bool clear = false)
-        {
-            //clear old labels
-            var oldCount = 0;
-            var oldLabel = (CheckBox)Controls.Find(TagLabel + 0, true).FirstOrDefault();
-            while (oldLabel != null)
-            {
-                oldLabel.Dispose();
-                oldCount++;
-                oldLabel = (CheckBox)Controls.Find(TagLabel + oldCount, true).FirstOrDefault();
-            }
-            if (clear)
-            {
-                _activeTagFilter = new List<TagFilter>();
-                customTagFilterNameBox.Text = "";
-                return;
-            }
-            //add labels
-            var count = 0;
-            foreach (var filter in _activeTagFilter)
-            {
-                var filterLabel = new CheckBox
-                {
-                    AutoSize = false,
-                    Location = new Point(264, 34 + count * 22),
-                    Name = TagLabel + count,
-                    Size = new Size(173, 17),
-                    Text = $@"{filter.Name} (Total: {filter.Titles})",
-                    //MaximumSize = new Size(173, 17),
-                    Checked = true,
-                    AutoEllipsis = true
-                };
-
-                filterLabel.CheckedChanged += TagFilterRemoved;
-                count++;
-                tagFilteringBox.Controls.Add(filterLabel);
-            }
-            ApplyListFilters();
         }
 
         /// <summary>
         /// Update results of list of active filters.
         /// </summary>
-        private async void UpdateResults(object sender, EventArgs e)
+        private async void UpdateTagResults(object sender, EventArgs e)
         {
             if (customTagFilters.SelectedIndex > 1)
             {
@@ -252,7 +154,7 @@ namespace Happy_Search
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result = StartQuery(tagReply, "Update Filter Results",true,true,false);
+                var result = StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
                 _customTagFilters[customTagFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
@@ -276,7 +178,7 @@ namespace Happy_Search
         {
             _vnsAdded = 0;
             _vnsSkipped = 0;
-            IEnumerable<string> betterTags = _activeTagFilter.Select(x => x.ID).Select(s => $"tags = {s}");
+            IEnumerable<string> betterTags = TagsPre.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
             var result = await TryQuery(tagQuery, "UCF Query Error");
@@ -284,7 +186,7 @@ namespace Happy_Search
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(),false);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -301,7 +203,6 @@ namespace Happy_Search
             }
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
-            ApplyListFilters();
             WriteText(ActiveQuery.ReplyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
         }
 
@@ -322,13 +223,11 @@ namespace Happy_Search
                     return;
                 default:
                     deleteCustomTagFilterButton.Enabled = true;
-                    DisplayFilterTags(true);
-                    _activeTagFilter = new List<TagFilter>(_customTagFilters[dropdownlist.SelectedIndex - 2].Filters);
+                    TagsPre.Clear();
+                    TagsPre.AddRange(_customTagFilters[dropdownlist.SelectedIndex - 2].Filters.ToArray());
                     customTagFilterNameBox.Text = _customTagFilters[dropdownlist.SelectedIndex - 2].Name;
-                    DisplayFilterTags();
                     break;
             }
-            LoadVNListToGui();
         }
 
         /// <summary>
@@ -356,8 +255,7 @@ namespace Happy_Search
         /// <returns>Whether it contains the tag or a subtag.</returns>
         private static bool VNMatchesSingleTag(ListedVN vn, TagFilter tag)
         {
-            int[] vnTags = StringToTags(vn.Tags).Select(x => x.ID).ToArray();
-            return vnTags.Any(vntag => tag.AllIDs.Contains(vntag));
+            return vn.TagList.Select(t => t.ID).Any(vntag => tag.AllIDs.Contains(vntag));
         }
 
         /// <summary>
@@ -365,18 +263,11 @@ namespace Happy_Search
         /// </summary>
         /// <param name="vn">Visual Novel to be checked</param>
         /// <returns>Whether it matches</returns>
-        private bool VNMatchesTagFilter(ListedVN vn)
+        public bool VNMatchesTagFilter(ListedVN vn)
         {
-            int[] vnTags = StringToTags(vn.Tags).Select(x => x.ID).ToArray();
-            //for each tag in list of active tag filters, add 1 to counter if vn has a tag that is either the specified tag or a subtag
-            //if counter is the same as the amount of tags in active tag filters, it means it matched all of them, thus, it matches the whole filter.
-            /*var filtersMatched = 0;
-            foreach (var filter in _activeFilter)
-            {
-                if (vnTags.Any(vntag => filter.AllIDs.Contains(vntag))) filtersMatched++;
-            }*/
-            var filtersMatched = _activeTagFilter.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
-            return filtersMatched == _activeTagFilter.Count;
+            int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
+            var filtersMatched = Filters.Tags.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
+            return filtersMatched == Filters.Tags.Length;
         }
 
         /// <summary>
@@ -455,152 +346,6 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Clear results box from view on click in tag filtering section.
-        /// </summary>
-        private void ClearListBox(object sender, EventArgs e)
-        {
-            tagSearchResultBox.Visible = false;
-        }
-
-
-        /// <summary>
-        /// Display ten most common tags in the current list. Takes time when list contains over 9000 titles.
-        /// If called by checkbox objects, it syncs all checkboxes to recently changed.
-        /// </summary>
-        internal void DisplayCommonTags(object sender, EventArgs e)
-        {
-            if (sender != null && !DontTriggerEvent)
-            {
-                var checkBox = (CheckBox)sender;
-                DontTriggerEvent = true;
-                var vnControls = from TabPage tabPage in tabControl1.TabPages where tabPage.Text.StartsWith("VN - ") select tabPage.Controls[0] as VNControl;
-                switch (checkBox.Name)
-                {
-                    case "tagTypeC":
-                        Settings.ContentTags = checkBox.Checked;
-                        tagTypeC2.Checked = checkBox.Checked;
-                        foreach (var vnControl in vnControls)
-                        {
-                            vnControl.tagTypeC.Checked = checkBox.Checked;
-                            vnControl.DisplayTags(null, null);
-                        }
-                        break;
-                    case "tagTypeS":
-                        Settings.SexualTags = checkBox.Checked;
-                        tagTypeS2.Checked = checkBox.Checked;
-                        foreach (var vnControl in vnControls)
-                        {
-                            vnControl.tagTypeC.Checked = checkBox.Checked;
-                            vnControl.DisplayTags(null, null);
-                        }
-                        break;
-                    case "tagTypeT":
-                        Settings.TechnicalTags = checkBox.Checked;
-                        tagTypeT2.Checked = checkBox.Checked;
-                        foreach (var vnControl in vnControls)
-                        {
-                            vnControl.tagTypeC.Checked = checkBox.Checked;
-                            vnControl.DisplayTags(null, null);
-                        }
-                        break;
-                }
-                DontTriggerEvent = false;
-                Settings.Save();
-                DisplayCommonTagsURT(null, null);
-            }
-            _mctCount++;
-            var bw = new IdentifiableBackgroundWorker { WorkerReportsProgress = true, WorkerSupportsCancellation = true, ID = _mctCount };
-            bw.DoWork += RunBackgroundWork;
-            bw.ProgressChanged += delegate (object o, ProgressChangedEventArgs args)
-            {
-                mctLoadingLabel.Text = $@"{args.ProgressPercentage}% Completed";
-            };
-            bw.RunWorkerCompleted += OnBackgroundWorkCompleted;
-            bw.RunWorkerAsync();
-        }
-
-        private void OnBackgroundWorkCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
-            var vnCount = vnlist.Length;
-            if (vnCount == 0)
-            {
-                ClearCommonTags(TagTypeAll, 10);
-                return;
-            }
-            var bw = (IdentifiableBackgroundWorker)sender;
-            //abort if current mct id is different
-            if (bw.ID != _mctCount) return;
-            if (_toptentags == null || !_toptentags.Any()) return;
-            var mctNo = 1;
-            while (mctNo < _toptentags.Count)
-            {
-                var mctIndex = mctNo - 1;
-                var name = TagTypeAll + mctNo;
-                var cb = (CheckBox)Controls.Find(name, true).First();
-                var tagName = PlainTags.Find(item => item.ID == _toptentags[mctIndex].Key).Name;
-                cb.Text = $@"{tagName} ({_toptentags[mctIndex].Value})";
-                cb.Checked = false;
-                cb.Visible = true;
-                mctNo++;
-            }
-            ClearCommonTags(TagTypeAll, 10 - _toptentags.Count);
-            FadeLabel(mctLoadingLabel);
-        }
-
-        private void RunBackgroundWork(object sender1, DoWorkEventArgs e1)
-        {
-            var bw = (IdentifiableBackgroundWorker)sender1;
-            ListedVN[] vnlist = tileOLV.FilteredObjects.Cast<ListedVN>().ToArray();
-            var vnCount = vnlist.Length;
-            if (vnCount == 0) return;
-            //vn list - most common tags
-            var taglist = new Dictionary<int, int>();
-            var vnNo = 1;
-            foreach (var vn in vnlist)
-            {
-                //abort if current mct id is different
-                if (bw.ID != _mctCount) return;
-                var progressPercent = (double)vnNo / vnCount * 100;
-                vnNo++;
-                try
-                {
-                    ((IdentifiableBackgroundWorker)sender1).ReportProgress((int)Math.Floor(progressPercent));
-                }
-                catch
-                {
-                    LogToFile("Closed while Updating Most Common Tags");
-                    return;
-                }
-                if (!vn.Tags.Any()) continue;
-                List<TagItem> tags = StringToTags(vn.Tags);
-                foreach (var tag in tags)
-                {
-                    //abort if current mct id is different
-                    if (bw.ID != _mctCount) return;
-                    var tagtag = PlainTags.Find(item => item.ID == tag.ID);
-                    if (tagtag == null) continue;
-                    if (tagtag.Cat.Equals(ContentTag) && Settings.ContentTags == false) continue;
-                    if (tagtag.Cat.Equals(SexualTag) && Settings.SexualTags == false) continue;
-                    if (tagtag.Cat.Equals(TechnicalTag) && Settings.TechnicalTags == false) continue;
-                    if (_activeTagFilter.Find(x => x.ID == tagtag.ID) != null) continue;
-                    if (taglist.ContainsKey(tag.ID))
-                    {
-                        taglist[tag.ID] = taglist[tag.ID] + 1;
-                    }
-                    else
-                    {
-                        taglist.Add(tag.ID, 1);
-                    }
-                }
-            }
-            List<KeyValuePair<int, int>> prodlistlist = taglist.ToList();
-            prodlistlist.Sort((x, y) => y.Value.CompareTo(x.Value));
-            _toptentags = prodlistlist.Take(10).ToList();
-        }
-
-
-        /// <summary>
         ///     Holds details of user-created custom filter
         /// </summary>
         [Serializable, XmlRoot("CustomTagFilter")]
@@ -640,81 +385,79 @@ namespace Happy_Search
             public DateTime Updated { get; set; }
         }
 
+    }
+
+    /// <summary>
+    ///     Holds details of a VNDB Tag and its subtags
+    /// </summary>
+    [Serializable, XmlRoot("TagFilter")]
+    public class TagFilter
+    {
         /// <summary>
-        ///     Holds details of a VNDB Tag and its subtags
         /// </summary>
-        [Serializable, XmlRoot("TagFilter")]
-        public class TagFilter
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="titles"></param>
+        /// <param name="children"></param>
+        public TagFilter(int id, string name, int titles, int[] children)
         {
-            /// <summary>
-            /// </summary>
-            /// <param name="id"></param>
-            /// <param name="name"></param>
-            /// <param name="titles"></param>
-            /// <param name="children"></param>
-            public TagFilter(int id, string name, int titles, int[] children)
-            {
-                ID = id;
-                Name = name;
-                Titles = titles;
-                Children = children;
-                AllIDs = children.Union(new[] { id }).ToArray();
-            }
+            ID = id;
+            Name = name;
+            Titles = titles;
+            Children = children;
+            AllIDs = children.Union(new[] { id }).ToArray();
+        }
 
-            /// <summary>
-            ///     Empty Constructor needed for XML.
-            /// </summary>
-            public TagFilter()
-            {
-            }
+        /// <summary>
+        ///     Empty Constructor needed for XML.
+        /// </summary>
+        public TagFilter()
+        {
+        }
 
-            /// <summary>
-            ///     ID of tag.
-            /// </summary>
-            public int ID { get; set; }
+        /// <summary>
+        ///     ID of tag.
+        /// </summary>
+        public int ID { get; set; }
 
-            /// <summary>
-            ///     Name of tag.
-            /// </summary>
-            public string Name { get; set; }
+        /// <summary>
+        ///     Name of tag.
+        /// </summary>
+        public string Name { get; set; }
 
-            /// <summary>
-            ///     Number of titles with tag.
-            /// </summary>
-            public int Titles { get; set; }
+        /// <summary>
+        ///     Number of titles with tag.
+        /// </summary>
+        public int Titles { get; set; }
 
-            /// <summary>
-            ///     Subtag IDs of tag.
-            /// </summary>
-            public int[] Children { get; set; }
+        /// <summary>
+        ///     Subtag IDs of tag.
+        /// </summary>
+        public int[] Children { get; set; }
 
-            /// <summary>
-            ///     Tag ID and subtag IDs
-            /// </summary>
-            public int[] AllIDs { get; set; }
+        /// <summary>
+        ///     Tag ID and subtag IDs
+        /// </summary>
+        public int[] AllIDs { get; set; }
 
 
-            /// <summary>
-            ///     Check if given tag is a child tag of TagFilter
-            /// </summary>
-            /// <param name="tag">Tag to be checked</param>
-            /// <returns>Whether tag is child of TagFilter</returns>
-            public bool HasChild(int tag)
-            {
-                return Children.Contains(tag);
-            }
-
-
-            /// <summary>Returns a string that represents the current object.</summary>
-            /// <returns>A string that represents the current object.</returns>
-            /// <filterpriority>2</filterpriority>
-            public override string ToString()
-            {
-                return $"{ID} - {Name}";
-            }
+        /// <summary>
+        ///     Check if given tag is a child tag of TagFilter
+        /// </summary>
+        /// <param name="tag">Tag to be checked</param>
+        /// <returns>Whether tag is child of TagFilter</returns>
+        public bool HasChild(int tag)
+        {
+            return Children.Contains(tag);
         }
 
 
-
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString()
+        {
+            return $"{ID} - {Name}";
+        }
     }
 }

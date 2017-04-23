@@ -836,28 +836,22 @@ END";
 
         public static int DbInt(object dbObject)
         {
-            int i;
-            if (!int.TryParse(dbObject.ToString(), out i)) return -1;
-            return i;
+            return int.TryParse(dbObject.ToString(), out int i) ? i : -1;
         }
 
         public static double DbDouble(object dbObject)
         {
-            double i;
-            if (!double.TryParse(dbObject.ToString(), out i)) return -1;
-            return i;
+            return double.TryParse(dbObject.ToString(), out double i) ? i : -1;
         }
 
         public static DateTime DbDateTime(object dbObject)
         {
-            DateTime upDateTime;
-            return !DateTime.TryParse(dbObject.ToString(), out upDateTime) ? DateTime.MinValue : upDateTime;
+            return DateTime.TryParse(dbObject.ToString(), out DateTime upDateTime) ? upDateTime : DateTime.MinValue;
         }
 
         private static bool GetImageStatus(object imageNSFW)
         {
-            int i;
-            if (!int.TryParse(imageNSFW.ToString(), out i)) return false;
+            if (!int.TryParse(imageNSFW.ToString(), out int i)) return false;
             return i == 1;
         }
 
@@ -867,7 +861,7 @@ END";
         /// </summary>
         /// <param name="objects">List of objects</param>
         /// <returns>JSON array string</returns>
-        private static string ListToJsonArray(List<object> objects)
+        private static string ListToJsonArray(ICollection<object> objects)
         {
             return JsonConvert.SerializeObject(objects);
         }

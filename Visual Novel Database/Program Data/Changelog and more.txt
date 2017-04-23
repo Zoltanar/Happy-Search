@@ -2,6 +2,8 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Overhaul: Filtering, new filters: Length, release date, unreleased status, voted, language, original language.
+---
 Changed: Move query params into start query rather than passing
 --
 Fixed: Changing VN statuses to none.
@@ -119,9 +121,10 @@ No Work
 ---------------
 	Easy Tasks
 	----------
-	 Sorting and filtering by length
 	 Update Help files
 	 Remove Logging from database methods (or make it write to file later)
+	 Change Wishlist/Userlist in OLV to show Description attribute instead of ToString
+	 Change Added to UL/WL to show only date not time (ToShortDateString)
 
 
 

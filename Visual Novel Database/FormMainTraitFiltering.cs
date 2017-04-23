@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -14,10 +13,11 @@ namespace Happy_Search
 {
     public partial class FormMain
     {
-        private const string TraitLabel = "traitFilterLabel";
         private readonly List<CustomTraitFilter> _customTraitFilters;
-        private List<WrittenTrait> _activeTraitFilter = new List<WrittenTrait>();
-        private Func<ListedVN, bool> _traitFunction = x => true;
+        /// <summary>
+        /// Contains traits in TraitsTFLB (not active trait filter)
+        /// </summary>
+        public readonly List<WrittenTrait> TraitsPre = new List<WrittenTrait>();
 
         /// <summary>
         ///     Bring up dialog explaining features of the 'Trait Filtering' section.
@@ -63,11 +63,9 @@ namespace Happy_Search
                     return;
                 default:
                     deleteCustomTraitFilterButton.Enabled = true;
-                    DisplayFilterTraits(true);
-                    _activeTraitFilter =
-                        new List<WrittenTrait>(_customTraitFilters[customTraitFilters.SelectedIndex - 2].Filters);
+                    TraitsPre.Clear();
+                    TraitsPre.AddRange(_customTraitFilters[customTraitFilters.SelectedIndex - 2].Filters.ToArray());
                     customTraitFilterNameBox.Text = _customTraitFilters[customTraitFilters.SelectedIndex - 2].Name;
-                    DisplayFilterTraits();
                     break;
             }
             LoadVNListToGui();
@@ -88,21 +86,22 @@ namespace Happy_Search
             var customFilter = _customTraitFilters.Find(x => x.Name.Equals(filterName));
             if (customFilter != null)
             {
-                var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?", Resources.ask_overwrite,
+                var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
+                    Resources.ask_overwrite,
                     MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                customFilter.Filters = new List<WrittenTrait>(_activeTraitFilter);
+                customFilter.Filters = TraitsPre.ToList();
                 customFilter.Updated = DateTime.UtcNow;
-                SaveMainXML();
-                WriteText(traitReply, Resources.filter_saved);
                 customTraitFilters.SelectedIndex = customTraitFilters.Items.IndexOf(filterName);
-                return;
             }
-            customTraitFilters.Items.Add(filterName);
-            _customTraitFilters.Add(new CustomTraitFilter(filterName, new List<WrittenTrait>(_activeTraitFilter)));
+            else
+            {
+                customTraitFilters.Items.Add(filterName);
+                _customTraitFilters.Add(new CustomTraitFilter(filterName, TraitsPre.ToList()));
+                customTraitFilters.SelectedIndex = customTraitFilters.Items.Count - 1;
+            }
             SaveMainXML();
             WriteText(traitReply, Resources.filter_saved);
-            customTraitFilters.SelectedIndex = customTraitFilters.Items.Count - 1;
         }
 
         /// <summary>
@@ -110,78 +109,9 @@ namespace Happy_Search
         /// </summary>
         private void ClearTraitFilter(object sender, EventArgs e)
         {
-            DisplayFilterTraits(true);
             customTraitFilters.SelectedIndex = 0;
-            ApplyListFilters();
+            TraitsPre.Clear();
             WriteText(traitReply, "Trait filter cleared.");
-        }
-
-        /// <summary>
-        ///     Display or clear list of active trait filters.
-        /// </summary>
-        /// <param name="clear">Should list be cleared?</param>
-        private void DisplayFilterTraits(bool clear = false)
-        {
-            //clear old labels
-            var oldCount = 0;
-            var oldLabel = (CheckBox)Controls.Find(TraitLabel + 0, true).FirstOrDefault();
-            while (oldLabel != null)
-            {
-                oldLabel.Dispose();
-                oldCount++;
-                oldLabel = (CheckBox)Controls.Find(TraitLabel + oldCount, true).FirstOrDefault();
-            }
-            if (clear || _activeTraitFilter.Count == 0)
-            {
-                _activeTraitFilter = new List<WrittenTrait>();
-                _traitFunction = x => true;
-                ApplyListFilters();
-                return;
-            }
-            //add labels
-            var count = 0;
-            foreach (var trait in _activeTraitFilter)
-            {
-                var traitLabel = new CheckBox
-                {
-                    AutoSize = false,
-                    Location = new Point(6, 33 + count * 22),
-                    Name = TraitLabel + count,
-                    Size = new Size(342, 17),
-                    Text = trait.ToString(),
-                    Checked = true,
-                    AutoEllipsis = true
-                };
-
-                traitLabel.CheckedChanged += TraitFilterRemoved;
-                count++;
-                traitFilteringBox.Controls.Add(traitLabel);
-            }
-
-            IEnumerable<CharacterItem> traitCharacters = CharacterList.Where(x => x.ContainsTraits(_activeTraitFilter));
-            var characterVNs = new List<int>();
-            foreach (var characterItem in traitCharacters)
-            {
-                characterVNs.AddRange(characterItem.VNs.Select(x => x.ID));
-            }
-            _traitFunction = x => characterVNs.Contains(x.VNID);
-            ApplyListFilters();
-        }
-
-        /// <summary>
-        ///     Remove trait from active filters.
-        /// </summary>
-        private void TraitFilterRemoved(object sender, EventArgs e)
-        {
-            var checkbox = (CheckBox)sender;
-            if (checkbox.Checked)
-            {
-                //shouldnt happen
-                return;
-            }
-            var filterNo = Convert.ToInt32(checkbox.Name.Remove(0, TraitLabel.Length));
-            _activeTraitFilter.RemoveAt(filterNo);
-            DisplayFilterTraits();
         }
 
         /// <summary>
@@ -222,7 +152,7 @@ namespace Happy_Search
             if (trait == null)
             {
                 //WriteError(traitReply, $"{root} > {traitName} not found.", true);
-                SearchTraits(null,null);
+                SearchTraits(null, null);
                 return;
             }
             AddFilterTrait(trait);
@@ -242,13 +172,12 @@ namespace Happy_Search
                 WriteError(traitReply, "Trait not found.");
                 return;
             }
-            if (_activeTraitFilter.Contains(trait))
+            if (TraitsPre.Contains(trait))
             {
                 WriteError(traitReply, "Trait is already in filter.");
                 return;
             }
-            _activeTraitFilter.Add(trait);
-            DisplayFilterTraits();
+            TraitsPre.Add(trait);
         }
 
         /// <summary>
@@ -264,10 +193,10 @@ namespace Happy_Search
             }
             var text = traitSearchBox.Text.ToLowerInvariant();
             var results = PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
-                                            t.Aliases.Exists(a=>a.ToLowerInvariant().Contains(text))).ToArray();
+                                            t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
             if (results.Length == 0)
             {
-                WriteError(traitReply,"No traits with that name/alias found.");
+                WriteError(traitReply, "No traits with that name/alias found.");
                 return;
             }
             if (results.Length == 1)
@@ -323,13 +252,12 @@ namespace Happy_Search
             ///     Empty Constructor needed for XML.
             /// </summary>
             public CustomTraitFilter()
-            {
-            }
+            { }
 
             /// <summary>
             ///     User-set name of custom filter
             /// </summary>
-            public string Name { get; set; }
+            public string Name { get; }
 
             /// <summary>
             ///     List of traits in custom filter

@@ -2,7 +2,9 @@ using System.Windows.Forms;
 
 namespace Happy_Search.Other_Forms
 {
+#pragma warning disable 1591
     partial class SplashScreen : Form
+#pragma warning restore 1591
     {
         /// <summary>
         /// Required designer variable.

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -21,6 +20,7 @@ using Octokit;
 using static Happy_Search.StaticHelpers;
 using Application = System.Windows.Forms.Application;
 using Label = System.Windows.Forms.Label;
+using System.ComponentModel;
 // ReSharper disable LocalizableElement
 
 namespace Happy_Search
@@ -37,7 +37,6 @@ namespace Happy_Search
         private const string APIVersion = "2.25";
         private const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
-        private const string TagTypeAll = "checkBox";
         private const string TagTypeUrt = "mctULLabel";
         public static readonly Color ErrorColor = Color.Red;
         public static readonly Color NormalColor = SystemColors.ControlLightLight;
@@ -54,16 +53,18 @@ namespace Happy_Search
         internal List<CharacterItem> CharacterList; //contains all producers in local database
         internal List<ListedProducer> FavoriteProducerList; //contains all favorite producers for logged in user
         private List<ListedVN> _vnList; //contains all vns in local database
-        private ushort _vnsAdded;
-        private ushort _vnsSkipped;
-        internal List<WrittenTag> PlainTags; //Contains all tags as in tags.json
-        internal List<WrittenTrait> PlainTraits; //Contains all tags as in tags.json
+        private ushort _vnsAdded, _vnsSkipped;
+        internal static List<WrittenTag> PlainTags; //Contains all tags as in tags.json
+        internal static List<WrittenTrait> PlainTraits; //Contains all tags as in tags.json
         internal List<ListedVN> URTList; //contains all user-related vns
-        private List<KeyValuePair<int, int>> _toptentags;
-        private byte _mctCount;
         private bool _wideView;
         internal static UserSettings Settings;
         internal string LoginString;
+
+        /// <summary>
+        /// Holds information on state of filters for VN list.
+        /// </summary>
+        internal Filters Filters;
 
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
@@ -83,14 +84,10 @@ namespace Happy_Search
             SplashScreen.SetStatus("Initializing Controls...");
             {
                 DontTriggerEvent = true;
-                ulStatusDropDown.SelectedIndex = 0;
-                wlStatusDropDown.SelectedIndex = 0;
                 customTagFilters.SelectedIndex = 0;
                 customTraitFilters.SelectedIndex = 0;
                 viewPicker.SelectedIndex = 0;
-                URTToggleBox.SelectedIndex = 0;
-                UnreleasedToggleBox.SelectedIndex = 0;
-                BlacklistToggleBox.SelectedIndex = 0;
+                filterDropdown.SelectedIndex = 0;
                 otherMethodsCB.SelectedIndex = 0;
                 ListByCB.SelectedIndex = 0;
                 multiActionBox.SelectedIndex = 0;
@@ -102,17 +99,14 @@ namespace Happy_Search
                 prodReply.Text = "";
                 tagReply.Text = "";
                 traitReply.Text = "";
-                mctLoadingLabel.Text = "";
-                checkBox1.Visible = false;
-                checkBox2.Visible = false;
-                checkBox3.Visible = false;
-                checkBox4.Visible = false;
-                checkBox5.Visible = false;
-                checkBox6.Visible = false;
-                checkBox7.Visible = false;
-                checkBox8.Visible = false;
-                checkBox9.Visible = false;
-                checkBox10.Visible = false;
+                tagsTFLB.DataSource = TagsPre;
+                traitsTFLB.DataSource = TraitsPre;
+                originalLanguageTFLB.DataSource = OriginalLanguagesPre;
+                languageTFLB.DataSource = LanguagesPre;
+                releaseDateTFResponse.Visible = false;
+                _doubleClickTimer.Tick += delegate { _doubleClickTimer.Stop(); };
+                _doubleClickTimer.Interval = 250;
+                SetFilterTags();
                 advancedCheckBox.Checked = args.Contains("-am") || args.Contains("-debug");
                 tileOLV.ItemRenderer = new VNTileRenderer();
 #if DEBUG
@@ -139,9 +133,6 @@ https://github.com/FredTheBarber/VndbClient";
             SplashScreen.SetStatus("Loading User Settings...");
             {
                 Settings = UserSettings.Load();
-                tagTypeC.Checked = Settings.ContentTags;
-                tagTypeS.Checked = Settings.SexualTags;
-                tagTypeT.Checked = Settings.TechnicalTags;
                 tagTypeC2.Checked = Settings.ContentTags;
                 tagTypeS2.Checked = Settings.SexualTags;
                 tagTypeT2.Checked = Settings.TechnicalTags;
@@ -194,6 +185,7 @@ https://github.com/FredTheBarber/VndbClient";
                 LogToFile("UserRelated Items= " + URTList.Count);
                 PopulateProducerSearchBox();
                 PopulateGroupSearchBox();
+                PopulateLanguages();
             }
             SplashScreen.SetStatus("Updating User Stats...");
             {
@@ -212,15 +204,7 @@ https://github.com/FredTheBarber/VndbClient";
                 foreach (var filter in _customTagFilters) customTagFilters.Items.Add(filter.Name);
                 _customTraitFilters = xml.CustomTraitFilters;
                 foreach (var filter in _customTraitFilters) customTraitFilters.Items.Add(filter.Name);
-                DontTriggerEvent = true;
-                URTToggleBox.SelectedIndex = (int)xml.XmlToggles.URTToggleSetting;
-                Toggles.URTToggleSetting = (ToggleSetting)URTToggleBox.SelectedIndex;
-                UnreleasedToggleBox.SelectedIndex = (int)xml.XmlToggles.UnreleasedToggleSetting;
-                Toggles.UnreleasedToggleSetting = (ToggleSetting)UnreleasedToggleBox.SelectedIndex;
-                BlacklistToggleBox.SelectedIndex = (int)xml.XmlToggles.BlacklistToggleSetting;
-                Toggles.BlacklistToggleSetting = (ToggleSetting)BlacklistToggleBox.SelectedIndex;
-                DontTriggerEvent = false;
-                ApplyListFilters();
+                LoadFilters();
             }
             //this seems to stop DisconnectedContext errors.
             /*{
@@ -230,6 +214,83 @@ https://github.com/FredTheBarber/VndbClient";
             }*/
             SplashScreen.CloseForm();
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+
+            void SetFilterTags()
+            {
+                lengthTFNa.Tag = (int)LengthFilter.NA;
+                lengthTFUnderTwoHours.Tag = (int)LengthFilter.UnderTwoHours;
+                lengthTFTwoToTenHours.Tag = (int)LengthFilter.TwoToTenHours;
+                lengthTFTenToThirtyHours.Tag = (int)LengthFilter.TenToThirtyHours;
+                lengthTFThirtyToFiftyHours.Tag = (int)LengthFilter.ThirtyToFiftyHours;
+                lengthTFOverFiftyHours.Tag = (int)LengthFilter.OverFiftyHours;
+                unreleasedTFWithReleaseDate.Tag = (int)UnreleasedFilter.WithReleaseDate;
+                unreleasedTFWithoutReleaseDate.Tag = (int)UnreleasedFilter.WithoutReleaseDate;
+                unreleasedTFReleased.Tag = (int)UnreleasedFilter.Released;
+
+                blacklistedTFYes.Tag = (int)YesNoFilter.Yes;
+                blacklistedTFNo.Tag = (int)YesNoFilter.No;
+
+                votedTFYes.Tag = (int)YesNoFilter.Yes;
+                votedTFNo.Tag = (int)YesNoFilter.No;
+
+                favoriteProducersTFYes.Tag = (int)YesNoFilter.Yes;
+                favoriteProducersTFNo.Tag = (int)YesNoFilter.No;
+
+                wishlistTFNa.Tag = (int)WishlistFilter.NA;
+                wishlistTFHigh.Tag = (int)WishlistFilter.High;
+                wishlistTFMedium.Tag = (int)WishlistFilter.Medium;
+                wishlistTFLow.Tag = (int)WishlistFilter.Low;
+
+                userlistTFNa.Tag = (int)UserlistFilter.NA;
+                userlistTFUnknown.Tag = (int)UserlistFilter.Unknown;
+                userlistTFPlaying.Tag = (int)UserlistFilter.Playing;
+                userlistTFFinished.Tag = (int)UserlistFilter.Finished;
+                userlistTFStalled.Tag = (int)UserlistFilter.Stalled;
+                userlistTFDropped.Tag = (int)UserlistFilter.Dropped;
+            }
+        }
+
+        private void PopulateLanguages()
+        {
+            var autoCompleteLanguages = new AutoCompleteStringCollection { "(Language)" };
+            var autoCompleteOriginalLanguages = new AutoCompleteStringCollection { "(Language)" };
+            var langList = new HashSet<string>();
+            var origLangList = new HashSet<string>();
+            foreach (var vn in _vnList)
+            {
+                if (vn.Languages == null) continue;
+                foreach (var lang in vn.Languages.All)
+                {
+                    langList.Add(new CultureInfo(lang).DisplayName);
+                }
+                foreach (var lang in vn.Languages.Originals)
+                {
+                    origLangList.Add(new CultureInfo(lang).DisplayName);
+                }
+            }
+            autoCompleteLanguages.AddRange(langList.ToArray());
+            autoCompleteOriginalLanguages.AddRange(origLangList.ToArray());
+            languageTFCB.AutoCompleteCustomSource = autoCompleteLanguages;
+            languageTFCB.DataSource = autoCompleteLanguages;
+            originalLanguageTFCB.AutoCompleteCustomSource = autoCompleteOriginalLanguages;
+            originalLanguageTFCB.DataSource = autoCompleteOriginalLanguages;
+        }
+
+        private void LoadFilters()
+        {
+            try
+            {
+                Filters = JsonConvert.DeserializeObject<Filters>(File.ReadAllText(FiltersJson));
+            }
+            catch (Exception e)
+            {
+                LogToFile("Failed to load filters.json");
+                LogToFile(e);
+            }
+            Filters.Startup();
+            Filters.SetFixedStatusesToForm(this);
+            DisplayFilters();
+            ApplyFilters();
         }
 
 
@@ -304,7 +365,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void InitAPIConnection()
         {
             Conn.Open();
-            ActiveQuery = new ApiQuery(true,this);
+            ActiveQuery = new ApiQuery(true, this);
             if (Conn.Status == VndbConnection.APIStatus.Error)
             {
                 ChangeAPIStatus(Conn.Status);
@@ -430,7 +491,7 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Tags/Traits/Stats",true,true,false);
+            var result = StartQuery(userListReply, "Update Tags/Traits/Stats", true, true, false);
             if (!result) return;
             await UpdateTagsTraitsStats(tieredVns.AllVns);
             await ReloadListsFromDbAsync();
@@ -449,9 +510,9 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update All Data",true,true,true);
+            var result = StartQuery(userListReply, "Update All Data", true, true, true);
             if (!result) return;
-            await GetMultipleVN(tieredVns.AllVns,true);
+            await GetMultipleVN(tieredVns.AllVns, true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, $"Updated data on {_vnsAdded} titles.");
@@ -557,7 +618,7 @@ https://github.com/FredTheBarber/VndbClient";
         /// </summary>
         private void CloseVNTabs(object sender, EventArgs e)
         {
-            var tabpages = tabControl1.TabPages;
+            var tabpages = TabsControl.TabPages;
             while (tabpages.Count > 2) tabpages.RemoveAt(2);
         }
 
@@ -567,13 +628,11 @@ https://github.com/FredTheBarber/VndbClient";
             Debug.Assert(tabControl != null, "tabControl != null");
             var tabs = tabControl.TabPages;
 
-            if (e.Button == MouseButtons.Middle)
-            {
-                var tab = tabs.Cast<TabPage>()
-                    .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
-                    .First();
-                if (tab.TabIndex > 2) tabs.Remove(tab);
-            }
+            if (e.Button != MouseButtons.Middle) return;
+            var tab = tabs.Cast<TabPage>()
+                .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
+                .First();
+            if (tab.TabIndex > 3) tabs.Remove(tab);
         }
 
         /// <summary>
@@ -618,7 +677,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "It could take a while, Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Get Producer Languages",true,true,true);
+            var result = StartQuery(userListReply, "Get Producer Languages", true, true, true);
             if (!result) return;
             await GetLanguagesForProducers(ProducerList.Select(t => t.ID).ToArray());
             await ReloadListsFromDbAsync();
@@ -635,7 +694,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update All Data (All)",true,true,true);
+            var result = StartQuery(userListReply, "Update All Data (All)", true, true, true);
             if (!result) return;
             await GetMultipleVN(_vnList.Select(t => t.VNID), true);
             await ReloadListsFromDbAsync();
@@ -658,7 +717,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)",true,true,true);
+            var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)", true, true, true);
             if (!result) return;
             await UpdateTagsTraitsStats(_vnList.Select(t => t.VNID));
             await ReloadListsFromDbAsync();
@@ -736,7 +795,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async Task UpdateURT(string featureName)
         {
             if (Settings.UserID < 1) return;
-            var result = StartQuery(userListReply, featureName,true,true,true);
+            var result = StartQuery(userListReply, featureName, true, true, true);
             if (!result) return;
             LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {URTList.Count} titles.");
             //clone list to make sure it doesnt keep command status.
@@ -939,7 +998,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
-
         internal bool VNIsByFavoriteProducer(ListedVN vn)
         {
             return FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
@@ -958,6 +1016,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 CharacterList = DBConn.GetAllCharacters();
                 URTList = DBConn.GetUserRelatedTitles(Settings.UserID);
                 DBConn.Close();
+                PopulateLanguages();
             });
         }
 
@@ -1026,20 +1085,16 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 {
                     case "tagTypeC2":
                         Settings.ContentTags = checkBox.Checked;
-                        tagTypeC.Checked = checkBox.Checked;
                         break;
                     case "tagTypeS2":
                         Settings.SexualTags = checkBox.Checked;
-                        tagTypeS.Checked = checkBox.Checked;
                         break;
                     case "tagTypeT2":
                         Settings.TechnicalTags = checkBox.Checked;
-                        tagTypeT.Checked = checkBox.Checked;
                         break;
                 }
                 DontTriggerEvent = false;
                 Settings.Save();
-                DisplayCommonTags(null, null);
             }
 
             if (tagTypeC2.Checked == false && tagTypeS2.Checked == false && tagTypeT2.Checked == false)
@@ -1058,9 +1113,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (URTList.Count == 0) return;
             foreach (var vn in URTList)
             {
-                if (!vn.Tags.Any()) continue;
-                List<TagItem> tags = StringToTags(vn.Tags);
-                foreach (var tag in tags)
+                if (!vn.TagList.Any()) continue;
+                foreach (var tag in vn.TagList)
                 {
                     var tagtag = PlainTags.Find(item => item.ID == tag.ID);
                     if (tagtag == null) continue;
@@ -1097,24 +1151,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 var mctULLabel = (Label)Controls.Find(name, true).First();
                 mctULLabel.Visible = false;
                 max++;
-            }
-        }
-
-        /// <summary>
-        ///     Clear tag checkboxes that aren't in use (when most common tags are less than 10).
-        /// </summary>
-        /// <param name="tagType">All Tags or URT Tags</param>
-        /// <param name="number">How many checkboxes to clear</param>
-        private void ClearCommonTags(string tagType, int number)
-        {
-            if (number == 0) return;
-            var min = 11 - number;
-            while (min <= 10)
-            {
-                var name = tagType + min;
-                var mctULLabel = Controls.Find(name, true).First();
-                mctULLabel.Visible = false;
-                min++;
             }
         }
 
@@ -1310,7 +1346,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         internal void LoadVNListToGui(bool skipComboSearch = false)
         {
+            var watch = Stopwatch.StartNew();
             tileOLV.SetObjects(_vnList.Where(_currentList));
+            Debug.WriteLine($"Took {watch.ElapsedMilliseconds}ms to set VN objects.");
             if (!skipComboSearch)
             {
                 PopulateGroupSearchBox();
@@ -1392,7 +1430,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             var vn = (ListedVN)e.Model;
             var notes = vn.GetCustomItemNotes();
             var characterCount = vn.GetCharacters(CharacterList).Length;
-            vn.SetTags(PlainTags);
             var toolTipLines = new List<string>
             {
                 $"{TruncateString(vn.Title, 50)}",
@@ -1428,9 +1465,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #endregion
 
         #region Classes/Enums
-
-        private class IdentifiableBackgroundWorker : BackgroundWorker
-        { public int ID { get; set; } }
 
         /// <summary>
         ///     Class For XML File, holding saved objects.
@@ -1622,6 +1656,363 @@ be displayed by clicking the User Related Titles (URT) filter.",
             Delete
         }
         #endregion
+
+
+        private void ToggleThisFilter(object sender, EventArgs e)
+        {
+            var filter = (CheckBox)sender;
+            /*foreach (Control control in filter.Parent.Controls)
+            {
+                if (control != filter) control.Enabled = !control.Enabled;
+            }*/
+            filter.Text = filter.Checked ? "On" : "Off";
+        }
+
+        private void DisplayFilters()
+        {
+            SetLengthToggleFilter();
+            SetReleaseDateFilter();
+            SetUnreleasedToggleFilter();
+            SetBlacklistToggleFilter();
+            SetFavoriteProducerToggleFilter();
+            SetWishlistToggleFilter();
+            SetUserlistToggleFilter();
+            SetLanguageToggleFilter();
+            SetOriginalLanguageToggleFilter();
+            SetTagsToggleFilter();
+            SetTraitsToggleFilter();
+
+            void SetLengthToggleFilter()
+            {
+                if (Filters.Length == LengthFilter.Off)
+                {
+                    lengthTF.Checked = false;
+                    return;
+                }
+                lengthTF.Checked = true;
+                if (Filters.Length.HasFlag(LengthFilter.NA)) lengthTFNa.Checked = true;
+                if (Filters.Length.HasFlag(LengthFilter.UnderTwoHours)) lengthTFUnderTwoHours.Checked = true;
+                if (Filters.Length.HasFlag(LengthFilter.TwoToTenHours)) lengthTFTwoToTenHours.Checked = true;
+                if (Filters.Length.HasFlag(LengthFilter.TenToThirtyHours)) lengthTFTenToThirtyHours.Checked = true;
+                if (Filters.Length.HasFlag(LengthFilter.ThirtyToFiftyHours)) lengthTFThirtyToFiftyHours.Checked = true;
+                if (Filters.Length.HasFlag(LengthFilter.OverFiftyHours)) lengthTFOverFiftyHours.Checked = true;
+            }
+            void SetReleaseDateFilter()
+            {
+                if (Filters.ReleaseDate == null)
+                {
+                    releaseDateTF.Checked = false;
+                    return;
+                }
+                releaseDateTF.Checked = true;
+                releaseDateTFFromDay.Value = Filters.ReleaseDate.From.Day;
+                releaseDateTFFromMonth.SelectedIndex = Filters.ReleaseDate.From.Month;
+                releaseDateTFFromYear.Value = Filters.ReleaseDate.From.Year;
+                releaseDateTFToDay.Value = Filters.ReleaseDate.To.Day;
+                releaseDateTFToMonth.SelectedIndex = Filters.ReleaseDate.To.Month;
+                releaseDateTFToYear.Value = Filters.ReleaseDate.To.Year;
+            }
+            void SetUnreleasedToggleFilter()
+            {
+                switch (Filters.Unreleased)
+                {
+                    case UnreleasedFilter.Off:
+                        unreleasedTF.Checked = false;
+                        break;
+                    case UnreleasedFilter.AllUnreleased:
+                        unreleasedTF.Checked = true;
+                        unreleasedTFWithReleaseDate.Checked = true;
+                        unreleasedTFWithoutReleaseDate.Checked = true;
+                        unreleasedTFReleased.Checked = false;
+                        break;
+                    case UnreleasedFilter.WithReleaseDate:
+                        unreleasedTF.Checked = true;
+                        unreleasedTFWithReleaseDate.Checked = true;
+                        unreleasedTFWithoutReleaseDate.Checked = false;
+                        unreleasedTFReleased.Checked = false;
+                        break;
+                    case UnreleasedFilter.WithoutReleaseDate:
+                        unreleasedTF.Checked = true;
+                        unreleasedTFWithReleaseDate.Checked = false;
+                        unreleasedTFWithoutReleaseDate.Checked = true;
+                        unreleasedTFReleased.Checked = false;
+                        break;
+                    case UnreleasedFilter.Released:
+                        unreleasedTF.Checked = true;
+                        unreleasedTFWithReleaseDate.Checked = false;
+                        unreleasedTFWithoutReleaseDate.Checked = false;
+                        unreleasedTFReleased.Checked = true;
+                        break;
+                    case UnreleasedFilter.ReleasedOrWithDate:
+                        unreleasedTF.Checked = true;
+                        unreleasedTFWithReleaseDate.Checked = true;
+                        unreleasedTFWithoutReleaseDate.Checked = false;
+                        unreleasedTFReleased.Checked = true;
+                        break;
+                }
+            }
+            void SetBlacklistToggleFilter()
+            {
+                switch (Filters.Blacklisted)
+                {
+                    case YesNoFilter.No:
+                        blacklistedTF.Checked = true;
+                        blacklistedTFNo.Checked = true;
+                        break;
+                    case YesNoFilter.Yes:
+                        blacklistedTF.Checked = true;
+                        blacklistedTFYes.Checked = true;
+                        break;
+                    case YesNoFilter.Off:
+                        blacklistedTF.Checked = false;
+                        break;
+                }
+            }
+            void SetWishlistToggleFilter()
+            {
+                if (Filters.Wishlist == WishlistFilter.Off)
+                {
+                    wishlistTF.Checked = false;
+                    return;
+                }
+                wishlistTF.Checked = true;
+                if (Filters.Wishlist.HasFlag(WishlistFilter.NA)) wishlistTFNa.Checked = true;
+                if (Filters.Wishlist.HasFlag(WishlistFilter.High)) wishlistTFHigh.Checked = true;
+                if (Filters.Wishlist.HasFlag(WishlistFilter.Medium)) wishlistTFMedium.Checked = true;
+                if (Filters.Wishlist.HasFlag(WishlistFilter.Low)) wishlistTFLow.Checked = true;
+            }
+            void SetUserlistToggleFilter()
+            {
+                if (Filters.Userlist == UserlistFilter.Off)
+                {
+                    userlistTF.Checked = false;
+                    return;
+                }
+                userlistTF.Checked = true;
+                if (Filters.Userlist.HasFlag(UserlistFilter.NA)) userlistTFNa.Checked = true;
+                if (Filters.Userlist.HasFlag(UserlistFilter.Unknown)) userlistTFUnknown.Checked = true;
+                if (Filters.Userlist.HasFlag(UserlistFilter.Playing)) userlistTFPlaying.Checked = true;
+                if (Filters.Userlist.HasFlag(UserlistFilter.Finished)) userlistTFFinished.Checked = true;
+                if (Filters.Userlist.HasFlag(UserlistFilter.Stalled)) userlistTFStalled.Checked = true;
+                if (Filters.Userlist.HasFlag(UserlistFilter.Dropped)) userlistTFDropped.Checked = true;
+            }
+            void SetFavoriteProducerToggleFilter()
+            {
+                switch (Filters.FavoriteProducers)
+                {
+                    case YesNoFilter.Off:
+                        favoriteProducersTF.Checked = false;
+                        break;
+                    case YesNoFilter.Yes:
+                        favoriteProducersTF.Checked = true;
+                        favoriteProducersTFYes.Checked = true;
+                        break;
+                    case YesNoFilter.No:
+                        favoriteProducersTF.Checked = true;
+                        favoriteProducersTFNo.Checked = true;
+                        break;
+                }
+            }
+            void SetLanguageToggleFilter()
+            {
+                languageTF.Checked = Filters.Language != null;
+                LanguagesPre.Clear();
+                if (Filters.Language != null)
+                {
+                    LanguagesPre.AddRange(Filters.Language.ToArray());
+                }
+            }
+            void SetOriginalLanguageToggleFilter()
+            {
+                originalLanguageTF.Checked = Filters.OriginalLanguage != null;
+                OriginalLanguagesPre.Clear();
+                if (Filters.OriginalLanguage != null)
+                {
+                    OriginalLanguagesPre.AddRange(Filters.OriginalLanguage.ToArray());
+                }
+            }
+            void SetTagsToggleFilter()
+            {
+                tagsTF.Checked = Filters.Tags != null;
+                TagsPre.Clear();
+                if (Filters.Tags != null)
+                {
+                    TagsPre.AddRange(Filters.Tags.ToArray());
+                }
+            }
+            void SetTraitsToggleFilter()
+            {
+                traitsTF.Checked = Filters.Traits != null;
+                TraitsPre.Clear();
+                if (Filters.Traits != null) TraitsPre.AddRange(Filters.Traits);
+            }
+        }
+
+        private readonly Timer _doubleClickTimer = new Timer();
+        private int _doubleClickCount;
+
+        private void FilterCheckboxClick(object sender, MouseEventArgs e)
+        {
+            if (!_doubleClickTimer.Enabled)
+            {
+                _doubleClickTimer.Start();
+                _doubleClickCount = 0;
+            }
+            _doubleClickCount++;
+            if (_doubleClickCount < 2) return;
+            _doubleClickTimer.Stop();
+            var filter = (CheckBox)sender;
+            foreach (Control control in filter.Parent.Controls)
+            {
+                var box = control as CheckBox;
+                if (box == null || box.Appearance == Appearance.Button) continue;
+                box.Checked = box == sender;
+            }
+        }
+
+        private void FilterChanged(object sender, EventArgs e)
+        {
+            Filters.StartLoadingCustomFilter(this);
+            switch ((string)filterDropdown.SelectedItem)
+            {
+                case "No Filters":
+                    break;
+                case "Never Played":
+                    Filters.Userlist = UserlistFilter.Unplayed;
+                    break;
+                case "Userlist Titles":
+                    Filters.Userlist = UserlistFilter.Any;
+                    break;
+                case "Wishlist Titles":
+                    Filters.Wishlist = WishlistFilter.Any;
+                    break;
+                case "Hide URT":
+                    Filters.Wishlist = WishlistFilter.NA;
+                    Filters.Userlist = UserlistFilter.NA;
+                    Filters.Voted = YesNoFilter.No;
+                    break;
+                case "By Favorite Producers":
+                    Filters.FavoriteProducers = YesNoFilter.Yes;
+                    break;
+            }
+            Filters.EndLoadingCustomFilter();
+            DisplayFilters();
+        }
+
+
+        private void FilterFixedChanged(object sender, EventArgs e)
+        {
+            var checkBox = (CheckBox)sender;
+            checkBox.Text = checkBox.Checked ? "Fixed" : "Not Fixed";
+        }
+
+        private void tagsOrTraits_CheckedChanged(object sender, EventArgs e)
+        {
+            tagsOrTraits.Text = tagsOrTraits.Checked ? "Tags OR Traits" : "Tags AND Traits";
+            Filters.TagsTraitsMode = tagsOrTraits.Checked;
+        }
+
+        private void vnTab_Enter(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Entered Main VN Tab");
+            if (Filters.Refresh)
+            {
+                LoadVNListToGui();
+                Filters.SetRefreshFalse();
+                Debug.WriteLine("Refreshed VNList due to Filters.Refresh");
+            }
+            Debug.WriteLine("Done entering Main VN Tab");
+        }
+
+        private void OnFiltersLeave(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Entered Filters Tab");
+            ApplyFilters();
+            Filters.SaveFilters(FiltersJson);
+            Debug.WriteLine("Done exiting Filters Tab");
+        }
+
+        private readonly BindingList<string> OriginalLanguagesPre = new BindingList<string>();
+        private readonly BindingList<string> LanguagesPre = new BindingList<string>();
+        private void AddOriginalLanguage(object sender, EventArgs e)
+        {
+            var language = originalLanguageTFCB.Text;
+            if (language == "(Language)") return;
+            if (OriginalLanguagesPre.Contains(language)) return;
+            if (!originalLanguageTFCB.Items.Contains(language)) return;
+            if(!OriginalLanguagesPre.Contains(language)) OriginalLanguagesPre.Add(language);
+        }
+
+        private void AddOriginalLanguageEnter(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) AddOriginalLanguage(sender, null);
+        }
+
+
+        private void AddLanguage(object sender, EventArgs e)
+        {
+            var language = languageTFCB.Text;
+            if (language == "(Language)") return;
+            if (LanguagesPre.Contains(language)) return;
+            if (!languageTFCB.Items.Contains(language)) return;
+            if (!LanguagesPre.Contains(language)) LanguagesPre.Add(language);
+        }
+
+        private void AddLanguageEnter(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) AddLanguage(sender, null);
+        }
+
+        private void RemoveFromListBox(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Delete) return;
+            var listbox = sender as ListBox;
+            if (listbox == null) return;
+            var selectedItem = listbox.SelectedItem;
+            (listbox.DataSource as System.Collections.IList)?.Remove(selectedItem);
+        }
+
+        private void ApplyFilters()
+        {
+            if (DontTriggerEvent) return;
+            //Filters.SetFromForm(this);
+            Filters.SetFixedStatusesFromForm(this);
+            Filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
+            releaseDateTFResponse.Visible = false;
+            if (releaseDateTF.Checked)
+            {
+                try
+                {
+                    var fromDate = new DateTime((int)releaseDateTFFromYear.Value,
+                        releaseDateTFFromMonth.Items.IndexOf(releaseDateTFFromMonth.Text) + 1,
+                        (int)releaseDateTFFromDay.Value);
+                    var toDate = new DateTime((int)releaseDateTFToYear.Value,
+                        releaseDateTFToMonth.Items.IndexOf(releaseDateTFToMonth.Text) + 1,
+                        (int)releaseDateTFToDay.Value);
+                    Filters.ReleaseDate = new DateRange(fromDate, toDate);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    releaseDateTFResponse.Visible = true;
+                    Filters.ReleaseDate = null;
+                }
+
+            }
+            else Filters.ReleaseDate = null;
+            Filters.Unreleased = (UnreleasedFilter)GetIntFromCheckboxes(unreleasedPanel);
+            Filters.Blacklisted = blacklistedPanel.GetRadioOption<YesNoFilter>();
+            Filters.Voted = votedPanel.GetRadioOption<YesNoFilter>();
+            Filters.FavoriteProducers = favoriteProducersPanel.GetRadioOption<YesNoFilter>();
+            Filters.Wishlist = (WishlistFilter)GetIntFromCheckboxes(wishlistPanel);
+            Filters.Userlist = (UserlistFilter)GetIntFromCheckboxes(userlistPanel);
+            Filters.Language = languageTF.Checked ? LanguagesPre.ToArray() : null;
+            Filters.OriginalLanguage = originalLanguageTF.Checked ? OriginalLanguagesPre.ToArray() : null;
+            Filters.Tags = tagsTF.Checked ? TagsPre.ToArray() : null;
+            Filters.Traits = traitsTF.Checked ? TraitsPre.ToArray() : null;
+            _currentList = Filters.GetFunction(this);
+            _currentListLabel = "Custom Filter";
+        }
     }
+
 
 }
