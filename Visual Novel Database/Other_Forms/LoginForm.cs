@@ -144,7 +144,7 @@ namespace Happy_Search.Other_Forms
                 replyLabel.Text = @"There was an error opening connection to API server.";
                 return;
             }
-            _parentForm.Conn.Login(FormMain.ClientName, FormMain.ClientVersion, credentials.Key, credentials.Value);
+            _parentForm.Conn.Login(StaticHelpers.ClientName, StaticHelpers.ClientVersion, credentials.Key, credentials.Value);
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             switch (_parentForm.Conn.LastResponse.Type)
             {
@@ -190,8 +190,8 @@ namespace Happy_Search.Other_Forms
 
         private void ClearSavedCredentials(object sender, EventArgs e)
         {
-            var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{FormMain.ClientName}");
-            if (key != null) Registry.CurrentUser.DeleteSubKey($"SOFTWARE\\{FormMain.ClientName}");
+            var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{StaticHelpers.ClientName}");
+            if (key != null) Registry.CurrentUser.DeleteSubKey($"SOFTWARE\\{StaticHelpers.ClientName}");
         }
     }
 }

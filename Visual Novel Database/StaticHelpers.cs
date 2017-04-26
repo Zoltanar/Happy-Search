@@ -33,14 +33,16 @@ namespace Happy_Search
         public const string ProjectURL = "https://github.com/Zoltanar/Happy-Search";
         public const string DefaultTraitsJson = "Program Data\\Default Files\\traits.json";
         public const string DefaultTagsJson = "Program Data\\Default Files\\tags.json";
+        public const string DefaultFiltersJson = "Program Data\\Default Files\\defaultfilters.json";
         public const string FlagsFolder = "Program Data\\Flags\\";
 
 #if DEBUG
         public const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
         public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
-        public const string DBStatsXml = "..\\Release\\Stored Data\\dbs.xml";
-        public const string MainXmlFile = "..\\Release\\Stored Data\\saved_objects.xml";
+        public const string DBStatsJson = "..\\Release\\Stored Data\\dbs.json";
         public const string SettingsJson = "..\\Release\\Stored Data\\settings.json";
+        public const string CustomTagFiltersJson = "..\\Release\\Stored Data\\customtagfilters.json";
+        public const string CustomTraitFiltersJson = "..\\Release\\Stored Data\\customtraitfilters.json";
         public const string FiltersJson = "..\\Release\\Stored Data\\filters.json";
         public const string LogFile = "..\\Release\\Stored Data\\message.log";
         public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
@@ -50,9 +52,10 @@ namespace Happy_Search
 #else
         public const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
         public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
-        public const string DBStatsXml = "Stored Data\\dbs.xml";
-        public const string MainXmlFile = "Stored Data\\saved_objects.xml";
+        public const string DBStatsJson = "Stored Data\\dbs.json";
         public const string SettingsJson = "Stored Data\\settings.json";
+        public const string CustomTagFiltersJson = "Stored Data\\customtagfilters.json";
+        public const string CustomTraitFiltersJson = "Stored Data\\customtraitfilters.json";
         public const string FiltersJson = "Stored Data\\filters.json";
         public const string LogFile = "Stored Data\\message.log";
         public const string TagsJsonGz = "Stored Data\\tags.json.gz";
@@ -65,6 +68,12 @@ namespace Happy_Search
         #endregion
 
 #pragma warning disable 1591
+        public const string ClientName = "Happy Search";
+        public const string ClientVersion = "1.4.7.1";
+        public const string APIVersion = "2.25";
+        public const int APIMaxResults = 25;
+        public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
+        public const string TagTypeUrt = "mctULLabel";
         public const string ContentTag = "cont";
         public const string SexualTag = "ero";
         public const string TechnicalTag = "tech";
@@ -85,11 +94,53 @@ namespace Happy_Search
         public static readonly SolidBrush ULPlayingBrush = new SolidBrush(Color.Yellow);
         public static readonly SolidBrush UnreleasedBrush = new SolidBrush(Color.White);
 
+        //text colors
+        private static readonly Color ErrorColor = Color.Red;
+        private static readonly Color NormalColor = SystemColors.ControlLightLight;
+        private static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
+        private static readonly Color WarningColor = Color.DarkKhaki;
+
         /// <summary>
         /// Categories of VN Tags
         /// </summary>
         public enum TagCategory { Content, Sexual, Technical }
 #pragma warning restore 1591
+
+        /// <summary>
+        /// Serialize object to JSON string and save to file.
+        /// </summary>
+        public static void SaveObjectToJsonFile<T>(T objectToSave, string filePath)
+        {
+            try
+            {
+                File.WriteAllText(filePath,JsonConvert.SerializeObject(objectToSave,Formatting.Indented));
+            }
+            catch (Exception e)
+            {
+                LogToFile("Couldn't save object to file");
+                LogToFile(e);
+            }
+        }
+
+
+        /// <summary>
+        /// Deserialize object from JSON string in file.
+        /// </summary>
+        public static T LoadObjectFromJsonFile<T>(string filePath)
+        {
+            T returned;
+            try
+            {
+                returned = JsonConvert.DeserializeObject<T>(File.ReadAllText(filePath));
+            }
+            catch (Exception e)
+            {
+                LogToFile("Couldn't save object to file");
+                LogToFile(e);
+                returned = default(T);
+            }
+            return returned;
+        }
 
         /// <summary>
         /// Convert a collection of up to 16 bools into an integer.
@@ -236,8 +287,8 @@ namespace Happy_Search
         /// <param name="message">Message to be written</param>
         public static void WriteText(Label label, string message)
         {
-            if (label is LinkLabel linkLabel) linkLabel.LinkColor = FormMain.NormalLinkColor;
-            else label.ForeColor = FormMain.NormalColor;
+            if (label is LinkLabel linkLabel) linkLabel.LinkColor = NormalLinkColor;
+            else label.ForeColor = NormalColor;
             label.Text = message;
         }
 
@@ -248,8 +299,8 @@ namespace Happy_Search
         /// <param name="message">Message to be written</param>
         public static void WriteWarning(Label label, string message)
         {
-            if (label is LinkLabel linkLabel) linkLabel.LinkColor = FormMain.WarningColor;
-            else label.ForeColor = FormMain.WarningColor;
+            if (label is LinkLabel linkLabel) linkLabel.LinkColor = WarningColor;
+            else label.ForeColor = WarningColor;
             label.Text = message;
         }
 
@@ -260,8 +311,8 @@ namespace Happy_Search
         /// <param name="message">Message to be written</param>
         public static void WriteError(Label label, string message)
         {
-            if (label is LinkLabel linkLabel) linkLabel.LinkColor = FormMain.ErrorColor;
-            else label.ForeColor = FormMain.ErrorColor;
+            if (label is LinkLabel linkLabel) linkLabel.LinkColor = ErrorColor;
+            else label.ForeColor = ErrorColor;
             label.Text = message;
         }
 

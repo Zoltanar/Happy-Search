@@ -109,12 +109,10 @@ This may take a while...",
             if (askBox != DialogResult.Yes) return;
             var result = StartQuery(prodReply, "Refresh Favorite Producer Titles", true, true, true);
             if (!result) return;
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
             foreach (ListedProducer producer in olFavoriteProducers.Objects) await GetProducerTitles(producer,true);
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
-            WriteText(prodReply, Resources.update_fp_titles_success + $" ({_vnsAdded} new titles)");
+            WriteText(prodReply, Resources.update_fp_titles_success + $" ({TitlesAdded} new titles)");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -161,13 +159,11 @@ This may take a while...",
             var result = StartQuery(prodReply, "Get New FP Titles",true,true,true);
             if (!result) return;
             LogToFile($"{producers.Count} to be updated");
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
             foreach (var producer in producers) await GetProducerTitles(producer,false);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             LoadFPListToGui();
-            WriteText(prodReply, $"Got {_vnsAdded} new titles by Favorite Producers.");
+            WriteText(prodReply, $"Got {TitlesAdded} new titles by Favorite Producers.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -221,7 +217,7 @@ This may take a while...",
             DBConn.Close();
             foreach (var favoriteProducer in FavoriteProducerList)
             {
-                double[] vnsWithVotes = _vnList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
+                double[] vnsWithVotes = VNList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
                 favoriteProducer.GeneralRating = vnsWithVotes.Any() ? Math.Round(vnsWithVotes.Average(), 2) : -1;
             }
             olFavoriteProducers.SetObjects(FavoriteProducerList);

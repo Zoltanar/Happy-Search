@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Serialization;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Happy_Search.Other_Forms;
@@ -18,11 +15,8 @@ using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
-    [SuppressMessage("ReSharper", "LocalizableElement")]
     public partial class FormMain
     {
-        private static readonly ToggleArray Toggles = new ToggleArray();
-
         /// <summary>
         /// Display html file explaining searching, listing and filtering section.
         /// </summary>
@@ -45,21 +39,17 @@ namespace Happy_Search
             {
                 panel1.Visible = false;
                 panel2.Visible = false;
-                tabControl2.Visible = false;
                 panel3.Location = new Point(6, 6);
-                tileOLV.Location = new Point(6, 65);
-                tileOLV.Height += 300;
-                toggleViewButton.Text = "▼ Show Options ▼";
+                panel3.Height += 246;
+                toggleViewButton.Text = @"▼ Show Options ▼";
             }
             else
             {
                 panel1.Visible = true;
                 panel2.Visible = true;
-                tabControl2.Visible = true;
-                panel3.Location = new Point(6, 306);
-                tileOLV.Location = new Point(6, 365);
-                tileOLV.Height -= 300;
-                toggleViewButton.Text = "▲ Hide Options ▲";
+                panel3.Location = new Point(6, 252);
+                panel3.Height -= 246;
+                toggleViewButton.Text = @"▲ Hide Options ▲";
             }
         }
 
@@ -88,7 +78,7 @@ namespace Happy_Search
                     break;
                 case 3:
                     string message3 = $"You've selected {titles.Length} titles.\nAre you sure you wish to remove them from local database?";
-                    var messageBox3 = MessageBox.Show(message3, "Confirm Action", MessageBoxButtons.YesNo);
+                    var messageBox3 = MessageBox.Show(message3, Resources.Confirm_Action, MessageBoxButtons.YesNo);
                     if (messageBox3 != DialogResult.Yes)
                     {
                         multiActionBox.SelectedIndex = 0;
@@ -103,7 +93,7 @@ namespace Happy_Search
                     return;
                 case 4:
                     string message4 = $"You've selected {titles.Length} titles.\nAre you sure you wish to update tags traits and stats for them?";
-                    var messageBox4 = MessageBox.Show(message4, "Confirm Action", MessageBoxButtons.YesNo);
+                    var messageBox4 = MessageBox.Show(message4, Resources.Confirm_Action, MessageBoxButtons.YesNo);
                     if (messageBox4 != DialogResult.Yes)
                     {
                         multiActionBox.SelectedIndex = 0;
@@ -119,7 +109,7 @@ namespace Happy_Search
                     break;
                 case 5:
                     string message5 = $"You've selected {titles.Length} titles.\nAre you sure you wish to update all data for them?";
-                    var messageBox5 = MessageBox.Show(message5, "Confirm Action", MessageBoxButtons.YesNo);
+                    var messageBox5 = MessageBox.Show(message5, Resources.Confirm_Action, MessageBoxButtons.YesNo);
                     if (messageBox5 != DialogResult.Yes)
                     {
                         multiActionBox.SelectedIndex = 0;
@@ -232,7 +222,7 @@ namespace Happy_Search
                 moreResults = vnRoot.More;
             }
             await GetMultipleVN(vnItems.Select(x => x.ID), false);
-            WriteText(replyText, $"Found {_vnsAdded + _vnsSkipped} titles, {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.");
+            WriteText(replyText, $"Found {TitlesAdded + TitlesSkipped} titles, {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
             _currentListLabel = $"{searchString} (Search)";
@@ -291,8 +281,8 @@ namespace Happy_Search
             LoadVNListToGui();
             WriteText(replyText,
                 span < TimeSpan.FromMinutes(1)
-                    ? $"Got VNs for {year} in <1 min. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added."
-                    : $"Got VNs for {year} in {span:HH:mm}. {_vnsAdded}/{_vnsAdded + _vnsSkipped} added.");
+                    ? $"Got VNs for {year} in <1 min. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added."
+                    : $"Got VNs for {year} in {span:HH:mm}. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -312,7 +302,7 @@ namespace Happy_Search
             var producerItem = ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
             if (producerItem == null)
             {
-                var askBox2 = MessageBox.Show($"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
+                var askBox2 = MessageBox.Show($@"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
                 var result2 = StartQuery(replyText, "Update Producer Titles",false,false,false);
                 if (!result2) return;
@@ -338,10 +328,8 @@ namespace Happy_Search
             }
             var result = StartQuery(replyText, "Update Producer Titles", false, false, false);
             if (!result) return;
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
             await GetProducerTitles(producerItem,false);
-            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {_vnsAdded} titles.");
+            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {TitlesAdded} titles.");
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             ChangeAPIStatus(Conn.Status);
@@ -385,20 +373,8 @@ namespace Happy_Search
                     ListByCBQuery.Visible = true;
                     ListByUpdateButton.Enabled = false;
                     ListByGoButton.Enabled = false;
-                    ListByCBQuery.SelectedIndexChanged += List_Group;
-                    ListByCBQuery.SelectedIndexChanged -= List_Language;
                     PopulateGroupSearchBox();
                     return;
-                case (int)ListBy.Language:
-                    ListByTB.Visible = false;
-                    ListByCBQuery.Visible = true;
-                    ListByUpdateButton.Enabled = false;
-                    ListByGoButton.Enabled = true;
-                    ListByCBQuery.SelectedIndexChanged += List_Language;
-                    ListByCBQuery.SelectedIndexChanged -= List_Group;
-                    PopulateLangSearchBox();
-                    return;
-
             }
         }
 
@@ -516,36 +492,12 @@ namespace Happy_Search
             _currentListLabel = $"{groupName} (Group)";
             LoadVNListToGui(skipComboSearch: true);
         }
-
-        /// <summary>
-        /// Display VNs in user-defined group that is typed/selected in box.
-        /// </summary>
-        internal void List_Language(object sender, EventArgs e)
-        {
-            if (((ComboBox)sender).SelectedIndex < 1) return;
-            var language = ListByCBQuery.Text;
-            if (language.Equals("(Language)")) return;
-            List_ClearOther();
-            var cultureString =
-                CultureInfo.GetCultures(CultureTypes.AllCultures)
-                    .FirstOrDefault(c => c.DisplayName.Equals(language))?.Name;
-            if (cultureString == null)
-            {
-                //should never happen
-                WriteError(replyText, $"Language {language} not found.");
-                return;
-            }
-            _currentList = x => x.Languages != null && x.Languages.All.Contains(cultureString.ToLower());
-            _currentListLabel = $"{language} (Language)";
-            LoadVNListToGui(skipComboSearch: true);
-        }
-
+        
         private void ListByCbEnter(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
             if (ListByCBQuery.Text.Equals("")) return;
             if (ListByCB.SelectedIndex == (int)ListBy.Group) List_Group(sender, e);
-            else if (ListByCB.SelectedIndex == (int)ListBy.Language) List_Language(sender, e);
         }
 
         /// <summary>
@@ -925,7 +877,7 @@ namespace Happy_Search
         {
             if (tileOLV.Objects == null) return;
             var count = tileOLV.Objects.Cast<object>().Count();
-            var totalcount = _vnList.Count;
+            var totalcount = VNList.Count;
             string itemCountString = count == totalcount ? $"{totalcount} items." : $"{count}/{totalcount} items.";
             resultLabel.Text = $@"List: {_currentListLabel} {itemCountString}";
         }
@@ -948,29 +900,14 @@ namespace Happy_Search
         /// <summary>
         /// Specifies ListBy mode.
         /// </summary>
-        private enum ListBy { Name, Producer, Year, Group, Language }
-        
-        /// <summary>
-        /// Class holding toggle filter settings.
-        /// </summary>
-        [Serializable, XmlRoot("ToggleArray")]
-        public class ToggleArray
-        {
-            /// <summary>
-            /// Empty constructor needed for XML
-            /// </summary>
-            public ToggleArray()
-            {
-                //URTToggleSetting = 0;
-                UnreleasedToggleSetting = 0;
-                BlacklistToggleSetting = 0;
-            }
-            //public ToggleSetting URTToggleSetting { get; set; }
-            public YesNoFilter UnreleasedToggleSetting { get; set; }
-            public YesNoFilter BlacklistToggleSetting { get; set; }
-
-        }
+        private enum ListBy { Name, Producer, Year, Group }
         #endregion
+
+        public void SetVNList(Func<ListedVN, bool> function, string label)
+        {
+            _currentList = function;
+            _currentListLabel = label;
+        }
     }
 
 #pragma warning restore 1591

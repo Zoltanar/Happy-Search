@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
 using Newtonsoft.Json;
 using static Happy_Search.StaticHelpers;
 
@@ -336,7 +335,6 @@ namespace Happy_Search
     }
 
     //object received by 'dbstats' command
-    [Serializable, XmlRoot("DbRoot")]
     public class DbRoot
     {
         public int Tags { get; set; }

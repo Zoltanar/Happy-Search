@@ -58,8 +58,8 @@ namespace Happy_Search
                     minWait = Math.Min(5 * 60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
                     string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
                     string additionalWarning = "";
-                    if (_vnsAdded > 0) additionalWarning += $" Added {_vnsAdded}.";
-                    if (_vnsSkipped > 0) additionalWarning += $" Skipped {_vnsSkipped}.";
+                    if (TitlesAdded > 0) additionalWarning += $" Added {TitlesAdded}.";
+                    if (TitlesSkipped > 0) additionalWarning += $" Skipped {TitlesSkipped}.";
                     fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
                 });
                 WriteWarning(ActiveQuery.ReplyLabel, fullThrottleMessage);
@@ -221,14 +221,13 @@ namespace Happy_Search
         private async Task GetLanguagesForProducers(int[] producerIDs)
         {
             if (!producerIDs.Any()) return;
-            _vnsAdded = 0;
             var producerList = new List<ListedProducer>();
             foreach (var producerID in producerIDs)
             {
                 var result = await GetProducer(producerID, "GetLanguagesForProducers Error",false);
                 if (!result.Item1 || result.Item2 == null) continue;
                 producerList.Add(result.Item2);
-                _vnsAdded++;
+                TitlesAdded++;
                 if (producerList.Count > 24)
                 {
                     DBConn.BeginTransaction();
@@ -289,14 +288,14 @@ namespace Happy_Search
             var vnsToGet = new List<int>();
             await Task.Run(() =>
             {
-                int[] vnIDList = _vnList.Select(x => x.VNID).ToArray();
+                int[] vnIDList = VNList.Select(x => x.VNID).ToArray();
                 //remove already present vns
                 if (!updateAll)
                 {
                     foreach (var id in vnIDs)
                     {
                         if (id == 0) continue;
-                        if (vnIDList.Contains(id)) _vnsSkipped++;
+                        if (vnIDList.Contains(id)) TitlesSkipped++;
                         else vnsToGet.Add(id);
                     }
                 }
@@ -344,7 +343,7 @@ namespace Happy_Search
                     }
                     if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
                 }
-                _vnsAdded++;
+                TitlesAdded++;
                 vnsToBeUpserted.Add((vnItem, relProducer, languages));
             }
             DBConn.BeginTransaction();
@@ -392,7 +391,7 @@ namespace Happy_Search
                         }
                         if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
                     }
-                    _vnsAdded++;
+                    TitlesAdded++;
                     vnsToBeUpserted.Add((vnItem, relProducer, languages));
                 }
                 DBConn.BeginTransaction();
@@ -411,7 +410,6 @@ namespace Happy_Search
         /// <param name="vnIDs">List of IDs of titles to be updated.</param>
         private async Task UpdateTagsTraitsStats(IEnumerable<int> vnIDs)
         {
-            _vnsAdded = 0;
             List<int> vnsToGet = vnIDs.ToList();
             if (!vnsToGet.Any()) return;
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
@@ -433,7 +431,7 @@ namespace Happy_Search
             foreach (var vnItem in vnRoot.Items)
             {
                 DBConn.UpdateVNTagsStats(vnItem);
-                _vnsAdded++;
+                TitlesAdded++;
             }
             DBConn.EndTransaction();
             await GetCharactersForMultipleVN(currentArray);
@@ -459,7 +457,7 @@ namespace Happy_Search
                 foreach (var vnItem in vnRoot.Items)
                 {
                     DBConn.UpdateVNTagsStats(vnItem);
-                    _vnsAdded++;
+                    TitlesAdded++;
                 }
                 DBConn.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray);
@@ -698,8 +696,8 @@ namespace Happy_Search
                 return false;
             }
             ActiveQuery = new ApiQuery(featureName, replyLabel, refreshList, additionalMessage, ignoreDateLimit);
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
+            TitlesAdded = 0;
+            TitlesSkipped = 0;
             ChangeAPIStatus(VndbConnection.APIStatus.Busy);
             return true;
         }
@@ -707,7 +705,7 @@ namespace Happy_Search
         /// <summary>
         /// Contains settings for API Query
         /// </summary>
-        public struct ApiQuery
+        public class ApiQuery
         {
             /// <summary>
             /// Name of action

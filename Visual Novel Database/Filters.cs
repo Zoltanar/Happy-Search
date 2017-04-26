@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
 using static Happy_Search.StaticHelpers;
 
@@ -13,9 +14,11 @@ namespace Happy_Search
     /// <summary>
     /// Struct holding state of filters.
     /// </summary>
-    public struct Filters
+    public class Filters
     {
 #pragma warning disable 1591
+        public string Name = "Custom Filter";
+
         public LengthFilter Length
         {
             get => _length;
@@ -136,6 +139,10 @@ namespace Happy_Search
                 _traits = value;
             }
         }
+        /// <summary>
+        /// True means OR, false means AND
+        /// </summary>
+        public bool TagsTraitsMode { get; set; }
 
         private LengthFilter _length;
         private DateRange _releaseDate;
@@ -150,25 +157,22 @@ namespace Happy_Search
         private TagFilter[] _tags;
         private WrittenTrait[] _traits;
         private bool _refresh;
-        private bool _ignoreFixed;
+        private bool _ignoreFixed = true;
 
-        public bool LengthFixed { get; set; }
-        public bool ReleaseDateFixed { get; set; }
-        public bool UnreleasedFixed { get; set; }
-        public bool BlacklistFixed { get; set; }
-        public bool VotedFixed { get; set; }
-        public bool FavoriteProducersFixed { get; set; }
-        public bool WishlistFixed { get; set; }
-        public bool UserlistFixed { get; set; }
-        public bool LanguageFixed { get; set; }
-        public bool OriginalLanguageFixed { get; set; }
-        public bool TagsFixed { get; set; }
-        public bool TraitsFixed { get; set; }
-        /// <summary>
-        /// True means OR, false means AND
-        /// </summary>
-        public bool TagsTraitsMode { get; internal set; }
+        private bool LengthFixed { get; set; }
+        private bool ReleaseDateFixed { get; set; }
+        private bool UnreleasedFixed { get; set; }
+        private bool BlacklistFixed { get; set; }
+        private bool VotedFixed { get; set; }
+        private bool FavoriteProducersFixed { get; set; }
+        private bool WishlistFixed { get; set; }
+        private bool UserlistFixed { get; set; }
+        private bool LanguageFixed { get; set; }
+        private bool OriginalLanguageFixed { get; set; }
+        private bool TagsFixed { get; set; }
+        private bool TraitsFixed { get; set; }
 
+        [JsonIgnore]
         public bool Refresh
         {
             get { return _refresh; }
@@ -181,14 +185,58 @@ namespace Happy_Search
         public void SetRefreshFalse() => _refresh = false;
 #pragma warning restore 1591
 
+        /// <summary>
+        /// Load Filters from file.
+        /// </summary>
+        /// <param name="tab">Control containing fixed statuses.</param>
+        public static Filters LoadFilters(FiltersTab tab)
+        {
+            Filters result;
+            try
+            {
+                result = JsonConvert.DeserializeObject<Filters>(File.ReadAllText(FiltersJson));
+            }
+            catch (Exception e)
+            {
+                LogToFile("Failed to load filters.json");
+                LogToFile(e);
+                result = new Filters();
+            }
+            result.SetFixedStatusesToForm(tab);
+            return result;
+        }
+
+        /// <summary>
+        /// Load from filter but don't overwrite fixed parameters.
+        /// </summary>
+        public void SetFromSavedFilter(FiltersTab tab, Filters filter)
+        {
+            _ignoreFixed = false;
+            ClearAll(tab);
+            Name = filter.Name;
+            Length = filter.Length;
+            ReleaseDate = filter.ReleaseDate;
+            Unreleased = filter.Unreleased;
+            Blacklisted = filter.Blacklisted;
+            Voted = filter.Voted;
+            FavoriteProducers = filter.FavoriteProducers;
+            Wishlist = filter.Wishlist;
+            Userlist = filter.Userlist;
+            Language = filter.Language;
+            OriginalLanguage = filter.OriginalLanguage;
+            Tags = filter.Tags;
+            Traits = filter.Traits;
+            TagsTraitsMode = filter.TagsTraitsMode;
+            _ignoreFixed = true;
+        }
 
         /// <summary>
         /// Clear all filters.
         /// </summary>
-        /// <param name="form">Form containing indicators for filter fixed statuses.</param>
-        public void ClearAll(FormMain form)
+        /// <param name="tab">Control containing indicators for filter fixed statuses.</param>
+        public void ClearAll(FiltersTab tab)
         {
-            SetFixedStatusesFromForm(form);
+            SetFixedStatusesFromForm(tab);
             Length = LengthFilter.Off;
             ReleaseDate = null;
             Unreleased = UnreleasedFilter.Off;
@@ -206,39 +254,38 @@ namespace Happy_Search
         /// <summary>
         /// Sets Fixed Status for filters from info in form.
         /// </summary>
-        public void SetFixedStatusesFromForm(FormMain form)
+        public void SetFixedStatusesFromForm(FiltersTab tab)
         {
-            LengthFixed = form.lengthFixed.Checked;
-            ReleaseDateFixed = form.releaseDateFixed.Checked;
-            UnreleasedFixed = form.unreleasedFixed.Checked;
-            BlacklistFixed = form.blacklistedFixed.Checked;
-            VotedFixed = form.votedFixed.Checked;
-            FavoriteProducersFixed = form.favoriteProducersFixed.Checked;
-            WishlistFixed = form.wishlistFixed.Checked;
-            UserlistFixed = form.userlistFixed.Checked;
-            LanguageFixed = form.languageFixed.Checked;
-            OriginalLanguageFixed = form.originalLanguageFixed.Checked;
-            TagsFixed = form.tagsFixed.Checked;
-            TraitsFixed = form.traitsFixed.Checked;
+            LengthFixed = tab.lengthFixed.Checked;
+            ReleaseDateFixed = tab.releaseDateFixed.Checked;
+            UnreleasedFixed = tab.unreleasedFixed.Checked;
+            BlacklistFixed = tab.blacklistedFixed.Checked;
+            VotedFixed = tab.votedFixed.Checked;
+            FavoriteProducersFixed = tab.favoriteProducerFixed.Checked;
+            WishlistFixed = tab.wishlistFixed.Checked;
+            UserlistFixed = tab.userlistFixed.Checked;
+            LanguageFixed = tab.languageFixed.Checked;
+            OriginalLanguageFixed = tab.originalLanguageFixed.Checked;
+            TagsFixed = tab.tagsFixed.Checked;
+            TraitsFixed = tab.traitsFixed.Checked;
         }
-
-
+        
         /// <summary>
         /// Sets Fixed Status from filters into form.
         /// </summary>
-        public void SetFixedStatusesToForm(FormMain form)
+        public void SetFixedStatusesToForm(FiltersTab tab)
         {
-            form.lengthFixed.Checked = LengthFixed;
-            form.releaseDateFixed.Checked = ReleaseDateFixed;
-            form.unreleasedFixed.Checked = UnreleasedFixed;
-            form.blacklistedFixed.Checked = BlacklistFixed;
-            form.favoriteProducersFixed.Checked = FavoriteProducersFixed;
-            form.wishlistFixed.Checked = WishlistFixed;
-            form.userlistFixed.Checked = UserlistFixed;
-            form.languageFixed.Checked = LanguageFixed;
-            form.originalLanguageFixed.Checked = OriginalLanguageFixed;
-            form.tagsFixed.Checked = TagsFixed;
-            form.traitsFixed.Checked = TraitsFixed;
+            tab.lengthFixed.Checked = LengthFixed;
+            tab.releaseDateFixed.Checked = ReleaseDateFixed;
+            tab.unreleasedFixed.Checked = UnreleasedFixed;
+            tab.blacklistedFixed.Checked = BlacklistFixed;
+            tab.favoriteProducerFixed.Checked = FavoriteProducersFixed;
+            tab.wishlistFixed.Checked = WishlistFixed;
+            tab.userlistFixed.Checked = UserlistFixed;
+            tab.languageFixed.Checked = LanguageFixed;
+            tab.originalLanguageFixed.Checked = OriginalLanguageFixed;
+            tab.tagsFixed.Checked = TagsFixed;
+            tab.traitsFixed.Checked = TraitsFixed;
         }
 
         /// <summary>
@@ -262,34 +309,20 @@ namespace Happy_Search
             var cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
             if (Language != null && Language.Length > 0)
             {
-                try
-                {
-                    var fLanguages =
-                        Language.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang)).Name);
-                    andFunctions.Add(vn => vn.Languages?.All.Any(l => fLanguages.Contains(l)) ?? false);
-                }
-                catch (Exception e)
-                {
-                    LogToFile(e);
-                }
+                var fLanguages =
+                    Language.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang))?.Name ?? lang);
+                andFunctions.Add(vn => vn.Languages?.All.Any(l => fLanguages.Contains(l)) ?? false);
             }
             if (OriginalLanguage != null && OriginalLanguage.Length > 0)
             {
-                try
-                {
-                    var fOriginalLanguages =
-                        OriginalLanguage.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang)).Name);
-                    andFunctions.Add(vn => vn.Languages?.Originals.Any(l => fOriginalLanguages.Contains(l)) ?? false);
-                }
-                catch (Exception e)
-                {
-                    LogToFile(e);
-                }
+                var fOriginalLanguages =
+                    OriginalLanguage.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang))?.Name ?? lang);
+                andFunctions.Add(vn => vn.Languages?.Originals.Any(l => fOriginalLanguages.Contains(l)) ?? false);
             }
             if (Tags != null && Tags.Length > 0)
             {
-                if (TagsTraitsMode) orFunctions.Add(form.VNMatchesTagFilter);
-                else andFunctions.Add(form.VNMatchesTagFilter);
+                if (TagsTraitsMode) orFunctions.Add(form.FiltersTab.VNMatchesTagFilter);
+                else andFunctions.Add(form.FiltersTab.VNMatchesTagFilter);
             }
             if (Traits != null && Traits.Length > 0)
             {
@@ -327,30 +360,8 @@ namespace Happy_Search
             }
         }
 
-        /// <summary>
-        /// To be called before setting a custom filter.
-        /// </summary>
-        public void StartLoadingCustomFilter(FormMain form)
-        {
-            _ignoreFixed = false;
-            ClearAll(form);
-        }
-
-        /// <summary>
-        /// To be called after setting a custom filter.
-        /// </summary>
-        public void EndLoadingCustomFilter()
-        {
-            _ignoreFixed = true;
-        }
-
-        /// <summary>
-        /// To be called once on startup.
-        /// </summary>
-        public void Startup()
-        {
-            _ignoreFixed = true;
-        }
+        /// <inheritdoc />
+        public override string ToString() => Name;
     }
 
 #pragma warning disable 1591
@@ -428,6 +439,146 @@ namespace Happy_Search
             From = from;
             To = to;
         }
+    }
+
+    /// <summary>
+    ///     Holds details of a VNDB Tag and its subtags
+    /// </summary>
+    public class TagFilter
+    {
+        /// <summary>
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="titles"></param>
+        /// <param name="children"></param>
+        public TagFilter(int id, string name, int titles, int[] children)
+        {
+            ID = id;
+            Name = name;
+            Titles = titles;
+            Children = children;
+            AllIDs = children.Union(new[] { id }).ToArray();
+        }
+        
+        /// <summary>
+        ///     ID of tag.
+        /// </summary>
+        public int ID { get; set; }
+
+        /// <summary>
+        ///     Name of tag.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        ///     Number of titles with tag.
+        /// </summary>
+        public int Titles { get; set; }
+
+        /// <summary>
+        ///     Subtag IDs of tag.
+        /// </summary>
+        public int[] Children { get; set; }
+
+        /// <summary>
+        ///     Tag ID and subtag IDs
+        /// </summary>
+        public int[] AllIDs { get; set; }
+
+
+        /// <summary>
+        ///     Check if given tag is a child tag of TagFilter
+        /// </summary>
+        /// <param name="tag">Tag to be checked</param>
+        /// <returns>Whether tag is child of TagFilter</returns>
+        public bool HasChild(int tag)
+        {
+            return Children.Contains(tag);
+        }
+
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString()
+        {
+            return $"{ID} - {Name}";
+        }
+    }
+    /// <summary>
+    ///     Holds details of user-created custom filter
+    /// </summary>
+    public class CustomTagFilter
+    {
+        /// <summary>
+        ///     Constructor for Custom Tag Filter.
+        /// </summary>
+        /// <param name="name">User-set name of filter</param>
+        /// <param name="filters">List of Tags in filter</param>
+        public CustomTagFilter(string name, List<TagFilter> filters)
+        {
+            Name = name;
+            Filters = filters;
+        }
+        
+        /// <summary>
+        ///     User-set name of custom filter
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        ///     List of tags in custom filter
+        /// </summary>
+        public List<TagFilter> Filters { get; set; }
+
+        /// <summary>
+        ///     Date of last update to custom filter
+        /// </summary>
+        public DateTime Updated { get; set; }
+
+        public override string ToString() => Name;
+    }
+
+
+    /// <summary>
+    ///     Holds details of user-created custom trait filter.
+    /// </summary>
+    public class CustomTraitFilter
+    {
+        /// <summary>
+        ///     Constructor for ComplexFilter (Custom Filter).
+        /// </summary>
+        /// <param name="name">User-set name of filter</param>
+        /// <param name="filters">List of traits in filter</param>
+        public CustomTraitFilter(string name, List<WrittenTrait> filters)
+        {
+            Name = name;
+            Filters = filters;
+        }
+
+        /// <summary>
+        ///     Empty Constructor needed for XML.
+        /// </summary>
+        public CustomTraitFilter()
+        { }
+
+        /// <summary>
+        ///     User-set name of custom filter
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        ///     List of traits in custom filter
+        /// </summary>
+        public List<WrittenTrait> Filters { get; set; }
+
+        /// <summary>
+        ///     Date of last update to custom filter
+        /// </summary>
+        public DateTime Updated { get; set; }
+
+        public override string ToString() => Name;
     }
 #pragma warning restore 1591
 }

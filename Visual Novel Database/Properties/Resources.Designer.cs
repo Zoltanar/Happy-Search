@@ -106,6 +106,15 @@ namespace Happy_Search.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Confirm Action.
+        /// </summary>
+        internal static string Confirm_Action {
+            get {
+                return ResourceManager.GetString("Confirm_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to connect to VNDB..
         /// </summary>
         internal static string connection_failed {

@@ -35,5 +35,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion(Happy_Search.FormMain.ClientVersion)]
-[assembly: AssemblyFileVersion(Happy_Search.FormMain.ClientVersion)]
+[assembly: AssemblyVersion(Happy_Search.StaticHelpers.ClientVersion)]
+[assembly: AssemblyFileVersion(Happy_Search.StaticHelpers.ClientVersion)]

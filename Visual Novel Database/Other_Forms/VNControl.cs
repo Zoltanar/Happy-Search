@@ -89,7 +89,7 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DisplayCommonTagsURT(null, null);
                 FormMain.Settings.Save();
             }
-            if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = "No Tags Found";
+            if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = new [] {"No Tags Found"};
             else
             {
                 var visibleTags = new List<TagItem>();
@@ -156,7 +156,7 @@ namespace Happy_Search.Other_Forms
                 SetDeletedData();
                 return;
             }
-            Text = $@"{vnItem.Title} - {FormMain.ClientName}";
+            Text = $@"{vnItem.Title} - {ClientName}";
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             //prepare data
             _displayedVN = vnItem;
@@ -292,7 +292,7 @@ namespace Happy_Search.Other_Forms
 
         private void SetDeletedData()
         {
-            Text = $@"{FormMain.ClientName} - (Deleted Title)";
+            Text = $@"{ClientName} - (Deleted Title)";
             _displayedVN = null;
             vnName.Text = @"This VN was deleted.";
             vnKanjiName.Text = "";

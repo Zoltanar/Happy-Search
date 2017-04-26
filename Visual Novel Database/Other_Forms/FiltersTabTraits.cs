@@ -1,24 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using System.Xml.Serialization;
-using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 using static Happy_Search.StaticHelpers;
 
-namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
-    public partial class FormMain
+    partial class FiltersTab
     {
-        private readonly List<CustomTraitFilter> _customTraitFilters;
-        /// <summary>
-        /// Contains traits in TraitsTFLB (not active trait filter)
-        /// </summary>
-        public readonly List<WrittenTrait> TraitsPre = new List<WrittenTrait>();
-
         /// <summary>
         ///     Bring up dialog explaining features of the 'Trait Filtering' section.
         /// </summary>
@@ -41,7 +32,7 @@ namespace Happy_Search
             var selectedFilter = customTraitFilters.SelectedIndex;
             customTraitFilters.Items.RemoveAt(selectedFilter);
             _customTraitFilters.RemoveAt(selectedFilter - 2);
-            SaveMainXML();
+            SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_deleted);
             customTraitFilterNameBox.Text = "";
             customTraitFilters.SelectedIndex = 0;
@@ -52,7 +43,7 @@ namespace Happy_Search
         /// </summary>
         private void Filter_CustomTraits(object sender, EventArgs e)
         {
-            if (DontTriggerEvent) return;
+            if (_mainForm.DontTriggerEvent) return;
             switch (customTraitFilters.SelectedIndex)
             {
                 case 0:
@@ -68,7 +59,7 @@ namespace Happy_Search
                     customTraitFilterNameBox.Text = _customTraitFilters[customTraitFilters.SelectedIndex - 2].Name;
                     break;
             }
-            LoadVNListToGui();
+            _mainForm.LoadVNListToGui();
         }
 
         /// <summary>
@@ -100,8 +91,13 @@ namespace Happy_Search
                 _customTraitFilters.Add(new CustomTraitFilter(filterName, TraitsPre.ToList()));
                 customTraitFilters.SelectedIndex = customTraitFilters.Items.Count - 1;
             }
-            SaveMainXML();
+            SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_saved);
+        }
+
+        private void EnterCustomTraitFilterName(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) SaveCustomTraitFilter(sender, e);
         }
 
         /// <summary>
@@ -120,14 +116,14 @@ namespace Happy_Search
         private void TraitRootChanged(object sender, EventArgs e)
         {
             if (traitRootsDropdown.SelectedIndex < 0) return;
-            var trait = PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            var trait = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
             if (trait == null)
             {
                 WriteError(traitReply, "Root trait not found.");
                 return;
             }
             var traitSource = new AutoCompleteStringCollection();
-            traitSource.AddRange(PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
+            traitSource.AddRange(FormMain.PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
             traitSearchBox.AutoCompleteCustomSource = traitSource;
         }
 
@@ -144,15 +140,14 @@ namespace Happy_Search
                 return;
             }
             var traitName = traitSearchBox.Text;
-            var root = PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            var root = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
             var trait =
-                PlainTraits.Find(x =>
-                        x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
-                        x.TopmostParent == root.ID);
+                FormMain.PlainTraits.Find(x =>
+                    x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
+                    x.TopmostParent == root.ID);
             if (trait == null)
             {
-                //WriteError(traitReply, $"{root} > {traitName} not found.", true);
-                SearchTraits(null, null);
+                SearchTraits();
                 return;
             }
             AddFilterTrait(trait);
@@ -183,7 +178,7 @@ namespace Happy_Search
         /// <summary>
         /// Search for traits by name/alias.
         /// </summary>
-        private void SearchTraits(object sender, EventArgs e)
+        private void SearchTraits()
         {
             traitSearchResultBox.Visible = false;
             if (traitSearchBox.Text == "") //check if box is empty
@@ -192,8 +187,8 @@ namespace Happy_Search
                 return;
             }
             var text = traitSearchBox.Text.ToLowerInvariant();
-            var results = PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
-                                            t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
+            var results = FormMain.PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+                                                 t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
             if (results.Length == 0)
             {
                 WriteError(traitReply, "No traits with that name/alias found.");
@@ -229,45 +224,6 @@ namespace Happy_Search
         private void ClearTraitResults(object sender, EventArgs e)
         {
             traitSearchResultBox.Visible = false;
-        }
-
-        /// <summary>
-        ///     Holds details of user-created custom trait filter.
-        /// </summary>
-        [Serializable, XmlRoot("CustomTraitFilter")]
-        public class CustomTraitFilter
-        {
-            /// <summary>
-            ///     Constructor for ComplexFilter (Custom Filter).
-            /// </summary>
-            /// <param name="name">User-set name of filter</param>
-            /// <param name="filters">List of traits in filter</param>
-            public CustomTraitFilter(string name, List<WrittenTrait> filters)
-            {
-                Name = name;
-                Filters = filters;
-            }
-
-            /// <summary>
-            ///     Empty Constructor needed for XML.
-            /// </summary>
-            public CustomTraitFilter()
-            { }
-
-            /// <summary>
-            ///     User-set name of custom filter
-            /// </summary>
-            public string Name { get; }
-
-            /// <summary>
-            ///     List of traits in custom filter
-            /// </summary>
-            public List<WrittenTrait> Filters { get; set; }
-
-            /// <summary>
-            ///     Date of last update to custom filter
-            /// </summary>
-            public DateTime Updated { get; set; }
         }
     }
 }

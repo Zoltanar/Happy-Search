@@ -306,4 +306,7 @@ Are you sure?</value>
   <data name="valid_vote_error" xml:space="preserve">
     <value>Valid votes are between 1 and 10.</value>
   </data>
+  <data name="Confirm_Action" xml:space="preserve">
+    <value>Confirm Action</value>
+  </data>
 </root>

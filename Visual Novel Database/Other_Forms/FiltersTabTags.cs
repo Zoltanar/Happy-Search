@@ -1,26 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Serialization;
-using Happy_Search.Other_Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
 using static Happy_Search.StaticHelpers;
 
-namespace Happy_Search
+namespace Happy_Search.Other_Forms
 {
-    public partial class FormMain
+    partial class FiltersTab
     {
-        private readonly List<CustomTagFilter> _customTagFilters;
-        /// <summary>
-        /// Contains contents of TagsTFLB (not active tags);
-        /// </summary>
-        public readonly BindingList<TagFilter> TagsPre = new BindingList<TagFilter>();
 
         /// <summary>
         /// Bring up dialog explaining features of the 'Tag Filtering' section.
@@ -31,6 +23,11 @@ namespace Happy_Search
             Debug.Assert(path != null, "path != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\tagfiltering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
+        }
+
+        private void EnterCustomTagFilterName(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) SaveCustomTagFilter(sender, e);
         }
 
         /// <summary>
@@ -61,7 +58,7 @@ namespace Happy_Search
                 _customTagFilters.Add(new CustomTagFilter(filterName, TagsPre.ToList()));
                 customTagFilters.SelectedIndex = customTagFilters.Items.Count - 1;
             }
-            SaveMainXML();
+            SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_saved);
         }
 
@@ -105,7 +102,7 @@ namespace Happy_Search
             int[] children = Enumerable.Empty<int>().ToArray();
             var difference = 1;
             //new
-            int[] childrenForThisRound = PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
+            int[] childrenForThisRound = FormMain.PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
                 .Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
             while (difference > 0)
             {
@@ -117,11 +114,11 @@ namespace Happy_Search
                 children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
                 difference = children.Length - initial;
                 var tmp = new List<int>();
-                foreach (var child in childrenForThisRound) tmp.AddRange(PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
+                foreach (var child in childrenForThisRound) tmp.AddRange(FormMain.PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
                 childrenForThisRound = tmp.ToArray();
             }
             var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, children);
-            var count = _vnList.Count(vn => VNMatchesSingleTag(vn, newFilter));
+            var count = _mainForm.VNList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
             TagFilter moreSpecificFilter = null;
             var notNeeded = false;
@@ -154,21 +151,21 @@ namespace Happy_Search
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result = StartQuery(tagReply, "Update Filter Results", true, true, false);
+                var result = _mainForm.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
                 _customTagFilters[customTagFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
-                SaveMainXML();
+                SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             }
             else
             {
                 var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                var result = StartQuery(tagReply, "Update Filter Results", true, true, false);
+                var result = _mainForm.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
             }
-            ChangeAPIStatus(VndbConnection.APIStatus.Ready);
+            _mainForm.ChangeAPIStatus(VndbConnection.APIStatus.Ready);
         }
 
         /// <summary>
@@ -176,34 +173,32 @@ namespace Happy_Search
         /// </summary>
         private async Task UpdateFilterResults()
         {
-            _vnsAdded = 0;
-            _vnsSkipped = 0;
             IEnumerable<string> betterTags = TagsPre.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
-            var result = await TryQuery(tagQuery, "UCF Query Error");
+            var result = await _mainForm.TryQuery(tagQuery, "UCF Query Error");
             if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), false);
+            await _mainForm.GetMultipleVN(vnItems.Select(x => x.ID).ToList(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(moreTagQuery, "UCFM Query Error");
+                var moreResult = await _mainForm.TryQuery(moreTagQuery, "UCFM Query Error");
                 if (!moreResult) return;
-                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), false);
+                await _mainForm.GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), false);
                 moreResults = moreVNRoot.More;
             }
-            await ReloadListsFromDbAsync();
-            LoadVNListToGui();
-            WriteText(ActiveQuery.ReplyLabel, $"Update complete, added {_vnsAdded} and skipped {_vnsSkipped} titles.");
+            await _mainForm.ReloadListsFromDbAsync();
+            _mainForm.LoadVNListToGui();
+            WriteText(_mainForm.ActiveQuery.ReplyLabel, $"Update complete, added {_mainForm.TitlesAdded} and skipped {_mainForm.TitlesSkipped} titles.");
         }
 
         /// <summary>
@@ -211,7 +206,7 @@ namespace Happy_Search
         /// </summary>
         private void Filter_CustomTags(object sender, EventArgs e)
         {
-            if (DontTriggerEvent) return;
+            if (_mainForm.DontTriggerEvent) return;
             var dropdownlist = (ComboBox)sender;
             switch (dropdownlist.SelectedIndex)
             {
@@ -223,9 +218,11 @@ namespace Happy_Search
                     return;
                 default:
                     deleteCustomTagFilterButton.Enabled = true;
+                    var selectedItem = dropdownlist.SelectedItem as CustomTagFilter;
+                    if (selectedItem == null) return;
                     TagsPre.Clear();
-                    TagsPre.AddRange(_customTagFilters[dropdownlist.SelectedIndex - 2].Filters.ToArray());
-                    customTagFilterNameBox.Text = _customTagFilters[dropdownlist.SelectedIndex - 2].Name;
+                    TagsPre.AddRange(selectedItem.Filters.ToArray());
+                    customTagFilterNameBox.Text = selectedItem.Name;
                     break;
             }
         }
@@ -241,7 +238,7 @@ namespace Happy_Search
             var selectedFilter = customTagFilters.SelectedIndex;
             customTagFilters.Items.RemoveAt(selectedFilter);
             _customTagFilters.RemoveAt(selectedFilter - 2);
-            SaveMainXML();
+            SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_deleted);
             customTagFilterNameBox.Text = "";
             customTagFilters.SelectedIndex = 0;
@@ -266,8 +263,8 @@ namespace Happy_Search
         public bool VNMatchesTagFilter(ListedVN vn)
         {
             int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
-            var filtersMatched = Filters.Tags.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
-            return filtersMatched == Filters.Tags.Length;
+            var filtersMatched = _filters.Tags.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
+            return filtersMatched == _filters.Tags.Length;
         }
 
         /// <summary>
@@ -285,7 +282,7 @@ namespace Happy_Search
             var tb = (TextBox)sender;
             string text = tb.Text.ToLowerInvariant();
             //if exact match is found, add it
-            var exact = PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
+            var exact = FormMain.PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
             if (exact != null)
             {
                 tagSearchBox.Text = "";
@@ -323,7 +320,7 @@ namespace Happy_Search
                 }
             }
             //find all results with similar name or alias
-            var results = PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+            var results = FormMain.PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
                                                t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
             //if no results, return not found
             if (results.Length == 0)
@@ -343,121 +340,6 @@ namespace Happy_Search
             // ReSharper disable once CoVariantArrayConversion
             tagSearchResultBox.Items.AddRange(results);
             tagSearchResultBox.Visible = true;
-        }
-
-        /// <summary>
-        ///     Holds details of user-created custom filter
-        /// </summary>
-        [Serializable, XmlRoot("CustomTagFilter")]
-        public class CustomTagFilter
-        {
-            /// <summary>
-            ///     Constructor for Custom Tag Filter.
-            /// </summary>
-            /// <param name="name">User-set name of filter</param>
-            /// <param name="filters">List of Tags in filter</param>
-            public CustomTagFilter(string name, List<TagFilter> filters)
-            {
-                Name = name;
-                Filters = filters;
-            }
-
-            /// <summary>
-            ///     Empty Constructor needed for XML.
-            /// </summary>
-            public CustomTagFilter()
-            {
-            }
-
-            /// <summary>
-            ///     User-set name of custom filter
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            ///     List of tags in custom filter
-            /// </summary>
-            public List<TagFilter> Filters { get; set; }
-
-            /// <summary>
-            ///     Date of last update to custom filter
-            /// </summary>
-            public DateTime Updated { get; set; }
-        }
-
-    }
-
-    /// <summary>
-    ///     Holds details of a VNDB Tag and its subtags
-    /// </summary>
-    [Serializable, XmlRoot("TagFilter")]
-    public class TagFilter
-    {
-        /// <summary>
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="name"></param>
-        /// <param name="titles"></param>
-        /// <param name="children"></param>
-        public TagFilter(int id, string name, int titles, int[] children)
-        {
-            ID = id;
-            Name = name;
-            Titles = titles;
-            Children = children;
-            AllIDs = children.Union(new[] { id }).ToArray();
-        }
-
-        /// <summary>
-        ///     Empty Constructor needed for XML.
-        /// </summary>
-        public TagFilter()
-        {
-        }
-
-        /// <summary>
-        ///     ID of tag.
-        /// </summary>
-        public int ID { get; set; }
-
-        /// <summary>
-        ///     Name of tag.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        ///     Number of titles with tag.
-        /// </summary>
-        public int Titles { get; set; }
-
-        /// <summary>
-        ///     Subtag IDs of tag.
-        /// </summary>
-        public int[] Children { get; set; }
-
-        /// <summary>
-        ///     Tag ID and subtag IDs
-        /// </summary>
-        public int[] AllIDs { get; set; }
-
-
-        /// <summary>
-        ///     Check if given tag is a child tag of TagFilter
-        /// </summary>
-        /// <param name="tag">Tag to be checked</param>
-        /// <returns>Whether tag is child of TagFilter</returns>
-        public bool HasChild(int tag)
-        {
-            return Children.Contains(tag);
-        }
-
-
-        /// <summary>Returns a string that represents the current object.</summary>
-        /// <returns>A string that represents the current object.</returns>
-        /// <filterpriority>2</filterpriority>
-        public override string ToString()
-        {
-            return $"{ID} - {Name}";
         }
     }
 }

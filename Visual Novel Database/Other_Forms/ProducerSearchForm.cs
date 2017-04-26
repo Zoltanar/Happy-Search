@@ -75,7 +75,7 @@ namespace Happy_Search.Other_Forms
             var result = _parentForm.StartQuery(prodSearchReply, "Producer Search",false,true,false);
             if (!result) return;
             var producerName = producerSearchBox.Text;
-            string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{FormMain.MaxResultsString}}}";
+            string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
             result = await _parentForm.TryQuery(prodSearchQuery, Resources.ps_query_error);
             if (!result) return;
             var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
@@ -87,7 +87,7 @@ namespace Happy_Search.Other_Forms
             {
                 pageNo++;
                 string prodSearchMoreQuery =
-                    $"get producer basic (search~\"{producerName}\") {{{FormMain.MaxResultsString}, \"page\":{pageNo}}}";
+                    $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult =
                     await _parentForm.TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
                 if (!moreResult) return;
