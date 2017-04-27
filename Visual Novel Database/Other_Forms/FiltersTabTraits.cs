@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,15 @@ namespace Happy_Search.Other_Forms
 {
     partial class FiltersTab
     {
+        /// <summary>
+        /// List of saved custom trait filters.
+        /// </summary>
+        private readonly BindingList<CustomTraitFilter> _customTraitFilters = new BindingList<CustomTraitFilter>();
+        /// <summary>
+        /// Contains traits in TraitsTFLB (not active traits)
+        /// </summary>
+        public readonly BindingList<WrittenTrait> TraitsPre = new BindingList<WrittenTrait>();
+
         /// <summary>
         ///     Bring up dialog explaining features of the 'Trait Filtering' section.
         /// </summary>
@@ -26,16 +36,16 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void DeleteCustomTraitFilter(object sender, EventArgs e)
         {
-            if (customTraitFilters.SelectedIndex < 2) return; //shouldnt happen
+            if (traitFiltersCB.SelectedIndex < 1) return; //shouldnt happen
             var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var selectedFilter = customTraitFilters.SelectedIndex;
-            customTraitFilters.Items.RemoveAt(selectedFilter);
-            _customTraitFilters.RemoveAt(selectedFilter - 2);
+            var selectedFilter = traitFiltersCB.SelectedItem as CustomTraitFilter;
+            if (selectedFilter == null) return; //shouldnt happen
+            _customTraitFilters.Remove(selectedFilter);
             SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_deleted);
             customTraitFilterNameBox.Text = "";
-            customTraitFilters.SelectedIndex = 0;
+            traitFiltersCB.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -44,22 +54,17 @@ namespace Happy_Search.Other_Forms
         private void Filter_CustomTraits(object sender, EventArgs e)
         {
             if (_mainForm.DontTriggerEvent) return;
-            switch (customTraitFilters.SelectedIndex)
+            var selectedItem = traitFiltersCB.SelectedItem as CustomTraitFilter;
+            if (selectedItem == null || selectedItem.Name == "Select Filter")
             {
-                case 0:
-                    deleteCustomTraitFilterButton.Enabled = false;
-                    return;
-                case 1:
-                    customTraitFilters.SelectedIndex = 0;
-                    return;
-                default:
-                    deleteCustomTraitFilterButton.Enabled = true;
-                    TraitsPre.Clear();
-                    TraitsPre.AddRange(_customTraitFilters[customTraitFilters.SelectedIndex - 2].Filters.ToArray());
-                    customTraitFilterNameBox.Text = _customTraitFilters[customTraitFilters.SelectedIndex - 2].Name;
-                    break;
+                customTraitFilterNameBox.Text = "";
+                deleteCustomTraitFilterButton.Enabled = false;
+                return;
             }
-            _mainForm.LoadVNListToGui();
+            deleteCustomTraitFilterButton.Enabled = true;
+            customTraitFilterNameBox.Text = selectedItem.Name;
+            TraitsPre.Clear();
+            TraitsPre.AddRange(selectedItem.Filters.ToArray());
         }
 
         /// <summary>
@@ -74,22 +79,25 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             //Ask to overwrite if name entered is already in use
-            var customFilter = _customTraitFilters.Find(x => x.Name.Equals(filterName));
+            var customFilter = _customTraitFilters.FirstOrDefault(x => x.Name.Equals(filterName));
             if (customFilter != null)
             {
                 var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
                     Resources.ask_overwrite,
                     MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                customFilter.Filters = TraitsPre.ToList();
+                customFilter.Filters = TraitsPre.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
-                customTraitFilters.SelectedIndex = customTraitFilters.Items.IndexOf(filterName);
+                _mainForm.DontTriggerEvent = true;
+                traitFiltersCB.SelectedIndex = traitFiltersCB.Items.IndexOf(filterName);
+                _mainForm.DontTriggerEvent = false;
             }
             else
             {
-                customTraitFilters.Items.Add(filterName);
-                _customTraitFilters.Add(new CustomTraitFilter(filterName, TraitsPre.ToList()));
-                customTraitFilters.SelectedIndex = customTraitFilters.Items.Count - 1;
+                _mainForm.DontTriggerEvent = true;
+                _customTraitFilters.Add(new CustomTraitFilter(filterName, TraitsPre.ToArray()));
+                traitFiltersCB.SelectedIndex = _customTraitFilters.Count - 1;
+                _mainForm.DontTriggerEvent = false;
             }
             SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_saved);
@@ -105,7 +113,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void ClearTraitFilter(object sender, EventArgs e)
         {
-            customTraitFilters.SelectedIndex = 0;
+            traitFiltersCB.SelectedIndex = 0;
             TraitsPre.Clear();
             WriteText(traitReply, "Trait filter cleared.");
         }

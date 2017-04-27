@@ -516,7 +516,7 @@ namespace Happy_Search
         /// </summary>
         /// <param name="name">User-set name of filter</param>
         /// <param name="filters">List of Tags in filter</param>
-        public CustomTagFilter(string name, List<TagFilter> filters)
+        public CustomTagFilter(string name, TagFilter[] filters)
         {
             Name = name;
             Filters = filters;
@@ -530,7 +530,7 @@ namespace Happy_Search
         /// <summary>
         ///     List of tags in custom filter
         /// </summary>
-        public List<TagFilter> Filters { get; set; }
+        public TagFilter[] Filters { get; set; }
 
         /// <summary>
         ///     Date of last update to custom filter
@@ -551,18 +551,12 @@ namespace Happy_Search
         /// </summary>
         /// <param name="name">User-set name of filter</param>
         /// <param name="filters">List of traits in filter</param>
-        public CustomTraitFilter(string name, List<WrittenTrait> filters)
+        public CustomTraitFilter(string name, WrittenTrait[] filters)
         {
             Name = name;
             Filters = filters;
         }
-
-        /// <summary>
-        ///     Empty Constructor needed for XML.
-        /// </summary>
-        public CustomTraitFilter()
-        { }
-
+        
         /// <summary>
         ///     User-set name of custom filter
         /// </summary>
@@ -571,7 +565,7 @@ namespace Happy_Search
         /// <summary>
         ///     List of traits in custom filter
         /// </summary>
-        public List<WrittenTrait> Filters { get; set; }
+        public WrittenTrait[] Filters { get; set; }
 
         /// <summary>
         ///     Date of last update to custom filter

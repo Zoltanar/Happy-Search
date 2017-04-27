@@ -14,26 +14,9 @@ namespace Happy_Search.Other_Forms
     public partial class FiltersTab : UserControl
     {
         /// <summary>
-        /// List of saved custom tag filters.
-        /// </summary>
-        private List<CustomTagFilter> _customTagFilters;
-        /// <summary>
-        /// List of saved custom trait filters.
-        /// </summary>
-        private List<CustomTraitFilter> _customTraitFilters;
-        /// <summary>
         /// List of saved overall filters.
         /// </summary>
         private List<Filters> _customFilters;
-        /// <summary>
-        /// Contains contents of TagsTFLB (not active tags);
-        /// </summary>
-        public readonly BindingList<TagFilter> TagsPre = new BindingList<TagFilter>();
-        /// <summary>
-        /// Contains traits in TraitsTFLB (not active traits)
-        /// </summary>
-        public readonly List<WrittenTrait> TraitsPre = new List<WrittenTrait>();
-
         private readonly FormMain _mainForm;
         private Filters _filters;
 
@@ -57,8 +40,8 @@ namespace Happy_Search.Other_Forms
             _mainForm.DontTriggerEvent = true;
             filterDropdown.SelectedIndex = 0;
             traitRootsDropdown.SelectedIndex = 0;
-            customTagFilters.SelectedIndex = 0;
-            customTraitFilters.SelectedIndex = 0;
+            tagFiltersCB.SelectedIndex = 0;
+            traitFiltersCB.SelectedIndex = 0;
             _mainForm.DontTriggerEvent = false;
             traitReply.Text = "";
             tagReply.Text = "";
@@ -104,7 +87,7 @@ namespace Happy_Search.Other_Forms
                 userlistPlaying.Tag = (int)UserlistFilter.Playing;
                 userlistFinished.Tag = (int)UserlistFilter.Finished;
                 userlistStalled.Tag = (int)UserlistFilter.Stalled;
-                userlistDropped.Tag = (int) UserlistFilter.Dropped;
+                userlistDropped.Tag = (int)UserlistFilter.Dropped;
             }
         }
 
@@ -113,16 +96,22 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         public void LoadFromFile()
         {
-            _customTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson) ?? new List<CustomTagFilter>();
-            _customTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson) ?? new List<CustomTraitFilter>();
+            _customTagFilters.Clear();
+            var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
+            if (loadedTagFilters == null) _customTagFilters.Add(new CustomTagFilter("Select Filter", null));
+            else _customTagFilters.AddRange(loadedTagFilters);
+            _customTraitFilters.Clear();
+            var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
+            if (loadedTraitFilters == null) _customTraitFilters.Add(new CustomTraitFilter("Select Filter", null));
+            else _customTraitFilters.AddRange(loadedTraitFilters);
             _customFilters = LoadObjectFromJsonFile<List<Filters>>(DefaultFiltersJson);
             _filters = Filters.LoadFilters(this);
             _mainForm.DontTriggerEvent = true;
             filterDropdown.DataSource = _customFilters;
-            // ReSharper disable CoVariantArrayConversion
-            customTagFilters.Items.AddRange(_customTagFilters.ToArray());
-            customTraitFilters.Items.AddRange(_customTraitFilters.ToArray());
-            // ReSharper restore CoVariantArrayConversion
+            tagFiltersCB.DataSource = _customTagFilters;
+            traitFiltersCB.DataSource = _customTraitFilters;
+            tagFiltersCB.SelectedIndex = 0;
+            traitFiltersCB.SelectedIndex = 0;
             filterDropdown.SelectedIndex = 0;
             _mainForm.DontTriggerEvent = false;
             DisplayFilters();
@@ -170,7 +159,7 @@ namespace Happy_Search.Other_Forms
                 }));
             }
         }
-        
+
         private void ToggleThisFilter(object sender, EventArgs e)
         {
             if (sender is CheckBox filter) filter.Text = filter.Checked ? "On" : "Off";

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,14 @@ namespace Happy_Search.Other_Forms
 {
     partial class FiltersTab
     {
+        /// <summary>
+        /// List of saved custom tag filters.
+        /// </summary>
+        private readonly BindingList<CustomTagFilter> _customTagFilters = new BindingList<CustomTagFilter>();
+        /// <summary>
+        /// Contains contents of TagsTFLB (not active tags);
+        /// </summary>
+        public readonly BindingList<TagFilter> TagsPre = new BindingList<TagFilter>();
 
         /// <summary>
         /// Bring up dialog explaining features of the 'Tag Filtering' section.
@@ -42,21 +51,24 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             //Ask to overwrite if name entered is already in use
-            var customFilter = _customTagFilters.Find(x => x.Name.Equals(filterName));
+            var customFilter = _customTagFilters.FirstOrDefault(x => x.Name.Equals(filterName));
             if (customFilter != null)
             {
                 var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
                     Resources.ask_overwrite, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                customFilter.Filters = TagsPre.ToList();
+                customFilter.Filters = TagsPre.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
-                customTagFilters.SelectedIndex = customTagFilters.Items.IndexOf(filterName);
+                _mainForm.DontTriggerEvent = true;
+                tagFiltersCB.SelectedIndex = tagFiltersCB.Items.IndexOf(customFilter);
+                _mainForm.DontTriggerEvent = false;
             }
             else
             {
-                customTagFilters.Items.Add(filterName);
-                _customTagFilters.Add(new CustomTagFilter(filterName, TagsPre.ToList()));
-                customTagFilters.SelectedIndex = customTagFilters.Items.Count - 1;
+                _mainForm.DontTriggerEvent = true;
+                _customTagFilters.Add(new CustomTagFilter(filterName, TagsPre.ToArray()));
+                tagFiltersCB.SelectedIndex = _customTagFilters.Count - 1;
+                _mainForm.DontTriggerEvent = false;
             }
             SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_saved);
@@ -68,7 +80,7 @@ namespace Happy_Search.Other_Forms
         private void ClearTagFilter(object sender, EventArgs e)
         {
             TagsPre.Clear();
-            customTagFilters.SelectedIndex = 0;
+            tagFiltersCB.SelectedIndex = 0;
             WriteText(tagReply, Resources.filter_cleared);
         }
 
@@ -143,9 +155,10 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async void UpdateTagResults(object sender, EventArgs e)
         {
-            if (customTagFilters.SelectedIndex > 1)
+            if (tagFiltersCB.SelectedIndex > 0)
             {
-                var selectedFilter = _customTagFilters[customTagFilters.SelectedIndex - 2];
+                var selectedFilter = tagFiltersCB.SelectedItem as CustomTagFilter;
+                if (selectedFilter == null) return; //shouldnt happen
                 var message = selectedFilter.Updated != DateTime.MinValue
                     ? $"This filter was last updated {DaysSince(selectedFilter.Updated)} days ago.\n{Resources.update_custom_filter}"
                     : Resources.update_custom_filter;
@@ -154,7 +167,7 @@ namespace Happy_Search.Other_Forms
                 var result = _mainForm.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
-                _customTagFilters[customTagFilters.SelectedIndex - 2].Updated = DateTime.UtcNow;
+                selectedFilter.Updated = DateTime.UtcNow;
                 SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             }
             else
@@ -207,24 +220,17 @@ namespace Happy_Search.Other_Forms
         private void Filter_CustomTags(object sender, EventArgs e)
         {
             if (_mainForm.DontTriggerEvent) return;
-            var dropdownlist = (ComboBox)sender;
-            switch (dropdownlist.SelectedIndex)
+            var selectedItem = tagFiltersCB.SelectedItem as CustomTagFilter;
+            if (selectedItem == null || selectedItem.Name == "Select Filter")
             {
-                case 0:
-                    deleteCustomTagFilterButton.Enabled = false;
-                    return;
-                case 1:
-                    dropdownlist.SelectedIndex = 0;
-                    return;
-                default:
-                    deleteCustomTagFilterButton.Enabled = true;
-                    var selectedItem = dropdownlist.SelectedItem as CustomTagFilter;
-                    if (selectedItem == null) return;
-                    TagsPre.Clear();
-                    TagsPre.AddRange(selectedItem.Filters.ToArray());
-                    customTagFilterNameBox.Text = selectedItem.Name;
-                    break;
+                customTagFilterNameBox.Text = "";
+                deleteCustomTagFilterButton.Enabled = false;
+                return;
             }
+            deleteCustomTagFilterButton.Enabled = true;
+            customTagFilterNameBox.Text = selectedItem.Name;
+            TagsPre.Clear();
+            TagsPre.AddRange(selectedItem.Filters.ToArray());
         }
 
         /// <summary>
@@ -232,16 +238,13 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void DeleteCustomTagFilter(object sender, EventArgs e)
         {
-            if (customTagFilters.SelectedIndex < 2) return; //shouldnt happen
+            if (tagFiltersCB.SelectedIndex < 1) return; //shouldnt happen
             var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var selectedFilter = customTagFilters.SelectedIndex;
-            customTagFilters.Items.RemoveAt(selectedFilter);
-            _customTagFilters.RemoveAt(selectedFilter - 2);
+            _customTagFilters.RemoveAt(tagFiltersCB.SelectedIndex);
             SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_deleted);
-            customTagFilterNameBox.Text = "";
-            customTagFilters.SelectedIndex = 0;
+            tagFiltersCB.SelectedIndex = 0;
         }
 
         /// <summary>

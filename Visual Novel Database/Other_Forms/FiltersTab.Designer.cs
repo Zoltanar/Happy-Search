@@ -112,7 +112,7 @@
             this.tagReply = new System.Windows.Forms.Label();
             this.customTagFilterNameBox = new System.Windows.Forms.TextBox();
             this.button3 = new System.Windows.Forms.Button();
-            this.customTagFilters = new System.Windows.Forms.ComboBox();
+            this.tagFiltersCB = new System.Windows.Forms.ComboBox();
             this.button4 = new System.Windows.Forms.Button();
             this.deleteCustomTagFilterButton = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
@@ -137,7 +137,7 @@
             this.button11 = new System.Windows.Forms.Button();
             this.customTraitFilterNameBox = new System.Windows.Forms.TextBox();
             this.button10 = new System.Windows.Forms.Button();
-            this.customTraitFilters = new System.Windows.Forms.ComboBox();
+            this.traitFiltersCB = new System.Windows.Forms.ComboBox();
             this.traitReply = new System.Windows.Forms.Label();
             this.button9 = new System.Windows.Forms.Button();
             this.deleteCustomTraitFilterButton = new System.Windows.Forms.Button();
@@ -1362,21 +1362,18 @@
             this.button3.UseVisualStyleBackColor = false;
             this.button3.Click += new System.EventHandler(this.SaveCustomTagFilter);
             // 
-            // customTagFilters
+            // tagFiltersCB
             // 
-            this.customTagFilters.BackColor = System.Drawing.Color.SteelBlue;
-            this.customTagFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.customTagFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.customTagFilters.ForeColor = System.Drawing.Color.White;
-            this.customTagFilters.FormattingEnabled = true;
-            this.customTagFilters.Items.AddRange(new object[] {
-            "Custom Filters",
-            "----------"});
-            this.customTagFilters.Location = new System.Drawing.Point(284, 55);
-            this.customTagFilters.Name = "customTagFilters";
-            this.customTagFilters.Size = new System.Drawing.Size(100, 21);
-            this.customTagFilters.TabIndex = 104;
-            this.customTagFilters.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTags);
+            this.tagFiltersCB.BackColor = System.Drawing.Color.SteelBlue;
+            this.tagFiltersCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.tagFiltersCB.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.tagFiltersCB.ForeColor = System.Drawing.Color.White;
+            this.tagFiltersCB.FormattingEnabled = true;
+            this.tagFiltersCB.Location = new System.Drawing.Point(284, 55);
+            this.tagFiltersCB.Name = "tagFiltersCB";
+            this.tagFiltersCB.Size = new System.Drawing.Size(100, 21);
+            this.tagFiltersCB.TabIndex = 104;
+            this.tagFiltersCB.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTags);
             // 
             // button4
             // 
@@ -1509,7 +1506,7 @@
             this.tagsPanel.Controls.Add(this.tagReply);
             this.tagsPanel.Controls.Add(this.customTagFilterNameBox);
             this.tagsPanel.Controls.Add(this.button3);
-            this.tagsPanel.Controls.Add(this.customTagFilters);
+            this.tagsPanel.Controls.Add(this.tagFiltersCB);
             this.tagsPanel.Controls.Add(this.button4);
             this.tagsPanel.Controls.Add(this.deleteCustomTagFilterButton);
             this.tagsPanel.Controls.Add(this.button6);
@@ -1600,7 +1597,7 @@
             this.traitsPanel.Controls.Add(this.traitsLB);
             this.traitsPanel.Controls.Add(this.button10);
             this.traitsPanel.Controls.Add(this.label23);
-            this.traitsPanel.Controls.Add(this.customTraitFilters);
+            this.traitsPanel.Controls.Add(this.traitFiltersCB);
             this.traitsPanel.Controls.Add(this.traitReply);
             this.traitsPanel.Controls.Add(this.button9);
             this.traitsPanel.Controls.Add(this.deleteCustomTraitFilterButton);
@@ -1716,21 +1713,21 @@
             this.button10.UseVisualStyleBackColor = false;
             this.button10.Click += new System.EventHandler(this.SaveCustomTraitFilter);
             // 
-            // customTraitFilters
+            // traitFiltersCB
             // 
-            this.customTraitFilters.BackColor = System.Drawing.Color.SteelBlue;
-            this.customTraitFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.customTraitFilters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.customTraitFilters.ForeColor = System.Drawing.Color.White;
-            this.customTraitFilters.FormattingEnabled = true;
-            this.customTraitFilters.Items.AddRange(new object[] {
+            this.traitFiltersCB.BackColor = System.Drawing.Color.SteelBlue;
+            this.traitFiltersCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.traitFiltersCB.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.traitFiltersCB.ForeColor = System.Drawing.Color.White;
+            this.traitFiltersCB.FormattingEnabled = true;
+            this.traitFiltersCB.Items.AddRange(new object[] {
             "Custom Filters",
             "----------"});
-            this.customTraitFilters.Location = new System.Drawing.Point(284, 51);
-            this.customTraitFilters.Name = "customTraitFilters";
-            this.customTraitFilters.Size = new System.Drawing.Size(100, 21);
-            this.customTraitFilters.TabIndex = 106;
-            this.customTraitFilters.Click += new System.EventHandler(this.Filter_CustomTraits);
+            this.traitFiltersCB.Location = new System.Drawing.Point(284, 51);
+            this.traitFiltersCB.Name = "traitFiltersCB";
+            this.traitFiltersCB.Size = new System.Drawing.Size(100, 21);
+            this.traitFiltersCB.TabIndex = 106;
+            this.traitFiltersCB.Click += new System.EventHandler(this.Filter_CustomTraits);
             // 
             // traitReply
             // 
@@ -2045,7 +2042,7 @@
         private System.Windows.Forms.Label tagReply;
         private System.Windows.Forms.TextBox customTagFilterNameBox;
         private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.ComboBox customTagFilters;
+        private System.Windows.Forms.ComboBox tagFiltersCB;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button deleteCustomTagFilterButton;
         private System.Windows.Forms.Button button6;
@@ -2093,7 +2090,7 @@
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.TextBox customTraitFilterNameBox;
         private System.Windows.Forms.Button button10;
-        private System.Windows.Forms.ComboBox customTraitFilters;
+        private System.Windows.Forms.ComboBox traitFiltersCB;
         private System.Windows.Forms.Label traitReply;
         private System.Windows.Forms.Button button9;
         private System.Windows.Forms.Button deleteCustomTraitFilterButton;
