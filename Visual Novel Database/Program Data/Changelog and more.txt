@@ -2,6 +2,7 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Added: Save Custom Filters
 Fixed: Changing VN status via right-click context menu.
 Overhaul: Filtering, new filters: Length, release date, unreleased status, voted, language, original language.
 ---

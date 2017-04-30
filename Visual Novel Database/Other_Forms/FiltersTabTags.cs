@@ -263,7 +263,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         /// <param name="vn">Visual Novel to be checked</param>
         /// <returns>Whether it matches</returns>
-        public bool VNMatchesTagFilter(ListedVN vn)
+        internal bool VNMatchesTagFilter(ListedVN vn)
         {
             int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
             var filtersMatched = _filters.Tags.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
@@ -343,6 +343,17 @@ namespace Happy_Search.Other_Forms
             // ReSharper disable once CoVariantArrayConversion
             tagSearchResultBox.Items.AddRange(results);
             tagSearchResultBox.Visible = true;
+        }
+
+        private void ClearTagResults(object sender, EventArgs e)
+        {
+            tagSearchResultBox.Visible = false;
+        }
+
+        internal void LeftFiltersTab()
+        {
+            ApplyFilters(_filters);
+            SaveFilters();
         }
     }
 }

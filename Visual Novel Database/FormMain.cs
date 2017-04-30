@@ -1190,22 +1190,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         internal void EnterMainTab(object sender, EventArgs e)
         {
-            Debug.WriteLine("Entered Main VN Tab");
-            if (FiltersTab?.RefreshFilters ?? false)
-            {
-                LoadVNListToGui();
-                FiltersTab.SetRefreshFalse();
-                Debug.WriteLine("Refreshed VNList due to FiltersTab.RefreshFilters");
-            }
-            Debug.WriteLine("Done entering Main VN Tab");
+            FiltersTab?.EnteredMainTab();
         }
 
         private void OnFiltersLeave(object sender, EventArgs e)
         {
-            Debug.WriteLine("Entered Filters Tab");
-            FiltersTab.ApplyFilters();
-            FiltersTab.SaveFilters();
-            Debug.WriteLine("Done exiting Filters Tab");
+            FiltersTab?.LeftFiltersTab();
         }
 
         /// <summary>
@@ -1472,9 +1462,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void FilterChanged(object sender, EventArgs e)
         {
-            if (FiltersTab?.CustomFilterBlock ?? true) return;
             Filters selectedItem = (Filters)filterDropdown.SelectedItem;
-            FiltersTab?.ChangeCustomFilter(this, selectedItem);
+            FiltersTab?.ChangeCustomFilter(this,selectedItem);
         }
     }
 

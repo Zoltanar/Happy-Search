@@ -41,6 +41,7 @@ namespace Happy_Search
         public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
         public const string DBStatsJson = "..\\Release\\Stored Data\\dbs.json";
         public const string SettingsJson = "..\\Release\\Stored Data\\settings.json";
+        public const string CustomFiltersJson = "..\\Release\\Stored Data\\customfilters.json";
         public const string CustomTagFiltersJson = "..\\Release\\Stored Data\\customtagfilters.json";
         public const string CustomTraitFiltersJson = "..\\Release\\Stored Data\\customtraitfilters.json";
         public const string FiltersJson = "..\\Release\\Stored Data\\filters.json";
@@ -54,6 +55,7 @@ namespace Happy_Search
         public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
         public const string DBStatsJson = "Stored Data\\dbs.json";
         public const string SettingsJson = "Stored Data\\settings.json";
+        public const string CustomFiltersJson = "Stored Data\\customfilters.json";
         public const string CustomTagFiltersJson = "Stored Data\\customtagfilters.json";
         public const string CustomTraitFiltersJson = "Stored Data\\customtraitfilters.json";
         public const string FiltersJson = "Stored Data\\filters.json";

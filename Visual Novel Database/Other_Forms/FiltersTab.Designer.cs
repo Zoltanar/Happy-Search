@@ -152,6 +152,10 @@
             this.languagePanel = new System.Windows.Forms.Panel();
             this.tagSearchResultBox = new System.Windows.Forms.ListBox();
             this.tagsOrTraits = new System.Windows.Forms.CheckBox();
+            this.label20 = new System.Windows.Forms.Label();
+            this.customFilterNameBox = new System.Windows.Forms.TextBox();
+            this.button5 = new System.Windows.Forms.Button();
+            this.customFilterReply = new System.Windows.Forms.Label();
             this.lengthPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.releaseDateToYear)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.releaseDateToDay)).BeginInit();
@@ -1913,11 +1917,52 @@
             this.tagsOrTraits.UseVisualStyleBackColor = false;
             this.tagsOrTraits.CheckedChanged += new System.EventHandler(this.ChangeTagsOrTraits);
             // 
+            // label20
+            // 
+            this.label20.ForeColor = System.Drawing.Color.White;
+            this.label20.Location = new System.Drawing.Point(271, 348);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(100, 13);
+            this.label20.TabIndex = 98;
+            this.label20.Text = "Filter Name";
+            this.label20.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // customFilterNameBox
+            // 
+            this.customFilterNameBox.Location = new System.Drawing.Point(271, 364);
+            this.customFilterNameBox.Name = "customFilterNameBox";
+            this.customFilterNameBox.Size = new System.Drawing.Size(100, 20);
+            this.customFilterNameBox.TabIndex = 99;
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(271, 390);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(100, 23);
+            this.button5.TabIndex = 100;
+            this.button5.Text = "Save Custom Filter";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.SaveCustomFilter);
+            // 
+            // customFilterReply
+            // 
+            this.customFilterReply.ForeColor = System.Drawing.Color.White;
+            this.customFilterReply.Location = new System.Drawing.Point(271, 416);
+            this.customFilterReply.Name = "customFilterReply";
+            this.customFilterReply.Size = new System.Drawing.Size(100, 40);
+            this.customFilterReply.TabIndex = 101;
+            this.customFilterReply.Text = "(customFilterReply)";
+            this.customFilterReply.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // FiltersTab
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.Controls.Add(this.customFilterReply);
+            this.Controls.Add(this.button5);
+            this.Controls.Add(this.customFilterNameBox);
+            this.Controls.Add(this.label20);
             this.Controls.Add(this.tagsOrTraits);
             this.Controls.Add(this.lengthPanel);
             this.Controls.Add(this.tagSearchResultBox);
@@ -2094,5 +2139,9 @@
         private System.Windows.Forms.ComboBox traitRootsDropdown;
         private System.Windows.Forms.ListBox traitSearchResultBox;
         private System.Windows.Forms.CheckBox tagsOrTraits;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.TextBox customFilterNameBox;
+        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Label customFilterReply;
     }
 }

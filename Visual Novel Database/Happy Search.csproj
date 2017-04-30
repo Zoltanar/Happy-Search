@@ -287,7 +287,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Program Data\Default Files\defaultfilters.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Program Data\Default Files\tags.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

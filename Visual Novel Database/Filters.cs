@@ -141,10 +141,19 @@ namespace Happy_Search
                 _traits = value;
             }
         }
+
+        private bool _tagsTraitsMode;
         /// <summary>
         /// True means OR, false means AND
         /// </summary>
-        public bool TagsTraitsMode { get; set; }
+        public bool TagsTraitsMode
+        {
+            get => _tagsTraitsMode;
+            set
+            {
+                _tagsTraitsMode = value;
+            }
+        }
 
         private LengthFilter _length;
         private DateRange _releaseDate;
@@ -294,7 +303,7 @@ namespace Happy_Search
         /// <summary>
         /// Returns function to filter VNList.
         /// </summary>
-        public Func<ListedVN, bool> GetFunction(FormMain form)
+        public Func<ListedVN, bool> GetFunction(FormMain form, FiltersTab tab)
         {
             //private ListBox.ObjectCollection _tags;
             //private ListBox.ObjectCollection _traits;
@@ -324,8 +333,8 @@ namespace Happy_Search
             }
             if (Tags != null && Tags.Length > 0)
             {
-                if (TagsTraitsMode) orFunctions.Add(form.FiltersTab.VNMatchesTagFilter);
-                else andFunctions.Add(form.FiltersTab.VNMatchesTagFilter);
+                if (TagsTraitsMode) orFunctions.Add(tab.VNMatchesTagFilter);
+                else andFunctions.Add(tab.VNMatchesTagFilter);
             }
             if (Traits != null && Traits.Length > 0)
             {
@@ -370,6 +379,7 @@ namespace Happy_Search
 
 #pragma warning disable 1591
 
+    // ReSharper disable UnusedMember.Global
     [Flags]
     public enum UnreleasedFilter
     {
@@ -431,6 +441,7 @@ namespace Happy_Search
         OverFiftyHours = 32,
         Any = UnderTwoHours | TwoToTenHours | TenToThirtyHours | ThirtyToFiftyHours | OverFiftyHours
     }
+    // ReSharper restore UnusedMember.Global
     /// <summary>
     /// Readonly class to store from and to dates of a date range.
     /// </summary>
@@ -510,6 +521,7 @@ namespace Happy_Search
             return $"{ID} - {Name}";
         }
     }
+
     /// <summary>
     ///     Holds details of user-created custom filter
     /// </summary>
@@ -543,7 +555,6 @@ namespace Happy_Search
 
         public override string ToString() => Name;
     }
-
 
     /// <summary>
     ///     Holds details of user-created custom trait filter.

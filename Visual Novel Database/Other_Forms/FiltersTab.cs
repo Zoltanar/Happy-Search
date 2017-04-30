@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using Happy_Search.Properties;
+using Newtonsoft.Json;
 using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
@@ -33,6 +35,7 @@ namespace Happy_Search.Other_Forms
                 if (rootName == null) continue;
                 traitRootsDropdown.Items.Add(rootName);
             }
+            customFilterReply.Text = "";
             traitReply.Text = "";
             tagReply.Text = "";
             tagsLB.DataSource = TagsPre;
@@ -79,44 +82,46 @@ namespace Happy_Search.Other_Forms
                 userlistStalled.Tag = (int)UserlistFilter.Stalled;
                 userlistDropped.Tag = (int)UserlistFilter.Dropped;
             }
-        }
+            void LoadFromFile()
+            {
+                _customTagFilters.Clear();
+                var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
+                if (loadedTagFilters == null) _customTagFilters.Add(new CustomTagFilter("Select Filter", null));
+                else _customTagFilters.AddRange(loadedTagFilters);
+                _customTraitFilters.Clear();
+                var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
+                if (loadedTraitFilters == null) _customTraitFilters.Add(new CustomTraitFilter("Select Filter", null));
+                else _customTraitFilters.AddRange(loadedTraitFilters);
+                LoadSaveFilters();
+                _filters = Filters.LoadFilters(this);
+                DontTriggerEvent = true;
+                traitRootsDropdown.SelectedIndex = 0;
+                filterDropdown.DataSource = _mainForm.FiltersList;
+                _mainForm.filterDropdown.DataSource = _mainForm.FiltersList;
+                tagFiltersCB.DataSource = _customTagFilters;
+                traitFiltersCB.DataSource = _customTraitFilters;
+                tagFiltersCB.SelectedIndex = 0;
+                traitFiltersCB.SelectedIndex = 0;
+                filterDropdown.SelectedIndex = 0;
+                _mainForm.filterDropdown.SelectedIndex = 0;
+                DontTriggerEvent = false;
+                DisplayFilters();
+                ApplyFilters(_filters);
 
-        /// <summary>
-        /// Loads displays and applies filters.
-        /// </summary>
-        public void LoadFromFile()
-        {
-            _customTagFilters.Clear();
-            var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
-            if (loadedTagFilters == null) _customTagFilters.Add(new CustomTagFilter("Select Filter", null));
-            else _customTagFilters.AddRange(loadedTagFilters);
-            _customTraitFilters.Clear();
-            var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
-            if (loadedTraitFilters == null) _customTraitFilters.Add(new CustomTraitFilter("Select Filter", null));
-            else _customTraitFilters.AddRange(loadedTraitFilters);
-            _mainForm.FiltersList.Clear();
-            var loadedCustomFilters = LoadObjectFromJsonFile<List<Filters>>(DefaultFiltersJson);
-            if(loadedCustomFilters != null) _mainForm.FiltersList.AddRange(loadedCustomFilters);
-            _filters = Filters.LoadFilters(this);
-            DontTriggerEvent = true;
-            traitRootsDropdown.SelectedIndex = 0;
-            filterDropdown.DataSource = _mainForm.FiltersList;
-            _mainForm.filterDropdown.DataSource = _mainForm.FiltersList;
-            tagFiltersCB.DataSource = _customTagFilters;
-            traitFiltersCB.DataSource = _customTraitFilters;
-            tagFiltersCB.SelectedIndex = 0;
-            traitFiltersCB.SelectedIndex = 0;
-            filterDropdown.SelectedIndex = 0;
-            _mainForm.filterDropdown.SelectedIndex = 0;
-            DontTriggerEvent = false;
-            DisplayFilters();
-            ApplyFilters();
+                void LoadSaveFilters()
+                {
+                    _mainForm.FiltersList.Clear();
+                    List<Filters> loadedCustomFilters = LoadObjectFromJsonFile<List<Filters>>(CustomFiltersJson) ??
+                                                        LoadObjectFromJsonFile<List<Filters>>(DefaultFiltersJson);
+                    if (loadedCustomFilters != null) _mainForm.FiltersList.AddRange(loadedCustomFilters);
+                }
+            }
         }
-
+        
         /// <summary>
         /// Populates Languages in comboboxes.
         /// </summary>
-        public void PopulateLanguages(bool firstTime)
+        internal void PopulateLanguages(bool firstTime)
         {
             var autoCompleteLanguages = new AutoCompleteStringCollection { "(Language)" };
             var autoCompleteOriginalLanguages = new AutoCompleteStringCollection { "(Language)" };
@@ -337,31 +342,33 @@ namespace Happy_Search.Other_Forms
 
         private void FilterChanged(object sender, EventArgs e)
         {
-            if (CustomFilterBlock) return;
             Filters selectedItem = (Filters)filterDropdown.SelectedItem;
-            ChangeCustomFilter(sender,selectedItem);
+            ChangeCustomFilter(sender, selectedItem);
         }
 
-        internal bool CustomFilterBlock;
+        private bool _customFilterBlock;
 
-        internal void ChangeCustomFilter(object sender, Filters selectedItem)
+        /// <summary>
+        /// Change to selected filter.
+        /// </summary>
+        public void ChangeCustomFilter(object sender, Filters selectedItem)
         {
             if (selectedItem == null) return;
-            CustomFilterBlock = true;
+            if (_customFilterBlock) return;
+            _customFilterBlock = true;
             filterDropdown.SelectedItem = selectedItem;
             _mainForm.filterDropdown.SelectedItem = selectedItem;
-            CustomFilterBlock = false;
+            _customFilterBlock = false;
             if (DontTriggerEvent) return;
-            _filters.SetFromSavedFilter(this,selectedItem);
+            _filters.SetFromSavedFilter(this, selectedItem);
             DisplayFilters();
             if (sender == _mainForm)
             {
-                ApplyFilters();
-                _mainForm.EnterMainTab(null, null);
+                ApplyFilters(_filters);
+                _mainForm.LoadVNListToGui();
             }
         }
-
-
+        
         private void FilterFixedChanged(object sender, EventArgs e)
         {
             var checkBox = (CheckBox)sender;
@@ -381,11 +388,7 @@ namespace Happy_Search.Other_Forms
         /// <summary>
         /// Get whether vn list should be refreshed
         /// </summary>
-        public bool RefreshFilters => _filters.Refresh;
-        /// <summary>
-        /// Set refresh to false in filters.
-        /// </summary>
-        public void SetRefreshFalse() => _filters.SetRefreshFalse();
+        private bool RefreshFilters => _filters.Refresh;
 
         private void AddOriginalLanguage(object sender, EventArgs e)
         {
@@ -428,11 +431,11 @@ namespace Happy_Search.Other_Forms
         /// <summary>
         /// Apply filters.
         /// </summary>
-        public void ApplyFilters()
+        private void ApplyFilters(Filters filters)
         {
             if (DontTriggerEvent) return;
-            _filters.SetFixedStatusesFromForm(this);
-            _filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
+            filters.SetFixedStatusesFromForm(this);
+            filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
             releaseDateResponse.Visible = false;
             if (releaseDateTF.Checked)
             {
@@ -444,34 +447,73 @@ namespace Happy_Search.Other_Forms
                     var toDate = new DateTime((int)releaseDateToYear.Value,
                         releaseDateToMonth.Items.IndexOf(releaseDateToMonth.Text) + 1,
                         (int)releaseDateToDay.Value);
-                    _filters.ReleaseDate = new DateRange(fromDate, toDate);
+                    filters.ReleaseDate = new DateRange(fromDate, toDate);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
                     releaseDateResponse.Visible = true;
-                    _filters.ReleaseDate = null;
+                    filters.ReleaseDate = null;
                 }
 
             }
-            else _filters.ReleaseDate = null;
-            _filters.Unreleased = (UnreleasedFilter)GetIntFromCheckboxes(unreleasedPanel);
-            _filters.Blacklisted = blacklistedPanel.GetRadioOption<YesNoFilter>();
-            _filters.Voted = votedPanel.GetRadioOption<YesNoFilter>();
-            _filters.FavoriteProducers = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
-            _filters.Wishlist = (WishlistFilter)GetIntFromCheckboxes(wishlistPanel);
-            _filters.Userlist = (UserlistFilter)GetIntFromCheckboxes(userlistPanel);
-            _filters.Language = languageTF.Checked ? _languagesPre.ToArray() : null;
-            _filters.OriginalLanguage = originalLanguageTF.Checked ? _originalLanguagesPre.ToArray() : null;
-            _filters.Tags = tagsTF.Checked ? TagsPre.ToArray() : null;
-            _filters.Traits = traitsTF.Checked ? TraitsPre.ToArray() : null;
-            _mainForm.SetVNList(_filters.GetFunction(_mainForm), _filters.Name);
+            else filters.ReleaseDate = null;
+            filters.Unreleased = (UnreleasedFilter)GetIntFromCheckboxes(unreleasedPanel);
+            filters.Blacklisted = blacklistedPanel.GetRadioOption<YesNoFilter>();
+            filters.Voted = votedPanel.GetRadioOption<YesNoFilter>();
+            filters.FavoriteProducers = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
+            filters.Wishlist = (WishlistFilter)GetIntFromCheckboxes(wishlistPanel);
+            filters.Userlist = (UserlistFilter)GetIntFromCheckboxes(userlistPanel);
+            filters.Language = languageTF.Checked ? _languagesPre.ToArray() : null;
+            filters.OriginalLanguage = originalLanguageTF.Checked ? _originalLanguagesPre.ToArray() : null;
+            filters.Tags = tagsTF.Checked ? TagsPre.ToArray() : null;
+            filters.Traits = traitsTF.Checked ? TraitsPre.ToArray() : null;
+            _mainForm.SetVNList(filters.GetFunction(_mainForm, this), filters.Name);
         }
 
-        internal void SaveFilters() => _filters.SaveFilters(FiltersJson);
-
-        private void ClearTagResults(object sender, EventArgs e)
+        private void SaveFilters() => _filters.SaveFilters(FiltersJson);
+        
+        private void SaveCustomFilter(object sender, EventArgs e)
         {
-            tagSearchResultBox.Visible = false;
+            var filterName = customFilterNameBox.Text;
+            if (filterName.Length == 0)
+            {
+                WriteText(customFilterReply, "Enter name of filter.");
+                return;
+            }
+            //Ask to overwrite if name entered is already in use
+            var customFilter = _mainForm.FiltersList.FirstOrDefault(x => x.Name.Equals(filterName));
+            if (customFilter != null)
+            {
+                var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
+                    Resources.ask_overwrite, MessageBoxButtons.YesNo);
+                if (askBox != DialogResult.Yes) return;
+                ApplyFilters(customFilter);
+                DontTriggerEvent = true;
+                filterDropdown.SelectedIndex = filterDropdown.Items.IndexOf(customFilter);
+                DontTriggerEvent = false;
+            }
+            else
+            {
+                DontTriggerEvent = true;
+                _filters.Name = filterName;
+                var filterString = JsonConvert.SerializeObject(_filters);
+                _mainForm.FiltersList.Add(JsonConvert.DeserializeObject<Filters>(filterString));
+                filterDropdown.SelectedIndex = _mainForm.FiltersList.Count - 1;
+                DontTriggerEvent = false;
+            }
+            SaveObjectToJsonFile(_mainForm.FiltersList, CustomFiltersJson);
+            WriteText(customFilterReply, Resources.filter_saved);
+        }
+
+
+        internal void EnteredMainTab()
+        {
+            if (RefreshFilters)
+            {
+                _filters.Name = "Custom Filter";
+                _mainForm.LoadVNListToGui();
+                _filters.SetRefreshFalse();
+            }
         }
     }
 }
