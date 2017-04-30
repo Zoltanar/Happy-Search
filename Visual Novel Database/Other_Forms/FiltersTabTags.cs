@@ -59,16 +59,16 @@ namespace Happy_Search.Other_Forms
                 if (askBox != DialogResult.Yes) return;
                 customFilter.Filters = TagsPre.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
-                _mainForm.DontTriggerEvent = true;
+                DontTriggerEvent = true;
                 tagFiltersCB.SelectedIndex = tagFiltersCB.Items.IndexOf(customFilter);
-                _mainForm.DontTriggerEvent = false;
+                DontTriggerEvent = false;
             }
             else
             {
-                _mainForm.DontTriggerEvent = true;
+                DontTriggerEvent = true;
                 _customTagFilters.Add(new CustomTagFilter(filterName, TagsPre.ToArray()));
                 tagFiltersCB.SelectedIndex = _customTagFilters.Count - 1;
-                _mainForm.DontTriggerEvent = false;
+                DontTriggerEvent = false;
             }
             SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_saved);
@@ -219,7 +219,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void Filter_CustomTags(object sender, EventArgs e)
         {
-            if (_mainForm.DontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             var selectedItem = tagFiltersCB.SelectedItem as CustomTagFilter;
             if (selectedItem == null || selectedItem.Name == "Select Filter")
             {

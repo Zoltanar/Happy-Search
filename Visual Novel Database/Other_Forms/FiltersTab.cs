@@ -13,10 +13,6 @@ namespace Happy_Search.Other_Forms
     /// </summary>
     public partial class FiltersTab : UserControl
     {
-        /// <summary>
-        /// List of saved overall filters.
-        /// </summary>
-        private List<Filters> _customFilters;
         private readonly FormMain _mainForm;
         private Filters _filters;
 
@@ -37,12 +33,6 @@ namespace Happy_Search.Other_Forms
                 if (rootName == null) continue;
                 traitRootsDropdown.Items.Add(rootName);
             }
-            _mainForm.DontTriggerEvent = true;
-            filterDropdown.SelectedIndex = 0;
-            traitRootsDropdown.SelectedIndex = 0;
-            tagFiltersCB.SelectedIndex = 0;
-            traitFiltersCB.SelectedIndex = 0;
-            _mainForm.DontTriggerEvent = false;
             traitReply.Text = "";
             tagReply.Text = "";
             tagsLB.DataSource = TagsPre;
@@ -104,16 +94,21 @@ namespace Happy_Search.Other_Forms
             var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
             if (loadedTraitFilters == null) _customTraitFilters.Add(new CustomTraitFilter("Select Filter", null));
             else _customTraitFilters.AddRange(loadedTraitFilters);
-            _customFilters = LoadObjectFromJsonFile<List<Filters>>(DefaultFiltersJson);
+            _mainForm.FiltersList.Clear();
+            var loadedCustomFilters = LoadObjectFromJsonFile<List<Filters>>(DefaultFiltersJson);
+            if(loadedCustomFilters != null) _mainForm.FiltersList.AddRange(loadedCustomFilters);
             _filters = Filters.LoadFilters(this);
-            _mainForm.DontTriggerEvent = true;
-            filterDropdown.DataSource = _customFilters;
+            DontTriggerEvent = true;
+            traitRootsDropdown.SelectedIndex = 0;
+            filterDropdown.DataSource = _mainForm.FiltersList;
+            _mainForm.filterDropdown.DataSource = _mainForm.FiltersList;
             tagFiltersCB.DataSource = _customTagFilters;
             traitFiltersCB.DataSource = _customTraitFilters;
             tagFiltersCB.SelectedIndex = 0;
             traitFiltersCB.SelectedIndex = 0;
             filterDropdown.SelectedIndex = 0;
-            _mainForm.DontTriggerEvent = false;
+            _mainForm.filterDropdown.SelectedIndex = 0;
+            DontTriggerEvent = false;
             DisplayFilters();
             ApplyFilters();
         }
@@ -342,11 +337,28 @@ namespace Happy_Search.Other_Forms
 
         private void FilterChanged(object sender, EventArgs e)
         {
-            if (_mainForm.DontTriggerEvent) return;
+            if (CustomFilterBlock) return;
             Filters selectedItem = (Filters)filterDropdown.SelectedItem;
+            ChangeCustomFilter(sender,selectedItem);
+        }
+
+        internal bool CustomFilterBlock;
+
+        internal void ChangeCustomFilter(object sender, Filters selectedItem)
+        {
             if (selectedItem == null) return;
-            _filters.SetFromSavedFilter(this, selectedItem);
+            CustomFilterBlock = true;
+            filterDropdown.SelectedItem = selectedItem;
+            _mainForm.filterDropdown.SelectedItem = selectedItem;
+            CustomFilterBlock = false;
+            if (DontTriggerEvent) return;
+            _filters.SetFromSavedFilter(this,selectedItem);
             DisplayFilters();
+            if (sender == _mainForm)
+            {
+                ApplyFilters();
+                _mainForm.EnterMainTab(null, null);
+            }
         }
 
 
@@ -418,7 +430,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         public void ApplyFilters()
         {
-            if (_mainForm.DontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             _filters.SetFixedStatusesFromForm(this);
             _filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
             releaseDateResponse.Visible = false;

@@ -416,7 +416,7 @@ END";
                             break;
                         case Command.Update:
                             commandString =
-                                $"UPDATE userlist SET Vote = {vote}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
+                                $"UPDATE userlist SET Vote = {(statusInt != -1 ? vote.ToString() : "NULL")}, VoteAdded = {statusDate} WHERE VNID = {vnid} AND UserID = {userID};";
                             break;
                     }
                     break;

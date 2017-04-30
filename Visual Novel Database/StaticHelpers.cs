@@ -100,6 +100,9 @@ namespace Happy_Search
         private static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
         private static readonly Color WarningColor = Color.DarkKhaki;
 
+
+        public static bool DontTriggerEvent; //used to skip indexchanged events
+
         /// <summary>
         /// Categories of VN Tags
         /// </summary>

@@ -53,7 +53,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void Filter_CustomTraits(object sender, EventArgs e)
         {
-            if (_mainForm.DontTriggerEvent) return;
+            if (DontTriggerEvent) return;
             var selectedItem = traitFiltersCB.SelectedItem as CustomTraitFilter;
             if (selectedItem == null || selectedItem.Name == "Select Filter")
             {
@@ -88,16 +88,16 @@ namespace Happy_Search.Other_Forms
                 if (askBox != DialogResult.Yes) return;
                 customFilter.Filters = TraitsPre.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
-                _mainForm.DontTriggerEvent = true;
+                DontTriggerEvent = true;
                 traitFiltersCB.SelectedIndex = traitFiltersCB.Items.IndexOf(filterName);
-                _mainForm.DontTriggerEvent = false;
+                DontTriggerEvent = false;
             }
             else
             {
-                _mainForm.DontTriggerEvent = true;
+                DontTriggerEvent = true;
                 _customTraitFilters.Add(new CustomTraitFilter(filterName, TraitsPre.ToArray()));
                 traitFiltersCB.SelectedIndex = _customTraitFilters.Count - 1;
-                _mainForm.DontTriggerEvent = false;
+                DontTriggerEvent = false;
             }
             SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_saved);

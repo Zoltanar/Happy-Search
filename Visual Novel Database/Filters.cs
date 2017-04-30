@@ -5,8 +5,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
@@ -175,7 +177,7 @@ namespace Happy_Search
         [JsonIgnore]
         public bool Refresh
         {
-            get { return _refresh; }
+            get => _refresh;
             private set
             {
                 if (value) _refresh = true;
@@ -194,7 +196,8 @@ namespace Happy_Search
             Filters result;
             try
             {
-                result = JsonConvert.DeserializeObject<Filters>(File.ReadAllText(FiltersJson));
+                var settings = new JsonSerializerSettings() { ContractResolver = new MyContractResolver() };
+                result = JsonConvert.DeserializeObject<Filters>(File.ReadAllText(FiltersJson), settings);
             }
             catch (Exception e)
             {
@@ -269,7 +272,7 @@ namespace Happy_Search
             TagsFixed = tab.tagsFixed.Checked;
             TraitsFixed = tab.traitsFixed.Checked;
         }
-        
+
         /// <summary>
         /// Sets Fixed Status from filters into form.
         /// </summary>
@@ -351,7 +354,8 @@ namespace Happy_Search
         {
             try
             {
-                File.WriteAllText(filePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+                var settings = new JsonSerializerSettings() { ContractResolver = new MyContractResolver() };
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(this, Formatting.Indented, settings));
             }
             catch (Exception e)
             {
@@ -413,7 +417,7 @@ namespace Happy_Search
     public enum LengthFilter
     {
         Off = 0,
-        [Description("N/A")]
+        [Description("")]
         NA = 1,
         [Description("<2 Hours")]
         UnderTwoHours = 2,
@@ -460,7 +464,7 @@ namespace Happy_Search
             Children = children;
             AllIDs = children.Union(new[] { id }).ToArray();
         }
-        
+
         /// <summary>
         ///     ID of tag.
         /// </summary>
@@ -521,7 +525,7 @@ namespace Happy_Search
             Name = name;
             Filters = filters;
         }
-        
+
         /// <summary>
         ///     User-set name of custom filter
         /// </summary>
@@ -556,7 +560,7 @@ namespace Happy_Search
             Name = name;
             Filters = filters;
         }
-        
+
         /// <summary>
         ///     User-set name of custom filter
         /// </summary>
@@ -573,6 +577,20 @@ namespace Happy_Search
         public DateTime Updated { get; set; }
 
         public override string ToString() => Name;
+    }
+
+    public class MyContractResolver : DefaultContractResolver
+    {
+        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+        {
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Select(p => CreateProperty(p, memberSerialization))
+                .Union(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Select(f => CreateProperty(f, memberSerialization)))
+                .ToList();
+            props.ForEach(p => { p.Writable = true; p.Readable = true; });
+            return props;
+        }
     }
 #pragma warning restore 1591
 }

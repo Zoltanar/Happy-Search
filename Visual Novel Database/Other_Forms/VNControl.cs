@@ -65,11 +65,11 @@ namespace Happy_Search.Other_Forms
 
         internal void DisplayTags(object sender, EventArgs e)
         {
-            if (sender != null && !_parentForm.DontTriggerEvent)
+            if (sender != null && !DontTriggerEvent)
             {
 
                 var checkBox = (CheckBox)sender;
-                _parentForm.DontTriggerEvent = true;
+                DontTriggerEvent = true;
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
@@ -85,7 +85,7 @@ namespace Happy_Search.Other_Forms
                         _parentForm.tagTypeT2.Checked = checkBox.Checked;
                         break;
                 }
-                _parentForm.DontTriggerEvent = false;
+                DontTriggerEvent = false;
                 _parentForm.DisplayCommonTagsURT(null, null);
                 FormMain.Settings.Save();
             }
@@ -691,8 +691,8 @@ namespace Happy_Search.Other_Forms
             voteToolStripMenuItem.Checked = false;
 
             //set new
-            userlistToolStripMenuItem.Checked = vn.ULStatus > UserlistStatus.Null;
-            wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.Null;
+            userlistToolStripMenuItem.Checked = vn.ULStatus > UserlistStatus.None;
+            wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.None;
             voteToolStripMenuItem.Checked = vn.Vote > 0;
             ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[(int)vn.ULStatus + 1]).Checked = true;
             ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
@@ -703,7 +703,7 @@ namespace Happy_Search.Other_Forms
             }
             else
                 ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
-            if (vn.ULStatus > UserlistStatus.Null)
+            if (vn.ULStatus > UserlistStatus.None)
             {
                 addChangeVNNoteToolStripMenuItem.Enabled = true;
                 addChangeVNGroupsToolStripMenuItem.Enabled = true;

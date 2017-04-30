@@ -353,7 +353,7 @@
             // 
             // releaseDateToYear
             // 
-            this.releaseDateToYear.ForeColor = System.Drawing.Color.White;
+            this.releaseDateToYear.ForeColor = System.Drawing.Color.Black;
             this.releaseDateToYear.Location = new System.Drawing.Point(658, 13);
             this.releaseDateToYear.Maximum = new decimal(new int[] {
             2100,
@@ -386,7 +386,7 @@
             // 
             // releaseDateToMonth
             // 
-            this.releaseDateToMonth.ForeColor = System.Drawing.Color.White;
+            this.releaseDateToMonth.ForeColor = System.Drawing.Color.Black;
             this.releaseDateToMonth.Items.Add("Jan");
             this.releaseDateToMonth.Items.Add("Feb");
             this.releaseDateToMonth.Items.Add("Mar");
@@ -427,7 +427,7 @@
             // 
             // releaseDateToDay
             // 
-            this.releaseDateToDay.ForeColor = System.Drawing.Color.White;
+            this.releaseDateToDay.ForeColor = System.Drawing.Color.Black;
             this.releaseDateToDay.Location = new System.Drawing.Point(532, 13);
             this.releaseDateToDay.Maximum = new decimal(new int[] {
             31,
@@ -460,7 +460,7 @@
             // 
             // releaseDateFromYear
             // 
-            this.releaseDateFromYear.ForeColor = System.Drawing.Color.White;
+            this.releaseDateFromYear.ForeColor = System.Drawing.Color.Black;
             this.releaseDateFromYear.Location = new System.Drawing.Point(367, 13);
             this.releaseDateFromYear.Maximum = new decimal(new int[] {
             2100,
@@ -493,7 +493,7 @@
             // 
             // releaseDateFromMonth
             // 
-            this.releaseDateFromMonth.ForeColor = System.Drawing.Color.White;
+            this.releaseDateFromMonth.ForeColor = System.Drawing.Color.Black;
             this.releaseDateFromMonth.Items.Add("Jan");
             this.releaseDateFromMonth.Items.Add("Feb");
             this.releaseDateFromMonth.Items.Add("Mar");
@@ -534,7 +534,7 @@
             // 
             // releaseDateFromDay
             // 
-            this.releaseDateFromDay.ForeColor = System.Drawing.Color.White;
+            this.releaseDateFromDay.ForeColor = System.Drawing.Color.Black;
             this.releaseDateFromDay.Location = new System.Drawing.Point(246, 13);
             this.releaseDateFromDay.Maximum = new decimal(new int[] {
             31,
@@ -1667,7 +1667,7 @@
             // traitRootsDropdown
             // 
             this.traitRootsDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.traitRootsDropdown.ForeColor = System.Drawing.Color.White;
+            this.traitRootsDropdown.ForeColor = System.Drawing.Color.Black;
             this.traitRootsDropdown.FormattingEnabled = true;
             this.traitRootsDropdown.Location = new System.Drawing.Point(53, 255);
             this.traitRootsDropdown.Name = "traitRootsDropdown";
@@ -1781,14 +1781,8 @@
             // filterDropdown
             // 
             this.filterDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.filterDropdown.ForeColor = System.Drawing.Color.White;
+            this.filterDropdown.ForeColor = System.Drawing.Color.Black;
             this.filterDropdown.FormattingEnabled = true;
-            this.filterDropdown.Items.AddRange(new object[] {
-            "No Filters",
-            "Never Played",
-            "Only URT",
-            "Hide URT",
-            "By Favorite Producers"});
             this.filterDropdown.Location = new System.Drawing.Point(561, 348);
             this.filterDropdown.Name = "filterDropdown";
             this.filterDropdown.Size = new System.Drawing.Size(121, 21);

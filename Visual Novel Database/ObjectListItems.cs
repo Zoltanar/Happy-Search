@@ -66,9 +66,7 @@ namespace Happy_Search
     /// </summary>
     public enum WishlistStatus
     {
-        // ReSharper disable once UnusedMember.Global
         None = -1,
-        Null = -1,
         High = 0,
         Medium = 1,
         Low = 2,
@@ -77,9 +75,7 @@ namespace Happy_Search
 
     public enum UserlistStatus
     {
-        // ReSharper disable once UnusedMember.Global
         None = -1,
-        Null = -1,
         Unknown = 0,
         Playing = 1,
         Finished = 2,
@@ -457,12 +453,12 @@ namespace Happy_Search
         public string UserRelatedStatus()
         {
             string[] parts = { "", "", "" };
-            if (ULStatus > UserlistStatus.Null)
+            if (ULStatus > UserlistStatus.None)
             {
                 parts[0] = "Userlist: ";
                 parts[1] = ULStatus.ToString();
             }
-            else if (WLStatus > WishlistStatus.Null)
+            else if (WLStatus > WishlistStatus.None)
             {
                 parts[0] = "Wishlist: ";
                 parts[1] = WLStatus.ToString();

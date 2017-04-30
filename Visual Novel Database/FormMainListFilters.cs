@@ -597,6 +597,8 @@ namespace Happy_Search
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
             if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnULAdded.Index).Text = "";
             if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnWLAdded.Index).Text = "";
+            if (listedVN.ULStatus == UserlistStatus.None) e.Item.GetSubItem(tileColumnULS.Index).Text = "";
+            if (listedVN.WLStatus == WishlistStatus.None) e.Item.GetSubItem(tileColumnWLS.Index).Text = "";
             if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
             e.Item.GetSubItem(tileColumnLength.Index).Text = listedVN.LengthString;
             e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
@@ -647,10 +649,10 @@ namespace Happy_Search
 
             //set new
             var vn = (ListedVN)model;
-            userlistToolStripMenuItem.Checked = vn.ULStatus > UserlistStatus.Null;
-            wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.Null;
+            userlistToolStripMenuItem.Checked = vn.ULStatus > UserlistStatus.None;
+            wishlistToolStripMenuItem.Checked = vn.WLStatus > WishlistStatus.None;
             voteToolStripMenuItem.Checked = vn.Vote > 0;
-            ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
+            ((ToolStripMenuItem)userlistToolStripMenuItem.DropDownItems[(int)vn.ULStatus + 1]).Checked = true;
             ((ToolStripMenuItem)wishlistToolStripMenuItem.DropDownItems[(int)vn.WLStatus + 1]).Checked = true;
             if (vn.Vote > 0)
             {
@@ -659,7 +661,7 @@ namespace Happy_Search
             }
             else
                 ((ToolStripMenuItem)voteToolStripMenuItem.DropDownItems[0]).Checked = true;
-            if (vn.ULStatus > UserlistStatus.Null)
+            if (vn.ULStatus > UserlistStatus.None)
             {
                 addChangeVNNoteToolStripMenuItem.Enabled = true;
                 addChangeVNGroupsToolStripMenuItem.Enabled = true;

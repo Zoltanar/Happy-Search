@@ -117,6 +117,8 @@ namespace Happy_Search
             this.aboutTextBox = new System.Windows.Forms.RichTextBox();
             this.vnTab = new System.Windows.Forms.TabPage();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.filterDropdown = new System.Windows.Forms.ComboBox();
+            this.label24 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
             this.resultLabel = new System.Windows.Forms.Label();
             this.tileOLV = new BrightIdeasSoftware.ObjectListView();
@@ -348,7 +350,7 @@ namespace Happy_Search
             this.ListByGoButton.FlatAppearance.BorderSize = 0;
             this.ListByGoButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ListByGoButton.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.ListByGoButton.Location = new System.Drawing.Point(410, 2);
+            this.ListByGoButton.Location = new System.Drawing.Point(418, 4);
             this.ListByGoButton.Name = "ListByGoButton";
             this.ListByGoButton.Size = new System.Drawing.Size(29, 23);
             this.ListByGoButton.TabIndex = 107;
@@ -363,7 +365,7 @@ namespace Happy_Search
             this.ListByUpdateButton.FlatAppearance.BorderSize = 0;
             this.ListByUpdateButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ListByUpdateButton.ForeColor = System.Drawing.Color.Black;
-            this.ListByUpdateButton.Location = new System.Drawing.Point(446, 2);
+            this.ListByUpdateButton.Location = new System.Drawing.Point(454, 4);
             this.ListByUpdateButton.Name = "ListByUpdateButton";
             this.ListByUpdateButton.Size = new System.Drawing.Size(52, 23);
             this.ListByUpdateButton.TabIndex = 106;
@@ -381,7 +383,7 @@ namespace Happy_Search
             "By Producer",
             "By Year",
             "By Group"});
-            this.ListByCB.Location = new System.Drawing.Point(184, 3);
+            this.ListByCB.Location = new System.Drawing.Point(192, 5);
             this.ListByCB.Name = "ListByCB";
             this.ListByCB.Size = new System.Drawing.Size(95, 21);
             this.ListByCB.TabIndex = 104;
@@ -409,7 +411,7 @@ namespace Happy_Search
             this.listResultsButton.FlatAppearance.BorderSize = 0;
             this.listResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.listResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.listResultsButton.Location = new System.Drawing.Point(617, 3);
+            this.listResultsButton.Location = new System.Drawing.Point(625, 5);
             this.listResultsButton.Name = "listResultsButton";
             this.listResultsButton.Size = new System.Drawing.Size(54, 23);
             this.listResultsButton.TabIndex = 95;
@@ -454,7 +456,7 @@ namespace Happy_Search
             this.SearchingAndFilteringButton.FlatAppearance.BorderSize = 0;
             this.SearchingAndFilteringButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SearchingAndFilteringButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(504, 3);
+            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(512, 5);
             this.SearchingAndFilteringButton.Name = "SearchingAndFilteringButton";
             this.SearchingAndFilteringButton.Size = new System.Drawing.Size(107, 23);
             this.SearchingAndFilteringButton.TabIndex = 91;
@@ -486,9 +488,9 @@ namespace Happy_Search
             this.toggleViewButton.FlatAppearance.BorderSize = 0;
             this.toggleViewButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.toggleViewButton.ForeColor = System.Drawing.Color.White;
-            this.toggleViewButton.Location = new System.Drawing.Point(895, 3);
+            this.toggleViewButton.Location = new System.Drawing.Point(903, 7);
             this.toggleViewButton.Name = "toggleViewButton";
-            this.toggleViewButton.Size = new System.Drawing.Size(282, 23);
+            this.toggleViewButton.Size = new System.Drawing.Size(274, 23);
             this.toggleViewButton.TabIndex = 93;
             this.toggleViewButton.Text = "▲ Hide Options ▲";
             this.toolTip.SetToolTip(this.toggleViewButton, "Show/hide settings and favorite producers section.");
@@ -509,7 +511,7 @@ namespace Happy_Search
             "Remove From DB",
             "Update Tags/Trait/Stats",
             "Update All Data"});
-            this.multiActionBox.Location = new System.Drawing.Point(775, 5);
+            this.multiActionBox.Location = new System.Drawing.Point(783, 7);
             this.multiActionBox.Name = "multiActionBox";
             this.multiActionBox.Size = new System.Drawing.Size(114, 21);
             this.multiActionBox.TabIndex = 108;
@@ -1123,6 +1125,8 @@ namespace Happy_Search
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.filterDropdown);
+            this.panel3.Controls.Add(this.label24);
             this.panel3.Controls.Add(this.statusLabel);
             this.panel3.Controls.Add(this.resultLabel);
             this.panel3.Controls.Add(this.ListByCB);
@@ -1143,6 +1147,27 @@ namespace Happy_Search
             this.panel3.Size = new System.Drawing.Size(1182, 335);
             this.panel3.TabIndex = 109;
             // 
+            // filterDropdown
+            // 
+            this.filterDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.filterDropdown.ForeColor = System.Drawing.Color.Black;
+            this.filterDropdown.FormattingEnabled = true;
+            this.filterDropdown.Location = new System.Drawing.Point(192, 31);
+            this.filterDropdown.Name = "filterDropdown";
+            this.filterDropdown.Size = new System.Drawing.Size(121, 21);
+            this.filterDropdown.TabIndex = 110;
+            this.filterDropdown.SelectedIndexChanged += new System.EventHandler(this.FilterChanged);
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.ForeColor = System.Drawing.Color.White;
+            this.label24.Location = new System.Drawing.Point(152, 34);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(34, 13);
+            this.label24.TabIndex = 109;
+            this.label24.Text = "Filters";
+            // 
             // statusLabel
             // 
             this.statusLabel.BackColor = System.Drawing.Color.Gray;
@@ -1159,7 +1184,7 @@ namespace Happy_Search
             this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultLabel.BackColor = System.Drawing.Color.Transparent;
             this.resultLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.resultLabel.Location = new System.Drawing.Point(983, 29);
+            this.resultLabel.Location = new System.Drawing.Point(983, 31);
             this.resultLabel.Name = "resultLabel";
             this.resultLabel.Size = new System.Drawing.Size(194, 21);
             this.resultLabel.TabIndex = 43;
@@ -1321,7 +1346,7 @@ namespace Happy_Search
             // ListByTB
             // 
             this.ListByTB.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.ListByTB.Location = new System.Drawing.Point(285, 5);
+            this.ListByTB.Location = new System.Drawing.Point(293, 7);
             this.ListByTB.Name = "ListByTB";
             this.ListByTB.Size = new System.Drawing.Size(119, 20);
             this.ListByTB.TabIndex = 105;
@@ -1336,12 +1361,7 @@ namespace Happy_Search
             this.ListByCBQuery.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ListByCBQuery.ForeColor = System.Drawing.SystemColors.ControlText;
             this.ListByCBQuery.FormattingEnabled = true;
-            this.ListByCBQuery.Items.AddRange(new object[] {
-            "Show URT",
-            "Hide URT",
-            "Only URT",
-            "Only Unplayed"});
-            this.ListByCBQuery.Location = new System.Drawing.Point(285, 3);
+            this.ListByCBQuery.Location = new System.Drawing.Point(293, 5);
             this.ListByCBQuery.Name = "ListByCBQuery";
             this.ListByCBQuery.Size = new System.Drawing.Size(119, 21);
             this.ListByCBQuery.TabIndex = 100;
@@ -1359,7 +1379,7 @@ namespace Happy_Search
             this.viewPicker.Items.AddRange(new object[] {
             "Tile View",
             "Detailed View"});
-            this.viewPicker.Location = new System.Drawing.Point(680, 5);
+            this.viewPicker.Location = new System.Drawing.Point(688, 7);
             this.viewPicker.Name = "viewPicker";
             this.viewPicker.Size = new System.Drawing.Size(89, 21);
             this.viewPicker.TabIndex = 77;
@@ -1370,9 +1390,9 @@ namespace Happy_Search
             this.replyText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.replyText.BackColor = System.Drawing.Color.Transparent;
-            this.replyText.Location = new System.Drawing.Point(152, 30);
+            this.replyText.Location = new System.Drawing.Point(319, 30);
             this.replyText.Name = "replyText";
-            this.replyText.Size = new System.Drawing.Size(825, 20);
+            this.replyText.Size = new System.Drawing.Size(658, 20);
             this.replyText.TabIndex = 28;
             this.replyText.Text = "(replyText)";
             this.replyText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -2033,6 +2053,8 @@ namespace Happy_Search
         private OLVColumn tileColumnLength;
         private TabPage filtersTab;
         private Panel panel3;
+        private Label label24;
+        internal ComboBox filterDropdown;
     }
 }
 

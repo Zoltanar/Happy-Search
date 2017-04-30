@@ -2,6 +2,7 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Fixed: Changing VN status via right-click context menu.
 Overhaul: Filtering, new filters: Length, release date, unreleased status, voted, language, original language.
 ---
 Changed: Move query params into start query rather than passing
@@ -149,7 +150,7 @@ No Work
 
 Unordered Tasks
 ----------
-trait filter character search (asked yorhel)
+trait filter character search
 save general database in the internet and : send general info changes to database in the internet, get database changes from the internet
 handle abrupt exit, terminate api connection
 split database into 2, one for general info (vnlist, producerlist) and another for user-specific (userlist, userprodlist)

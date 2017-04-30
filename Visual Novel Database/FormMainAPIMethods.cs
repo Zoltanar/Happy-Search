@@ -404,6 +404,7 @@ namespace Happy_Search
             await ReloadListsFromDbAsync();
         }
 
+
         /// <summary>
         /// Update tags, traits and stats of titles.
         /// </summary>
@@ -558,8 +559,8 @@ namespace Happy_Search
         /// <returns>Returns whether it as successful.</returns>
         internal async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
         {
-            var hasULStatus = vn.ULStatus > UserlistStatus.Null;
-            var hasWLStatus = vn.WLStatus > WishlistStatus.Null;
+            var hasULStatus = vn.ULStatus > UserlistStatus.None;
+            var hasWLStatus = vn.WLStatus > WishlistStatus.None;
             var hasVote = vn.Vote > 0;
             string queryString;
             var result = StartQuery(replyText, "Change VN Status", false, false, true);

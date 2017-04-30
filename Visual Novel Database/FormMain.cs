@@ -31,11 +31,10 @@ namespace Happy_Search
         internal readonly DbHelper DBConn;
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
-        internal bool DontTriggerEvent; //used to skip indexchanged events
         internal List<ListedProducer> ProducerList; //contains all producers in local database
         internal List<CharacterItem> CharacterList; //contains all producers in local database
         internal List<ListedProducer> FavoriteProducerList; //contains all favorite producers for logged in user
-        internal BindingList<Filters> FiltersList = new BindingList<Filters>();
+        internal readonly BindingList<Filters> FiltersList = new BindingList<Filters>();
         /// <summary>
         /// Contains all VNs in database.
         /// </summary>
@@ -187,6 +186,7 @@ https://github.com/FredTheBarber/VndbClient";
             { await URTUpdateAsync(); }
             FiltersTab = new FiltersTab(this);
             filtersTab.Controls.Add(FiltersTab);
+            FiltersTab.Dock = DockStyle.Fill;
         }
 
         /// <summary>
@@ -824,8 +824,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
             double cumulativeScore = 0;
             foreach (var item in URTList)
             {
-                if (item.ULStatus > UserlistStatus.Null) ulCount++;
-                if (item.WLStatus > WishlistStatus.Null) wlCount++;
+                if (item.ULStatus > UserlistStatus.None) ulCount++;
+                if (item.WLStatus > WishlistStatus.None) wlCount++;
                 if (!(item.Vote > 0)) continue;
                 vlCount++;
                 cumulativeScore += item.Vote;
@@ -1188,7 +1188,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
-        private void EnterMainTab(object sender, EventArgs e)
+        internal void EnterMainTab(object sender, EventArgs e)
         {
             Debug.WriteLine("Entered Main VN Tab");
             if (FiltersTab?.RefreshFilters ?? false)
@@ -1470,6 +1470,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
         #endregion
 
+        private void FilterChanged(object sender, EventArgs e)
+        {
+            if (FiltersTab?.CustomFilterBlock ?? true) return;
+            Filters selectedItem = (Filters)filterDropdown.SelectedItem;
+            FiltersTab?.ChangeCustomFilter(this, selectedItem);
+        }
     }
 
 
