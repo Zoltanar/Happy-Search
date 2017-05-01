@@ -586,39 +586,18 @@ namespace Happy_Search
                     e.Item.BackColor = ULUnknownBrush.Color;
                     break;
             }
-            if (listedVN.ULStatus == UserlistStatus.Playing) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
-            if (FavoriteProducerList.Any() && FavoriteProducerList.Exists(x => x.Name == listedVN.Producer))
-            {
-                //e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
-                e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = Color.Blue;
-            }
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
-            if (listedVN.ULAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnULAdded.Index).Text = "";
-            if (listedVN.WLAdded == dateTimeOffset) e.Item.GetSubItem(tileColumnWLAdded.Index).Text = "";
+            e.Item.GetSubItem(tileColumnULAdded.Index).Text = listedVN.ULAdded != dateTimeOffset ? listedVN.ULAdded.ToShortDateString() : "";
+            e.Item.GetSubItem(tileColumnWLAdded.Index).Text = listedVN.WLAdded != dateTimeOffset ? listedVN.WLAdded.ToShortDateString() : "";
             if (listedVN.ULStatus == UserlistStatus.None) e.Item.GetSubItem(tileColumnULS.Index).Text = "";
+            if (listedVN.ULStatus == UserlistStatus.Playing) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
             if (listedVN.WLStatus == WishlistStatus.None) e.Item.GetSubItem(tileColumnWLS.Index).Text = "";
             if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
+            if (FavoriteProducerList.Any(x => x.Name.Equals(listedVN.Producer))) e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
             e.Item.GetSubItem(tileColumnLength.Index).Text = listedVN.LengthString;
             e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
             e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
             e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
-        }
-
-        //format individual cell (only for details view)
-        private void FormatVNCell(object sender, FormatCellEventArgs e)
-        {
-            if (tileOLV.View != View.Details) return;
-            ListedVN vn = e.Model as ListedVN;
-            if (vn == null) return;
-            if (e.ColumnIndex == tileColumnULS.Index)
-            {
-                if (vn.ULStatus == UserlistStatus.Playing) e.SubItem.ForeColor = ULPlayingBrush.Color;
-            }
-            else if (e.ColumnIndex == tileColumnProducer.Index)
-            {
-                if (FavoriteProducerList.Exists(x => x.Name.Equals(vn.Producer))) e.SubItem.ForeColor = FavoriteProducerBrush.Color;
-            }
-
         }
 
         /// <summary>
@@ -879,7 +858,7 @@ namespace Happy_Search
             var count = tileOLV.FilteredObjects.Cast<object>().Count();
             var totalcount = tileOLV.Objects.Cast<object>().Count();
             string itemCountString = count == totalcount ? $"{totalcount} items." : $"{count}/{totalcount} items.";
-            resultLabel.Text = $@"List: {_currentListLabel} ({_currentFilterLabel}) {itemCountString}";
+            resultLabel.Text = $@"List: {_currentListLabel} ({CurrentFilterLabel}) {itemCountString}";
         }
 
         /// <summary>
@@ -906,7 +885,7 @@ namespace Happy_Search
         public void SetVNList(Func<ListedVN, bool> function, string label)
         {
             tileOLV.ModelFilter = new ModelFilter(vn => function((ListedVN)vn));
-            _currentFilterLabel = label;
+            CurrentFilterLabel = label;
         }
     }
 

@@ -506,7 +506,7 @@ namespace Happy_Search.Other_Forms
         {
             if (RefreshFilters)
             {
-                _filters.Name = "Custom Filter";
+                _mainForm.CurrentFilterLabel = "Custom Filter";
                 _mainForm.LoadVNListToGui();
                 _filters.SetRefreshFalse();
             }

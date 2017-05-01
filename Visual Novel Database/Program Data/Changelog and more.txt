@@ -2,6 +2,7 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Improved: ULAdded/WLAdded displays short date instead of full date.
 Added: Save Custom Filters
 Fixed: Changing VN status via right-click context menu.
 Overhaul: Filtering, new filters: Length, release date, unreleased status, voted, language, original language.
@@ -125,18 +126,14 @@ No Work
 	----------
 	 Update Help files
 	 Remove Logging from database methods (or make it write to file later)
-	 Change Added to UL/WL to show only date not time (ToShortDateString)
-
-
-
+	 
 	Medium Tasks
 	----------
 	Search by traits in a single character of vn, not all characters of vn - option
 	 user-configurable tag alerts (like EH)
 	 Allow user configurated color scheme (for vn list)
 	 Save time between URT state playing and finished (requires db update for new column)
-
-
+	 
 	Hard Tasks
 	----------
 	UI overhaul, make a left side vertical menu

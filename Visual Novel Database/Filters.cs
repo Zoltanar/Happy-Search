@@ -149,10 +149,7 @@ namespace Happy_Search
         public bool TagsTraitsMode
         {
             get => _tagsTraitsMode;
-            set
-            {
-                _tagsTraitsMode = value;
-            }
+            set => _tagsTraitsMode = value;
         }
 
         private LengthFilter _length;

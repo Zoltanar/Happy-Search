@@ -161,9 +161,8 @@ https://github.com/FredTheBarber/VndbClient";
             }
             SplashScreen.SetStatus("Adding VNs to Object Lists...");
             {
-                tileOLV.SetObjects(VNList);
-                tileOLV.Sort(tileColumnDate, SortOrder.Descending);
                 _currentListLabel = "All Titles";
+                CurrentFilterLabel = "No Filters";
             }
             SplashScreen.CloseForm();
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
@@ -187,6 +186,8 @@ https://github.com/FredTheBarber/VndbClient";
             FiltersTab = new FiltersTab(this);
             filtersTab.Controls.Add(FiltersTab);
             FiltersTab.Dock = DockStyle.Fill;
+            LoadVNListToGui();
+            tileOLV.Sort(tileColumnDate, SortOrder.Descending);
         }
 
         /// <summary>
@@ -844,7 +845,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
 
         internal static bool AdvancedMode; //when true, print all api queries and responses to information tab.
-        private string _currentFilterLabel;
+        internal string CurrentFilterLabel;
 
         private void ToggleAdvancedMode(object sender, EventArgs e)
         {
