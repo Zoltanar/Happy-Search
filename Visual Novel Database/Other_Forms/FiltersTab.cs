@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Happy_Search.Properties;
@@ -516,6 +518,14 @@ namespace Happy_Search.Other_Forms
         {
             ApplyFilters(_filters);
             SaveFilters();
+        }
+
+        private void Help_Filters(object sender, EventArgs e)
+        {
+            var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "path != null");
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\filtering.html")}";
+            new HtmlForm($"file:///{helpFile}").Show();
         }
     }
 }

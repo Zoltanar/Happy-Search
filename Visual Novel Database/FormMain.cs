@@ -1462,17 +1462,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
         }
         #endregion
 
-        private void FilterChanged(object sender, EventArgs e)
-        {
-            Filters selectedItem = (Filters)filterDropdown.SelectedItem;
-            FiltersTab?.ChangeCustomFilter(this, selectedItem);
-        }
 
-        private void SetAllTitles(object sender, EventArgs e)
+        private void RightClickSeeOnWebsite(object sender, EventArgs e)
         {
-            _currentList = x => true;
-            _currentListLabel = "All Titles";
-            LoadVNListToGui();
+            var vn = tileOLV.SelectedObject as ListedVN;
+            if (vn == null) return;
+            Process.Start($"http://vndb.org/v{vn.VNID}/");
         }
     }
 

@@ -2,6 +2,9 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Improved: Updated Help files.
+Added: See VNDB page option on right-click context menu.
+Fixed: Update VN on VN tab now properly sets connection to ready when it's done.
 Improved: ULAdded/WLAdded displays short date instead of full date.
 Added: Save Custom Filters
 Fixed: Changing VN status via right-click context menu.
@@ -124,7 +127,6 @@ No Work
 ---------------
 	Easy Tasks
 	----------
-	 Update Help files
 	 Remove Logging from database methods (or make it write to file later)
 	 
 	Medium Tasks
@@ -142,7 +144,7 @@ No Work
 	Not Currently Possible (Not supported by VNDB API)
 	----------
 	 Add release controls to vn tab.
-	 Staff functionality
+	 Staff functionality // some functionality is now supported by API
 	 
 
 Unordered Tasks

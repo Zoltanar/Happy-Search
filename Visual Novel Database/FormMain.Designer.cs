@@ -192,6 +192,7 @@ namespace Happy_Search
             this.addProducerToFavoritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNNoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addChangeVNGroupsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.seeOnWebsiteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoTab.SuspendLayout();
             this.logGB.SuspendLayout();
             this.statBox.SuspendLayout();
@@ -264,7 +265,7 @@ namespace Happy_Search
             // autoUpdateURTBox
             // 
             this.autoUpdateURTBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.autoUpdateURTBox.Location = new System.Drawing.Point(118, 25);
+            this.autoUpdateURTBox.Location = new System.Drawing.Point(3, 135);
             this.autoUpdateURTBox.Name = "autoUpdateURTBox";
             this.autoUpdateURTBox.Size = new System.Drawing.Size(123, 17);
             this.autoUpdateURTBox.TabIndex = 83;
@@ -276,7 +277,7 @@ namespace Happy_Search
             // yearLimitBox
             // 
             this.yearLimitBox.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.yearLimitBox.Location = new System.Drawing.Point(118, 43);
+            this.yearLimitBox.Location = new System.Drawing.Point(3, 153);
             this.yearLimitBox.Name = "yearLimitBox";
             this.yearLimitBox.Size = new System.Drawing.Size(123, 17);
             this.yearLimitBox.TabIndex = 84;
@@ -335,9 +336,9 @@ namespace Happy_Search
             this.updateTagsAndTraitsButton.FlatAppearance.BorderSize = 0;
             this.updateTagsAndTraitsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.updateTagsAndTraitsButton.ForeColor = System.Drawing.Color.Black;
-            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 61);
+            this.updateTagsAndTraitsButton.Location = new System.Drawing.Point(3, 32);
             this.updateTagsAndTraitsButton.Name = "updateTagsAndTraitsButton";
-            this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(109, 35);
+            this.updateTagsAndTraitsButton.Size = new System.Drawing.Size(176, 23);
             this.updateTagsAndTraitsButton.TabIndex = 91;
             this.updateTagsAndTraitsButton.Text = "Update Tags/Traits/Stats";
             this.toolTip.SetToolTip(this.updateTagsAndTraitsButton, "Update tags, traits and stats of titles that haven\'t been updated in over 7 days." +
@@ -412,7 +413,7 @@ namespace Happy_Search
             this.listResultsButton.FlatAppearance.BorderSize = 0;
             this.listResultsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.listResultsButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.listResultsButton.Location = new System.Drawing.Point(625, 5);
+            this.listResultsButton.Location = new System.Drawing.Point(625, 4);
             this.listResultsButton.Name = "listResultsButton";
             this.listResultsButton.Size = new System.Drawing.Size(54, 23);
             this.listResultsButton.TabIndex = 95;
@@ -427,7 +428,7 @@ namespace Happy_Search
             this.GetStartedHelpButton.FlatAppearance.BorderSize = 0;
             this.GetStartedHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.GetStartedHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.GetStartedHelpButton.Location = new System.Drawing.Point(118, 91);
+            this.GetStartedHelpButton.Location = new System.Drawing.Point(3, 242);
             this.GetStartedHelpButton.Name = "GetStartedHelpButton";
             this.GetStartedHelpButton.Size = new System.Drawing.Size(123, 23);
             this.GetStartedHelpButton.TabIndex = 89;
@@ -442,11 +443,11 @@ namespace Happy_Search
             this.closeAllFormsButton.FlatAppearance.BorderSize = 0;
             this.closeAllFormsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.closeAllFormsButton.ForeColor = System.Drawing.Color.White;
-            this.closeAllFormsButton.Location = new System.Drawing.Point(118, 62);
+            this.closeAllFormsButton.Location = new System.Drawing.Point(136, 117);
             this.closeAllFormsButton.Name = "closeAllFormsButton";
-            this.closeAllFormsButton.Size = new System.Drawing.Size(123, 23);
+            this.closeAllFormsButton.Size = new System.Drawing.Size(43, 52);
             this.closeAllFormsButton.TabIndex = 81;
-            this.closeAllFormsButton.Text = "Close All VN Tabs";
+            this.closeAllFormsButton.Text = "Close VN Tabs";
             this.toolTip.SetToolTip(this.closeAllFormsButton, "Close all VN Info Tabs that you have opened.");
             this.closeAllFormsButton.UseVisualStyleBackColor = false;
             this.closeAllFormsButton.Click += new System.EventHandler(this.CloseVNTabs);
@@ -457,14 +458,14 @@ namespace Happy_Search
             this.SearchingAndFilteringButton.FlatAppearance.BorderSize = 0;
             this.SearchingAndFilteringButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SearchingAndFilteringButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(512, 5);
+            this.SearchingAndFilteringButton.Location = new System.Drawing.Point(512, 4);
             this.SearchingAndFilteringButton.Name = "SearchingAndFilteringButton";
             this.SearchingAndFilteringButton.Size = new System.Drawing.Size(107, 23);
             this.SearchingAndFilteringButton.TabIndex = 91;
-            this.SearchingAndFilteringButton.Text = "Searching / Listing";
+            this.SearchingAndFilteringButton.Text = "Listing/Searching";
             this.toolTip.SetToolTip(this.SearchingAndFilteringButton, "Help on Searching/Listing/Filtering titles.");
             this.SearchingAndFilteringButton.UseVisualStyleBackColor = false;
-            this.SearchingAndFilteringButton.Click += new System.EventHandler(this.Help_SearchingAndFiltering);
+            this.SearchingAndFilteringButton.Click += new System.EventHandler(this.Help_ListingAndSearching);
             // 
             // refreshAllProducersButton
             // 
@@ -489,9 +490,9 @@ namespace Happy_Search
             this.toggleViewButton.FlatAppearance.BorderSize = 0;
             this.toggleViewButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.toggleViewButton.ForeColor = System.Drawing.Color.White;
-            this.toggleViewButton.Location = new System.Drawing.Point(903, 7);
+            this.toggleViewButton.Location = new System.Drawing.Point(900, 4);
             this.toggleViewButton.Name = "toggleViewButton";
-            this.toggleViewButton.Size = new System.Drawing.Size(274, 23);
+            this.toggleViewButton.Size = new System.Drawing.Size(277, 23);
             this.toggleViewButton.TabIndex = 93;
             this.toggleViewButton.Text = "▲ Hide Options ▲";
             this.toolTip.SetToolTip(this.toggleViewButton, "Show/hide settings and favorite producers section.");
@@ -512,7 +513,7 @@ namespace Happy_Search
             "Remove From DB",
             "Update Tags/Trait/Stats",
             "Update All Data"});
-            this.multiActionBox.Location = new System.Drawing.Point(783, 7);
+            this.multiActionBox.Location = new System.Drawing.Point(780, 5);
             this.multiActionBox.Name = "multiActionBox";
             this.multiActionBox.Size = new System.Drawing.Size(114, 21);
             this.multiActionBox.TabIndex = 108;
@@ -525,9 +526,9 @@ namespace Happy_Search
             this.button1.FlatAppearance.BorderSize = 0;
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button1.ForeColor = System.Drawing.Color.Black;
-            this.button1.Location = new System.Drawing.Point(3, 102);
+            this.button1.Location = new System.Drawing.Point(3, 61);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(109, 23);
+            this.button1.Size = new System.Drawing.Size(176, 23);
             this.button1.TabIndex = 93;
             this.button1.Text = "Update All Data";
             this.toolTip.SetToolTip(this.button1, "Update all data for titles that haven\'t been updated in over 7 days.");
@@ -1201,7 +1202,7 @@ namespace Happy_Search
             this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultLabel.BackColor = System.Drawing.Color.Transparent;
             this.resultLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.resultLabel.Location = new System.Drawing.Point(930, 35);
+            this.resultLabel.Location = new System.Drawing.Point(930, 32);
             this.resultLabel.Name = "resultLabel";
             this.resultLabel.Size = new System.Drawing.Size(247, 21);
             this.resultLabel.TabIndex = 43;
@@ -1395,7 +1396,7 @@ namespace Happy_Search
             this.viewPicker.Items.AddRange(new object[] {
             "Tile View",
             "Detailed View"});
-            this.viewPicker.Location = new System.Drawing.Point(688, 7);
+            this.viewPicker.Location = new System.Drawing.Point(685, 5);
             this.viewPicker.Name = "viewPicker";
             this.viewPicker.Size = new System.Drawing.Size(89, 21);
             this.viewPicker.TabIndex = 77;
@@ -1406,7 +1407,7 @@ namespace Happy_Search
             this.replyText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.replyText.BackColor = System.Drawing.Color.Transparent;
-            this.replyText.Location = new System.Drawing.Point(418, 35);
+            this.replyText.Location = new System.Drawing.Point(418, 32);
             this.replyText.Name = "replyText";
             this.replyText.Size = new System.Drawing.Size(506, 21);
             this.replyText.TabIndex = 28;
@@ -1416,9 +1417,9 @@ namespace Happy_Search
             // label4
             // 
             this.label4.BackColor = System.Drawing.Color.Transparent;
-            this.label4.Location = new System.Drawing.Point(152, 2);
+            this.label4.Location = new System.Drawing.Point(152, 4);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(26, 23);
+            this.label4.Size = new System.Drawing.Size(34, 23);
             this.label4.TabIndex = 23;
             this.label4.Text = "List:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1436,9 +1437,9 @@ namespace Happy_Search
             this.panel2.Controls.Add(this.prodReply);
             this.panel2.Controls.Add(this.refreshAllProducersButton);
             this.panel2.Controls.Add(this.addProducersButton);
-            this.panel2.Location = new System.Drawing.Point(264, 6);
+            this.panel2.Location = new System.Drawing.Point(200, 6);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(924, 240);
+            this.panel2.Size = new System.Drawing.Size(988, 240);
             this.panel2.TabIndex = 96;
             // 
             // olFavoriteProducers
@@ -1465,7 +1466,7 @@ namespace Happy_Search
             this.olFavoriteProducers.Location = new System.Drawing.Point(129, 3);
             this.olFavoriteProducers.Name = "olFavoriteProducers";
             this.olFavoriteProducers.ShowGroups = false;
-            this.olFavoriteProducers.Size = new System.Drawing.Size(789, 232);
+            this.olFavoriteProducers.Size = new System.Drawing.Size(853, 232);
             this.olFavoriteProducers.TabIndex = 0;
             this.olFavoriteProducers.UseCompatibleStateImageBehavior = false;
             this.olFavoriteProducers.View = System.Windows.Forms.View.Details;
@@ -1525,11 +1526,9 @@ namespace Happy_Search
             // 
             // prodReply
             // 
-            this.prodReply.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.prodReply.Location = new System.Drawing.Point(3, 174);
             this.prodReply.Name = "prodReply";
-            this.prodReply.Size = new System.Drawing.Size(126, 61);
+            this.prodReply.Size = new System.Drawing.Size(121, 61);
             this.prodReply.TabIndex = 32;
             this.prodReply.Text = "(prodReply)";
             this.prodReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1550,7 +1549,7 @@ namespace Happy_Search
             this.panel1.Controls.Add(this.userListReply);
             this.panel1.Location = new System.Drawing.Point(6, 6);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(252, 240);
+            this.panel1.Size = new System.Drawing.Size(188, 240);
             this.panel1.TabIndex = 94;
             // 
             // otherMethodsCB
@@ -1565,18 +1564,18 @@ namespace Happy_Search
             "----------------",
             "Get Missing Covers",
             "Update Tags/Traits/Stats (All)",
-            "Updata All Data (All)",
+            "Update All Data (All)",
             "Get Producer Languages"});
-            this.otherMethodsCB.Location = new System.Drawing.Point(3, 131);
+            this.otherMethodsCB.Location = new System.Drawing.Point(3, 90);
             this.otherMethodsCB.Name = "otherMethodsCB";
-            this.otherMethodsCB.Size = new System.Drawing.Size(109, 21);
+            this.otherMethodsCB.Size = new System.Drawing.Size(176, 21);
             this.otherMethodsCB.TabIndex = 92;
             this.otherMethodsCB.SelectedIndexChanged += new System.EventHandler(this.OtherMethodChosen);
             // 
             // nsfwToggle
             // 
             this.nsfwToggle.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.nsfwToggle.Location = new System.Drawing.Point(118, 7);
+            this.nsfwToggle.Location = new System.Drawing.Point(3, 117);
             this.nsfwToggle.Name = "nsfwToggle";
             this.nsfwToggle.Size = new System.Drawing.Size(127, 17);
             this.nsfwToggle.TabIndex = 80;
@@ -1593,7 +1592,7 @@ namespace Happy_Search
             this.loginButton.ForeColor = System.Drawing.Color.Black;
             this.loginButton.Location = new System.Drawing.Point(3, 3);
             this.loginButton.Name = "loginButton";
-            this.loginButton.Size = new System.Drawing.Size(109, 23);
+            this.loginButton.Size = new System.Drawing.Size(85, 23);
             this.loginButton.TabIndex = 82;
             this.loginButton.Text = "Log In";
             this.loginButton.UseVisualStyleBackColor = false;
@@ -1605,9 +1604,9 @@ namespace Happy_Search
             this.userListButt.FlatAppearance.BorderSize = 0;
             this.userListButt.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.userListButt.ForeColor = System.Drawing.Color.Black;
-            this.userListButt.Location = new System.Drawing.Point(3, 32);
+            this.userListButt.Location = new System.Drawing.Point(94, 3);
             this.userListButt.Name = "userListButt";
-            this.userListButt.Size = new System.Drawing.Size(109, 23);
+            this.userListButt.Size = new System.Drawing.Size(85, 23);
             this.userListButt.TabIndex = 27;
             this.userListButt.Text = "Update List";
             this.userListButt.UseVisualStyleBackColor = false;
@@ -1615,10 +1614,9 @@ namespace Happy_Search
             // 
             // userListReply
             // 
-            this.userListReply.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.userListReply.Location = new System.Drawing.Point(3, 155);
+            this.userListReply.Location = new System.Drawing.Point(3, 172);
             this.userListReply.Name = "userListReply";
-            this.userListReply.Size = new System.Drawing.Size(109, 80);
+            this.userListReply.Size = new System.Drawing.Size(175, 63);
             this.userListReply.TabIndex = 28;
             this.userListReply.Text = "(userListReply)";
             this.userListReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1658,9 +1656,10 @@ namespace Happy_Search
             this.showProducerTitlesToolStripMenuItem,
             this.addProducerToFavoritesToolStripMenuItem,
             this.addChangeVNNoteToolStripMenuItem,
-            this.addChangeVNGroupsToolStripMenuItem});
+            this.addChangeVNGroupsToolStripMenuItem,
+            this.seeOnWebsiteToolStripMenuItem});
             this.ContextMenuVN.Name = "contextMenuStrip1";
-            this.ContextMenuVN.Size = new System.Drawing.Size(214, 164);
+            this.ContextMenuVN.Size = new System.Drawing.Size(214, 186);
             // 
             // userlistToolStripMenuItem
             // 
@@ -1884,6 +1883,13 @@ namespace Happy_Search
             this.addChangeVNGroupsToolStripMenuItem.ToolTipText = "Only for titles in Userlist";
             this.addChangeVNGroupsToolStripMenuItem.Click += new System.EventHandler(this.RightClickAddGroup);
             // 
+            // seeOnWebsiteToolStripMenuItem
+            // 
+            this.seeOnWebsiteToolStripMenuItem.Name = "seeOnWebsiteToolStripMenuItem";
+            this.seeOnWebsiteToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.seeOnWebsiteToolStripMenuItem.Text = "See title on VNDB.org";
+            this.seeOnWebsiteToolStripMenuItem.Click += new System.EventHandler(this.RightClickSeeOnWebsite);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2072,6 +2078,7 @@ namespace Happy_Search
         private Label label24;
         internal ComboBox filterDropdown;
         private Button button2;
+        private ToolStripMenuItem seeOnWebsiteToolStripMenuItem;
     }
 }
 

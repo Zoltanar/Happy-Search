@@ -483,7 +483,10 @@
     <Content Include="Program Data\Help\listresults.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Program Data\Help\searchingandfiltering.html">
+    <Content Include="Program Data\Help\filtering.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Program Data\Help\listingandsearching.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Program Data\Help\traitfiltering.html">

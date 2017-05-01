@@ -156,6 +156,7 @@
             this.customFilterNameBox = new System.Windows.Forms.TextBox();
             this.button5 = new System.Windows.Forms.Button();
             this.customFilterReply = new System.Windows.Forms.Label();
+            this.button8 = new System.Windows.Forms.Button();
             this.lengthPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.releaseDateToYear)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.releaseDateToDay)).BeginInit();
@@ -1954,11 +1955,26 @@
             this.customFilterReply.Text = "(customFilterReply)";
             this.customFilterReply.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // button8
+            // 
+            this.button8.BackColor = System.Drawing.Color.Khaki;
+            this.button8.FlatAppearance.BorderSize = 0;
+            this.button8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button8.ForeColor = System.Drawing.Color.Black;
+            this.button8.Location = new System.Drawing.Point(415, 346);
+            this.button8.Name = "button8";
+            this.button8.Size = new System.Drawing.Size(100, 23);
+            this.button8.TabIndex = 108;
+            this.button8.Text = "Filters";
+            this.button8.UseVisualStyleBackColor = false;
+            this.button8.Click += new System.EventHandler(this.Help_Filters);
+            // 
             // FiltersTab
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.Controls.Add(this.button8);
             this.Controls.Add(this.customFilterReply);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.customFilterNameBox);
@@ -2143,5 +2159,6 @@
         private System.Windows.Forms.TextBox customFilterNameBox;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.Label customFilterReply;
+        private System.Windows.Forms.Button button8;
     }
 }

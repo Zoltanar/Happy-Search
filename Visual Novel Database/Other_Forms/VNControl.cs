@@ -18,8 +18,6 @@ namespace Happy_Search.Other_Forms
     /// </summary>
     public partial class VNControl : UserControl
     {
-        // ReSharper disable InconsistentNaming
-        // ReSharper restore InconsistentNaming
         private readonly FormMain _parentForm;
         private const int ScreenshotPadding = 10;
         private ListedVN _displayedVN;
@@ -27,8 +25,17 @@ namespace Happy_Search.Other_Forms
         private readonly bool _loadFromDb;
         private ScreenItem[] _screens;
         private readonly TabPage _tabPage;
-        private bool _working;
         private readonly PictureBox[] _flagBoxes;
+        private bool _working;
+        private bool Working
+        {
+            get => _working;
+            set
+            {
+                vnReplyText.Text = value ? "Working..." : "";
+                _working = value;
+            }
+        }
 
         /// <summary>
         /// Load VN form with specified Visual Novel.
@@ -518,8 +525,21 @@ namespace Happy_Search.Other_Forms
             if (vnReplyText.Text.Equals("Updating...")) return;
             WriteWarning(vnReplyText, "Updating...");
             _parentForm.StartQuery(vnReplyText, "Update VN", false, true, true);
-            await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID },true);
-            await SetNewData(_displayedVN.VNID, true);
+            try
+            {
+                await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID }, true);
+                await SetNewData(_displayedVN.VNID, true);
+            }
+#pragma warning disable 168
+            catch (Exception ex)
+#pragma warning restore 168
+            {
+                // ignored
+            }
+            finally
+            {
+                _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+            }
         }
 
         private void OpenVndbPage(object sender, LinkLabelLinkClickedEventArgs e)
@@ -727,7 +747,7 @@ namespace Happy_Search.Other_Forms
             var nitem = e.ClickedItem;
             if (nitem == null) return;
             bool success;
-            if (_displayedVN == null || _working) return;
+            if (_displayedVN == null || Working) return;
             var statusInt = -1;
             switch (nitem.OwnerItem.Text)
             {
@@ -737,7 +757,7 @@ namespace Happy_Search.Other_Forms
                         WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
-                    _working = true;
+                    Working = true;
                     statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
                     success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.UL, statusInt);
                     break;
@@ -747,7 +767,7 @@ namespace Happy_Search.Other_Forms
                         WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
-                    _working = true;
+                    Working = true;
                     statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
                     success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.WL, statusInt);
                     break;
@@ -774,27 +794,27 @@ namespace Happy_Search.Other_Forms
                         WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} already has that status.");
                         return;
                     }
-                    _working = true;
+                    Working = true;
                     success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.Vote, statusInt, newVoteValue);
-                    _working = false;
+                    Working = false;
                     break;
                 default:
                     return;
             }
             if (!success)
             {
-                _working = false;
+                Working = false;
                 return;
             }
             WriteText(vnReplyText, $"{TruncateString(_displayedVN.Title, 20)} status changed.");
             await SetNewData(_displayedVN.VNID);
-            _working = false;
+            Working = false;
         }
 
         private async void AddProducer(object sender, EventArgs e)
         {
-            if (_displayedVN == null || _working) return;
-            _working = true;
+            if (_displayedVN == null || Working) return;
+            Working = true;
             ListedVN[] producerVNs = _parentForm.URTList.Where(x => x.Producer.Equals(_displayedVN.Producer)).ToArray();
             double userAverageVote = -1;
             double userDropRate = -1;
@@ -822,12 +842,12 @@ namespace Happy_Search.Other_Forms
             WriteText(vnReplyText, $"{_displayedVN.Producer} added to list.");
             await SetNewData(_displayedVN.VNID);
 
-            _working = false;
+            Working = false;
         }
 
         private void OptionsMenu(object sender, EventArgs e)
         {
-            if (_working)
+            if (Working)
             {
                 vnReplyText.Text = @"Please wait...";
                 return;
@@ -846,7 +866,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async void AddNote(object sender, EventArgs e)
         {
-            if (_working) return;
+            if (Working) return;
             if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(vnReplyText, "Not Logged In");
@@ -872,7 +892,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async void AddGroup(object sender, EventArgs e)
         {
-            if (_working) return;
+            if (Working) return;
             if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(vnReplyText, "Not Logged In");
@@ -898,8 +918,8 @@ namespace Happy_Search.Other_Forms
         /// <param name="itemNotes">Object containing new data to replace old</param>
         private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
         {
-            if (_working) return;
-            _working = true;
+            if (Working) return;
+            Working = true;
             var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes",false,false,true);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
@@ -914,7 +934,7 @@ namespace Happy_Search.Other_Forms
             WriteText(vnReplyText, replyMessage);
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             await SetNewData(_displayedVN.VNID);
-            _working = false;
+            Working = false;
         }
 
         private void VnGroups_SelectedIndexChanged(object sender, EventArgs e)

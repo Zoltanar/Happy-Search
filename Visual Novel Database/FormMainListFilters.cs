@@ -20,11 +20,11 @@ namespace Happy_Search
         /// <summary>
         /// Display html file explaining searching, listing and filtering section.
         /// </summary>
-        private void Help_SearchingAndFiltering(object sender, EventArgs e)
+        private void Help_ListingAndSearching(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
             Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
-            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\searchingandfiltering.html")}";
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listingandsearching.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
@@ -517,88 +517,7 @@ namespace Happy_Search
 
         #endregion
 
-        #region List Results
-
-        private void Help_ListResults(object sender, EventArgs e)
-        {
-            var path = Path.GetDirectoryName(Application.ExecutablePath);
-            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
-            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listresults.html")}";
-            new HtmlForm($"file:///{helpFile}").Show();
-        }
-
-        /// <summary>
-        /// Load Visual Novel Form with details of visual novel that was double clicked.
-        /// </summary>
-        private void VisualNovelDoubleClick(object sender, CellClickEventArgs e)
-        {
-            if (e.ClickCount < 2) return;
-            if (ModifierKeys.HasFlag(Keys.Control)) return;
-            var vnItem = (ListedVN)e.Model;
-            var tabPage = new TabPage();
-            VNControl vnf;
-            if (ActiveQuery.Completed)
-            {
-                DBConn.Open();
-                vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
-                DBConn.Close();
-                vnf = new VNControl(vnItem, this, tabPage, true);
-            }
-            else vnf = new VNControl(vnItem, this, tabPage, false);
-            vnf.Dock = DockStyle.Fill;
-            tabPage.Controls.Add(vnf);
-            TabsControl.TabPages.Add(tabPage);
-            //dont auto-switch to tab if holding alt
-            if (ModifierKeys.HasFlag(Keys.Alt)) return;
-            TabsControl.SelectTab(tabPage);
-        }
-
-        //format list rows, color according to userlist status, only for Details View
-        private void FormatVNRow(object sender, FormatRowEventArgs e)
-        {
-            if (e.ListView.View != View.Details) return;
-            var listedVN = (ListedVN)e.Model;
-            //ULStatus takes priority over WLStatus
-            switch (listedVN.WLStatus)
-            {
-                case WishlistStatus.High:
-                    e.Item.BackColor = WLHighBrush.Color;
-                    break;
-                case WishlistStatus.Medium:
-                    e.Item.BackColor = WLMediumBrush.Color;
-                    break;
-                case WishlistStatus.Low:
-                    e.Item.BackColor = WLLowBrush.Color;
-                    break;
-            }
-            switch (listedVN.ULStatus)
-            {
-                case UserlistStatus.Finished:
-                    e.Item.BackColor = ULFinishedBrush.Color;
-                    break;
-                case UserlistStatus.Stalled:
-                    e.Item.BackColor = ULStalledBrush.Color;
-                    break;
-                case UserlistStatus.Dropped:
-                    e.Item.BackColor = ULDroppedBrush.Color;
-                    break;
-                case UserlistStatus.Unknown:
-                    e.Item.BackColor = ULUnknownBrush.Color;
-                    break;
-            }
-            var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
-            e.Item.GetSubItem(tileColumnULAdded.Index).Text = listedVN.ULAdded != dateTimeOffset ? listedVN.ULAdded.ToShortDateString() : "";
-            e.Item.GetSubItem(tileColumnWLAdded.Index).Text = listedVN.WLAdded != dateTimeOffset ? listedVN.WLAdded.ToShortDateString() : "";
-            if (listedVN.ULStatus == UserlistStatus.None) e.Item.GetSubItem(tileColumnULS.Index).Text = "";
-            if (listedVN.ULStatus == UserlistStatus.Playing) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
-            if (listedVN.WLStatus == WishlistStatus.None) e.Item.GetSubItem(tileColumnWLS.Index).Text = "";
-            if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
-            if (FavoriteProducerList.Any(x => x.Name.Equals(listedVN.Producer))) e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
-            e.Item.GetSubItem(tileColumnLength.Index).Text = listedVN.LengthString;
-            e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
-            e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
-            e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
-        }
+        #region VN Context Menu
 
         /// <summary>
         /// Display Context Menu on right clicking a visual novel.
@@ -808,6 +727,91 @@ namespace Happy_Search
             await UpdateItemNotes("Added title to group(s).", vn.VNID, itemNotes);
         }
 
+        #endregion
+
+        #region List Results
+
+        private void Help_ListResults(object sender, EventArgs e)
+        {
+            var path = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
+            var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listresults.html")}";
+            new HtmlForm($"file:///{helpFile}").Show();
+        }
+
+        /// <summary>
+        /// Load Visual Novel Form with details of visual novel that was double clicked.
+        /// </summary>
+        private void VisualNovelDoubleClick(object sender, CellClickEventArgs e)
+        {
+            if (e.ClickCount < 2) return;
+            if (ModifierKeys.HasFlag(Keys.Control)) return;
+            var vnItem = (ListedVN)e.Model;
+            var tabPage = new TabPage();
+            VNControl vnf;
+            if (ActiveQuery.Completed)
+            {
+                DBConn.Open();
+                vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
+                DBConn.Close();
+                vnf = new VNControl(vnItem, this, tabPage, true);
+            }
+            else vnf = new VNControl(vnItem, this, tabPage, false);
+            vnf.Dock = DockStyle.Fill;
+            tabPage.Controls.Add(vnf);
+            TabsControl.TabPages.Add(tabPage);
+            //dont auto-switch to tab if holding alt
+            if (ModifierKeys.HasFlag(Keys.Alt)) return;
+            TabsControl.SelectTab(tabPage);
+        }
+
+        //format list rows, color according to userlist status, only for Details View
+        private void FormatVNRow(object sender, FormatRowEventArgs e)
+        {
+            if (e.ListView.View != View.Details) return;
+            var listedVN = (ListedVN)e.Model;
+            //ULStatus takes priority over WLStatus
+            switch (listedVN.WLStatus)
+            {
+                case WishlistStatus.High:
+                    e.Item.BackColor = WLHighBrush.Color;
+                    break;
+                case WishlistStatus.Medium:
+                    e.Item.BackColor = WLMediumBrush.Color;
+                    break;
+                case WishlistStatus.Low:
+                    e.Item.BackColor = WLLowBrush.Color;
+                    break;
+            }
+            switch (listedVN.ULStatus)
+            {
+                case UserlistStatus.Finished:
+                    e.Item.BackColor = ULFinishedBrush.Color;
+                    break;
+                case UserlistStatus.Stalled:
+                    e.Item.BackColor = ULStalledBrush.Color;
+                    break;
+                case UserlistStatus.Dropped:
+                    e.Item.BackColor = ULDroppedBrush.Color;
+                    break;
+                case UserlistStatus.Unknown:
+                    e.Item.BackColor = ULUnknownBrush.Color;
+                    break;
+            }
+            var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
+            e.Item.GetSubItem(tileColumnULAdded.Index).Text = listedVN.ULAdded != dateTimeOffset ? listedVN.ULAdded.ToShortDateString() : "";
+            e.Item.GetSubItem(tileColumnWLAdded.Index).Text = listedVN.WLAdded != dateTimeOffset ? listedVN.WLAdded.ToShortDateString() : "";
+            if (listedVN.ULStatus == UserlistStatus.None) e.Item.GetSubItem(tileColumnULS.Index).Text = "";
+            if (listedVN.ULStatus == UserlistStatus.Playing) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
+            if (listedVN.WLStatus == WishlistStatus.None) e.Item.GetSubItem(tileColumnWLS.Index).Text = "";
+            if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
+            if (FavoriteProducerList.Any(x => x.Name.Equals(listedVN.Producer))) e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
+            e.Item.GetSubItem(tileColumnLength.Index).Text = listedVN.LengthString;
+            e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
+            e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
+            e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
+        }
+
         /// <summary>
         /// Send query to VNDB to update a VN's notes and if successful, update database.
         /// </summary>
@@ -874,20 +878,34 @@ namespace Happy_Search
 
         #endregion
 
+        internal void SetVNList(Func<ListedVN, bool> function, string label)
+        {
+            tileOLV.ModelFilter = new ModelFilter(vn => function((ListedVN)vn));
+            CurrentFilterLabel = label;
+        }
+
+        private void FilterChanged(object sender, EventArgs e)
+        {
+            Filters selectedItem = (Filters)filterDropdown.SelectedItem;
+            FiltersTab?.ChangeCustomFilter(this, selectedItem);
+        }
+
+        private void SetAllTitles(object sender, EventArgs e)
+        {
+            _currentList = x => true;
+            _currentListLabel = "All Titles";
+            LoadVNListToGui();
+        }
+
         #region Classes and Enums
 #pragma warning disable 1591
         /// <summary>
         /// Specifies ListBy mode.
         /// </summary>
         private enum ListBy { Name, Producer, Year, Group }
+#pragma warning restore 1591
         #endregion
 
-        public void SetVNList(Func<ListedVN, bool> function, string label)
-        {
-            tileOLV.ModelFilter = new ModelFilter(vn => function((ListedVN)vn));
-            CurrentFilterLabel = label;
-        }
     }
 
-#pragma warning restore 1591
 }
