@@ -34,6 +34,7 @@ namespace Happy_Search.Other_Forms
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
+        #region  Custom Tag Filter Saving/Loading
         private void EnterCustomTagFilterName(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter) SaveCustomTagFilter(sender, e);
@@ -60,7 +61,7 @@ namespace Happy_Search.Other_Forms
                 customFilter.Filters = TagsPre.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
                 DontTriggerEvent = true;
-                tagFiltersCB.SelectedIndex = tagFiltersCB.Items.IndexOf(customFilter);
+                tagFiltersCB.SelectedItem = customFilter;
                 DontTriggerEvent = false;
             }
             else
@@ -75,13 +76,67 @@ namespace Happy_Search.Other_Forms
         }
 
         /// <summary>
+        /// Delete custom tag filter.
+        /// </summary>
+        private void DeleteCustomTagFilter(object sender, EventArgs e)
+        {
+            if (tagFiltersCB.SelectedIndex < 1) return; //shouldnt happen
+            var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (askBox != DialogResult.Yes) return;
+            var selectedFilter = tagFiltersCB.SelectedItem as CustomTagFilter;
+            if (selectedFilter == null) return; //shouldnt happen
+            _customTagFilters.Remove(selectedFilter);
+            SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
+            WriteText(tagReply, Resources.filter_deleted);
+            tagFiltersCB.SelectedIndex = 0;
+        }
+
+        /// <summary>
         /// Clear list of active tag filters (Does not change custom filters).
         /// </summary>
         private void ClearTagFilter(object sender, EventArgs e)
         {
             TagsPre.Clear();
-            tagFiltersCB.SelectedIndex = 0;
             WriteText(tagReply, Resources.filter_cleared);
+        }
+        #endregion
+
+        /// <summary>
+        /// Display VNs matching tags in selected custom filter.
+        /// </summary>
+        private void Filter_CustomTags(object sender, EventArgs e)
+        {
+            if (DontTriggerEvent) return;
+            var selectedItem = tagFiltersCB.SelectedItem as CustomTagFilter;
+            if (selectedItem == null) return;
+            customTagFilterNameBox.Text = selectedItem.Name;
+            TagsPre.Clear();
+            TagsPre.AddRange(selectedItem.Filters.ToArray());
+        }
+
+        /// <summary>
+        /// Search for tags by name/alias entered by user.
+        /// </summary>
+        private void AddTagBySearch(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            tagSearchResultBox.Visible = false;
+            if (tagSearchBox.Text == "") //check if box is empty
+            {
+                WriteError(tagReply, "Enter tag name.");
+                return;
+            }
+            string text = tagSearchBox.Text.ToLowerInvariant();
+            //if exact match is found, add it
+            var exact = FormMain.PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
+            if (exact != null)
+            {
+                tagSearchBox.Text = "";
+                AddFilterTag(exact);
+                return;
+            }
+            SearchTags(null, null);
+
         }
 
         /// <summary>
@@ -182,7 +237,7 @@ namespace Happy_Search.Other_Forms
         }
 
         /// <summary>
-        /// Get all VNs that match the list of active filters which were not already in local database, if '10 Year Limit' is enabled, only titles released in the last 10 years will be fetched.
+        /// Get all VNs that match the list of active tag filters which were not already in local database, if '10 Year Limit' is enabled, only titles released in the last 10 years will be fetched.
         /// </summary>
         private async Task UpdateFilterResults()
         {
@@ -215,39 +270,6 @@ namespace Happy_Search.Other_Forms
         }
 
         /// <summary>
-        /// Display VNs matching tags in selected custom filter.
-        /// </summary>
-        private void Filter_CustomTags(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            var selectedItem = tagFiltersCB.SelectedItem as CustomTagFilter;
-            if (selectedItem == null || selectedItem.Name == "Select Filter")
-            {
-                customTagFilterNameBox.Text = "";
-                deleteCustomTagFilterButton.Enabled = false;
-                return;
-            }
-            deleteCustomTagFilterButton.Enabled = true;
-            customTagFilterNameBox.Text = selectedItem.Name;
-            TagsPre.Clear();
-            TagsPre.AddRange(selectedItem.Filters.ToArray());
-        }
-
-        /// <summary>
-        /// Delete custom tag filter.
-        /// </summary>
-        private void DeleteCustomTagFilter(object sender, EventArgs e)
-        {
-            if (tagFiltersCB.SelectedIndex < 1) return; //shouldnt happen
-            var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (askBox != DialogResult.Yes) return;
-            _customTagFilters.RemoveAt(tagFiltersCB.SelectedIndex);
-            SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
-            WriteText(tagReply, Resources.filter_deleted);
-            tagFiltersCB.SelectedIndex = 0;
-        }
-
-        /// <summary>
         /// Whether Visual Novel contains a single tag (or a subtag).
         /// </summary>
         /// <param name="vn">Visual Novel to be checked</param>
@@ -268,32 +290,6 @@ namespace Happy_Search.Other_Forms
             int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
             var filtersMatched = _filters.Tags.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
             return filtersMatched == _filters.Tags.Length;
-        }
-
-        /// <summary>
-        /// Search for tags by name/alias entered by user.
-        /// </summary>
-        private void AddTagBySearch(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode != Keys.Enter) return;
-            tagSearchResultBox.Visible = false;
-            if (tagSearchBox.Text == "") //check if box is empty
-            {
-                WriteError(tagReply, "Enter tag name.");
-                return;
-            }
-            var tb = (TextBox)sender;
-            string text = tb.Text.ToLowerInvariant();
-            //if exact match is found, add it
-            var exact = FormMain.PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
-            if (exact != null)
-            {
-                tagSearchBox.Text = "";
-                AddFilterTag(exact);
-                return;
-            }
-            SearchTags(null, null);
-
         }
 
         /// <summary>
@@ -350,10 +346,5 @@ namespace Happy_Search.Other_Forms
             tagSearchResultBox.Visible = false;
         }
 
-        internal void LeftFiltersTab()
-        {
-            ApplyFilters(_filters);
-            SaveFilters();
-        }
     }
 }

@@ -61,6 +61,7 @@ namespace Happy_Search
             this.toggleViewButton = new System.Windows.Forms.Button();
             this.multiActionBox = new System.Windows.Forms.ComboBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.infoTab = new System.Windows.Forms.TabPage();
             this.logGB = new System.Windows.Forms.GroupBox();
             this.advancedCheckBox = new System.Windows.Forms.CheckBox();
@@ -532,6 +533,21 @@ namespace Happy_Search
             this.toolTip.SetToolTip(this.button1, "Update all data for titles that haven\'t been updated in over 7 days.");
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.UpdateAllDataClick);
+            // 
+            // button2
+            // 
+            this.button2.BackColor = System.Drawing.Color.SteelBlue;
+            this.button2.FlatAppearance.BorderSize = 0;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button2.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.button2.Location = new System.Drawing.Point(152, 30);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(89, 23);
+            this.button2.TabIndex = 111;
+            this.button2.Text = "All Titles";
+            this.toolTip.SetToolTip(this.button2, "Lists titles in local database.");
+            this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.SetAllTitles);
             // 
             // infoTab
             // 
@@ -1125,6 +1141,7 @@ namespace Happy_Search
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.button2);
             this.panel3.Controls.Add(this.filterDropdown);
             this.panel3.Controls.Add(this.label24);
             this.panel3.Controls.Add(this.statusLabel);
@@ -1152,7 +1169,7 @@ namespace Happy_Search
             this.filterDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.filterDropdown.ForeColor = System.Drawing.Color.Black;
             this.filterDropdown.FormattingEnabled = true;
-            this.filterDropdown.Location = new System.Drawing.Point(192, 31);
+            this.filterDropdown.Location = new System.Drawing.Point(291, 32);
             this.filterDropdown.Name = "filterDropdown";
             this.filterDropdown.Size = new System.Drawing.Size(121, 21);
             this.filterDropdown.TabIndex = 110;
@@ -1162,7 +1179,7 @@ namespace Happy_Search
             // 
             this.label24.AutoSize = true;
             this.label24.ForeColor = System.Drawing.Color.White;
-            this.label24.Location = new System.Drawing.Point(152, 34);
+            this.label24.Location = new System.Drawing.Point(251, 35);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(34, 13);
             this.label24.TabIndex = 109;
@@ -1184,9 +1201,9 @@ namespace Happy_Search
             this.resultLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultLabel.BackColor = System.Drawing.Color.Transparent;
             this.resultLabel.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.resultLabel.Location = new System.Drawing.Point(983, 31);
+            this.resultLabel.Location = new System.Drawing.Point(930, 35);
             this.resultLabel.Name = "resultLabel";
-            this.resultLabel.Size = new System.Drawing.Size(194, 21);
+            this.resultLabel.Size = new System.Drawing.Size(247, 21);
             this.resultLabel.TabIndex = 43;
             this.resultLabel.Text = "(resultLabel)";
             this.resultLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1390,9 +1407,9 @@ namespace Happy_Search
             this.replyText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.replyText.BackColor = System.Drawing.Color.Transparent;
-            this.replyText.Location = new System.Drawing.Point(319, 30);
+            this.replyText.Location = new System.Drawing.Point(418, 35);
             this.replyText.Name = "replyText";
-            this.replyText.Size = new System.Drawing.Size(658, 20);
+            this.replyText.Size = new System.Drawing.Size(506, 21);
             this.replyText.TabIndex = 28;
             this.replyText.Text = "(replyText)";
             this.replyText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -2055,6 +2072,7 @@ namespace Happy_Search
         private Panel panel3;
         private Label label24;
         internal ComboBox filterDropdown;
+        private Button button2;
     }
 }
 

@@ -86,12 +86,10 @@ namespace Happy_Search.Other_Forms
             {
                 _customTagFilters.Clear();
                 var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
-                if (loadedTagFilters == null) _customTagFilters.Add(new CustomTagFilter("Select Filter", null));
-                else _customTagFilters.AddRange(loadedTagFilters);
+                if (loadedTagFilters != null) _customTagFilters.AddRange(loadedTagFilters);
                 _customTraitFilters.Clear();
                 var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
-                if (loadedTraitFilters == null) _customTraitFilters.Add(new CustomTraitFilter("Select Filter", null));
-                else _customTraitFilters.AddRange(loadedTraitFilters);
+                if (loadedTraitFilters != null) _customTraitFilters.AddRange(loadedTraitFilters);
                 LoadSaveFilters();
                 _filters = Filters.LoadFilters(this);
                 DontTriggerEvent = true;
@@ -100,10 +98,10 @@ namespace Happy_Search.Other_Forms
                 _mainForm.filterDropdown.DataSource = _mainForm.FiltersList;
                 tagFiltersCB.DataSource = _customTagFilters;
                 traitFiltersCB.DataSource = _customTraitFilters;
-                tagFiltersCB.SelectedIndex = 0;
-                traitFiltersCB.SelectedIndex = 0;
-                filterDropdown.SelectedIndex = 0;
-                _mainForm.filterDropdown.SelectedIndex = 0;
+                if(_customTagFilters.Count > 0) tagFiltersCB.SelectedIndex = 0;
+                if (_customTraitFilters.Count > 0) traitFiltersCB.SelectedIndex = 0;
+                if (_mainForm.FiltersList.Count > 0) filterDropdown.SelectedIndex = 0;
+                if (_mainForm.FiltersList.Count > 0) _mainForm.filterDropdown.SelectedIndex = 0;
                 DontTriggerEvent = false;
                 DisplayFilters();
                 ApplyFilters(_filters);
@@ -403,8 +401,7 @@ namespace Happy_Search.Other_Forms
         {
             if (e.KeyCode == Keys.Enter) AddOriginalLanguage(sender, null);
         }
-
-
+        
         private void AddLanguage(object sender, EventArgs e)
         {
             var language = languageCB.Text;
@@ -504,8 +501,7 @@ namespace Happy_Search.Other_Forms
             SaveObjectToJsonFile(_mainForm.FiltersList, CustomFiltersJson);
             WriteText(customFilterReply, Resources.filter_saved);
         }
-
-
+        
         internal void EnteredMainTab()
         {
             if (RefreshFilters)
@@ -514,6 +510,12 @@ namespace Happy_Search.Other_Forms
                 _mainForm.LoadVNListToGui();
                 _filters.SetRefreshFalse();
             }
+        }
+
+        internal void LeftFiltersTab()
+        {
+            ApplyFilters(_filters);
+            SaveFilters();
         }
     }
 }

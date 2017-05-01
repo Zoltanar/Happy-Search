@@ -28,7 +28,6 @@ namespace Happy_Search
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
-
         /// <summary>
         /// Toggle between wide view (see more results) and normal view
         /// </summary>
@@ -99,7 +98,7 @@ namespace Happy_Search
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
-                    if (!StartQuery(replyText, "UpdateTagsTraitsStats (MA)",true,true,false))
+                    if (!StartQuery(replyText, "UpdateTagsTraitsStats (MA)", true, true, false))
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
@@ -115,7 +114,7 @@ namespace Happy_Search
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
-                    if (!StartQuery(replyText, "Update All Data (MA)",true,true,true))
+                    if (!StartQuery(replyText, "Update All Data (MA)", true, true, true))
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
@@ -162,7 +161,6 @@ namespace Happy_Search
             DBConn.EndTransaction();
         }
 
-
         #region Searching
 
         /// <summary>
@@ -199,7 +197,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)");
                 return;
             }
-            var result = StartQuery(replyText, "Search_ByName",false,false,true);
+            var result = StartQuery(replyText, "Search_ByName", false, false, true);
             if (!result) return;
             var searchString = ListByTB.Text;
             ListByTB.Text = "";
@@ -247,7 +245,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.must_be_integer);
                 return;
             }
-            var result = StartQuery(replyText, "Search_ByYear",true,true,true);
+            var result = StartQuery(replyText, "Search_ByYear", true, true, true);
             if (!result) return;
             var startTime = DateTime.UtcNow.ToLocalTime();
             var startTimeString = startTime.ToString("HH:mm");
@@ -304,7 +302,7 @@ namespace Happy_Search
             {
                 var askBox2 = MessageBox.Show($@"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result2 = StartQuery(replyText, "Update Producer Titles",false,false,false);
+                var result2 = StartQuery(replyText, "Update Producer Titles", false, false, false);
                 if (!result2) return;
                 var producers = await AddProducersBySearchedName(producer);
                 if (producers == null) return;
@@ -328,7 +326,7 @@ namespace Happy_Search
             }
             var result = StartQuery(replyText, "Update Producer Titles", false, false, false);
             if (!result) return;
-            await GetProducerTitles(producerItem,false);
+            await GetProducerTitles(producerItem, false);
             WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {TitlesAdded} titles.");
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
@@ -478,7 +476,7 @@ namespace Happy_Search
             if (!skipListBox) ListByTB.Text = "";
             DontTriggerEvent = false;
         }
-        
+
         /// <summary>
         /// Display VNs in user-defined group that is typed/selected in box.
         /// </summary>
@@ -492,7 +490,7 @@ namespace Happy_Search
             _currentListLabel = $"{groupName} (Group)";
             LoadVNListToGui(skipComboSearch: true);
         }
-        
+
         private void ListByCbEnter(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
@@ -518,7 +516,7 @@ namespace Happy_Search
         }
 
         #endregion
-        
+
         #region List Results
 
         private void Help_ListResults(object sender, EventArgs e)
@@ -839,7 +837,7 @@ namespace Happy_Search
         /// <param name="itemNotes">Object containing new data to replace old</param>
         private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
         {
-            var result = StartQuery(replyText, "Update Item Notes",false,false,false);
+            var result = StartQuery(replyText, "Update Item Notes", false, false, false);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
@@ -878,10 +876,10 @@ namespace Happy_Search
         private void OLV_ItemsChanged(object sender, ItemsChangedEventArgs e)
         {
             if (tileOLV.Objects == null) return;
-            var count = tileOLV.Objects.Cast<object>().Count();
-            var totalcount = VNList.Count;
+            var count = tileOLV.FilteredObjects.Cast<object>().Count();
+            var totalcount = tileOLV.Objects.Cast<object>().Count();
             string itemCountString = count == totalcount ? $"{totalcount} items." : $"{count}/{totalcount} items.";
-            resultLabel.Text = $@"List: {_currentListLabel} {itemCountString}";
+            resultLabel.Text = $@"List: {_currentListLabel} ({_currentFilterLabel}) {itemCountString}";
         }
 
         /// <summary>
@@ -907,8 +905,8 @@ namespace Happy_Search
 
         public void SetVNList(Func<ListedVN, bool> function, string label)
         {
-            _currentList = function;
-            _currentListLabel = label;
+            tileOLV.ModelFilter = new ModelFilter(vn => function((ListedVN)vn));
+            _currentFilterLabel = label;
         }
     }
 

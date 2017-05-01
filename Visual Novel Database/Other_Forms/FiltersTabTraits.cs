@@ -31,40 +31,10 @@ namespace Happy_Search.Other_Forms
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
-        /// <summary>
-        ///     Delete custom trait filter.
-        /// </summary>
-        private void DeleteCustomTraitFilter(object sender, EventArgs e)
+        #region Custom Trait Filter Saving/Loading
+        private void EnterCustomTraitFilterName(object sender, KeyEventArgs e)
         {
-            if (traitFiltersCB.SelectedIndex < 1) return; //shouldnt happen
-            var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
-            if (askBox != DialogResult.Yes) return;
-            var selectedFilter = traitFiltersCB.SelectedItem as CustomTraitFilter;
-            if (selectedFilter == null) return; //shouldnt happen
-            _customTraitFilters.Remove(selectedFilter);
-            SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
-            WriteText(traitReply, Resources.filter_deleted);
-            customTraitFilterNameBox.Text = "";
-            traitFiltersCB.SelectedIndex = 0;
-        }
-
-        /// <summary>
-        ///     Display VNs matching traits in selected custom filter.
-        /// </summary>
-        private void Filter_CustomTraits(object sender, EventArgs e)
-        {
-            if (DontTriggerEvent) return;
-            var selectedItem = traitFiltersCB.SelectedItem as CustomTraitFilter;
-            if (selectedItem == null || selectedItem.Name == "Select Filter")
-            {
-                customTraitFilterNameBox.Text = "";
-                deleteCustomTraitFilterButton.Enabled = false;
-                return;
-            }
-            deleteCustomTraitFilterButton.Enabled = true;
-            customTraitFilterNameBox.Text = selectedItem.Name;
-            TraitsPre.Clear();
-            TraitsPre.AddRange(selectedItem.Filters.ToArray());
+            if (e.KeyCode == Keys.Enter) SaveCustomTraitFilter(sender, e);
         }
 
         /// <summary>
@@ -83,13 +53,12 @@ namespace Happy_Search.Other_Forms
             if (customFilter != null)
             {
                 var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
-                    Resources.ask_overwrite,
-                    MessageBoxButtons.YesNo);
+                    Resources.ask_overwrite, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
                 customFilter.Filters = TraitsPre.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
                 DontTriggerEvent = true;
-                traitFiltersCB.SelectedIndex = traitFiltersCB.Items.IndexOf(filterName);
+                traitFiltersCB.SelectedItem = customFilter;
                 DontTriggerEvent = false;
             }
             else
@@ -99,13 +68,24 @@ namespace Happy_Search.Other_Forms
                 traitFiltersCB.SelectedIndex = _customTraitFilters.Count - 1;
                 DontTriggerEvent = false;
             }
-            SaveObjectToJsonFile(_customTraitFilters,CustomTraitFiltersJson);
+            SaveObjectToJsonFile(_customTraitFilters, CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_saved);
         }
 
-        private void EnterCustomTraitFilterName(object sender, KeyEventArgs e)
+        /// <summary>
+        ///     Delete custom trait filter.
+        /// </summary>
+        private void DeleteCustomTraitFilter(object sender, EventArgs e)
         {
-            if (e.KeyCode == Keys.Enter) SaveCustomTraitFilter(sender, e);
+            if (traitFiltersCB.SelectedIndex < 1) return; //shouldnt happen
+            var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            if (askBox != DialogResult.Yes) return;
+            var selectedFilter = traitFiltersCB.SelectedItem as CustomTraitFilter;
+            if (selectedFilter == null) return; //shouldnt happen
+            _customTraitFilters.Remove(selectedFilter);
+            SaveObjectToJsonFile(_customTraitFilters, CustomTraitFiltersJson);
+            WriteText(traitReply, Resources.filter_deleted);
+            traitFiltersCB.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -113,26 +93,22 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void ClearTraitFilter(object sender, EventArgs e)
         {
-            traitFiltersCB.SelectedIndex = 0;
             TraitsPre.Clear();
             WriteText(traitReply, "Trait filter cleared.");
         }
+        #endregion
 
         /// <summary>
-        ///     Change selected trait type.
+        ///     Display VNs matching traits in selected custom filter.
         /// </summary>
-        private void TraitRootChanged(object sender, EventArgs e)
+        private void Filter_CustomTraits(object sender, EventArgs e)
         {
-            if (traitRootsDropdown.SelectedIndex < 0) return;
-            var trait = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
-            if (trait == null)
-            {
-                WriteError(traitReply, "Root trait not found.");
-                return;
-            }
-            var traitSource = new AutoCompleteStringCollection();
-            traitSource.AddRange(FormMain.PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
-            traitSearchBox.AutoCompleteCustomSource = traitSource;
+            if (DontTriggerEvent) return;
+            var selectedItem = traitFiltersCB.SelectedItem as CustomTraitFilter;
+            if (selectedItem == null) return;
+            customTraitFilterNameBox.Text = selectedItem.Name;
+            TraitsPre.Clear();
+            TraitsPre.AddRange(selectedItem.Filters.ToArray());
         }
 
         /// <summary>
@@ -149,19 +125,17 @@ namespace Happy_Search.Other_Forms
             }
             var traitName = traitSearchBox.Text;
             var root = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
-            var trait =
-                FormMain.PlainTraits.Find(x =>
+            var trait = FormMain.PlainTraits.Find(x =>
                     x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
                     x.TopmostParent == root.ID);
-            if (trait == null)
+            if (trait != null)
             {
-                SearchTraits();
+                traitSearchBox.Text = "";
+                AddFilterTrait(trait);
+                WriteText(traitReply, $"Added trait {trait}");
                 return;
             }
-            AddFilterTrait(trait);
-            var s = (Control)sender;
-            s.Text = "";
-            WriteText(traitReply, $"Added trait {trait}");
+            SearchTraits();
         }
 
         /// <summary>
@@ -181,6 +155,23 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             TraitsPre.Add(trait);
+        }
+
+        /// <summary>
+        ///     Change selected trait type.
+        /// </summary>
+        private void TraitRootChanged(object sender, EventArgs e)
+        {
+            if (traitRootsDropdown.SelectedIndex < 0) return;
+            var trait = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            if (trait == null)
+            {
+                WriteError(traitReply, "Root trait not found.");
+                return;
+            }
+            var traitSource = new AutoCompleteStringCollection();
+            traitSource.AddRange(FormMain.PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
+            traitSearchBox.AutoCompleteCustomSource = traitSource;
         }
 
         /// <summary>

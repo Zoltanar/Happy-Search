@@ -125,7 +125,6 @@ No Work
 	----------
 	 Update Help files
 	 Remove Logging from database methods (or make it write to file later)
-	 Change Wishlist/Userlist in OLV to show Description attribute instead of ToString
 	 Change Added to UL/WL to show only date not time (ToShortDateString)
 
 

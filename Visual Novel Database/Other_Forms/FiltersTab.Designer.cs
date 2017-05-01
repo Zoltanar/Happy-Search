@@ -1731,7 +1731,7 @@
             this.traitFiltersCB.Name = "traitFiltersCB";
             this.traitFiltersCB.Size = new System.Drawing.Size(100, 21);
             this.traitFiltersCB.TabIndex = 106;
-            this.traitFiltersCB.Click += new System.EventHandler(this.Filter_CustomTraits);
+            this.traitFiltersCB.SelectedIndexChanged += new System.EventHandler(this.Filter_CustomTraits);
             // 
             // traitReply
             // 

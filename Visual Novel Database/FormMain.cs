@@ -844,6 +844,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
 
         internal static bool AdvancedMode; //when true, print all api queries and responses to information tab.
+        private string _currentFilterLabel;
 
         private void ToggleAdvancedMode(object sender, EventArgs e)
         {
@@ -1188,7 +1189,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
         }
 
-        internal void EnterMainTab(object sender, EventArgs e)
+        private void EnterMainTab(object sender, EventArgs e)
         {
             FiltersTab?.EnteredMainTab();
         }
@@ -1463,7 +1464,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private void FilterChanged(object sender, EventArgs e)
         {
             Filters selectedItem = (Filters)filterDropdown.SelectedItem;
-            FiltersTab?.ChangeCustomFilter(this,selectedItem);
+            FiltersTab?.ChangeCustomFilter(this, selectedItem);
+        }
+
+        private void SetAllTitles(object sender, EventArgs e)
+        {
+            _currentList = x => true;
+            _currentListLabel = "All Titles";
+            LoadVNListToGui();
         }
     }
 
