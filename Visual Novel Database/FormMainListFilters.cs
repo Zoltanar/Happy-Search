@@ -886,7 +886,7 @@ namespace Happy_Search
 
         private void FilterChanged(object sender, EventArgs e)
         {
-            Filters selectedItem = (Filters)filterDropdown.SelectedItem;
+            CustomFilter selectedItem = (CustomFilter)filterDropdown.SelectedItem;
             FiltersTab?.ChangeCustomFilter(this, selectedItem);
         }
 

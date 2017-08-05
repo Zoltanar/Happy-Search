@@ -1134,7 +1134,6 @@ namespace Happy_Search
             this.vnTab.Size = new System.Drawing.Size(1196, 595);
             this.vnTab.TabIndex = 1;
             this.vnTab.Text = "Main";
-            this.vnTab.Enter += new System.EventHandler(this.EnterMainTab);
             // 
             // panel3
             // 

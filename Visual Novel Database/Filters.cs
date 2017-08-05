@@ -20,14 +20,13 @@ namespace Happy_Search
     {
 #pragma warning disable 1591
         public string Name = "Custom Filter";
-
         public LengthFilter Length
         {
             get => _length;
             set
             {
                 if (LengthFixed && !_ignoreFixed) return;
-                Refresh = value != _length;
+                Refresh(value != _length);
                 _length = value;
             }
         }
@@ -37,7 +36,7 @@ namespace Happy_Search
             set
             {
                 if (ReleaseDateFixed && !_ignoreFixed) return;
-                Refresh = value != _releaseDate;
+                Refresh(value != _releaseDate);
                 _releaseDate = value;
             }
         }
@@ -47,7 +46,7 @@ namespace Happy_Search
             set
             {
                 if (UnreleasedFixed && !_ignoreFixed) return;
-                Refresh = value != _unreleased;
+                Refresh(value != _unreleased);
                 _unreleased = value;
             }
         }
@@ -57,7 +56,7 @@ namespace Happy_Search
             set
             {
                 if (BlacklistFixed && !_ignoreFixed) return;
-                Refresh = value != _blacklisted;
+                Refresh(value != _blacklisted);
                 _blacklisted = value;
             }
         }
@@ -67,7 +66,7 @@ namespace Happy_Search
             set
             {
                 if (VotedFixed && !_ignoreFixed) return;
-                Refresh = value != _voted;
+                Refresh(value != _voted);
                 _voted = value;
             }
         }
@@ -77,7 +76,7 @@ namespace Happy_Search
             set
             {
                 if (FavoriteProducersFixed && !_ignoreFixed) return;
-                Refresh = value != _favoriteProducers;
+                Refresh(value != _favoriteProducers);
                 _favoriteProducers = value;
             }
         }
@@ -87,7 +86,7 @@ namespace Happy_Search
             set
             {
                 if (WishlistFixed && !_ignoreFixed) return;
-                Refresh = value != _wishlist;
+                Refresh(value != _wishlist);
                 _wishlist = value;
             }
         }
@@ -97,7 +96,7 @@ namespace Happy_Search
             set
             {
                 if (UserlistFixed && !_ignoreFixed) return;
-                Refresh = value != _userlist;
+                Refresh(value != _userlist);
                 _userlist = value;
             }
         }
@@ -107,7 +106,7 @@ namespace Happy_Search
             set
             {
                 if (LanguageFixed && !_ignoreFixed) return;
-                Refresh = !value.SequenceEqualNullAware(_language);
+                Refresh(!value.SequenceEqualNullAware(_language));
                 _language = value;
             }
         }
@@ -117,7 +116,7 @@ namespace Happy_Search
             set
             {
                 if (OriginalLanguageFixed && !_ignoreFixed) return;
-                Refresh = !value.SequenceEqualNullAware(_originalLanguage);
+                Refresh(!value.SequenceEqualNullAware(_originalLanguage));
                 _originalLanguage = value;
             }
         }
@@ -127,7 +126,7 @@ namespace Happy_Search
             set
             {
                 if (TagsFixed && !_ignoreFixed) return;
-                Refresh = !value.SequenceEqualNullAware(_tags);
+                Refresh(!value.SequenceEqualNullAware(_tags));
                 _tags = value;
             }
         }
@@ -137,19 +136,21 @@ namespace Happy_Search
             set
             {
                 if (TraitsFixed && !_ignoreFixed) return;
-                Refresh = !value.SequenceEqualNullAware(_traits);
+                Refresh(!value.SequenceEqualNullAware(_traits));
                 _traits = value;
             }
         }
-
-        private bool _tagsTraitsMode;
         /// <summary>
         /// True means OR, false means AND
         /// </summary>
         public bool TagsTraitsMode
         {
             get => _tagsTraitsMode;
-            set => _tagsTraitsMode = value;
+            set
+            {
+                Refresh(value != _tagsTraitsMode);
+                _tagsTraitsMode = value;
+            }
         }
 
         private LengthFilter _length;
@@ -164,9 +165,10 @@ namespace Happy_Search
         private string[] _originalLanguage;
         private TagFilter[] _tags;
         private WrittenTrait[] _traits;
-        private bool _refresh;
+        private bool _tagsTraitsMode;
         private bool _ignoreFixed = true;
 
+        // ReSharper disable UnusedAutoPropertyAccessor.Local
         private bool LengthFixed { get; set; }
         private bool ReleaseDateFixed { get; set; }
         private bool UnreleasedFixed { get; set; }
@@ -179,18 +181,18 @@ namespace Happy_Search
         private bool OriginalLanguageFixed { get; set; }
         private bool TagsFixed { get; set; }
         private bool TraitsFixed { get; set; }
+        // ReSharper restore UnusedAutoPropertyAccessor.Local
 
         [JsonIgnore]
-        public bool Refresh
+        public RefreshType RefreshKind { get; set; }
+
+        private void Refresh(bool value)
         {
-            get => _refresh;
-            private set
-            {
-                if (value) _refresh = true;
-            }
+            if (!value) return;
+            RefreshKind = RefreshType.UserChanged;
         }
 
-        public void SetRefreshFalse() => _refresh = false;
+
 #pragma warning restore 1591
 
         /// <summary>
@@ -211,17 +213,16 @@ namespace Happy_Search
                 LogToFile(e);
                 result = new Filters();
             }
-            result.SetFixedStatusesToForm(tab);
             return result;
         }
 
         /// <summary>
         /// Load from filter but don't overwrite fixed parameters.
         /// </summary>
-        public void SetFromSavedFilter(FiltersTab tab, Filters filter)
+        public void SetFromSavedFilter(CustomFilter filter)
         {
+            var previousRefreshKind = RefreshKind;
             _ignoreFixed = false;
-            ClearAll(tab);
             Name = filter.Name;
             Length = filter.Length;
             ReleaseDate = filter.ReleaseDate;
@@ -237,30 +238,12 @@ namespace Happy_Search
             Traits = filter.Traits;
             TagsTraitsMode = filter.TagsTraitsMode;
             _ignoreFixed = true;
+            //if it wasn't set to refresh previously, then set it to refresh if any change occured, else set it to refresh anyway
+            if (previousRefreshKind == RefreshType.None) RefreshKind = RefreshKind == RefreshType.UserChanged ? RefreshType.NamedFilter : RefreshType.None;
+            else RefreshKind = RefreshType.NamedFilter;
         }
 
-        /// <summary>
-        /// Clear all filters.
-        /// </summary>
-        /// <param name="tab">Control containing indicators for filter fixed statuses.</param>
-        public void ClearAll(FiltersTab tab)
-        {
-            SetFixedStatusesFromForm(tab);
-            Length = LengthFilter.Off;
-            ReleaseDate = null;
-            Unreleased = UnreleasedFilter.Off;
-            Blacklisted = YesNoFilter.Off;
-            Voted = YesNoFilter.Off;
-            FavoriteProducers = YesNoFilter.Off;
-            Wishlist = WishlistFilter.Off;
-            Userlist = UserlistFilter.Off;
-            Language = null;
-            OriginalLanguage = null;
-            Tags = null;
-            Traits = null;
-        }
-
-        /// <summary>
+        /*/// <summary>
         /// Sets Fixed Status for filters from info in form.
         /// </summary>
         public void SetFixedStatusesFromForm(FiltersTab tab)
@@ -277,9 +260,9 @@ namespace Happy_Search
             OriginalLanguageFixed = tab.originalLanguageFixed.Checked;
             TagsFixed = tab.tagsFixed.Checked;
             TraitsFixed = tab.traitsFixed.Checked;
-        }
+        }*/
 
-        /// <summary>
+        /*/// <summary>
         /// Sets Fixed Status from filters into form.
         /// </summary>
         public void SetFixedStatusesToForm(FiltersTab tab)
@@ -295,7 +278,7 @@ namespace Happy_Search
             tab.originalLanguageFixed.Checked = OriginalLanguageFixed;
             tab.tagsFixed.Checked = TagsFixed;
             tab.traitsFixed.Checked = TraitsFixed;
-        }
+        }*/
 
         /// <summary>
         /// Returns function to filter VNList.
@@ -372,11 +355,78 @@ namespace Happy_Search
 
         /// <inheritdoc />
         public override string ToString() => Name;
+
+        /// <summary>
+        /// Gets Custom Filter (struct) from active filter.
+        /// </summary>
+        public CustomFilter GetCustomFilter()
+        {
+            return new CustomFilter
+            {
+                Name = Name,
+                Length = Length,
+                ReleaseDate = ReleaseDate,
+                Unreleased = Unreleased,
+                Blacklisted = Blacklisted,
+                Voted = Voted,
+                FavoriteProducers = FavoriteProducers,
+                Wishlist = Wishlist,
+                Userlist = Userlist,
+                Language = Language?.ToArray(),
+                OriginalLanguage = OriginalLanguage?.ToArray(),
+                Tags = Tags?.ToArray(),
+                Traits = Traits?.ToArray(),
+                TagsTraitsMode = TagsTraitsMode
+            };
+        }
+        /// <summary>
+        /// Sets filters from given custom filter to active filter.
+        /// </summary>
+        public void SetCustomFilter(CustomFilter customFilter)
+        {
+            Name = customFilter.Name;
+            Length = customFilter.Length;
+            ReleaseDate = customFilter.ReleaseDate;
+            Unreleased = customFilter.Unreleased;
+            Blacklisted = customFilter.Blacklisted;
+            Voted = customFilter.Voted;
+            FavoriteProducers = customFilter.FavoriteProducers;
+            Wishlist = customFilter.Wishlist;
+            Userlist = customFilter.Userlist;
+            Language = customFilter.Language?.ToArray();
+            OriginalLanguage = customFilter.OriginalLanguage?.ToArray();
+            Tags = customFilter.Tags?.ToArray();
+            Traits = customFilter.Traits?.ToArray();
+            TagsTraitsMode = TagsTraitsMode;
+        }
     }
 
 #pragma warning disable 1591
-
     // ReSharper disable UnusedMember.Global
+    public struct CustomFilter
+    {
+        public override string ToString() => Name;
+
+        public string Name;
+        public LengthFilter Length;
+        public DateRange ReleaseDate;
+        public UnreleasedFilter Unreleased;
+        public YesNoFilter Blacklisted;
+        public YesNoFilter Voted;
+        public YesNoFilter FavoriteProducers;
+        public WishlistFilter Wishlist;
+        public UserlistFilter Userlist;
+        public string[] Language;
+        public string[] OriginalLanguage;
+        public TagFilter[] Tags;
+        public WrittenTrait[] Traits;
+        /// <summary>
+        /// True means OR, false means AND
+        /// </summary>
+        public bool TagsTraitsMode;
+    }
+
+
     [Flags]
     public enum UnreleasedFilter
     {
@@ -437,6 +487,8 @@ namespace Happy_Search
         [Description(">50 Hours")]
         OverFiftyHours = 32,
         Any = UnderTwoHours | TwoToTenHours | TenToThirtyHours | ThirtyToFiftyHours | OverFiftyHours
+
+
     }
     // ReSharper restore UnusedMember.Global
     /// <summary>
@@ -586,6 +638,8 @@ namespace Happy_Search
 
         public override string ToString() => Name;
     }
+
+    public enum RefreshType { None, UserChanged, NamedFilter }
 
     public class MyContractResolver : DefaultContractResolver
     {

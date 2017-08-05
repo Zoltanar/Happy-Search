@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -34,7 +33,6 @@ namespace Happy_Search
         internal List<ListedProducer> ProducerList; //contains all producers in local database
         internal List<CharacterItem> CharacterList; //contains all producers in local database
         internal List<ListedProducer> FavoriteProducerList; //contains all favorite producers for logged in user
-        internal readonly BindingList<Filters> FiltersList = new BindingList<Filters>();
         /// <summary>
         /// Contains all VNs in database.
         /// </summary>
@@ -1188,11 +1186,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 File.Delete(TraitsJson);
                 LoadTraitdump(true);
             }
-        }
-
-        private void EnterMainTab(object sender, EventArgs e)
-        {
-            FiltersTab?.EnteredMainTab();
         }
 
         private void OnFiltersLeave(object sender, EventArgs e)

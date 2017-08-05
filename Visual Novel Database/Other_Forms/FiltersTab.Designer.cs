@@ -220,6 +220,7 @@
             this.lengthOverFifty.TabIndex = 6;
             this.lengthOverFifty.Text = ">50 Hours";
             this.lengthOverFifty.UseVisualStyleBackColor = true;
+            this.lengthOverFifty.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.lengthOverFifty.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // lengthThirtyToFifty
@@ -232,6 +233,7 @@
             this.lengthThirtyToFifty.TabIndex = 5;
             this.lengthThirtyToFifty.Text = "30-50 Hours";
             this.lengthThirtyToFifty.UseVisualStyleBackColor = true;
+            this.lengthThirtyToFifty.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.lengthThirtyToFifty.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // lengthTenToThirty
@@ -244,6 +246,7 @@
             this.lengthTenToThirty.TabIndex = 4;
             this.lengthTenToThirty.Text = "10-30 Hours";
             this.lengthTenToThirty.UseVisualStyleBackColor = true;
+            this.lengthTenToThirty.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.lengthTenToThirty.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // lengthTwoToTen
@@ -256,6 +259,7 @@
             this.lengthTwoToTen.TabIndex = 3;
             this.lengthTwoToTen.Text = "2-10 Hours";
             this.lengthTwoToTen.UseVisualStyleBackColor = true;
+            this.lengthTwoToTen.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.lengthTwoToTen.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // lengthUnderTwo
@@ -268,6 +272,7 @@
             this.lengthUnderTwo.TabIndex = 2;
             this.lengthUnderTwo.Text = "<2 Hours";
             this.lengthUnderTwo.UseVisualStyleBackColor = true;
+            this.lengthUnderTwo.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.lengthUnderTwo.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // lengthNA
@@ -280,6 +285,7 @@
             this.lengthNA.TabIndex = 1;
             this.lengthNA.Text = "N/A";
             this.lengthNA.UseVisualStyleBackColor = true;
+            this.lengthNA.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.lengthNA.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // label1
@@ -624,6 +630,7 @@
             this.unreleasedReleased.TabIndex = 39;
             this.unreleasedReleased.Text = "Released";
             this.unreleasedReleased.UseVisualStyleBackColor = true;
+            this.unreleasedReleased.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.unreleasedReleased.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // unreleasedTF
@@ -654,6 +661,7 @@
             this.unreleasedWithoutRD.TabIndex = 38;
             this.unreleasedWithoutRD.Text = "Without Release Date";
             this.unreleasedWithoutRD.UseVisualStyleBackColor = true;
+            this.unreleasedWithoutRD.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.unreleasedWithoutRD.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // label11
@@ -676,6 +684,7 @@
             this.unreleasedWithRD.TabIndex = 37;
             this.unreleasedWithRD.Text = "With Release Date";
             this.unreleasedWithRD.UseVisualStyleBackColor = true;
+            this.unreleasedWithRD.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.unreleasedWithRD.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // unreleasedPanel
@@ -997,6 +1006,7 @@
             this.wishlistLow.TabIndex = 4;
             this.wishlistLow.Text = "Low";
             this.wishlistLow.UseVisualStyleBackColor = true;
+            this.wishlistLow.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.wishlistLow.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // wishlistMedium
@@ -1009,6 +1019,7 @@
             this.wishlistMedium.TabIndex = 3;
             this.wishlistMedium.Text = "Medium";
             this.wishlistMedium.UseVisualStyleBackColor = true;
+            this.wishlistMedium.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.wishlistMedium.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // wishlistHigh
@@ -1021,6 +1032,7 @@
             this.wishlistHigh.TabIndex = 2;
             this.wishlistHigh.Text = "High";
             this.wishlistHigh.UseVisualStyleBackColor = true;
+            this.wishlistHigh.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.wishlistHigh.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // wishlistNA
@@ -1033,6 +1045,7 @@
             this.wishlistNA.TabIndex = 1;
             this.wishlistNA.Text = "N/A";
             this.wishlistNA.UseVisualStyleBackColor = true;
+            this.wishlistNA.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.wishlistNA.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // label15
@@ -1107,6 +1120,7 @@
             this.userlistDropped.TabIndex = 6;
             this.userlistDropped.Text = "Dropped";
             this.userlistDropped.UseVisualStyleBackColor = true;
+            this.userlistDropped.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.userlistDropped.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // userlistStalled
@@ -1119,6 +1133,7 @@
             this.userlistStalled.TabIndex = 5;
             this.userlistStalled.Text = "Stalled";
             this.userlistStalled.UseVisualStyleBackColor = true;
+            this.userlistStalled.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.userlistStalled.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // userlistFinished
@@ -1131,6 +1146,7 @@
             this.userlistFinished.TabIndex = 4;
             this.userlistFinished.Text = "Finished";
             this.userlistFinished.UseVisualStyleBackColor = true;
+            this.userlistFinished.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.userlistFinished.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // userlistPlaying
@@ -1143,6 +1159,7 @@
             this.userlistPlaying.TabIndex = 3;
             this.userlistPlaying.Text = "Playing";
             this.userlistPlaying.UseVisualStyleBackColor = true;
+            this.userlistPlaying.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.userlistPlaying.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // userlistUnknown
@@ -1155,6 +1172,7 @@
             this.userlistUnknown.TabIndex = 2;
             this.userlistUnknown.Text = "Unknown";
             this.userlistUnknown.UseVisualStyleBackColor = true;
+            this.userlistUnknown.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.userlistUnknown.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // userlistNA
@@ -1167,6 +1185,7 @@
             this.userlistNA.TabIndex = 1;
             this.userlistNA.Text = "N/A";
             this.userlistNA.UseVisualStyleBackColor = true;
+            this.userlistNA.CheckedChanged += new System.EventHandler(this.ChangeMultiFilter);
             this.userlistNA.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterCheckboxClick);
             // 
             // label16
@@ -1736,7 +1755,6 @@
             // 
             // traitReply
             // 
-            this.traitReply.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.traitReply.ForeColor = System.Drawing.Color.White;
             this.traitReply.Location = new System.Drawing.Point(284, 162);
             this.traitReply.Name = "traitReply";
@@ -2117,30 +2135,30 @@
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.Panel languagePanel;
         private System.Windows.Forms.ListBox tagSearchResultBox;
-        internal System.Windows.Forms.CheckBox lengthFixed;
-        internal System.Windows.Forms.CheckBox lengthTF;
-        internal System.Windows.Forms.CheckBox releaseDateFixed;
-        internal System.Windows.Forms.CheckBox releaseDateTF;
-        internal System.Windows.Forms.CheckBox unreleasedFixed;
-        internal System.Windows.Forms.CheckBox unreleasedTF;
-        internal System.Windows.Forms.CheckBox blacklistedFixed;
-        internal System.Windows.Forms.CheckBox blacklistedTF;
-        internal System.Windows.Forms.CheckBox votedFixed;
-        internal System.Windows.Forms.CheckBox votedTF;
-        internal System.Windows.Forms.CheckBox favoriteProducerFixed;
-        internal System.Windows.Forms.CheckBox favoriteProducerTF;
-        internal System.Windows.Forms.CheckBox wishlistFixed;
-        internal System.Windows.Forms.CheckBox wishlistTF;
-        internal System.Windows.Forms.CheckBox userlistFixed;
-        internal System.Windows.Forms.CheckBox userlistTF;
-        internal System.Windows.Forms.CheckBox originalLanguageFixed;
-        internal System.Windows.Forms.CheckBox originalLanguageTF;
-        internal System.Windows.Forms.CheckBox tagsFixed;
-        internal System.Windows.Forms.CheckBox tagsTF;
-        internal System.Windows.Forms.CheckBox traitsFixed;
-        internal System.Windows.Forms.CheckBox traitsTF;
-        internal System.Windows.Forms.CheckBox languageFixed;
-        internal System.Windows.Forms.CheckBox languageTF;
+        private System.Windows.Forms.CheckBox lengthFixed;
+        private System.Windows.Forms.CheckBox lengthTF;
+        private System.Windows.Forms.CheckBox releaseDateFixed;
+        private System.Windows.Forms.CheckBox releaseDateTF;
+        private System.Windows.Forms.CheckBox unreleasedFixed;
+        private System.Windows.Forms.CheckBox unreleasedTF;
+        private System.Windows.Forms.CheckBox blacklistedFixed;
+        private System.Windows.Forms.CheckBox blacklistedTF;
+        private System.Windows.Forms.CheckBox votedFixed;
+        private System.Windows.Forms.CheckBox votedTF;
+        private System.Windows.Forms.CheckBox favoriteProducerFixed;
+        private System.Windows.Forms.CheckBox favoriteProducerTF;
+        private System.Windows.Forms.CheckBox wishlistFixed;
+        private System.Windows.Forms.CheckBox wishlistTF;
+        private System.Windows.Forms.CheckBox userlistFixed;
+        private System.Windows.Forms.CheckBox userlistTF;
+        private System.Windows.Forms.CheckBox originalLanguageFixed;
+        private System.Windows.Forms.CheckBox originalLanguageTF;
+        private System.Windows.Forms.CheckBox tagsFixed;
+        private System.Windows.Forms.CheckBox tagsTF;
+        private System.Windows.Forms.CheckBox traitsFixed;
+        private System.Windows.Forms.CheckBox traitsTF;
+        private System.Windows.Forms.CheckBox languageFixed;
+        private System.Windows.Forms.CheckBox languageTF;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.TextBox customTraitFilterNameBox;

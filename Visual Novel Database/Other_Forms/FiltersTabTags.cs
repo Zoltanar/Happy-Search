@@ -288,8 +288,9 @@ namespace Happy_Search.Other_Forms
         internal bool VNMatchesTagFilter(ListedVN vn)
         {
             int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
-            var filtersMatched = _filters.Tags.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
-            return filtersMatched == _filters.Tags.Length;
+            var filtersMatched = _filters.Tags?.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
+            if (filtersMatched == null) return false;
+            return filtersMatched == _filters.Tags?.Length;
         }
 
         /// <summary>

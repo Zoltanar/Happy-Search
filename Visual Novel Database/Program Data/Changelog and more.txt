@@ -128,6 +128,8 @@ No Work
 	Easy Tasks
 	----------
 	 Remove Logging from database methods (or make it write to file later)
+	 Don't open duplicate vn tabs
+	 Insert Rating filter
 	 
 	Medium Tasks
 	----------
@@ -257,6 +259,5 @@ Change SetDbVersion
 Change CreateTable scripts
 Change enum DatabaseVersion
 Additionally test upgrading old version to new version of Happy Search.
-
 
 ---------------------------------------------------------------------------------------------------

@@ -118,7 +118,7 @@ namespace Happy_Search
         {
             try
             {
-                File.WriteAllText(filePath,JsonConvert.SerializeObject(objectToSave,Formatting.Indented));
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(objectToSave, Formatting.Indented));
             }
             catch (Exception e)
             {
@@ -148,6 +148,70 @@ namespace Happy_Search
         }
 
         /// <summary>
+        /// Adds a flag value to enum.
+        /// Please note that enums are value types so you need to handle the RETURNED value from this method.
+        /// Example: myEnumVariable = myEnumVariable.AddFlag(CustomEnumType.Value1);
+        /// </summary>
+        public static T AddFlag<T>(this Enum type, T enumFlag)
+        {
+            try
+            {
+                return (T)(object)((int)(object)type | (int)(object)enumFlag);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(string.Format("Could not append flag value {0} to enum {1}", enumFlag, typeof(T).Name), ex);
+            }
+        }
+
+        /// <summary>
+        /// Removes the flag value from enum.
+        /// Please note that enums are value types so you need to handle the RETURNED value from this method.
+        /// Example: myEnumVariable = myEnumVariable.RemoveFlag(CustomEnumType.Value1);
+        /// </summary>
+        public static T RemoveFlag<T>(this Enum type, T enumFlag)
+        {
+            try
+            {
+                return (T)(object)((int)(object)type & ~(int)(object)enumFlag);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(string.Format("Could not remove flag value {0} from enum {1}", enumFlag, typeof(T).Name), ex);
+            }
+        }
+
+        /// <summary>
+        /// Sets flag state on enum.
+        /// Please note that enums are value types so you need to handle the RETURNED value from this method.
+        /// Example: myEnumVariable = myEnumVariable.SetFlag(CustomEnumType.Value1, true);
+        /// </summary>
+        public static T SetFlag<T>(this Enum type, T enumFlag, bool value)
+        {
+            return value ? type.AddFlag(enumFlag) : type.RemoveFlag(enumFlag);
+        }
+
+        /*#pragma warning disable 1591
+                public static void AddFlag(ref LengthFilter type, LengthFilter enumFlag)
+                {
+                    type = (LengthFilter)(object)((int)(object)type | (int)(object)enumFlag);
+                }
+                public static void AddFlag(ref UnreleasedFilter type, UnreleasedFilter enumFlag)
+                {
+                    type = (UnreleasedFilter)(object)((int)(object)type | (int)(object)enumFlag);
+                }
+                public static void AddFlag(ref WishlistFilter type, WishlistFilter enumFlag)
+                {
+                    type = (WishlistFilter)(object)((int)(object)type | (int)(object)enumFlag);
+                }
+                public static void AddFlag(ref UserlistFilter type, UserlistFilter enumFlag)
+                {
+                    type = (UserlistFilter)(object)((int)(object)type | (int)(object)enumFlag);
+                }
+        #pragma warning restore 1591*/
+
+
+        /// <summary>
         /// Convert a collection of up to 16 bools into an integer.
         /// </summary>
         public static int BoolArrayToInt(IEnumerable<bool> bits)
@@ -170,7 +234,7 @@ namespace Happy_Search
         {
             if (sequence1 == null && sequence2 == null) return true;
             if (sequence1 == null || sequence2 == null) return false;
-            var returned =  sequence1.SequenceEqual(sequence2);
+            var returned = sequence1.SequenceEqual(sequence2);
             return returned;
         }
 
@@ -180,7 +244,7 @@ namespace Happy_Search
         public static void AddRange<T>(this BindingList<T> list, IEnumerable<T> items)
         {
             list.RaiseListChangedEvents = false;
-            foreach(var item in items) list.Add(item);
+            foreach (var item in items) list.Add(item);
             list.RaiseListChangedEvents = true;
             list.ResetBindings();
         }
