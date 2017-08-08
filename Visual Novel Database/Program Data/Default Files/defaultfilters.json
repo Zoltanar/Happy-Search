@@ -10,7 +10,7 @@
     "Wishlist": 0,
     "Userlist": 0,
     "Language": null,
-    "OriginalLanguage": null,
+    "OriginalLanguage": [],
     "Tags": null,
     "Traits": null,
     "TagsTraitsMode": false
@@ -26,7 +26,7 @@
     "Wishlist": 0,
     "Userlist": 3,
     "Language": null,
-    "OriginalLanguage": null,
+    "OriginalLanguage": [],
     "Tags": null,
     "Traits": null,
     "TagsTraitsMode": false
@@ -42,7 +42,7 @@
     "Wishlist": 1,
     "Userlist": 3,
     "Language": null,
-    "OriginalLanguage": null,
+    "OriginalLanguage": [],
     "Tags": null,
     "Traits": null,
     "TagsTraitsMode": false
@@ -58,7 +58,7 @@
     "Wishlist": 0,
     "Userlist": 0,
     "Language": null,
-    "OriginalLanguage": null,
+    "OriginalLanguage": [],
     "Tags": null,
     "Traits": null,
     "TagsTraitsMode": false

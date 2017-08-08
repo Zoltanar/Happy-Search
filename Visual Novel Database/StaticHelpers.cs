@@ -328,10 +328,9 @@ namespace Happy_Search
         /// <typeparam name="T">Must be Enum</typeparam>
         public static T GetRadioOption<T>(this Panel panel) where T : struct, IConvertible
         {
-            var name = panel.Name.Replace("Panel", "TF");
-            int result;
-            if (!((CheckBox)panel.Controls.Find(name, false).First()).Checked) result = (int)YesNoFilter.Off;
-            else result = (int)(panel.Controls.OfType<RadioButton>().FirstOrDefault(c => c.Checked)?.Tag ?? (int)YesNoFilter.Off);
+            var firstOrDefault = panel.Controls.OfType<RadioButton>().FirstOrDefault(c => c.Checked);
+            if (firstOrDefault == null) throw new Exception($"Failed to get radio option from panel {panel.Name}");
+            int result = (int)firstOrDefault.Tag;
             return (T)(object)result;
         }
 

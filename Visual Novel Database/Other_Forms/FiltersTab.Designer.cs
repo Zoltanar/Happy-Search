@@ -142,7 +142,6 @@
             this.button9 = new System.Windows.Forms.Button();
             this.deleteCustomTraitFilterButton = new System.Windows.Forms.Button();
             this.label24 = new System.Windows.Forms.Label();
-            this.filterDropdown = new System.Windows.Forms.ComboBox();
             this.label25 = new System.Windows.Forms.Label();
             this.languageCB = new System.Windows.Forms.ComboBox();
             this.languageFixed = new System.Windows.Forms.CheckBox();
@@ -157,6 +156,7 @@
             this.button5 = new System.Windows.Forms.Button();
             this.customFilterReply = new System.Windows.Forms.Label();
             this.button8 = new System.Windows.Forms.Button();
+            this.filterDropdown = new System.Windows.Forms.ComboBox();
             this.lengthPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.releaseDateToYear)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.releaseDateToDay)).BeginInit();
@@ -750,6 +750,7 @@
             this.blacklistedNo.Tag = "";
             this.blacklistedNo.Text = "No";
             this.blacklistedNo.UseVisualStyleBackColor = true;
+            this.blacklistedNo.CheckedChanged += new System.EventHandler(this.FilterStateChanged);
             // 
             // blacklistedYes
             // 
@@ -763,6 +764,7 @@
             this.blacklistedYes.Tag = "";
             this.blacklistedYes.Text = "Yes";
             this.blacklistedYes.UseVisualStyleBackColor = true;
+            this.blacklistedYes.CheckedChanged += new System.EventHandler(this.FilterStateChanged);
             // 
             // label12
             // 
@@ -836,6 +838,7 @@
             this.votedNo.Tag = "";
             this.votedNo.Text = "No";
             this.votedNo.UseVisualStyleBackColor = true;
+            this.votedNo.CheckedChanged += new System.EventHandler(this.FilterStateChanged);
             // 
             // votedYes
             // 
@@ -849,6 +852,7 @@
             this.votedYes.Tag = "";
             this.votedYes.Text = "Yes";
             this.votedYes.UseVisualStyleBackColor = true;
+            this.votedYes.CheckedChanged += new System.EventHandler(this.FilterStateChanged);
             // 
             // label13
             // 
@@ -922,6 +926,7 @@
             this.favoriteProducerNo.Tag = "";
             this.favoriteProducerNo.Text = "No";
             this.favoriteProducerNo.UseVisualStyleBackColor = true;
+            this.favoriteProducerNo.CheckedChanged += new System.EventHandler(this.FilterStateChanged);
             // 
             // favoriteProducerYes
             // 
@@ -935,6 +940,7 @@
             this.favoriteProducerYes.Tag = "";
             this.favoriteProducerYes.Text = "Yes";
             this.favoriteProducerYes.UseVisualStyleBackColor = true;
+            this.favoriteProducerYes.CheckedChanged += new System.EventHandler(this.FilterStateChanged);
             // 
             // label14
             // 
@@ -1801,17 +1807,6 @@
             this.label24.TabIndex = 26;
             this.label24.Text = "Filters";
             // 
-            // filterDropdown
-            // 
-            this.filterDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.filterDropdown.ForeColor = System.Drawing.Color.Black;
-            this.filterDropdown.FormattingEnabled = true;
-            this.filterDropdown.Location = new System.Drawing.Point(561, 348);
-            this.filterDropdown.Name = "filterDropdown";
-            this.filterDropdown.Size = new System.Drawing.Size(121, 21);
-            this.filterDropdown.TabIndex = 27;
-            this.filterDropdown.SelectedIndexChanged += new System.EventHandler(this.FilterChanged);
-            // 
             // label25
             // 
             this.label25.AutoSize = true;
@@ -1987,11 +1982,25 @@
             this.button8.UseVisualStyleBackColor = false;
             this.button8.Click += new System.EventHandler(this.Help_Filters);
             // 
+            // filterDropdown
+            // 
+            this.filterDropdown.BackColor = System.Drawing.Color.SteelBlue;
+            this.filterDropdown.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.filterDropdown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.filterDropdown.ForeColor = System.Drawing.Color.White;
+            this.filterDropdown.FormattingEnabled = true;
+            this.filterDropdown.Location = new System.Drawing.Point(582, 348);
+            this.filterDropdown.Name = "filterDropdown";
+            this.filterDropdown.Size = new System.Drawing.Size(100, 21);
+            this.filterDropdown.TabIndex = 108;
+            this.filterDropdown.SelectedIndexChanged += new System.EventHandler(this.FilterChanged);
+            // 
             // FiltersTab
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.Controls.Add(this.filterDropdown);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.customFilterReply);
             this.Controls.Add(this.button5);
@@ -2003,7 +2012,6 @@
             this.Controls.Add(this.releaseDatePanel);
             this.Controls.Add(this.languagePanel);
             this.Controls.Add(this.unreleasedPanel);
-            this.Controls.Add(this.filterDropdown);
             this.Controls.Add(this.blacklistedPanel);
             this.Controls.Add(this.label24);
             this.Controls.Add(this.votedPanel);
@@ -2128,7 +2136,6 @@
         private System.Windows.Forms.Label label23;
         private System.Windows.Forms.Panel traitsPanel;
         private System.Windows.Forms.Label label24;
-        private System.Windows.Forms.ComboBox filterDropdown;
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.ComboBox languageCB;
         private System.Windows.Forms.ListBox languageLB;
@@ -2178,5 +2185,6 @@
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.Label customFilterReply;
         private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.ComboBox filterDropdown;
     }
 }

@@ -5,21 +5,20 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
     /// <summary>
-    /// Struct holding state of filters.
+    /// class holding state of filters.
     /// </summary>
     public class Filters
     {
 #pragma warning disable 1591
         public string Name = "Custom Filter";
+
         public LengthFilter Length
         {
             get => _length;
@@ -30,6 +29,7 @@ namespace Happy_Search
                 _length = value;
             }
         }
+
         public DateRange ReleaseDate
         {
             get => _releaseDate;
@@ -40,6 +40,7 @@ namespace Happy_Search
                 _releaseDate = value;
             }
         }
+
         public UnreleasedFilter Unreleased
         {
             get => _unreleased;
@@ -50,16 +51,18 @@ namespace Happy_Search
                 _unreleased = value;
             }
         }
+
         public YesNoFilter Blacklisted
         {
             get => _blacklisted;
             set
             {
-                if (BlacklistFixed && !_ignoreFixed) return;
+                if (BlacklistedFixed && !_ignoreFixed) return;
                 Refresh(value != _blacklisted);
                 _blacklisted = value;
             }
         }
+
         public YesNoFilter Voted
         {
             get => _voted;
@@ -70,6 +73,7 @@ namespace Happy_Search
                 _voted = value;
             }
         }
+
         public YesNoFilter FavoriteProducers
         {
             get => _favoriteProducers;
@@ -80,6 +84,7 @@ namespace Happy_Search
                 _favoriteProducers = value;
             }
         }
+
         public WishlistFilter Wishlist
         {
             get => _wishlist;
@@ -90,6 +95,7 @@ namespace Happy_Search
                 _wishlist = value;
             }
         }
+
         public UserlistFilter Userlist
         {
             get => _userlist;
@@ -100,46 +106,11 @@ namespace Happy_Search
                 _userlist = value;
             }
         }
-        public string[] Language
-        {
-            get => _language;
-            set
-            {
-                if (LanguageFixed && !_ignoreFixed) return;
-                Refresh(!value.SequenceEqualNullAware(_language));
-                _language = value;
-            }
-        }
-        public string[] OriginalLanguage
-        {
-            get => _originalLanguage;
-            set
-            {
-                if (OriginalLanguageFixed && !_ignoreFixed) return;
-                Refresh(!value.SequenceEqualNullAware(_originalLanguage));
-                _originalLanguage = value;
-            }
-        }
-        public TagFilter[] Tags
-        {
-            get => _tags;
-            set
-            {
-                if (TagsFixed && !_ignoreFixed) return;
-                Refresh(!value.SequenceEqualNullAware(_tags));
-                _tags = value;
-            }
-        }
-        public WrittenTrait[] Traits
-        {
-            get => _traits;
-            set
-            {
-                if (TraitsFixed && !_ignoreFixed) return;
-                Refresh(!value.SequenceEqualNullAware(_traits));
-                _traits = value;
-            }
-        }
+
+        public readonly BindingList<string> Language = new BindingList<string>();
+        public readonly BindingList<string> OriginalLanguage = new BindingList<string>();
+        public readonly BindingList<TagFilter> Tags = new BindingList<TagFilter>();
+        public readonly BindingList<WrittenTrait> Traits = new BindingList<WrittenTrait>();
         /// <summary>
         /// True means OR, false means AND
         /// </summary>
@@ -161,30 +132,73 @@ namespace Happy_Search
         private YesNoFilter _favoriteProducers;
         private WishlistFilter _wishlist;
         private UserlistFilter _userlist;
-        private string[] _language;
-        private string[] _originalLanguage;
-        private TagFilter[] _tags;
-        private WrittenTrait[] _traits;
         private bool _tagsTraitsMode;
         private bool _ignoreFixed = true;
 
-        // ReSharper disable UnusedAutoPropertyAccessor.Local
-        private bool LengthFixed { get; set; }
-        private bool ReleaseDateFixed { get; set; }
-        private bool UnreleasedFixed { get; set; }
-        private bool BlacklistFixed { get; set; }
-        private bool VotedFixed { get; set; }
-        private bool FavoriteProducersFixed { get; set; }
-        private bool WishlistFixed { get; set; }
-        private bool UserlistFixed { get; set; }
-        private bool LanguageFixed { get; set; }
-        private bool OriginalLanguageFixed { get; set; }
-        private bool TagsFixed { get; set; }
-        private bool TraitsFixed { get; set; }
-        // ReSharper restore UnusedAutoPropertyAccessor.Local
+        public static Filters FromFixedFilter(FixedFilter filter)
+        {
+            var filters = new Filters
+            {
+                Length = filter.Length,
+                ReleaseDate = filter.ReleaseDate,
+                Unreleased = filter.Unreleased,
+                Blacklisted = filter.Blacklisted,
+                Voted = filter.Voted,
+                FavoriteProducers = filter.FavoriteProducers,
+                Wishlist = filter.Wishlist,
+                Userlist = filter.Userlist,
+                TagsTraitsMode = filter.TagsTraitsMode,
+
+                LengthFixed = filter.LengthFixed,
+                ReleaseDateFixed = filter.ReleaseDateFixed,
+                UnreleasedFixed = filter.UnreleasedFixed,
+                BlacklistedFixed = filter.BlacklistFixed,
+                VotedFixed = filter.VotedFixed,
+                FavoriteProducersFixed = filter.FavoriteProducersFixed,
+                WishlistFixed = filter.WishlistFixed,
+                UserlistFixed = filter.UserlistFixed,
+                LanguageFixed = filter.LanguageFixed,
+                OriginalLanguageFixed = filter.OriginalLanguageFixed,
+                TagsFixed = filter.TagsFixed,
+                TraitsFixed = filter.TraitsFixed,
+
+                OriginalLanguageOn = filter.OriginalLanguageOn
+            };
+            filters.Language.AddRange(filter.Language);
+            filters.OriginalLanguage.AddRange(filter.OriginalLanguage);
+            filters.Tags.AddRange(filter.Tags);
+            filters.Traits.AddRange(filter.Traits);
+            return filters;
+        }
+
+        public bool LengthFixed { get; set; }
+        public bool ReleaseDateFixed { get; set; }
+        public bool UnreleasedFixed { get; set; }
+        public bool BlacklistedFixed { get; set; }
+        public bool VotedFixed { get; set; }
+        public bool FavoriteProducersFixed { get; set; }
+        public bool WishlistFixed { get; set; }
+        public bool UserlistFixed { get; set; }
+        public bool LanguageFixed { get; set; }
+        public bool OriginalLanguageFixed { get; set; }
+        public bool TagsFixed { get; set; }
+        public bool TraitsFixed { get; set; }
 
         [JsonIgnore]
         public RefreshType RefreshKind { get; set; }
+
+        public bool LengthOn { get; set; }
+        public bool ReleaseDateOn { get; set; }
+        public bool UnreleasedOn { get; set; }
+        public bool BlacklistedOn { get; set; }
+        public bool VotedOn { get; set; }
+        public bool FavoriteProducersOn { get; set; }
+        public bool WishlistOn { get; set; }
+        public bool UserlistOn { get; set; }
+        public bool LanguageOn { get; set; }
+        public bool OriginalLanguageOn { get; set; }
+        public bool TagsOn { get; set; }
+        public bool TraitsOn { get; set; }
 
         private void Refresh(bool value)
         {
@@ -198,14 +212,13 @@ namespace Happy_Search
         /// <summary>
         /// Load Filters from file.
         /// </summary>
-        /// <param name="tab">Control containing fixed statuses.</param>
-        public static Filters LoadFilters(FiltersTab tab)
+        public static Filters LoadFixedFilter()
         {
             Filters result;
             try
             {
-                var settings = new JsonSerializerSettings() { ContractResolver = new MyContractResolver() };
-                result = JsonConvert.DeserializeObject<Filters>(File.ReadAllText(FiltersJson), settings);
+                var fixedFilter = JsonConvert.DeserializeObject<FixedFilter>(File.ReadAllText(FiltersJson));
+                result = FromFixedFilter(fixedFilter);
             }
             catch (Exception e)
             {
@@ -232,53 +245,16 @@ namespace Happy_Search
             FavoriteProducers = filter.FavoriteProducers;
             Wishlist = filter.Wishlist;
             Userlist = filter.Userlist;
-            Language = filter.Language;
-            OriginalLanguage = filter.OriginalLanguage;
-            Tags = filter.Tags;
-            Traits = filter.Traits;
+            Language.AddRange(filter.Language);
+            OriginalLanguage.AddRange(filter.OriginalLanguage);
+            Tags.AddRange(filter.Tags);
+            Traits.AddRange(filter.Traits);
             TagsTraitsMode = filter.TagsTraitsMode;
             _ignoreFixed = true;
             //if it wasn't set to refresh previously, then set it to refresh if any change occured, else set it to refresh anyway
             if (previousRefreshKind == RefreshType.None) RefreshKind = RefreshKind == RefreshType.UserChanged ? RefreshType.NamedFilter : RefreshType.None;
             else RefreshKind = RefreshType.NamedFilter;
         }
-
-        /*/// <summary>
-        /// Sets Fixed Status for filters from info in form.
-        /// </summary>
-        public void SetFixedStatusesFromForm(FiltersTab tab)
-        {
-            LengthFixed = tab.lengthFixed.Checked;
-            ReleaseDateFixed = tab.releaseDateFixed.Checked;
-            UnreleasedFixed = tab.unreleasedFixed.Checked;
-            BlacklistFixed = tab.blacklistedFixed.Checked;
-            VotedFixed = tab.votedFixed.Checked;
-            FavoriteProducersFixed = tab.favoriteProducerFixed.Checked;
-            WishlistFixed = tab.wishlistFixed.Checked;
-            UserlistFixed = tab.userlistFixed.Checked;
-            LanguageFixed = tab.languageFixed.Checked;
-            OriginalLanguageFixed = tab.originalLanguageFixed.Checked;
-            TagsFixed = tab.tagsFixed.Checked;
-            TraitsFixed = tab.traitsFixed.Checked;
-        }*/
-
-        /*/// <summary>
-        /// Sets Fixed Status from filters into form.
-        /// </summary>
-        public void SetFixedStatusesToForm(FiltersTab tab)
-        {
-            tab.lengthFixed.Checked = LengthFixed;
-            tab.releaseDateFixed.Checked = ReleaseDateFixed;
-            tab.unreleasedFixed.Checked = UnreleasedFixed;
-            tab.blacklistedFixed.Checked = BlacklistFixed;
-            tab.favoriteProducerFixed.Checked = FavoriteProducersFixed;
-            tab.wishlistFixed.Checked = WishlistFixed;
-            tab.userlistFixed.Checked = UserlistFixed;
-            tab.languageFixed.Checked = LanguageFixed;
-            tab.originalLanguageFixed.Checked = OriginalLanguageFixed;
-            tab.tagsFixed.Checked = TagsFixed;
-            tab.traitsFixed.Checked = TraitsFixed;
-        }*/
 
         /// <summary>
         /// Returns function to filter VNList.
@@ -290,33 +266,33 @@ namespace Happy_Search
             var andFunctions = new List<Func<ListedVN, bool>>();
             var orFunctions = new List<Func<ListedVN, bool>>();
             Filters t = this;
-            if (Length != LengthFilter.Off) andFunctions.Add(vn => (t.Length & vn.Length) != 0);
-            if (ReleaseDate != null) andFunctions.Add(vn => vn.DateForSorting > t.ReleaseDate.From && vn.DateForSorting < t.ReleaseDate.To);
-            if (Unreleased != UnreleasedFilter.Off) andFunctions.Add(vn => (t.Unreleased & vn.Unreleased) != 0);
-            if (Blacklisted != YesNoFilter.Off) andFunctions.Add(vn => t.Blacklisted == vn.Blacklisted);
-            if (Voted != YesNoFilter.Off) andFunctions.Add(vn => t.Voted == vn.Voted);
-            if (FavoriteProducers != YesNoFilter.Off) andFunctions.Add(vn => t.FavoriteProducers == vn.ByFavoriteProducer(form.FavoriteProducerList));
-            if (Wishlist != WishlistFilter.Off) andFunctions.Add(vn => (t.Wishlist & vn.Wishlist) != 0);
-            if (Userlist != UserlistFilter.Off) andFunctions.Add(vn => (t.Userlist & vn.Userlist) != 0);
+            if (LengthOn) andFunctions.Add(vn => (t.Length & vn.Length) != 0);
+            if (ReleaseDateOn) andFunctions.Add(vn => vn.DateForSorting > t.ReleaseDate.From && vn.DateForSorting < t.ReleaseDate.To);
+            if (UnreleasedOn) andFunctions.Add(vn => (t.Unreleased & vn.Unreleased) != 0);
+            if (BlacklistedOn) andFunctions.Add(vn => t.Blacklisted == vn.Blacklisted);
+            if (VotedOn) andFunctions.Add(vn => t.Voted == vn.Voted);
+            if (FavoriteProducersOn) andFunctions.Add(vn => t.FavoriteProducers == vn.ByFavoriteProducer(form.FavoriteProducerList));
+            if (WishlistOn) andFunctions.Add(vn => (t.Wishlist & vn.Wishlist) != 0);
+            if (UserlistOn) andFunctions.Add(vn => (t.Userlist & vn.Userlist) != 0);
             var cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
-            if (Language != null && Language.Length > 0)
+            if (LanguageOn && Language.Count > 0)
             {
                 var fLanguages =
                     Language.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang))?.Name ?? lang);
                 andFunctions.Add(vn => vn.Languages?.All.Any(l => fLanguages.Contains(l)) ?? false);
             }
-            if (OriginalLanguage != null && OriginalLanguage.Length > 0)
+            if (OriginalLanguageOn && OriginalLanguage.Count > 0)
             {
                 var fOriginalLanguages =
                     OriginalLanguage.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang))?.Name ?? lang);
                 andFunctions.Add(vn => vn.Languages?.Originals.Any(l => fOriginalLanguages.Contains(l)) ?? false);
             }
-            if (Tags != null && Tags.Length > 0)
+            if (TagsOn && Tags.Count > 0)
             {
                 if (TagsTraitsMode) orFunctions.Add(tab.VNMatchesTagFilter);
                 else andFunctions.Add(tab.VNMatchesTagFilter);
             }
-            if (Traits != null && Traits.Length > 0)
+            if (TraitsOn && Traits.Count > 0)
             {
                 Stopwatch watch = Stopwatch.StartNew();
                 //Make list of characters which contain traits
@@ -343,8 +319,7 @@ namespace Happy_Search
         {
             try
             {
-                var settings = new JsonSerializerSettings() { ContractResolver = new MyContractResolver() };
-                File.WriteAllText(filePath, JsonConvert.SerializeObject(this, Formatting.Indented, settings));
+                File.WriteAllText(filePath, JsonConvert.SerializeObject((FixedFilter)this, Formatting.Indented));
             }
             catch (Exception e)
             {
@@ -356,29 +331,6 @@ namespace Happy_Search
         /// <inheritdoc />
         public override string ToString() => Name;
 
-        /// <summary>
-        /// Gets Custom Filter (struct) from active filter.
-        /// </summary>
-        public CustomFilter GetCustomFilter()
-        {
-            return new CustomFilter
-            {
-                Name = Name,
-                Length = Length,
-                ReleaseDate = ReleaseDate,
-                Unreleased = Unreleased,
-                Blacklisted = Blacklisted,
-                Voted = Voted,
-                FavoriteProducers = FavoriteProducers,
-                Wishlist = Wishlist,
-                Userlist = Userlist,
-                Language = Language?.ToArray(),
-                OriginalLanguage = OriginalLanguage?.ToArray(),
-                Tags = Tags?.ToArray(),
-                Traits = Traits?.ToArray(),
-                TagsTraitsMode = TagsTraitsMode
-            };
-        }
         /// <summary>
         /// Sets filters from given custom filter to active filter.
         /// </summary>
@@ -393,266 +345,17 @@ namespace Happy_Search
             FavoriteProducers = customFilter.FavoriteProducers;
             Wishlist = customFilter.Wishlist;
             Userlist = customFilter.Userlist;
-            Language = customFilter.Language?.ToArray();
-            OriginalLanguage = customFilter.OriginalLanguage?.ToArray();
-            Tags = customFilter.Tags?.ToArray();
-            Traits = customFilter.Traits?.ToArray();
-            TagsTraitsMode = TagsTraitsMode;
+            Language.AddRange(customFilter.Language);
+            OriginalLanguage.AddRange(customFilter.OriginalLanguage);
+            Tags.AddRange(customFilter.Tags);
+            Traits.AddRange(customFilter.Traits);
+            TagsTraitsMode = customFilter.TagsTraitsMode;
+            LanguageOn = customFilter.LanguageOn;
+            OriginalLanguageOn = customFilter.LanguageOn;
+            TagsOn = customFilter.LanguageOn;
+            TraitsOn = customFilter.LanguageOn;
         }
     }
 
-#pragma warning disable 1591
-    // ReSharper disable UnusedMember.Global
-    public struct CustomFilter
-    {
-        public override string ToString() => Name;
 
-        public string Name;
-        public LengthFilter Length;
-        public DateRange ReleaseDate;
-        public UnreleasedFilter Unreleased;
-        public YesNoFilter Blacklisted;
-        public YesNoFilter Voted;
-        public YesNoFilter FavoriteProducers;
-        public WishlistFilter Wishlist;
-        public UserlistFilter Userlist;
-        public string[] Language;
-        public string[] OriginalLanguage;
-        public TagFilter[] Tags;
-        public WrittenTrait[] Traits;
-        /// <summary>
-        /// True means OR, false means AND
-        /// </summary>
-        public bool TagsTraitsMode;
-    }
-
-
-    [Flags]
-    public enum UnreleasedFilter
-    {
-        Off = 0,
-        WithoutReleaseDate = 1,
-        WithReleaseDate = 2,
-        Released = 4,
-        AllUnreleased = WithReleaseDate | WithoutReleaseDate,
-        ReleasedOrWithDate = WithReleaseDate | Released
-    }
-
-    public enum YesNoFilter
-    {
-        Off = 0,
-        No = 1,
-        Yes = 2
-    }
-
-    [Flags]
-    public enum WishlistFilter
-    {
-        Off = 0,
-        NA = 1,
-        High = 2,
-        Medium = 4,
-        Low = 8,
-        Any = High | Medium | Low
-    }
-
-    [Flags]
-    public enum UserlistFilter
-    {
-        Off = 0,
-        NA = 1,
-        Unknown = 2,
-        Playing = 4,
-        Finished = 8,
-        Stalled = 16,
-        Dropped = 32,
-        Unplayed = NA | Unknown,
-        Any = Unknown | Playing | Finished | Stalled | Dropped
-    }
-
-    [Flags]
-    public enum LengthFilter
-    {
-        Off = 0,
-        [Description("")]
-        NA = 1,
-        [Description("<2 Hours")]
-        UnderTwoHours = 2,
-        [Description("2-10 Hours")]
-        TwoToTenHours = 4,
-        [Description("10-30 Hours")]
-        TenToThirtyHours = 8,
-        [Description("30-50 Hours")]
-        ThirtyToFiftyHours = 16,
-        [Description(">50 Hours")]
-        OverFiftyHours = 32,
-        Any = UnderTwoHours | TwoToTenHours | TenToThirtyHours | ThirtyToFiftyHours | OverFiftyHours
-
-
-    }
-    // ReSharper restore UnusedMember.Global
-    /// <summary>
-    /// Readonly class to store from and to dates of a date range.
-    /// </summary>
-    public class DateRange
-    {
-        public readonly DateTime From;
-        public readonly DateTime To;
-        public DateRange(DateTime from, DateTime to)
-        {
-            From = from;
-            To = to;
-        }
-    }
-
-    /// <summary>
-    ///     Holds details of a VNDB Tag and its subtags
-    /// </summary>
-    public class TagFilter
-    {
-        /// <summary>
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="name"></param>
-        /// <param name="titles"></param>
-        /// <param name="children"></param>
-        public TagFilter(int id, string name, int titles, int[] children)
-        {
-            ID = id;
-            Name = name;
-            Titles = titles;
-            Children = children;
-            AllIDs = children.Union(new[] { id }).ToArray();
-        }
-
-        /// <summary>
-        ///     ID of tag.
-        /// </summary>
-        public int ID { get; set; }
-
-        /// <summary>
-        ///     Name of tag.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        ///     Number of titles with tag.
-        /// </summary>
-        public int Titles { get; set; }
-
-        /// <summary>
-        ///     Subtag IDs of tag.
-        /// </summary>
-        public int[] Children { get; set; }
-
-        /// <summary>
-        ///     Tag ID and subtag IDs
-        /// </summary>
-        public int[] AllIDs { get; set; }
-
-
-        /// <summary>
-        ///     Check if given tag is a child tag of TagFilter
-        /// </summary>
-        /// <param name="tag">Tag to be checked</param>
-        /// <returns>Whether tag is child of TagFilter</returns>
-        public bool HasChild(int tag)
-        {
-            return Children.Contains(tag);
-        }
-
-
-        /// <summary>Returns a string that represents the current object.</summary>
-        /// <returns>A string that represents the current object.</returns>
-        /// <filterpriority>2</filterpriority>
-        public override string ToString()
-        {
-            return $"{ID} - {Name}";
-        }
-    }
-
-    /// <summary>
-    ///     Holds details of user-created custom filter
-    /// </summary>
-    public class CustomTagFilter
-    {
-        /// <summary>
-        ///     Constructor for Custom Tag Filter.
-        /// </summary>
-        /// <param name="name">User-set name of filter</param>
-        /// <param name="filters">List of Tags in filter</param>
-        public CustomTagFilter(string name, TagFilter[] filters)
-        {
-            Name = name;
-            Filters = filters;
-        }
-
-        /// <summary>
-        ///     User-set name of custom filter
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        ///     List of tags in custom filter
-        /// </summary>
-        public TagFilter[] Filters { get; set; }
-
-        /// <summary>
-        ///     Date of last update to custom filter
-        /// </summary>
-        public DateTime Updated { get; set; }
-
-        public override string ToString() => Name;
-    }
-
-    /// <summary>
-    ///     Holds details of user-created custom trait filter.
-    /// </summary>
-    public class CustomTraitFilter
-    {
-        /// <summary>
-        ///     Constructor for ComplexFilter (Custom Filter).
-        /// </summary>
-        /// <param name="name">User-set name of filter</param>
-        /// <param name="filters">List of traits in filter</param>
-        public CustomTraitFilter(string name, WrittenTrait[] filters)
-        {
-            Name = name;
-            Filters = filters;
-        }
-
-        /// <summary>
-        ///     User-set name of custom filter
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        ///     List of traits in custom filter
-        /// </summary>
-        public WrittenTrait[] Filters { get; set; }
-
-        /// <summary>
-        ///     Date of last update to custom filter
-        /// </summary>
-        public DateTime Updated { get; set; }
-
-        public override string ToString() => Name;
-    }
-
-    public enum RefreshType { None, UserChanged, NamedFilter }
-
-    public class MyContractResolver : DefaultContractResolver
-    {
-        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
-        {
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Select(p => CreateProperty(p, memberSerialization))
-                .Union(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                    .Select(f => CreateProperty(f, memberSerialization)))
-                .ToList();
-            props.ForEach(p => { p.Writable = true; p.Readable = true; });
-            return props;
-        }
-    }
-#pragma warning restore 1591
 }

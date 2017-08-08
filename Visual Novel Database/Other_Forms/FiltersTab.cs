@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -18,7 +19,7 @@ namespace Happy_Search.Other_Forms
     {
         private readonly FormMain _mainForm;
         private Filters _filters;
-        internal readonly BindingList<CustomFilter> FiltersList = new BindingList<CustomFilter>();
+        private readonly BindingList<CustomFilter> _customFilters = new BindingList<CustomFilter>();
 
         /// <summary>
         /// Tab containing controls to alter filter of VN list.
@@ -43,13 +44,11 @@ namespace Happy_Search.Other_Forms
             tagsLB.DataSource = TagsPre;
             traitsLB.DataSource = TraitsPre;
             PopulateLanguages(true);
-            originalLanguageLB.DataSource = _originalLanguagesPre;
-            languageLB.DataSource = _languagesPre;
             releaseDateResponse.Visible = false;
             _doubleClickTimer.Tick += delegate { _doubleClickTimer.Stop(); };
             _doubleClickTimer.Interval = 250;
             SetFilterTags();
-            LoadFromFile();
+            InitialLoadFromFile();
 
             void SetFilterTags()
             {
@@ -83,37 +82,6 @@ namespace Happy_Search.Other_Forms
                 userlistFinished.Tag = (int)UserlistFilter.Finished;
                 userlistStalled.Tag = (int)UserlistFilter.Stalled;
                 userlistDropped.Tag = (int)UserlistFilter.Dropped;
-            }
-            void LoadFromFile()
-            {
-                _customTagFilters.Clear();
-                var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
-                if (loadedTagFilters != null) _customTagFilters.AddRange(loadedTagFilters);
-                _customTraitFilters.Clear();
-                var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
-                if (loadedTraitFilters != null) _customTraitFilters.AddRange(loadedTraitFilters);
-                LoadSaveFilters();
-                _filters = Filters.LoadFilters(this);
-                DontTriggerEvent = true;
-                traitRootsDropdown.SelectedIndex = 0;
-                filterDropdown.DataSource = FiltersList;
-                _mainForm.filterDropdown.DataSource = FiltersList;
-                tagFiltersCB.DataSource = _customTagFilters;
-                traitFiltersCB.DataSource = _customTraitFilters;
-                if (_customTagFilters.Count > 0) tagFiltersCB.SelectedIndex = 0;
-                if (_customTraitFilters.Count > 0) traitFiltersCB.SelectedIndex = 0;
-                if (FiltersList.Count > 0) filterDropdown.SelectedIndex = 0;
-                if (FiltersList.Count > 0) _mainForm.filterDropdown.SelectedIndex = 0;
-                DontTriggerEvent = false;
-                SetFiltersToGui();
-
-                void LoadSaveFilters()
-                {
-                    FiltersList.Clear();
-                    List<CustomFilter> loadedCustomFilters = LoadObjectFromJsonFile<List<CustomFilter>>(CustomFiltersJson) ??
-                                                        LoadObjectFromJsonFile<List<CustomFilter>>(DefaultFiltersJson);
-                    if (loadedCustomFilters != null) FiltersList.AddRange(loadedCustomFilters);
-                }
             }
         }
 
@@ -161,58 +129,57 @@ namespace Happy_Search.Other_Forms
 
         private void ToggleThisFilter(object sender, EventArgs e)
         {
-            CheckBox checkBox = sender as CheckBox;
-            if (checkBox == null) return;
+            CheckBox checkBox = (CheckBox) sender;
             checkBox.Text = checkBox.Checked ? "On" : "Off";
             var panel = checkBox.Parent;
             //12 panels
             if (panel == lengthPanel) //1
             {
-                _filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
+                _filters.LengthOn = checkBox.Checked;
             }
             else if (panel == releaseDatePanel) //2
             {
-                _filters.ReleaseDate = GetReleaseDateFromGui();
+                _filters.ReleaseDateOn = checkBox.Checked;
             }
             else if (panel == unreleasedPanel) //3
             {
-                _filters.Unreleased = (UnreleasedFilter)GetIntFromCheckboxes(unreleasedPanel);
+                _filters.UnreleasedOn = checkBox.Checked;
             }
             else if (panel == blacklistedPanel) //4
             {
-                _filters.Blacklisted = blacklistedPanel.GetRadioOption<YesNoFilter>();
+                _filters.BlacklistedOn = checkBox.Checked;
             }
             else if (panel == votedPanel) //5
             {
-                _filters.Blacklisted = votedPanel.GetRadioOption<YesNoFilter>();
+                _filters.VotedOn = checkBox.Checked;
             }
             else if (panel == favoriteProducerPanel) //6
             {
-                _filters.Blacklisted = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
+                _filters.FavoriteProducersOn = checkBox.Checked;
             }
             else if (panel == wishlistPanel) //7
             {
-                _filters.Wishlist = (WishlistFilter)GetIntFromCheckboxes(wishlistPanel);
+                _filters.WishlistOn = checkBox.Checked;
             }
             else if (panel == userlistPanel) //8
             {
-                _filters.Userlist = (UserlistFilter)GetIntFromCheckboxes(userlistPanel);
+                _filters.UserlistOn = checkBox.Checked;
             }
             else if (panel == languagePanel) //9
             {
-                _filters.Language = languageTF.Checked ? _languagesPre.ToArray() : null;
+                _filters.LanguageOn = checkBox.Checked;
             }
             else if (panel == originalLanguagePanel) //10
             {
-                _filters.OriginalLanguage = originalLanguageTF.Checked ? _originalLanguagesPre.ToArray() : null;
+                _filters.OriginalLanguageOn = checkBox.Checked;
             }
             else if (panel == tagsPanel) //11
             {
-                _filters.Tags = tagsTF.Checked ? TagsPre.ToArray() : null;
+                _filters.TagsOn = checkBox.Checked;
             }
             else if (panel == traitsPanel) //12
             {
-                _filters.Traits = traitsTF.Checked ? TraitsPre.ToArray() : null;
+                _filters.TraitsOn = checkBox.Checked;
             }
         }
 
@@ -242,155 +209,17 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void SetFiltersToGui()
         {
-            SetLengthToggleFilter();
-            SetReleaseDateFilter();
-            SetUnreleasedToggleFilter();
-            SetBlacklistToggleFilter();
-            SetFavoriteProducerToggleFilter();
-            SetWishlistToggleFilter();
-            SetUserlistToggleFilter();
-            SetLanguageToggleFilter();
-            SetOriginalLanguageToggleFilter();
-            SetTagsToggleFilter();
-            SetTraitsToggleFilter();
-
-            void SetLengthToggleFilter()
-            {
-                if (_filters.Length == LengthFilter.Off)
-                {
-                    lengthTF.Checked = false;
-                    return;
-                }
-                lengthTF.Checked = true;
-                if (_filters.Length.HasFlag(LengthFilter.NA)) lengthNA.Checked = true;
-                if (_filters.Length.HasFlag(LengthFilter.UnderTwoHours)) lengthUnderTwo.Checked = true;
-                if (_filters.Length.HasFlag(LengthFilter.TwoToTenHours)) lengthTwoToTen.Checked = true;
-                if (_filters.Length.HasFlag(LengthFilter.TenToThirtyHours)) lengthTenToThirty.Checked = true;
-                if (_filters.Length.HasFlag(LengthFilter.ThirtyToFiftyHours)) lengthThirtyToFifty.Checked = true;
-                if (_filters.Length.HasFlag(LengthFilter.OverFiftyHours)) lengthOverFifty.Checked = true;
-            }
-            void SetReleaseDateFilter()
-            {
-                if (_filters.ReleaseDate == null)
-                {
-                    releaseDateTF.Checked = false;
-                    return;
-                }
-                releaseDateTF.Checked = true;
-                releaseDateFromDay.Value = _filters.ReleaseDate.From.Day;
-                releaseDateFromMonth.SelectedIndex = _filters.ReleaseDate.From.Month;
-                releaseDateFromYear.Value = _filters.ReleaseDate.From.Year;
-                releaseDateToDay.Value = _filters.ReleaseDate.To.Day;
-                releaseDateToMonth.SelectedIndex = _filters.ReleaseDate.To.Month;
-                releaseDateToYear.Value = _filters.ReleaseDate.To.Year;
-            }
-            void SetUnreleasedToggleFilter()
-            {
-                if (_filters.Unreleased == UnreleasedFilter.Off)
-                {
-                    unreleasedTF.Checked = false;
-                    return;
-                }
-                unreleasedTF.Checked = true;
-                if (_filters.Unreleased.HasFlag(UnreleasedFilter.WithReleaseDate)) unreleasedWithRD.Checked = true;
-                if (_filters.Unreleased.HasFlag(UnreleasedFilter.WithoutReleaseDate)) unreleasedWithoutRD.Checked = true;
-                if (_filters.Unreleased.HasFlag(UnreleasedFilter.Released)) unreleasedReleased.Checked = true;
-            }
-            void SetBlacklistToggleFilter()
-            {
-                switch (_filters.Blacklisted)
-                {
-                    case YesNoFilter.No:
-                        blacklistedTF.Checked = true;
-                        blacklistedNo.Checked = true;
-                        break;
-                    case YesNoFilter.Yes:
-                        blacklistedTF.Checked = true;
-                        blacklistedYes.Checked = true;
-                        break;
-                    case YesNoFilter.Off:
-                        blacklistedTF.Checked = false;
-                        break;
-                }
-            }
-            void SetWishlistToggleFilter()
-            {
-                if (_filters.Wishlist == WishlistFilter.Off)
-                {
-                    wishlistTF.Checked = false;
-                    return;
-                }
-                wishlistTF.Checked = true;
-                if (_filters.Wishlist.HasFlag(WishlistFilter.NA)) wishlistNA.Checked = true;
-                if (_filters.Wishlist.HasFlag(WishlistFilter.High)) wishlistHigh.Checked = true;
-                if (_filters.Wishlist.HasFlag(WishlistFilter.Medium)) wishlistMedium.Checked = true;
-                if (_filters.Wishlist.HasFlag(WishlistFilter.Low)) wishlistLow.Checked = true;
-            }
-            void SetUserlistToggleFilter()
-            {
-                if (_filters.Userlist == UserlistFilter.Off)
-                {
-                    userlistTF.Checked = false;
-                    return;
-                }
-                userlistTF.Checked = true;
-                if (_filters.Userlist.HasFlag(UserlistFilter.NA)) userlistNA.Checked = true;
-                if (_filters.Userlist.HasFlag(UserlistFilter.Unknown)) userlistUnknown.Checked = true;
-                if (_filters.Userlist.HasFlag(UserlistFilter.Playing)) userlistPlaying.Checked = true;
-                if (_filters.Userlist.HasFlag(UserlistFilter.Finished)) userlistFinished.Checked = true;
-                if (_filters.Userlist.HasFlag(UserlistFilter.Stalled)) userlistStalled.Checked = true;
-                if (_filters.Userlist.HasFlag(UserlistFilter.Dropped)) userlistDropped.Checked = true;
-            }
-            void SetFavoriteProducerToggleFilter()
-            {
-                switch (_filters.FavoriteProducers)
-                {
-                    case YesNoFilter.Off:
-                        favoriteProducerTF.Checked = false;
-                        break;
-                    case YesNoFilter.Yes:
-                        favoriteProducerTF.Checked = true;
-                        favoriteProducerYes.Checked = true;
-                        break;
-                    case YesNoFilter.No:
-                        favoriteProducerTF.Checked = true;
-                        favoriteProducerNo.Checked = true;
-                        break;
-                }
-            }
-            void SetLanguageToggleFilter()
-            {
-                _languagesPre.Clear();
-                if (_filters.Language != null)
-                {
-                    _languagesPre.AddRange(_filters.Language.ToArray());
-                }
-                languageTF.Checked = _filters.Language != null;
-            }
-            void SetOriginalLanguageToggleFilter()
-            {
-                _originalLanguagesPre.Clear();
-                if (_filters.OriginalLanguage != null)
-                {
-                    _originalLanguagesPre.AddRange(_filters.OriginalLanguage.ToArray());
-                }
-                originalLanguageTF.Checked = _filters.OriginalLanguage != null;
-            }
-            void SetTagsToggleFilter()
-            {
-                TagsPre.Clear();
-                if (_filters.Tags != null)
-                {
-                    TagsPre.AddRange(_filters.Tags.ToArray());
-                }
-                tagsTF.Checked = _filters.Tags != null;
-            }
-            void SetTraitsToggleFilter()
-            {
-                TraitsPre.Clear();
-                if (_filters.Traits != null) TraitsPre.AddRange(_filters.Traits);
-            }
-            traitsTF.Checked = _filters.Traits != null;
+            lengthTF.Checked = _filters.LengthOn;
+            releaseDateTF.Checked = _filters.ReleaseDateOn;
+            unreleasedTF.Checked = _filters.UnreleasedOn;
+            blacklistedTF.Checked = _filters.BlacklistedOn;
+            favoriteProducerTF.Checked = _filters.FavoriteProducersOn;
+            wishlistTF.Checked = _filters.WishlistOn;
+            userlistTF.Checked = _filters.UserlistOn;
+            languageTF.Checked = _filters.LanguageOn;
+            originalLanguageTF.Checked = _filters.OriginalLanguageOn;
+            tagsTF.Checked = _filters.TagsOn;
+            traitsTF.Checked = _filters.TraitsOn;
         }
 
         private readonly Timer _doubleClickTimer = new Timer();
@@ -439,7 +268,7 @@ namespace Happy_Search.Other_Forms
             SetFiltersToGui();
             if (sender == _mainForm)
             {
-                _mainForm.SetVNList(_filters.GetFunction(_mainForm,this),_filters.Name);
+                _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
                 _mainForm.LoadVNListToGui();
                 return;
             }
@@ -450,6 +279,57 @@ namespace Happy_Search.Other_Forms
         {
             var checkBox = (CheckBox)sender;
             checkBox.Text = checkBox.Checked ? "Fixed" : "Not Fixed";
+            //
+            var panel = checkBox.Parent;
+            //12 panels
+            if (panel == lengthPanel) //1
+            {
+                _filters.LengthFixed = checkBox.Checked;
+            }
+            else if (panel == releaseDatePanel) //2
+            {
+                _filters.ReleaseDateFixed = checkBox.Checked;
+            }
+            else if (panel == unreleasedPanel) //3
+            {
+                _filters.UnreleasedFixed = checkBox.Checked;
+            }
+            else if (panel == blacklistedPanel) //4
+            {
+                _filters.BlacklistedFixed = checkBox.Checked;
+            }
+            else if (panel == votedPanel) //5
+            {
+                _filters.VotedFixed = checkBox.Checked;
+            }
+            else if (panel == favoriteProducerPanel) //6
+            {
+                _filters.FavoriteProducersFixed = checkBox.Checked;
+            }
+            else if (panel == wishlistPanel) //7
+            {
+                _filters.WishlistFixed = checkBox.Checked;
+            }
+            else if (panel == userlistPanel) //8
+            {
+                _filters.UserlistFixed = checkBox.Checked;
+            }
+            else if (panel == languagePanel) //9
+            {
+                _filters.LanguageFixed = checkBox.Checked;
+            }
+            else if (panel == originalLanguagePanel) //10
+            {
+                _filters.OriginalLanguageFixed = checkBox.Checked;
+            }
+            else if (panel == tagsPanel) //11
+            {
+                _filters.TagsFixed = checkBox.Checked;
+            }
+            else if (panel == traitsPanel) //12
+            {
+                _filters.TraitsFixed = checkBox.Checked;
+            }
         }
 
         private void ChangeTagsOrTraits(object sender, EventArgs e)
@@ -458,16 +338,12 @@ namespace Happy_Search.Other_Forms
             _filters.TagsTraitsMode = tagsOrTraits.Checked;
         }
 
-        private readonly BindingList<string> _originalLanguagesPre = new BindingList<string>();
-        private readonly BindingList<string> _languagesPre = new BindingList<string>();
-
         private void AddOriginalLanguage(object sender, EventArgs e)
         {
             var language = originalLanguageCB.Text;
             if (language == "(Language)") return;
-            if (_originalLanguagesPre.Contains(language)) return;
-            if (!originalLanguageCB.Items.Contains(language)) return;
-            if (!_originalLanguagesPre.Contains(language)) _originalLanguagesPre.Add(language);
+            if (_filters.OriginalLanguage.Contains(language)) return;
+            if (!_filters.OriginalLanguage.Contains(language)) _filters.OriginalLanguage.Add(language);
         }
 
         private void AddOriginalLanguageEnter(object sender, KeyEventArgs e)
@@ -479,9 +355,8 @@ namespace Happy_Search.Other_Forms
         {
             var language = languageCB.Text;
             if (language == "(Language)") return;
-            if (_languagesPre.Contains(language)) return;
-            if (!languageCB.Items.Contains(language)) return;
-            if (!_languagesPre.Contains(language)) _languagesPre.Add(language);
+            if (_filters.Language.Contains(language)) return;
+            if (!_filters.Language.Contains(language)) _filters.Language.Add(language);
         }
 
         private void AddLanguageEnter(object sender, KeyEventArgs e)
@@ -495,7 +370,7 @@ namespace Happy_Search.Other_Forms
             var listbox = sender as ListBox;
             if (listbox == null) return;
             var selectedItem = listbox.SelectedItem;
-            (listbox.DataSource as System.Collections.IList)?.Remove(selectedItem);
+            ((IList) listbox.DataSource).Remove(selectedItem);
         }
 
         private void SaveFilters() => _filters.SaveFilters(FiltersJson);
@@ -517,7 +392,7 @@ namespace Happy_Search.Other_Forms
                 if (askBox != DialogResult.Yes) return;
                 DontTriggerEvent = true;
                 _filters.Name = filterName;
-                FiltersList[itemIndex] = _filters.GetCustomFilter();
+                _customFilters[itemIndex] = (CustomFilter)_filters;
                 filterDropdown.SelectedIndex = itemIndex;
                 _filters.RefreshKind = RefreshType.NamedFilter;
                 DontTriggerEvent = false;
@@ -526,19 +401,19 @@ namespace Happy_Search.Other_Forms
             {
                 _filters.Name = filterName;
                 DontTriggerEvent = true;
-                FiltersList.Add(_filters.GetCustomFilter());
-                filterDropdown.SelectedIndex = FiltersList.Count - 1;
+                _customFilters.Add((CustomFilter)_filters);
+                filterDropdown.SelectedIndex = _customFilters.Count - 1;
                 _filters.RefreshKind = RefreshType.NamedFilter;
                 DontTriggerEvent = false;
             }
-            SaveObjectToJsonFile(FiltersList, CustomFiltersJson);
+            SaveObjectToJsonFile(_customFilters, CustomFiltersJson);
             WriteText(customFilterReply, Resources.filter_saved);
         }
 
         private int GetIndexOfCustomFilter(string filterName)
         {
             int index = 0;
-            foreach (var customFilter in FiltersList)
+            foreach (var customFilter in _customFilters)
             {
                 if (customFilter.Name == filterName) return index;
                 index++;
@@ -560,7 +435,7 @@ namespace Happy_Search.Other_Forms
                     _mainForm.CurrentFilterLabel = _filters.Name;
                     break;
             }
-            _mainForm.SetVNList(_filters.GetFunction(_mainForm,this),_filters.Name);
+            _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
             SaveFilters();
             _mainForm.LoadVNListToGui();
             _filters.RefreshKind = RefreshType.None;
@@ -588,6 +463,109 @@ namespace Happy_Search.Other_Forms
                 _filters.Wishlist = _filters.Wishlist.SetFlag((WishlistFilter)checkBox.Tag, checkBox.Checked);
             else if (panel == userlistPanel)
                 _filters.Userlist = _filters.Userlist.SetFlag((UserlistFilter)checkBox.Tag, checkBox.Checked);
+        }
+
+        private void InitialLoadFromFile()
+        {
+            _customTagFilters.Clear();
+            var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
+            if (loadedTagFilters != null) _customTagFilters.AddRange(loadedTagFilters);
+            _customTraitFilters.Clear();
+            var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
+            if (loadedTraitFilters != null) _customTraitFilters.AddRange(loadedTraitFilters);
+            _customFilters.Clear();
+            var loadedCustomFilters = LoadObjectFromJsonFile<List<CustomFilter>>(CustomFiltersJson) ?? LoadObjectFromJsonFile<List<CustomFilter>>(DefaultFiltersJson);
+            if (loadedCustomFilters != null) _customFilters.AddRange(loadedCustomFilters);
+            _filters = Filters.LoadFixedFilter();
+            DontTriggerEvent = true;
+
+            releaseDateFixed.Checked = _filters.ReleaseDateFixed;
+            unreleasedFixed.Checked = _filters.UnreleasedFixed;
+            blacklistedFixed.Checked = _filters.BlacklistedFixed;
+            votedFixed.Checked = _filters.VotedFixed;
+            favoriteProducerFixed.Checked = _filters.FavoriteProducersFixed;
+            wishlistFixed.Checked = _filters.WishlistFixed;
+            userlistFixed.Checked = _filters.UserlistFixed;
+            languageFixed.Checked = _filters.LanguageFixed;
+            originalLanguageFixed.Checked = _filters.OriginalLanguageFixed;
+            tagsFixed.Checked = _filters.TagsFixed;
+            traitsFixed.Checked = _filters.TraitsFixed;
+            languageTF.Checked = _filters.LanguageOn;
+            originalLanguageTF.Checked = _filters.OriginalLanguageOn;
+            tagsTF.Checked = _filters.TagsOn;
+            traitsTF.Checked = _filters.TraitsOn;
+
+            traitRootsDropdown.SelectedIndex = 0;
+            filterDropdown.DataSource = _customFilters;
+            _mainForm.filterDropdown.DataSource = _customFilters;
+            tagFiltersCB.DataSource = _customTagFilters;
+            traitFiltersCB.DataSource = _customTraitFilters;
+            originalLanguageLB.DataSource = _customTraitFilters;
+            if (_customTagFilters.Count > 0) tagFiltersCB.SelectedIndex = 0;
+            if (_customTraitFilters.Count > 0) traitFiltersCB.SelectedIndex = 0;
+            if (_customFilters.Count > 0) filterDropdown.SelectedIndex = 0;
+            if (_customFilters.Count > 0) _mainForm.filterDropdown.SelectedIndex = 0;
+            languageLB.DataSource = _filters.OriginalLanguage;
+            originalLanguageLB.DataSource = _filters.OriginalLanguage;
+            //tagsLB.DataSource = _filters.Tags;
+            //traitsLB.DataSource = _filters.Traits;
+            DontTriggerEvent = false;
+            SetFiltersToGui();
+        }
+
+        private void FilterStateChanged(object sender, EventArgs e)
+        {
+            var control = (Control) sender;
+            var panel = control.Parent;
+            //12 panels
+            if (panel == lengthPanel) //1
+            {
+                _filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
+            }
+            else if (panel == releaseDatePanel) //2
+            {
+                _filters.ReleaseDate = GetReleaseDateFromGui();
+            }
+            else if (panel == unreleasedPanel) //3
+            {
+                _filters.Unreleased = (UnreleasedFilter)GetIntFromCheckboxes(unreleasedPanel);
+            }
+            else if (panel == blacklistedPanel) //4
+            {
+                _filters.Blacklisted = blacklistedPanel.GetRadioOption<YesNoFilter>();
+            }
+            else if (panel == votedPanel) //5
+            {
+                _filters.Blacklisted = votedPanel.GetRadioOption<YesNoFilter>();
+            }
+            else if (panel == favoriteProducerPanel) //6
+            {
+                _filters.Blacklisted = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
+            }
+            else if (panel == wishlistPanel) //7
+            {
+                _filters.Wishlist = (WishlistFilter)GetIntFromCheckboxes(wishlistPanel);
+            }
+            else if (panel == userlistPanel) //8
+            {
+                _filters.Userlist = (UserlistFilter)GetIntFromCheckboxes(userlistPanel);
+            }
+            else if (panel == languagePanel) //9
+            {
+                _filters.LanguageOn = languageTF.Checked;
+            }
+            else if (panel == originalLanguagePanel) //10
+            {
+                _filters.OriginalLanguageOn = originalLanguageTF.Checked;
+            }
+            else if (panel == tagsPanel) //11
+            {
+                _filters.TagsOn = tagsTF.Checked;
+            }
+            else if (panel == traitsPanel) //12
+            {
+                _filters.TraitsOn = traitsTF.Checked;
+            }
         }
     }
 }

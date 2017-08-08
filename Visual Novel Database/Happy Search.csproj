@@ -142,6 +142,7 @@
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
     <Compile Include="Filters.cs" />
+    <Compile Include="FilterClasses.cs" />
     <Compile Include="FormMainAPIMethods.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
@@ -197,6 +198,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FixedFilter.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="UserSettings.cs" />
@@ -286,9 +288,7 @@
     <None Include="Program Data\Certificates\letsencryptauthorityx2.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Default Files\defaultfilters.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="Program Data\Default Files\defaultfilters.json" />
     <None Include="Program Data\Default Files\tags.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
