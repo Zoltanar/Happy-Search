@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Happy_Search
 {
@@ -74,8 +70,12 @@ namespace Happy_Search
     /// <summary>
     /// Readonly class to store from and to dates of a date range.
     /// </summary>
-    public class DateRange
+    public struct DateRange
     {
+        public static DateRange Default()
+        {
+            return new DateRange(new DateTime(DateTime.Now.Year, 1, 1), new DateTime(DateTime.Now.Year + 1, 1, 1));
+        }
         public readonly DateTime From;
         public readonly DateTime To;
         public DateRange(DateTime from, DateTime to)

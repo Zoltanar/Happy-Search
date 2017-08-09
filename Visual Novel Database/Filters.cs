@@ -24,7 +24,6 @@ namespace Happy_Search
             get => _length;
             set
             {
-                if (LengthFixed && !_ignoreFixed) return;
                 Refresh(value != _length);
                 _length = value;
             }
@@ -35,8 +34,7 @@ namespace Happy_Search
             get => _releaseDate;
             set
             {
-                if (ReleaseDateFixed && !_ignoreFixed) return;
-                Refresh(value != _releaseDate);
+                Refresh(!value.Equals(_releaseDate));
                 _releaseDate = value;
             }
         }
@@ -46,7 +44,6 @@ namespace Happy_Search
             get => _unreleased;
             set
             {
-                if (UnreleasedFixed && !_ignoreFixed) return;
                 Refresh(value != _unreleased);
                 _unreleased = value;
             }
@@ -57,7 +54,6 @@ namespace Happy_Search
             get => _blacklisted;
             set
             {
-                if (BlacklistedFixed && !_ignoreFixed) return;
                 Refresh(value != _blacklisted);
                 _blacklisted = value;
             }
@@ -68,7 +64,6 @@ namespace Happy_Search
             get => _voted;
             set
             {
-                if (VotedFixed && !_ignoreFixed) return;
                 Refresh(value != _voted);
                 _voted = value;
             }
@@ -79,7 +74,6 @@ namespace Happy_Search
             get => _favoriteProducers;
             set
             {
-                if (FavoriteProducersFixed && !_ignoreFixed) return;
                 Refresh(value != _favoriteProducers);
                 _favoriteProducers = value;
             }
@@ -90,7 +84,6 @@ namespace Happy_Search
             get => _wishlist;
             set
             {
-                if (WishlistFixed && !_ignoreFixed) return;
                 Refresh(value != _wishlist);
                 _wishlist = value;
             }
@@ -101,7 +94,6 @@ namespace Happy_Search
             get => _userlist;
             set
             {
-                if (UserlistFixed && !_ignoreFixed) return;
                 Refresh(value != _userlist);
                 _userlist = value;
             }
@@ -133,7 +125,6 @@ namespace Happy_Search
         private WishlistFilter _wishlist;
         private UserlistFilter _userlist;
         private bool _tagsTraitsMode;
-        private bool _ignoreFixed = true;
 
         public static Filters FromFixedFilter(FixedFilter filter)
         {
@@ -162,7 +153,18 @@ namespace Happy_Search
                 TagsFixed = filter.TagsFixed,
                 TraitsFixed = filter.TraitsFixed,
 
-                OriginalLanguageOn = filter.OriginalLanguageOn
+                LengthOn = filter.LengthOn,
+                ReleaseDateOn = filter.ReleaseDateOn,
+                UnreleasedOn = filter.UnreleasedOn,
+                BlacklistedOn = filter.BlacklistedOn,
+                VotedOn = filter.VotedOn,
+                FavoriteProducersOn = filter.FavoriteProducersOn,
+                WishlistOn = filter.WishlistOn,
+                UserlistOn = filter.UserlistOn,
+                LanguageOn = filter.LanguageOn,
+                OriginalLanguageOn = filter.OriginalLanguageOn,
+                TagsOn = filter.TagsOn,
+                TraitsOn = filter.TraitsOn
             };
             filters.Language.AddRange(filter.Language);
             filters.OriginalLanguage.AddRange(filter.OriginalLanguage);
@@ -200,9 +202,9 @@ namespace Happy_Search
         public bool TagsOn { get; set; }
         public bool TraitsOn { get; set; }
 
-        private void Refresh(bool value)
+        private void Refresh(bool valueIsDifferent)
         {
-            if (!value) return;
+            if (!valueIsDifferent) return;
             RefreshKind = RefreshType.UserChanged;
         }
 
@@ -226,34 +228,8 @@ namespace Happy_Search
                 LogToFile(e);
                 result = new Filters();
             }
+            if (result.ReleaseDate.Equals(default(DateRange))) result.ReleaseDate = DateRange.Default();
             return result;
-        }
-
-        /// <summary>
-        /// Load from filter but don't overwrite fixed parameters.
-        /// </summary>
-        public void SetFromSavedFilter(CustomFilter filter)
-        {
-            var previousRefreshKind = RefreshKind;
-            _ignoreFixed = false;
-            Name = filter.Name;
-            Length = filter.Length;
-            ReleaseDate = filter.ReleaseDate;
-            Unreleased = filter.Unreleased;
-            Blacklisted = filter.Blacklisted;
-            Voted = filter.Voted;
-            FavoriteProducers = filter.FavoriteProducers;
-            Wishlist = filter.Wishlist;
-            Userlist = filter.Userlist;
-            Language.AddRange(filter.Language);
-            OriginalLanguage.AddRange(filter.OriginalLanguage);
-            Tags.AddRange(filter.Tags);
-            Traits.AddRange(filter.Traits);
-            TagsTraitsMode = filter.TagsTraitsMode;
-            _ignoreFixed = true;
-            //if it wasn't set to refresh previously, then set it to refresh if any change occured, else set it to refresh anyway
-            if (previousRefreshKind == RefreshType.None) RefreshKind = RefreshKind == RefreshType.UserChanged ? RefreshType.NamedFilter : RefreshType.None;
-            else RefreshKind = RefreshType.NamedFilter;
         }
 
         /// <summary>
@@ -332,28 +308,41 @@ namespace Happy_Search
         public override string ToString() => Name;
 
         /// <summary>
-        /// Sets filters from given custom filter to active filter.
+        /// Load from filter but don't overwrite fixed parameters.
         /// </summary>
-        public void SetCustomFilter(CustomFilter customFilter)
+        public void LoadCustomFilter(CustomFilter customFilter)
         {
             Name = customFilter.Name;
-            Length = customFilter.Length;
-            ReleaseDate = customFilter.ReleaseDate;
-            Unreleased = customFilter.Unreleased;
-            Blacklisted = customFilter.Blacklisted;
-            Voted = customFilter.Voted;
-            FavoriteProducers = customFilter.FavoriteProducers;
-            Wishlist = customFilter.Wishlist;
-            Userlist = customFilter.Userlist;
-            Language.AddRange(customFilter.Language);
-            OriginalLanguage.AddRange(customFilter.OriginalLanguage);
-            Tags.AddRange(customFilter.Tags);
-            Traits.AddRange(customFilter.Traits);
+            if (!LengthFixed) Length = customFilter.Length;
+            if (!ReleaseDateFixed) ReleaseDate = customFilter.ReleaseDate;
+            if (ReleaseDate.Equals(default(DateRange))) ReleaseDate = DateRange.Default();
+            if (!UnreleasedFixed) Unreleased = customFilter.Unreleased;
+            if (!BlacklistedFixed) Blacklisted = customFilter.Blacklisted;
+            if (!VotedFixed) Voted = customFilter.Voted;
+            if (!FavoriteProducersFixed) FavoriteProducers = customFilter.FavoriteProducers;
+            if (!WishlistFixed) Wishlist = customFilter.Wishlist;
+            if (!UserlistFixed) Userlist = customFilter.Userlist;
+            if (!LengthFixed) Language.SetRange(customFilter.Language.ToArray());
+            if (!OriginalLanguageFixed) OriginalLanguage.SetRange(customFilter.OriginalLanguage.ToArray());
+            if (!TagsFixed) Tags.SetRange(customFilter.Tags.ToArray());
+            if (!TraitsFixed) Traits.SetRange(customFilter.Traits.ToArray());
             TagsTraitsMode = customFilter.TagsTraitsMode;
-            LanguageOn = customFilter.LanguageOn;
-            OriginalLanguageOn = customFilter.LanguageOn;
-            TagsOn = customFilter.LanguageOn;
-            TraitsOn = customFilter.LanguageOn;
+
+            if (!LengthFixed) LengthOn = customFilter.LengthOn;
+            if (!ReleaseDateFixed) ReleaseDateOn = customFilter.ReleaseDateOn;
+            if (!UnreleasedFixed) UnreleasedOn = customFilter.UnreleasedOn;
+            if (!BlacklistedFixed) BlacklistedOn = customFilter.BlacklistedOn;
+            if (!VotedFixed) VotedOn = customFilter.VotedOn;
+            if (!FavoriteProducersFixed) FavoriteProducersOn = customFilter.FavoriteProducersOn;
+            if (!WishlistFixed) WishlistOn = customFilter.WishlistOn;
+            if (!UserlistFixed) UserlistOn = customFilter.UserlistOn;
+            if (!LengthFixed) LanguageOn = customFilter.LanguageOn;
+            if (!OriginalLanguageFixed) OriginalLanguageOn = customFilter.OriginalLanguageOn;
+            if (!TagsFixed) TagsOn = customFilter.TagsOn;
+            if (!TraitsFixed) TraitsOn = customFilter.TraitsOn;
+
+            if(RefreshKind != RefreshType.None) RefreshKind = RefreshType.NamedFilter;
+
         }
     }
 

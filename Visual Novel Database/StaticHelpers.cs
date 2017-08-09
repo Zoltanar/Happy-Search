@@ -71,7 +71,7 @@ namespace Happy_Search
 
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.7.1";
+        public const string ClientVersion = "1.4.8";
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
@@ -160,7 +160,7 @@ namespace Happy_Search
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(string.Format("Could not append flag value {0} to enum {1}", enumFlag, typeof(T).Name), ex);
+                throw new ArgumentException($"Could not append flag value {enumFlag} to enum {typeof(T).Name}", ex);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Happy_Search
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(string.Format("Could not remove flag value {0} from enum {1}", enumFlag, typeof(T).Name), ex);
+                throw new ArgumentException($"Could not remove flag value {enumFlag} from enum {typeof(T).Name}", ex);
             }
         }
 
@@ -190,60 +190,26 @@ namespace Happy_Search
         {
             return value ? type.AddFlag(enumFlag) : type.RemoveFlag(enumFlag);
         }
-
-        /*#pragma warning disable 1591
-                public static void AddFlag(ref LengthFilter type, LengthFilter enumFlag)
-                {
-                    type = (LengthFilter)(object)((int)(object)type | (int)(object)enumFlag);
-                }
-                public static void AddFlag(ref UnreleasedFilter type, UnreleasedFilter enumFlag)
-                {
-                    type = (UnreleasedFilter)(object)((int)(object)type | (int)(object)enumFlag);
-                }
-                public static void AddFlag(ref WishlistFilter type, WishlistFilter enumFlag)
-                {
-                    type = (WishlistFilter)(object)((int)(object)type | (int)(object)enumFlag);
-                }
-                public static void AddFlag(ref UserlistFilter type, UserlistFilter enumFlag)
-                {
-                    type = (UserlistFilter)(object)((int)(object)type | (int)(object)enumFlag);
-                }
-        #pragma warning restore 1591*/
-
-
-        /// <summary>
-        /// Convert a collection of up to 16 bools into an integer.
-        /// </summary>
-        public static int BoolArrayToInt(IEnumerable<bool> bits)
-        {
-            int result = 0;
-            int index = 0;
-            foreach (var bit in bits)
-            {
-                if (index > 15) return result;
-                if (bit) result += 1 << index;
-                index++;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Checks if two sequences have the same elements.
-        /// </summary>
-        public static bool SequenceEqualNullAware<T>(this IEnumerable<T> sequence1, IEnumerable<T> sequence2)
-        {
-            if (sequence1 == null && sequence2 == null) return true;
-            if (sequence1 == null || sequence2 == null) return false;
-            var returned = sequence1.SequenceEqual(sequence2);
-            return returned;
-        }
-
+        
         /// <summary>
         /// Pause RaiseListChangedEvents and add items then call the event when done adding.
         /// </summary>
         public static void AddRange<T>(this BindingList<T> list, IEnumerable<T> items)
         {
+            if (items == null) return;
             list.RaiseListChangedEvents = false;
+            foreach (var item in items) list.Add(item);
+            list.RaiseListChangedEvents = true;
+            list.ResetBindings();
+        }
+
+        /// <summary>
+        /// Pause RaiseListChangedEvents, clear list and add items, then call ResetBindings event.
+        /// </summary>
+        public static void SetRange<T>(this BindingList<T> list, IEnumerable<T> items)
+        {
+            list.RaiseListChangedEvents = false;
+            list.Clear();
             foreach (var item in items) list.Add(item);
             list.RaiseListChangedEvents = true;
             list.ResetBindings();
@@ -408,8 +374,8 @@ namespace Happy_Search
         public static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
-            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
+            if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
+            int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
             if (dateRegex.IsMatch(date))

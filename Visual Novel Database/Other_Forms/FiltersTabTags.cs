@@ -18,10 +18,6 @@ namespace Happy_Search.Other_Forms
         /// List of saved custom tag filters.
         /// </summary>
         private readonly BindingList<CustomTagFilter> _customTagFilters = new BindingList<CustomTagFilter>();
-        /// <summary>
-        /// Contains contents of TagsTFLB (not active tags);
-        /// </summary>
-        public readonly BindingList<TagFilter> TagsPre = new BindingList<TagFilter>();
 
         /// <summary>
         /// Bring up dialog explaining features of the 'Tag Filtering' section.
@@ -58,7 +54,7 @@ namespace Happy_Search.Other_Forms
                 var askBox = MessageBox.Show(@"Do you wish to overwrite present custom filter?",
                     Resources.ask_overwrite, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                customFilter.Filters = TagsPre.ToArray();
+                customFilter.Filters = _filters.Tags.ToArray();
                 customFilter.Updated = DateTime.UtcNow;
                 DontTriggerEvent = true;
                 tagFiltersCB.SelectedItem = customFilter;
@@ -67,7 +63,7 @@ namespace Happy_Search.Other_Forms
             else
             {
                 DontTriggerEvent = true;
-                _customTagFilters.Add(new CustomTagFilter(filterName, TagsPre.ToArray()));
+                _customTagFilters.Add(new CustomTagFilter(filterName, _filters.Tags.ToArray()));
                 tagFiltersCB.SelectedIndex = _customTagFilters.Count - 1;
                 DontTriggerEvent = false;
             }
@@ -80,7 +76,6 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void DeleteCustomTagFilter(object sender, EventArgs e)
         {
-            if (tagFiltersCB.SelectedIndex < 1) return; //shouldnt happen
             var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
             var selectedFilter = tagFiltersCB.SelectedItem as CustomTagFilter;
@@ -88,7 +83,6 @@ namespace Happy_Search.Other_Forms
             _customTagFilters.Remove(selectedFilter);
             SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_deleted);
-            tagFiltersCB.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -96,7 +90,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void ClearTagFilter(object sender, EventArgs e)
         {
-            TagsPre.Clear();
+            _filters.Tags.Clear();
             WriteText(tagReply, Resources.filter_cleared);
         }
         #endregion
@@ -110,8 +104,7 @@ namespace Happy_Search.Other_Forms
             var selectedItem = tagFiltersCB.SelectedItem as CustomTagFilter;
             if (selectedItem == null) return;
             customTagFilterNameBox.Text = selectedItem.Name;
-            TagsPre.Clear();
-            TagsPre.AddRange(selectedItem.Filters.ToArray());
+            _filters.Tags.SetRange(selectedItem.Filters.ToArray());
         }
 
         /// <summary>
@@ -150,7 +143,7 @@ namespace Happy_Search.Other_Forms
                 WriteError(tagReply, "Tag not found.");
                 return;
             }
-            foreach (var filter in TagsPre)
+            foreach (var filter in _filters.Tags)
             {
                 //if tag is already in filter, do nothing.
                 if (filter.ID == writtenTag.ID)
@@ -162,7 +155,7 @@ namespace Happy_Search.Other_Forms
                 if (!filter.HasChild(writtenTag.ID)) continue;
                 //if filter is parent of tag, remove filter (because it would be useless in the presence of more specific tag)
                 //eg transfer student heroine is more precise than student heroine
-                TagsPre.Remove(filter);
+                _filters.Tags.Remove(filter);
                 break;
             }
             //save tag as tag and children
@@ -189,7 +182,7 @@ namespace Happy_Search.Other_Forms
             newFilter.Titles = count;
             TagFilter moreSpecificFilter = null;
             var notNeeded = false;
-            foreach (var filter in TagsPre)
+            foreach (var filter in _filters.Tags)
             {
                 if (!newFilter.HasChild(filter.ID)) continue;
                 notNeeded = true;
@@ -201,7 +194,7 @@ namespace Happy_Search.Other_Forms
                 WriteText(tagReply, $"Tag isn't needed because {moreSpecificFilter.Name} is more specific.");
                 return;
             }
-            TagsPre.Add(newFilter);
+            _filters.Tags.Add(newFilter);
             WriteText(tagReply, $"Tag {writtenTag.Name} has {count} VNs in local database.");
         }
 
@@ -241,7 +234,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async Task UpdateFilterResults()
         {
-            IEnumerable<string> betterTags = TagsPre.Select(x => x.ID).Select(s => $"tags = {s}");
+            IEnumerable<string> betterTags = _filters.Tags.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
             var result = await _mainForm.TryQuery(tagQuery, "UCF Query Error");

@@ -38,11 +38,10 @@ namespace Happy_Search.Other_Forms
                 if (rootName == null) continue;
                 traitRootsDropdown.Items.Add(rootName);
             }
+            traitRootsDropdown.SelectedIndex = 0;
             customFilterReply.Text = "";
             traitReply.Text = "";
             tagReply.Text = "";
-            tagsLB.DataSource = TagsPre;
-            traitsLB.DataSource = TraitsPre;
             PopulateLanguages(true);
             releaseDateResponse.Visible = false;
             _doubleClickTimer.Tick += delegate { _doubleClickTimer.Stop(); };
@@ -186,7 +185,6 @@ namespace Happy_Search.Other_Forms
         private DateRange GetReleaseDateFromGui()
         {
             releaseDateResponse.Visible = false;
-            if (!releaseDateTF.Checked) return null;
             try
             {
                 var fromDate = new DateTime((int)releaseDateFromYear.Value,
@@ -200,7 +198,7 @@ namespace Happy_Search.Other_Forms
             catch (ArgumentOutOfRangeException)
             {
                 releaseDateResponse.Visible = true;
-                return null;
+                return new DateRange();
             }
         }
 
@@ -213,6 +211,7 @@ namespace Happy_Search.Other_Forms
             releaseDateTF.Checked = _filters.ReleaseDateOn;
             unreleasedTF.Checked = _filters.UnreleasedOn;
             blacklistedTF.Checked = _filters.BlacklistedOn;
+            votedTF.Checked = _filters.VotedOn;
             favoriteProducerTF.Checked = _filters.FavoriteProducersOn;
             wishlistTF.Checked = _filters.WishlistOn;
             userlistTF.Checked = _filters.UserlistOn;
@@ -220,6 +219,69 @@ namespace Happy_Search.Other_Forms
             originalLanguageTF.Checked = _filters.OriginalLanguageOn;
             tagsTF.Checked = _filters.TagsOn;
             traitsTF.Checked = _filters.TraitsOn;
+
+            SetLengthFilter();
+            SetReleaseDateFilter();
+            SetUnreleasedFilter();
+            (_filters.Blacklisted == YesNoFilter.Yes ? blacklistedYes : blacklistedNo).Checked = true;
+            (_filters.Voted == YesNoFilter.Yes ? votedYes : votedNo).Checked = true;
+            (_filters.FavoriteProducers == YesNoFilter.Yes ? favoriteProducerYes : favoriteProducerNo).Checked = true;
+            SetWishlistFilter();
+            SetUserlistFilter();
+
+            lengthFixed.Checked = _filters.LengthFixed;
+            releaseDateFixed.Checked = _filters.ReleaseDateFixed;
+            unreleasedFixed.Checked = _filters.UnreleasedFixed;
+            blacklistedFixed.Checked = _filters.BlacklistedFixed;
+            votedFixed.Checked = _filters.VotedFixed;
+            favoriteProducerFixed.Checked = _filters.FavoriteProducersFixed;
+            wishlistFixed.Checked = _filters.WishlistFixed;
+            userlistFixed.Checked = _filters.UserlistFixed;
+            languageFixed.Checked = _filters.LanguageFixed;
+            originalLanguageFixed.Checked = _filters.OriginalLanguageFixed;
+            tagsFixed.Checked = _filters.TagsFixed;
+            traitsFixed.Checked = _filters.TraitsFixed;
+
+            void SetLengthFilter()
+            {
+                lengthNA.Checked = _filters.Length.HasFlag(LengthFilter.NA);
+                lengthUnderTwo.Checked = _filters.Length.HasFlag(LengthFilter.UnderTwoHours);
+                lengthTwoToTen.Checked = _filters.Length.HasFlag(LengthFilter.TwoToTenHours);
+                lengthTenToThirty.Checked = _filters.Length.HasFlag(LengthFilter.TenToThirtyHours);
+                lengthThirtyToFifty.Checked = _filters.Length.HasFlag(LengthFilter.ThirtyToFiftyHours);
+                lengthOverFifty.Checked = _filters.Length.HasFlag(LengthFilter.OverFiftyHours);
+            }
+            void SetReleaseDateFilter()
+            {
+                releaseDateFromDay.Value = _filters.ReleaseDate.From.Day;
+                releaseDateFromMonth.SelectedIndex = _filters.ReleaseDate.From.Month-1;
+                releaseDateFromYear.Value = _filters.ReleaseDate.From.Year;
+                releaseDateToDay.Value = _filters.ReleaseDate.To.Day;
+                releaseDateToMonth.SelectedIndex = _filters.ReleaseDate.To.Month-1;
+                releaseDateToYear.Value = _filters.ReleaseDate.To.Year;
+            }
+            void SetUnreleasedFilter()
+            {
+                unreleasedWithoutRD.Checked = _filters.Unreleased.HasFlag(UnreleasedFilter.WithoutReleaseDate);
+                unreleasedWithRD.Checked = _filters.Unreleased.HasFlag(UnreleasedFilter.WithReleaseDate);
+                unreleasedReleased.Checked = _filters.Unreleased.HasFlag(UnreleasedFilter.Released);
+            }
+            void SetWishlistFilter()
+            {
+                wishlistNA.Checked = _filters.Wishlist.HasFlag(WishlistFilter.NA);
+                wishlistHigh.Checked = _filters.Wishlist.HasFlag(WishlistFilter.High);
+                wishlistMedium.Checked = _filters.Wishlist.HasFlag(WishlistFilter.Medium);
+                wishlistLow.Checked = _filters.Wishlist.HasFlag(WishlistFilter.Low);
+            }
+            void SetUserlistFilter()
+            {
+                userlistNA.Checked = _filters.Userlist.HasFlag(UserlistFilter.NA);
+                userlistUnknown.Checked = _filters.Userlist.HasFlag(UserlistFilter.Unknown);
+                userlistPlaying.Checked = _filters.Userlist.HasFlag(UserlistFilter.Playing);
+                userlistFinished.Checked = _filters.Userlist.HasFlag(UserlistFilter.Finished);
+                userlistStalled.Checked = _filters.Userlist.HasFlag(UserlistFilter.Stalled);
+                userlistDropped.Checked = _filters.Userlist.HasFlag(UserlistFilter.Dropped);
+            }
         }
 
         private readonly Timer _doubleClickTimer = new Timer();
@@ -264,15 +326,13 @@ namespace Happy_Search.Other_Forms
             _mainForm.filterDropdown.SelectedItem = selectedItem;
             _customFilterBlock = false;
             if (DontTriggerEvent) return;
-            _filters.SetCustomFilter(selectedItem);
+            _filters.LoadCustomFilter(selectedItem);
             SetFiltersToGui();
             if (sender == _mainForm)
             {
                 _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
                 _mainForm.LoadVNListToGui();
-                return;
             }
-            _filters.RefreshKind = RefreshType.NamedFilter;
         }
 
         private void FilterFixedChanged(object sender, EventArgs e)
@@ -478,24 +538,6 @@ namespace Happy_Search.Other_Forms
             if (loadedCustomFilters != null) _customFilters.AddRange(loadedCustomFilters);
             _filters = Filters.LoadFixedFilter();
             DontTriggerEvent = true;
-
-            releaseDateFixed.Checked = _filters.ReleaseDateFixed;
-            unreleasedFixed.Checked = _filters.UnreleasedFixed;
-            blacklistedFixed.Checked = _filters.BlacklistedFixed;
-            votedFixed.Checked = _filters.VotedFixed;
-            favoriteProducerFixed.Checked = _filters.FavoriteProducersFixed;
-            wishlistFixed.Checked = _filters.WishlistFixed;
-            userlistFixed.Checked = _filters.UserlistFixed;
-            languageFixed.Checked = _filters.LanguageFixed;
-            originalLanguageFixed.Checked = _filters.OriginalLanguageFixed;
-            tagsFixed.Checked = _filters.TagsFixed;
-            traitsFixed.Checked = _filters.TraitsFixed;
-            languageTF.Checked = _filters.LanguageOn;
-            originalLanguageTF.Checked = _filters.OriginalLanguageOn;
-            tagsTF.Checked = _filters.TagsOn;
-            traitsTF.Checked = _filters.TraitsOn;
-
-            traitRootsDropdown.SelectedIndex = 0;
             filterDropdown.DataSource = _customFilters;
             _mainForm.filterDropdown.DataSource = _customFilters;
             tagFiltersCB.DataSource = _customTagFilters;
@@ -505,10 +547,10 @@ namespace Happy_Search.Other_Forms
             if (_customTraitFilters.Count > 0) traitFiltersCB.SelectedIndex = 0;
             if (_customFilters.Count > 0) filterDropdown.SelectedIndex = 0;
             if (_customFilters.Count > 0) _mainForm.filterDropdown.SelectedIndex = 0;
-            languageLB.DataSource = _filters.OriginalLanguage;
+            languageLB.DataSource = _filters.Language;
             originalLanguageLB.DataSource = _filters.OriginalLanguage;
-            //tagsLB.DataSource = _filters.Tags;
-            //traitsLB.DataSource = _filters.Traits;
+            tagsLB.DataSource = _filters.Tags;
+            traitsLB.DataSource = _filters.Traits;
             DontTriggerEvent = false;
             SetFiltersToGui();
         }
@@ -516,6 +558,7 @@ namespace Happy_Search.Other_Forms
         private void FilterStateChanged(object sender, EventArgs e)
         {
             var control = (Control) sender;
+            if (!(control as RadioButton)?.Checked ?? false) return;
             var panel = control.Parent;
             //12 panels
             if (panel == lengthPanel) //1
@@ -540,7 +583,7 @@ namespace Happy_Search.Other_Forms
             }
             else if (panel == favoriteProducerPanel) //6
             {
-                _filters.Blacklisted = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
+                _filters.FavoriteProducers = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
             }
             else if (panel == wishlistPanel) //7
             {

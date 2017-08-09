@@ -130,6 +130,7 @@ No Work
 	 Remove Logging from database methods (or make it write to file later)
 	 Don't open duplicate vn tabs
 	 Insert Rating filter
+	 Link to search user-specified website for vn title (in vn tab)
 	 
 	Medium Tasks
 	----------
