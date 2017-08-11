@@ -49,7 +49,7 @@ namespace Happy_Search
             }
         }
 
-        public YesNoFilter Blacklisted
+        public bool Blacklisted
         {
             get => _blacklisted;
             set
@@ -59,7 +59,7 @@ namespace Happy_Search
             }
         }
 
-        public YesNoFilter Voted
+        public bool Voted
         {
             get => _voted;
             set
@@ -69,7 +69,7 @@ namespace Happy_Search
             }
         }
 
-        public YesNoFilter FavoriteProducers
+        public bool FavoriteProducers
         {
             get => _favoriteProducers;
             set
@@ -119,9 +119,9 @@ namespace Happy_Search
         private LengthFilter _length;
         private DateRange _releaseDate;
         private UnreleasedFilter _unreleased;
-        private YesNoFilter _blacklisted;
-        private YesNoFilter _voted;
-        private YesNoFilter _favoriteProducers;
+        private bool _blacklisted;
+        private bool _voted;
+        private bool _favoriteProducers;
         private WishlistFilter _wishlist;
         private UserlistFilter _userlist;
         private bool _tagsTraitsMode;
@@ -237,8 +237,6 @@ namespace Happy_Search
         /// </summary>
         public Func<ListedVN, bool> GetFunction(FormMain form, FiltersTab tab)
         {
-            //private ListBox.ObjectCollection _tags;
-            //private ListBox.ObjectCollection _traits;
             var andFunctions = new List<Func<ListedVN, bool>>();
             var orFunctions = new List<Func<ListedVN, bool>>();
             Filters t = this;
@@ -283,8 +281,7 @@ namespace Happy_Search
             if (andFunctions.Count + orFunctions.Count == 0) return vn => true;
             if (andFunctions.Count > 0 & orFunctions.Count == 0) return vn => andFunctions.Select(filter => filter(vn)).All(valid => valid);
             if (andFunctions.Count == 0 & orFunctions.Count > 0) return vn => orFunctions.Select(orFilter => orFilter(vn)).Any(valid => valid);
-            return vn => andFunctions.Select(filter => filter(vn)).All(valid => valid) &&
-                         orFunctions.Select(orFilter => orFilter(vn)).Any(valid => valid);
+            return vn => andFunctions.Select(filter => filter(vn)).All(valid => valid) && orFunctions.Select(orFilter => orFilter(vn)).Any(valid => valid);
 
         }
 

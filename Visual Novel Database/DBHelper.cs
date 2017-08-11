@@ -607,7 +607,7 @@ END";
             var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
             ListedVN vn = null;
-            while (reader.Read()) vn = GetListedVN(reader);
+            while (reader.Read()) vn = new ListedVN(reader);
             return vn;
         }
 
@@ -645,7 +645,7 @@ END";
             if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
-            while (reader.Read()) readerList.Add(GetListedVN(reader));
+            while (reader.Read()) readerList.Add(new ListedVN(reader));
             return readerList;
         }
 
@@ -657,7 +657,7 @@ END";
             if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
-            while (reader.Read()) readerList.Add(GetListedVN(reader));
+            while (reader.Read()) readerList.Add(new ListedVN(reader));
             return readerList;
         }
 
@@ -686,7 +686,7 @@ END";
             if (_printGetMethods) LogToFile(selectString);
             var command = new SQLiteCommand(selectString, _conn);
             var reader = command.ExecuteReader();
-            while (reader.Read()) readerList.Add(GetListedVN(reader));
+            while (reader.Read()) readerList.Add(new ListedVN(reader));
             return readerList;
         }
 
@@ -703,80 +703,7 @@ END";
                 VNs = JsonConvert.DeserializeObject<List<CharacterVNItem>>(reader["VNs"].ToString())
             };
         }
-
-        private static ListedVN GetListedVN(SQLiteDataReader reader)
-        {
-#if DEBUG
-            try
-            {
-                var t = reader["Title"].ToString();
-                var k = reader["KanjiTitle"].ToString();
-                var r = reader["RelDate"].ToString();
-                var pn = reader["Name"].ToString();
-                var l = DbInt(reader["LengthTime"]);
-                var us = DbInt(reader["ULStatus"]);
-                var ua = DbInt(reader["ULAdded"]);
-                var un = reader["ULNote"].ToString();
-                var ws = DbInt(reader["WLStatus"]);
-                var wa = DbInt(reader["WLAdded"]);
-                var v = DbInt(reader["Vote"]);
-                var va = DbInt(reader["VoteAdded"]);
-                var ta = reader["Tags"].ToString();
-                var id = DbInt(reader["VNID"]);
-                var du = DbDateTime(reader["DateUpdated"]);
-                var i = reader["ImageURL"].ToString();
-                var iN = GetImageStatus(reader["ImageNSFW"]);
-                var d = reader["Description"].ToString();
-                var p = DbDouble(reader["Popularity"]);
-                var ra = DbDouble(reader["Rating"]);
-                var vc = DbInt(reader["VoteCount"]);
-                var re = reader["Relations"].ToString();
-                var sc = reader["Screens"].ToString();
-                var an = reader["Anime"].ToString();
-                var al = reader["Aliases"].ToString();
-                var la = reader["Languages"].ToString();
-                var dfu = DbDateTime(reader["DateFullyUpdated"]);
-                return new ListedVN(t, k, r, pn, l, us, ua, un, ws, wa, v, va, ta, id, du, i, iN, d, p, ra, vc, re, sc, an, al, la, dfu);
-            }
-#pragma warning disable 168
-            catch (Exception exc)
-            {
-                // ignored
-            }
-#pragma warning restore 168
-            return null;
-# else
-            return new ListedVN(
-            reader["Title"].ToString(),
-                reader["KanjiTitle"].ToString(),
-                reader["RelDate"].ToString(),
-                reader["Name"].ToString(),
-                DbInt(reader["LengthTime"]),
-                DbInt(reader["ULStatus"]),
-                DbInt(reader["ULAdded"]),
-                reader["ULNote"].ToString(),
-                DbInt(reader["WLStatus"]),
-                DbInt(reader["WLAdded"]),
-                DbInt(reader["Vote"]),
-                DbInt(reader["VoteAdded"]),
-                reader["Tags"].ToString(),
-                DbInt(reader["VNID"]),
-                DbDateTime(reader["DateUpdated"]),
-                reader["ImageURL"].ToString(),
-                GetImageStatus(reader["ImageNSFW"]),
-                reader["Description"].ToString(),
-                DbDouble(reader["Popularity"]),
-                DbDouble(reader["Rating"]),
-                DbInt(reader["VoteCount"]),
-                reader["Relations"].ToString(),
-                reader["Screens"].ToString(),
-                reader["Anime"].ToString(),
-                reader["Aliases"].ToString(),
-                reader["Languages"].ToString(),
-            DbDateTime(reader["DateFullyUpdated"]));
-#endif
-        }
-
+        
         private static ListedProducer GetListedProducer(SQLiteDataReader reader)
         {
             return new ListedProducer(
@@ -849,7 +776,7 @@ END";
             return DateTime.TryParse(dbObject.ToString(), out DateTime upDateTime) ? upDateTime : DateTime.MinValue;
         }
 
-        private static bool GetImageStatus(object imageNSFW)
+        public static bool GetImageStatus(object imageNSFW)
         {
             if (!int.TryParse(imageNSFW.ToString(), out int i)) return false;
             return i == 1;

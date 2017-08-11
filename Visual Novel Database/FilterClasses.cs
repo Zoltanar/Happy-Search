@@ -18,12 +18,6 @@ namespace Happy_Search
         ReleasedOrWithDate = WithReleaseDate | Released
     }
 
-    public enum YesNoFilter
-    {
-        No = 1,
-        Yes = 2
-    }
-
     [Flags]
     public enum WishlistFilter
     {

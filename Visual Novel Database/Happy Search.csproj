@@ -288,7 +288,9 @@
     <None Include="Program Data\Certificates\letsencryptauthorityx2.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Program Data\Default Files\defaultfilters.json" />
+    <None Include="Program Data\Default Files\defaultfilters.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Program Data\Default Files\tags.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

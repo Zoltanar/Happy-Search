@@ -2,6 +2,7 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+Improved: Completed Filters overhaul, can now create and save custom filters.
 Improved: Updated Help files.
 Added: See VNDB page option on right-click context menu.
 Fixed: Update VN on VN tab now properly sets connection to ready when it's done.

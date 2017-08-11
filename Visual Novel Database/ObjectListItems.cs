@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -99,98 +100,56 @@ namespace Happy_Search
             {4, LengthFilter.ThirtyToFiftyHours},
             {5, LengthFilter.OverFiftyHours}
         };
-
+        
         /// <summary>
-        /// Constructor for ListedVN.
+        /// Get ListedVN from DataReader.
         /// </summary>
-        /// <param name="title">VN title</param>
-        /// <param name="kanjiTitle">VN kanji title</param>
-        /// <param name="reldate">VN's first non-trial release date</param>
-        /// <param name="producer">VN producer</param>
-        /// <param name="length">VN length</param>
-        /// <param name="ulstatus">User's userlist status of VN</param>
-        /// <param name="uladded">Date of ULStatus change</param>
-        /// <param name="ulnote">User's note</param>
-        /// <param name="wlstatus">User's wishlist priority of VN</param>
-        /// <param name="wladded">Date of WLStatus change</param>
-        /// <param name="vote">User's Vote</param>
-        /// <param name="voteadded">Date of Vote change</param>
-        /// <param name="tags">VN's tags (in JSON array)</param>
-        /// <param name="vnid">VN's ID</param>
-        /// <param name="updatedDate">Date of last VN update</param>
-        /// <param name="imageURL">URL of VN's cover image</param>
-        /// <param name="imageNSFW">Is VN's cover NSFW?</param>
-        /// <param name="description">VN description</param>
-        /// <param name="popularity">Popularity of VN, percentage of most popular VN</param>
-        /// <param name="rating">Bayesian rating of VN, 1-10</param>
-        /// <param name="voteCount">Number of votes cast on VN</param>
-        /// <param name="relations">JSON Array string containing List of Relation Items</param>
-        /// <param name="screens">JSON Array string containing List of Screenshot Items</param>
-        /// <param name="anime">JSON Array string containing List of Anime Items</param>
-        /// <param name="aliases">Newline separated string of aliases</param>
-        /// <param name="language">Language of producer</param>
-        /// <param name="dateFullyUpdated">Date when all fields were updated</param>
-        public ListedVN(string title, string kanjiTitle, string reldate, string producer, int? length, int ulstatus,
-            int uladded, string ulnote, int wlstatus, int wladded, int vote, int voteadded,
-            string tags, int vnid, DateTime updatedDate, string imageURL, bool imageNSFW, string description,
-            double popularity, double rating, int voteCount, string relations, string screens, string anime, string aliases, string language, DateTime? dateFullyUpdated)
+        public ListedVN(IDataRecord reader)
         {
-#if DEBUG
-            try
-            {
-#endif
-                if (reldate.Equals("") || reldate.Equals("tba")) reldate = "N/A";
-                ULStatus = (UserlistStatus)ulstatus;
-                WLStatus = (WishlistStatus)wlstatus;
-                if (vote != -1) Vote = (double)vote / 10;
-                Title = title;
-                KanjiTitle = kanjiTitle;
-                RelDate = reldate;
-                DateForSorting = StringToDate(reldate);
-                Producer = producer;
-                Length = length != null ? LengthMap[length.Value] : LengthFilter.NA; //&& length != -1 ? LengthTime[length.Value] : LengthTime[0];
-                ULAdded = DateTimeOffset.FromUnixTimeSeconds(uladded).UtcDateTime;
-                ULNote = ulnote;
-                WLAdded = DateTimeOffset.FromUnixTimeSeconds(wladded).UtcDateTime;
-                VoteAdded = DateTimeOffset.FromUnixTimeSeconds(voteadded).UtcDateTime;
-                var tagList = StringToTags(tags);
-                foreach (TagItem tag in tagList)tag.SetCategory(FormMain.PlainTags);
-                TagList = tagList;
-                VNID = vnid;
-                UpdatedDate = DaysSince(updatedDate);
-                ImageURL = imageURL;
-                ImageNSFW = imageNSFW;
-                Description = description;
-                Popularity = popularity;
-                Rating = rating;
-                VoteCount = voteCount;
-                Relations = relations;
-                Screens = screens;
-                Anime = anime;
-                Aliases = aliases;
-                Languages = JsonConvert.DeserializeObject<VNLanguages>(language);
-                DateFullyUpdated = DaysSince(dateFullyUpdated ?? DateTime.MinValue);
-#if DEBUG
-            }
-            // ReSharper disable once UnusedVariable
-#pragma warning disable 168
-            catch (Exception exc)
-#pragma warning restore 168
-            {
-                // ignored
-            }
-#endif
-        }
+            var relDate = reader["RelDate"].ToString();
+            var length = DbHelper.DbInt(reader["LengthTime"]);
+            var vote = DbHelper.DbInt(reader["Vote"]);
 
+            if (relDate.Equals("") || relDate.Equals("tba")) relDate = "N/A";
+            ULStatus = (UserlistStatus)DbHelper.DbInt(reader["ULStatus"]);
+            WLStatus = (WishlistStatus)DbHelper.DbInt(reader["WLStatus"]);
+            if (vote != -1) Vote = (double)vote / 10;
+            Title = reader["Title"].ToString();
+            KanjiTitle = reader["KanjiTitle"].ToString();
+            RelDate = relDate;
+            DateForSorting = StringToDate(relDate);
+            Producer = reader["Name"].ToString();
+            Length = length != -1 ? LengthMap[length] : LengthFilter.NA;
+            ULAdded = DateTimeOffset.FromUnixTimeSeconds(DbHelper.DbInt(reader["ULAdded"])).UtcDateTime;
+            ULNote = reader["ULNote"].ToString();
+            WLAdded = DateTimeOffset.FromUnixTimeSeconds(DbHelper.DbInt(reader["WLAdded"])).UtcDateTime;
+            VoteAdded = DateTimeOffset.FromUnixTimeSeconds(DbHelper.DbInt(reader["VoteAdded"])).UtcDateTime;
+            var tagList = StringToTags(reader["Tags"].ToString());
+            foreach (var tag in tagList) tag.SetCategory(FormMain.PlainTags);
+            TagList = tagList;
+            VNID = DbHelper.DbInt(reader["VNID"]);
+            UpdatedDate = DaysSince(DbHelper.DbDateTime(reader["DateUpdated"]));
+            ImageURL = reader["ImageURL"].ToString();
+            ImageNSFW = DbHelper.GetImageStatus(reader["ImageNSFW"]);
+            Description = reader["Description"].ToString();
+            Popularity = DbHelper.DbDouble(reader["Popularity"]);
+            Rating = DbHelper.DbDouble(reader["Rating"]);
+            VoteCount = DbHelper.DbInt(reader["VoteCount"]);
+            Relations = reader["Relations"].ToString();
+            Screens = reader["Screens"].ToString();
+            Anime = reader["Anime"].ToString();
+            Aliases = reader["Aliases"].ToString();
+            Languages = JsonConvert.DeserializeObject<VNLanguages>(reader["Languages"].ToString());
+            DateFullyUpdated = DaysSince(DbHelper.DbDateTime(reader["DateFullyUpdated"]));
+        }
+        
         /// <summary>
         /// Returns whether vn is by a favorite producer.
         /// </summary>
         /// <param name="favoriteProducers">List of favorite producers.</param>
-        internal YesNoFilter ByFavoriteProducer(IEnumerable<ListedProducer> favoriteProducers)
+        internal bool ByFavoriteProducer(IEnumerable<ListedProducer> favoriteProducers)
         {
-            return favoriteProducers.FirstOrDefault(fp => fp.Name == Producer) != null
-                ? YesNoFilter.Yes
-                : YesNoFilter.No;
+            return favoriteProducers.FirstOrDefault(fp => fp.Name == Producer) != null;
         }
 
         /// <summary>
@@ -210,7 +169,7 @@ namespace Happy_Search
         /// Days since all fields were updated
         /// </summary>
         public int DateFullyUpdated { get; }
-        
+
         /// <summary>
         /// List of Tags in this VN.
         /// </summary>
@@ -316,7 +275,7 @@ namespace Happy_Search
         /// VN's ID
         /// </summary>
         public int VNID { get; }
-        
+
         /// <summary>
         /// Days since last tags/stats/traits update
         /// </summary>
@@ -386,12 +345,12 @@ namespace Happy_Search
         /// <summary>
         /// Gets blacklisted status of vn.
         /// </summary>
-        public YesNoFilter Blacklisted => WLStatus == WishlistStatus.Blacklist ? YesNoFilter.Yes : YesNoFilter.No;
+        public bool Blacklisted => WLStatus == WishlistStatus.Blacklist;
 
         /// <summary>
         /// Gets voted status of vn.
         /// </summary>
-        public YesNoFilter Voted => Vote >= 1 ? YesNoFilter.Yes : YesNoFilter.No;
+        public bool Voted => Vote >= 1;
 
         /// <summary>
         /// Gets wishlist status of vn.
@@ -538,6 +497,11 @@ namespace Happy_Search
         {
             return DateForSorting.Year == year;
         }
+
+        /// <summary>
+        /// Get location of cover image in system (not online)
+        /// </summary>
+        public string GetImageLocation() => $"{VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
     }
 
     /// <summary>

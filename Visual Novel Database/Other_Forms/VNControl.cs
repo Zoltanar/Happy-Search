@@ -49,7 +49,7 @@ namespace Happy_Search.Other_Forms
             _parentForm = parentForm;
             _loadFromDb = loadFromDb;
             InitializeComponent();
-            vnReplyText.Text ="";
+            vnReplyText.Text = "";
             _tabPage = tabPage;
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             tagTypeC.Checked = FormMain.Settings.ContentTags;
@@ -64,13 +64,12 @@ namespace Happy_Search.Other_Forms
             Load += LoadForm;
         }
 
-
         private async void LoadForm(object sender, EventArgs eventArgs)
         {
             await SetData(_displayedVN);
         }
 
-        internal void DisplayTags(object sender, EventArgs e)
+        private void DisplayTags(object sender, EventArgs e)
         {
             if (sender != null && !DontTriggerEvent)
             {
@@ -96,7 +95,7 @@ namespace Happy_Search.Other_Forms
                 _parentForm.DisplayCommonTagsURT(null, null);
                 FormMain.Settings.Save();
             }
-            if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = new [] {"No Tags Found"};
+            if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = new[] { "No Tags Found" };
             else
             {
                 var visibleTags = new List<TagItem>();
@@ -120,13 +119,6 @@ namespace Happy_Search.Other_Forms
                 stringList.Sort();
                 vnTagCB.DataSource = stringList;
             }
-        }
-
-        /// <returns>The text associated with this control.</returns>
-        public sealed override string Text
-        {
-            get => base.Text;
-            set => base.Text = value;
         }
 
         /// <summary>
@@ -154,22 +146,15 @@ namespace Happy_Search.Other_Forms
         /// <param name="update">Whether to refetch anime, relations and screenshots</param>
         private async Task SetData(ListedVN vnItem, bool update = false)
         {
-#if DEBUG
-            try
-            {
-#endif
             if (vnItem == null || vnItem.VNID <= 0)
             {
                 SetDeletedData();
                 return;
             }
-            Text = $@"{vnItem.Title} - {ClientName}";
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             //prepare data
             _displayedVN = vnItem;
             _producer = _parentForm.ProducerList.Find(p => p.Name == _displayedVN.Producer);
-            var ext = Path.GetExtension(vnItem.ImageURL);
-            var imageLoc = $"{VNImagesFolder}{vnItem.VNID}{ext}";
             DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
             //set data
@@ -177,20 +162,14 @@ namespace Happy_Search.Other_Forms
             vnID.Text = vnItem.VNID.ToString();
             vnKanjiName.Text = vnItem.KanjiTitle;
             producerLabel.Text = vnItem.Producer;
-            if (!string.IsNullOrEmpty(_producer?.Language))
-            {
-                var prodFlag = $"{FlagsFolder}{_producer.Language}.png"; //TODO make a getflag method
-                if (File.Exists(prodFlag)) producerFlag.ImageLocation = prodFlag;
-            }
+            producerFlag.SetFlagImage(_producer?.Language);
             if (vnItem.Languages != null)
             {
                 int boxIndex = 0;
                 foreach (var language in vnItem.Languages.All)
                 {
                     if (boxIndex > 5) break;
-                    var flagPath = $"{FlagsFolder}{language}.png";
-                    if (File.Exists(flagPath)) _flagBoxes[boxIndex].ImageLocation = flagPath;
-                    else _flagBoxes[boxIndex].Text = language;
+                    _flagBoxes[boxIndex].SetFlagImage(language);
                     boxIndex++;
                 }
             }
@@ -209,16 +188,9 @@ namespace Happy_Search.Other_Forms
             var notes = vnItem.GetCustomItemNotes();
             vnNotes.Text = notes.Notes.Length > 0 ? $"Notes: {notes.Notes}" : "No notes.";
             vnUpdate.Text = $@"Days since last updates (Tags/Traits/Stats and full):  {vnItem.UpdatedDate}/{vnItem.DateFullyUpdated}";
-            if (update) WriteText(vnReplyText,"Just updated.");
+            if (update) WriteText(vnReplyText, "Just updated.");
             DisplayGroups(notes);
-            if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
-            else if (File.Exists(imageLoc))
-            {
-                Image coverImage;
-                using (var ms = new MemoryStream(File.ReadAllBytes(imageLoc))) coverImage = Image.FromStream(ms);
-                pcbImages.Image = coverImage;
-            }
-            else pcbImages.Image = Resources.no_image;
+            SetCoverImage(vnItem);
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             DisplayTextOnScreenshotArea("Getting data from VNDB...");
             while (_parentForm.DBConn.IsBusy()) await Task.Delay(25);
@@ -243,16 +215,19 @@ namespace Happy_Search.Other_Forms
                     DisplayScreenshots(loadResult.Screens);
                     break;
             }
-#if DEBUG
-            }
-            // ReSharper disable once UnusedVariable
-#pragma warning disable 168
-            catch (Exception e)
-#pragma warning restore 168
+        }
+
+        private void SetCoverImage(ListedVN vnItem)
+        {
+            var imageLoc = vnItem.GetImageLocation();
+            if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
+            else if (File.Exists(imageLoc))
             {
-                // ignored
+                Image coverImage;
+                using (var ms = new MemoryStream(File.ReadAllBytes(imageLoc))) coverImage = Image.FromStream(ms);
+                pcbImages.Image = coverImage;
             }
-#endif
+            else pcbImages.Image = Resources.no_image;
         }
 
         private void DisplayGroups(CustomItemNotes notes)
@@ -920,7 +895,7 @@ namespace Happy_Search.Other_Forms
         {
             if (Working) return;
             Working = true;
-            var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes",false,false,true);
+            var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes", false, false, true);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";

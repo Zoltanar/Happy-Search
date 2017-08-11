@@ -72,8 +72,23 @@ namespace Happy_Search
         {
             InitializeComponent();
             string[] args = Environment.GetCommandLineArgs();
-            SplashScreen.SetStatus("Initializing Controls...");
+            InitializeControls();
+            LoadUserSettings();
+            LoadTagAndTraitFiles();
+            SplashScreen.SetStatus("Connecting to SQLite Database...");
+            DBConn = new DbHelper(args.Contains("-dl") || args.Contains("-debug"));
+            LoadDataFromDatabase();
+            SplashScreen.SetStatus("Updating User Stats...");
+            UpdateUserStats();
+            SplashScreen.SetStatus("Adding VNs to Object Lists...");
+            _currentListLabel = "All Titles";
+            CurrentFilterLabel = "No Filters";
+            SplashScreen.CloseForm();
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+
+            void InitializeControls()
             {
+                SplashScreen.SetStatus("Initializing Controls...");
                 DontTriggerEvent = true;
                 viewPicker.SelectedIndex = 0;
                 otherMethodsCB.SelectedIndex = 0;
@@ -108,8 +123,9 @@ https://github.com/FredTheBarber/VndbClient";
                 LogToFile($"Project at {ProjectURL}");
                 LogToFile($"Start Time = {DateTime.UtcNow}");
             }
-            SplashScreen.SetStatus("Loading User Settings...");
+            void LoadUserSettings()
             {
+                SplashScreen.SetStatus("Loading User Settings...");
                 Settings = UserSettings.Load();
                 tagTypeC2.Checked = Settings.ContentTags;
                 tagTypeS2.Checked = Settings.SexualTags;
@@ -118,8 +134,9 @@ https://github.com/FredTheBarber/VndbClient";
                 autoUpdateURTBox.Checked = Settings.AutoUpdate;
                 yearLimitBox.Checked = Settings.DecadeLimit;
             }
-            SplashScreen.SetStatus("Loading Tag and Trait files...");
+            void LoadTagAndTraitFiles()
             {
+                SplashScreen.SetStatus("Loading Tag and Trait files...");
                 LogToFile(
                     $"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
                 if (DaysSince(Settings.DumpfileDate) > 2 || DaysSince(Settings.DumpfileDate) == -1)
@@ -133,12 +150,9 @@ https://github.com/FredTheBarber/VndbClient";
                     LoadTraitdump(!File.Exists(TraitsJson));
                 }
             }
-            SplashScreen.SetStatus("Connecting to SQLite Database...");
+            void LoadDataFromDatabase()
             {
-                DBConn = new DbHelper(args.Contains("-dl") || args.Contains("-debug"));
-            }
-            SplashScreen.SetStatus("Loading Data from Database...");
-            {
+                SplashScreen.SetStatus("Loading Data from Database...");
                 DBConn.Open();
                 VNList = DBConn.GetAllTitles(Settings.UserID);
                 ProducerList = DBConn.GetAllProducers();
@@ -153,17 +167,6 @@ https://github.com/FredTheBarber/VndbClient";
                 PopulateProducerSearchBox();
                 PopulateGroupSearchBox();
             }
-            SplashScreen.SetStatus("Updating User Stats...");
-            {
-                UpdateUserStats();
-            }
-            SplashScreen.SetStatus("Adding VNs to Object Lists...");
-            {
-                _currentListLabel = "All Titles";
-                CurrentFilterLabel = "No Filters";
-            }
-            SplashScreen.CloseForm();
-            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         }
 
 

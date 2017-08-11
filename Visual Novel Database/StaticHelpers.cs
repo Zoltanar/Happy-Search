@@ -127,7 +127,6 @@ namespace Happy_Search
             }
         }
 
-
         /// <summary>
         /// Deserialize object from JSON string in file.
         /// </summary>
@@ -190,7 +189,7 @@ namespace Happy_Search
         {
             return value ? type.AddFlag(enumFlag) : type.RemoveFlag(enumFlag);
         }
-        
+
         /// <summary>
         /// Pause RaiseListChangedEvents and add items then call the event when done adding.
         /// </summary>
@@ -288,16 +287,13 @@ namespace Happy_Search
         }
 
         /// <summary>
-        /// Gets selected radio option's tag as Enum. T must be enum.
+        /// Gets selected radio option's tag as boolean.
         /// </summary>
-        /// <param name="panel"></param>
-        /// <typeparam name="T">Must be Enum</typeparam>
-        public static T GetRadioOption<T>(this Panel panel) where T : struct, IConvertible
+        public static bool GetRadioOption(this Panel panel)
         {
-            var firstOrDefault = panel.Controls.OfType<RadioButton>().FirstOrDefault(c => c.Checked);
-            if (firstOrDefault == null) throw new Exception($"Failed to get radio option from panel {panel.Name}");
-            int result = (int)firstOrDefault.Tag;
-            return (T)(object)result;
+            var radioButton = panel.Controls.OfType<RadioButton>().FirstOrDefault(c => c.Checked);
+            if (radioButton == null) throw new Exception($"Failed to get radio option from panel {panel.Name}");
+            return (bool)radioButton.Tag;
         }
 
         /// <summary>
@@ -539,6 +535,17 @@ namespace Happy_Search
             {
                 LogToFile(ex);
             }
+        }
+
+        /// <summary>
+        /// Set PictureBox image as language flag or set text as language if image does not exist.
+        /// </summary>
+        public static void SetFlagImage(this PictureBox pictureBox, string language)
+        {
+            if (language == null) return;
+            var prodFlag = $"{FlagsFolder}{language}.png";
+            if (File.Exists(prodFlag)) pictureBox.ImageLocation = prodFlag;
+            else pictureBox.Text = language;
         }
 
         /// <summary>

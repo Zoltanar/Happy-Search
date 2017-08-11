@@ -48,6 +48,9 @@ namespace Happy_Search.Other_Forms
             _doubleClickTimer.Interval = 250;
             SetFilterTags();
             InitialLoadFromFile();
+            _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
+            _mainForm.LoadVNListToGui();
+            _filters.RefreshKind = RefreshType.None;
 
             void SetFilterTags()
             {
@@ -61,14 +64,14 @@ namespace Happy_Search.Other_Forms
                 unreleasedWithoutRD.Tag = (int)UnreleasedFilter.WithoutReleaseDate;
                 unreleasedReleased.Tag = (int)UnreleasedFilter.Released;
 
-                blacklistedYes.Tag = (int)YesNoFilter.Yes;
-                blacklistedNo.Tag = (int)YesNoFilter.No;
+                blacklistedYes.Tag = true;
+                blacklistedNo.Tag = false;
 
-                votedYes.Tag = (int)YesNoFilter.Yes;
-                votedNo.Tag = (int)YesNoFilter.No;
+                votedYes.Tag = true;
+                votedNo.Tag = false;
 
-                favoriteProducerYes.Tag = (int)YesNoFilter.Yes;
-                favoriteProducerNo.Tag = (int)YesNoFilter.No;
+                favoriteProducerYes.Tag = true;
+                favoriteProducerNo.Tag = false;
 
                 wishlistNA.Tag = (int)WishlistFilter.NA;
                 wishlistHigh.Tag = (int)WishlistFilter.High;
@@ -223,9 +226,9 @@ namespace Happy_Search.Other_Forms
             SetLengthFilter();
             SetReleaseDateFilter();
             SetUnreleasedFilter();
-            (_filters.Blacklisted == YesNoFilter.Yes ? blacklistedYes : blacklistedNo).Checked = true;
-            (_filters.Voted == YesNoFilter.Yes ? votedYes : votedNo).Checked = true;
-            (_filters.FavoriteProducers == YesNoFilter.Yes ? favoriteProducerYes : favoriteProducerNo).Checked = true;
+            (_filters.Blacklisted ? blacklistedYes : blacklistedNo).Checked = true;
+            (_filters.Voted ? votedYes : votedNo).Checked = true;
+            (_filters.FavoriteProducers ? favoriteProducerYes : favoriteProducerNo).Checked = true;
             SetWishlistFilter();
             SetUserlistFilter();
 
@@ -575,15 +578,15 @@ namespace Happy_Search.Other_Forms
             }
             else if (panel == blacklistedPanel) //4
             {
-                _filters.Blacklisted = blacklistedPanel.GetRadioOption<YesNoFilter>();
+                _filters.Blacklisted = blacklistedPanel.GetRadioOption();
             }
             else if (panel == votedPanel) //5
             {
-                _filters.Blacklisted = votedPanel.GetRadioOption<YesNoFilter>();
+                _filters.Voted = votedPanel.GetRadioOption();
             }
             else if (panel == favoriteProducerPanel) //6
             {
-                _filters.FavoriteProducers = favoriteProducerPanel.GetRadioOption<YesNoFilter>();
+                _filters.FavoriteProducers = favoriteProducerPanel.GetRadioOption();
             }
             else if (panel == wishlistPanel) //7
             {
