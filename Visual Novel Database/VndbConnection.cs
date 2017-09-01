@@ -37,15 +37,9 @@ namespace Happy_Search
             var retries = 0;
             var certs = new X509CertificateCollection();
             var certFiles = Directory.GetFiles("Program Data\\Certificates");
-            foreach (var certFile in certFiles)
-            {
-                certs.Add(X509Certificate.CreateFromCertFile(certFile));
-            }
+            foreach (var certFile in certFiles) certs.Add(X509Certificate.CreateFromCertFile(certFile));
             LogToFile("Local Certificate data - subject/issuer/format/effectivedate/expirationdate");
-            foreach (var cert in certs)
-            {
-                LogToFile(cert.Subject + "\t - \t" + cert.Issuer + "\t - \t" + cert.GetFormat() + "\t - \t" + cert.GetEffectiveDateString() + "\t - \t" + cert.GetExpirationDateString());
-            }
+            foreach (var cert in certs) LogToFile($"{cert.Subject}\t{cert.Issuer}\t{cert.GetFormat()}\t{cert.GetEffectiveDateString()}\t{cert.GetExpirationDateString()}");
             while (!complete && retries < 5)
             {
                 try
@@ -74,32 +68,24 @@ namespace Happy_Search
                     }
                     _stream = sslStream;
                     complete = true;
-                    //
                     LogToFile($"Connected after {retries} tries.");
                 }
                 catch (IOException e)
                 {
-                    LogToFile("Conn Open Error");
-                    LogToFile(e.Message);
-                    LogToFile(e.StackTrace);
+                    LogToFile("Conn Open Error", e);
                 }
                 catch (AuthenticationException e)
                 {
-                    LogToFile("Conn Authentication Error");
-                    LogToFile(e.Message);
-                    LogToFile(e.StackTrace);
+                    LogToFile("Conn Authentication Error", e);
                     if (e.InnerException == null) continue;
-                    LogToFile(e.InnerException.Message);
-                    LogToFile(e.InnerException.StackTrace);
+                    LogToFile("Conn Authentication Error - Inner", e);
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
-                    LogToFile("Conn Other Error");
-                    LogToFile(ex.Message);
-                    LogToFile(ex.StackTrace);
+                    LogToFile("Conn Other Error", ex);
                 }
             }
-            if (_stream != null  && _stream.CanRead) return;
+            if (_stream != null && _stream.CanRead) return;
             LogToFile($"Failed to connect after {retries} tries.");
             Status = APIStatus.Error;
             AskForNonSsl();
@@ -130,21 +116,15 @@ namespace Happy_Search
                 }
                 catch (IOException e)
                 {
-                    LogToFile("Conn Open Error");
-                    LogToFile(e.Message);
-                    LogToFile(e.StackTrace);
+                    LogToFile("Conn Open Error", e);
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is InvalidOperationException)
                 {
-                    LogToFile("Conn Other Error");
-                    LogToFile(ex.Message);
-                    LogToFile(ex.StackTrace);
+                    LogToFile("Conn Other Error", ex);
                 }
                 catch (Exception otherXException)
                 {
-                    LogToFile("Conn Other2 Error");
-                    LogToFile(otherXException.Message);
-                    LogToFile(otherXException.StackTrace);
+                    LogToFile("Conn Other2 Error", otherXException);
                 }
             }
             if (_stream != null && _stream.CanRead) return;
@@ -211,20 +191,7 @@ namespace Happy_Search
                 responseBuffer = biggerBadderBuffer;
             }
             LastResponse = Parse(responseBuffer, totalRead);
-            switch (LastResponse.Type)
-            {
-                case ResponseType.Ok:
-                case ResponseType.Results:
-                case ResponseType.DBStats:
-                    Status = APIStatus.Ready;
-                    break;
-                case ResponseType.Error:
-                    Status = LastResponse.Error.ID.Equals("throttled") ? APIStatus.Throttled : APIStatus.Ready;
-                    break;
-                case ResponseType.Unknown:
-                    Status = APIStatus.Error;
-                    break;
-            }
+            SetStatusFromLastResponseType();
         }
 
         internal async Task QueryAsync(string query)
@@ -248,6 +215,11 @@ namespace Happy_Search
                 responseBuffer = biggerBadderBuffer;
             }
             LastResponse = Parse(responseBuffer, totalRead);
+            SetStatusFromLastResponseType();
+        }
+
+        private void SetStatusFromLastResponseType()
+        {
             switch (LastResponse.Type)
             {
                 case ResponseType.Ok:

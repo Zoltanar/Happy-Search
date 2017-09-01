@@ -196,7 +196,7 @@ This may take a while...",
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;
             }
-            await GetMultipleVN(producerVNList.Distinct(), updateAll);
+            await GetMultipleVN(producerVNList.Distinct().ToArray(), updateAll);
             DBConn.Open();
             List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(Settings.UserID, producer.ID);
             DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,

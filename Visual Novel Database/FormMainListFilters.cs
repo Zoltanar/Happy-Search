@@ -120,7 +120,7 @@ namespace Happy_Search
                         return;
                     }
                     WriteWarning(replyText, "Updating titles...");
-                    await GetMultipleVN(titles.Select(vn => vn.VNID), true);
+                    await GetMultipleVN(titles.Select(vn => vn.VNID).ToArray(), true);
                     break;
             }
             ChangeAPIStatus(Conn.Status);
@@ -218,7 +218,7 @@ namespace Happy_Search
                 vnItems.AddRange(vnRoot.Items);
                 moreResults = vnRoot.More;
             }
-            await GetMultipleVN(vnItems.Select(x => x.ID), false);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             WriteText(replyText, $"Found {TitlesAdded + TitlesSkipped} titles, {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
@@ -258,7 +258,7 @@ namespace Happy_Search
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToList(), false);
+            await GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -270,7 +270,7 @@ namespace Happy_Search
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToList(), false);
+                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToArray(), false);
                 moreResults = vnMoreRoot.More;
             }
             var span = DateTime.UtcNow.ToLocalTime() - startTime;
@@ -279,7 +279,7 @@ namespace Happy_Search
             WriteText(replyText,
                 span < TimeSpan.FromMinutes(1)
                     ? $"Got VNs for {year} in <1 min. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added."
-                    : $"Got VNs for {year} in {span:HH:mm}. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
+                    : $"Got VNs for {year} in {span:hh\\:mm}. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -583,8 +583,7 @@ namespace Happy_Search
             var nitem = e.ClickedItem;
             if (nitem == null) return;
             bool success;
-            var vn = tileOLV.SelectedObject as ListedVN;
-            if (vn == null) return;
+            if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             var statusInt = -1;
             switch (nitem.OwnerItem.Text)
             {
@@ -640,15 +639,13 @@ namespace Happy_Search
 
         private void RightClickShowProducerTitles(object sender, EventArgs e)
         {
-            var vn = tileOLV.SelectedObject as ListedVN;
-            if (vn == null) return;
+            if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             List_Producer(vn.Producer);
         }
 
         private async void RightClickAddProducer(object sender, EventArgs e)
         {
-            var vn = tileOLV.SelectedObject as ListedVN;
-            if (vn == null) return;
+            if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
             double userAverageVote = -1;
             double userDropRate = -1;
@@ -687,8 +684,7 @@ namespace Happy_Search
                 WriteError(replyText, "Not Logged In");
                 return;
             }
-            var vn = tileOLV.SelectedObject as ListedVN;
-            if (vn == null) return;
+            if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             CustomItemNotes itemNotes = vn.GetCustomItemNotes();
             StringBuilder notesSb = new StringBuilder(itemNotes.Notes);
             var result = new InputDialogBox(notesSb, "Add Note to Title", "Enter Note:").ShowDialog();
@@ -713,8 +709,7 @@ namespace Happy_Search
                 WriteError(replyText, "Not Logged In");
                 return;
             }
-            var vn = tileOLV.SelectedObject as ListedVN;
-            if (vn == null) return;
+            if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             CustomItemNotes itemNotes = vn.GetCustomItemNotes();
             var result = new ListDialogBox(itemNotes.Groups, "Add Title to Groups", $"{vn.Title} is in groups:").ShowDialog();
             if (result != DialogResult.OK) return;
@@ -770,8 +765,8 @@ namespace Happy_Search
             if (e.ListView.View != View.Details) return;
             var listedVN = (ListedVN)e.Model;
             //ULStatus takes priority over WLStatus
-            SetColorFromWLStatus(e.Item, listedVN.WLStatus);
-            SetColorFromULStatus(e.Item, listedVN.ULStatus);
+            var brush = GetBrushFromStatuses(listedVN);
+            if (brush != null) e.Item.BackColor = brush.Color;
             var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(-1);
             e.Item.GetSubItem(tileColumnULAdded.Index).Text = listedVN.ULAdded != dateTimeOffset ? listedVN.ULAdded.ToShortDateString() : "";
             e.Item.GetSubItem(tileColumnWLAdded.Index).Text = listedVN.WLAdded != dateTimeOffset ? listedVN.WLAdded.ToShortDateString() : "";
@@ -785,41 +780,6 @@ namespace Happy_Search
             e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
             e.Item.GetSubItem(tileColumnPopularity.Index).Text = listedVN.Popularity > 0 ? listedVN.Popularity.ToString("0.00") : "";
 
-            void SetColorFromWLStatus(ListViewItem item, WishlistStatus status)
-            {
-
-                switch (status)
-                {
-                    case WishlistStatus.High:
-                        item.BackColor = WLHighBrush.Color;
-                        return;
-                    case WishlistStatus.Medium:
-                        item.BackColor = WLMediumBrush.Color;
-                        return;
-                    case WishlistStatus.Low:
-                        item.BackColor = WLLowBrush.Color;
-                        return;
-                }
-            }
-
-            void SetColorFromULStatus(ListViewItem item, UserlistStatus status)
-            {
-                switch (status)
-                {
-                    case UserlistStatus.Finished:
-                        item.BackColor = ULFinishedBrush.Color;
-                        break;
-                    case UserlistStatus.Stalled:
-                        item.BackColor = ULStalledBrush.Color;
-                        break;
-                    case UserlistStatus.Dropped:
-                        item.BackColor = ULDroppedBrush.Color;
-                        break;
-                    case UserlistStatus.Unknown:
-                        item.BackColor = ULUnknownBrush.Color;
-                        break;
-                }
-            }
         }
 
         /// <summary>

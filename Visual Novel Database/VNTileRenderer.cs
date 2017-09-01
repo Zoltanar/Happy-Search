@@ -35,10 +35,8 @@ namespace Happy_Search
         {
             // If we're in any other view than Tile, return false to say that we haven't done
             // the renderering and the default process should do it's stuff
-            var olv = e.Item.ListView as ObjectListView;
-            if (olv == null || olv.View != View.Tile)
-                return false;
-
+            if (!(e.Item.ListView is ObjectListView olv) || olv.View != View.Tile) return false;
+            
             // Use buffered graphics to kill flickers
             var buffered = BufferedGraphicsManager.Current.Allocate(g, itemBounds);
             g = buffered.Graphics;
@@ -64,7 +62,6 @@ namespace Happy_Search
         /// <param name="isSelected">Whether tile is selected</param>
         public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv, bool isSelected)
         {
-            var backBrush = StaticHelpers.DefaultTileBrush;
             //tile size 230,375
             //image 230-spacing, 300-spacing
             const int spacing = 8;
@@ -75,33 +72,7 @@ namespace Happy_Search
             // Draw card background
             const int rounding = 20;
             var path = GetRoundedRect(itemBounds, rounding);
-            switch (vn?.WLStatus)
-            {
-                case WishlistStatus.High:
-                    backBrush = StaticHelpers.WLHighBrush;
-                    break;
-                case WishlistStatus.Medium:
-                    backBrush = StaticHelpers.WLMediumBrush;
-                    break;
-                case WishlistStatus.Low:
-                    backBrush = StaticHelpers.WLLowBrush;
-                    break;
-            }
-            switch (vn?.ULStatus)
-            {
-                case UserlistStatus.Finished:
-                    backBrush = StaticHelpers.ULFinishedBrush;
-                    break;
-                case UserlistStatus.Stalled:
-                    backBrush = StaticHelpers.ULStalledBrush;
-                    break;
-                case UserlistStatus.Dropped:
-                    backBrush = StaticHelpers.ULDroppedBrush;
-                    break;
-                case UserlistStatus.Unknown:
-                    backBrush = StaticHelpers.ULUnknownBrush;
-                    break;
-            }
+            var backBrush = StaticHelpers.GetBrushFromStatuses(vn) ?? StaticHelpers.DefaultTileBrush;
             g.FillPath(backBrush, path);
             if (isSelected) path.Widen(_selectedBorderPen);
             g.DrawPath(isSelected ? _selectedBorderPen : _borderPen, path);
@@ -208,7 +179,6 @@ namespace Happy_Search
         {
             Image photo;
             using (var ms = new MemoryStream(File.ReadAllBytes(photoFile))) photo = Image.FromStream(ms);
-            //var photo = Image.FromFile(photoFile);
             var photoAreaRatio = (double)photoArea.Width / photoArea.Height;
             var photoRatio = (double)photo.Width / photo.Height;
             //show whole image but do not occupy whole area

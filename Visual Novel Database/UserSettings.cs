@@ -96,7 +96,7 @@ namespace Happy_Search
             }
             catch (JsonException exception)
             {
-                LogToFile(exception);
+                LogToFile("UserSettings.Load Error", exception);
                 return new UserSettings();
             }
             return settings;
@@ -111,7 +111,7 @@ namespace Happy_Search
             }
             catch (JsonException exception)
             {
-                LogToFile(exception);
+                LogToFile("UserSettings.Save", exception);
             }
         }
 

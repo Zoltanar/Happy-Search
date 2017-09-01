@@ -75,8 +75,7 @@ namespace Happy_Search.Other_Forms
         {
             var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var selectedFilter = traitFiltersCB.SelectedItem as CustomTraitFilter;
-            if (selectedFilter == null) return; //shouldnt happen
+            if (!(traitFiltersCB.SelectedItem is CustomTraitFilter selectedFilter)) return; //shouldnt happen
             _customTraitFilters.Remove(selectedFilter);
             SaveObjectToJsonFile(_customTraitFilters, CustomTraitFiltersJson);
             WriteText(traitReply, Resources.filter_deleted);
@@ -98,8 +97,7 @@ namespace Happy_Search.Other_Forms
         private void Filter_CustomTraits(object sender, EventArgs e)
         {
             if (DontTriggerEvent) return;
-            var selectedItem = traitFiltersCB.SelectedItem as CustomTraitFilter;
-            if (selectedItem == null) return;
+            if (!(traitFiltersCB.SelectedItem is CustomTraitFilter selectedItem)) return;
             customTraitFilterNameBox.Text = selectedItem.Name;
             _filters.Traits.SetRange(selectedItem.Filters.ToArray());
         }

@@ -166,15 +166,7 @@ namespace Happy_Search
             int pageNo = 1;
             while (moreResults)
             {
-                pageNo++;
-                charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
-                if (!queryResult) return;
-                charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                DBConn.BeginTransaction();
-                foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
-                DBConn.EndTransaction();
-                moreResults = charRoot.More;
+                if (!await HandleMoreResults()) return;
             }
             int done = APIMaxResults;
             while (done < vnIDs.Length)
@@ -192,17 +184,25 @@ namespace Happy_Search
                 pageNo = 1;
                 while (moreResults)
                 {
-                    pageNo++;
-                    charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                    queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
-                    if (!queryResult) return;
-                    charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                    DBConn.BeginTransaction();
-                    foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
-                    DBConn.EndTransaction();
-                    moreResults = charRoot.More;
+                    if (!await HandleMoreResults()) return;
                 }
                 done += APIMaxResults;
+            }
+
+            async Task<bool> HandleMoreResults()
+            {
+                // ReSharper disable AccessToModifiedClosure
+                pageNo++;
+                charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
+                queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
+                if (!queryResult) return false;
+                charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
+                DBConn.BeginTransaction();
+                foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
+                DBConn.EndTransaction();
+                moreResults = charRoot.More;
+                // ReSharper restore AccessToModifiedClosure
+                return true;
             }
         }
 
@@ -271,27 +271,18 @@ namespace Happy_Search
         /// </summary>
         /// <param name="vnIDs">List of visual novel IDs</param>
         /// <param name="updateAll">If false, will skip VNs already fetched</param>
-        internal async Task GetMultipleVN(IEnumerable<int> vnIDs, bool updateAll)
+        internal async Task GetMultipleVN(int[] vnIDs, bool updateAll)
         {
-            var vnsToGet = new List<int>();
+            List<int> vnsToGet = new List<int>();
             await Task.Run(() =>
             {
-                int[] vnIDList = VNList.Select(x => x.VNID).ToArray();
-                //remove already present vns
-                if (!updateAll)
-                {
-                    foreach (var id in vnIDs)
-                    {
-                        if (id == 0) continue;
-                        if (vnIDList.Contains(id)) TitlesSkipped++;
-                        else vnsToGet.Add(id);
-                    }
-                }
+                if (updateAll) vnsToGet = vnIDs.ToList();
                 else
                 {
-                    vnsToGet = vnIDs.ToList();
-                    vnsToGet.Remove(0);
+                    vnsToGet = vnIDs.Except(VNList.Select(x => x.VNID)).ToList();
+                    TitlesSkipped = TitlesSkipped + vnIDs.Length - vnsToGet.Count;
                 }
+                vnsToGet.Remove(0);
             });
             if (!vnsToGet.Any()) return;
             int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
@@ -303,26 +294,7 @@ namespace Happy_Search
             RemoveDeletedVNs(vnRoot, currentArray);
             var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
             var producersToBeUpserted = new List<ListedProducer>();
-            foreach (var vnItem in vnRoot.Items)
-            {
-                SaveImage(vnItem);
-                var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
-                var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
-                var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
-                VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
-                if (relProducer != null)
-                {
-                    var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
-                    if (!gpResult.Item1)
-                    {
-                        ChangeAPIStatus(Conn.Status);
-                        return;
-                    }
-                    if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
-                }
-                TitlesAdded++;
-                vnsToBeUpserted.Add((vnItem, relProducer, languages));
-            }
+            await HandleVNItems(vnRoot.Items);
             DBConn.BeginTransaction();
             vnsToBeUpserted.ForEach(vn => DBConn.UpsertSingleVN(vn, true));
             foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
@@ -335,15 +307,24 @@ namespace Happy_Search
                 currentArrayString = '[' + string.Join(",", currentArray) + ']';
                 multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
-                if (!queryResult)
-                {
-                    return;
-                }
+                if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 RemoveDeletedVNs(vnRoot, currentArray);
                 vnsToBeUpserted.Clear();
                 producersToBeUpserted.Clear();
-                foreach (var vnItem in vnRoot.Items)
+                await HandleVNItems(vnRoot.Items);
+                DBConn.BeginTransaction();
+                vnsToBeUpserted.ForEach(vn => DBConn.UpsertSingleVN(vn, true));
+                foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
+                DBConn.EndTransaction();
+                await GetCharactersForMultipleVN(currentArray);
+                done += APIMaxResults;
+            }
+            await ReloadListsFromDbAsync();
+
+            async Task HandleVNItems(List<VNItem> itemList)
+            {
+                foreach (var vnItem in itemList)
                 {
                     SaveImage(vnItem);
                     var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
@@ -363,14 +344,7 @@ namespace Happy_Search
                     TitlesAdded++;
                     vnsToBeUpserted.Add((vnItem, relProducer, languages));
                 }
-                DBConn.BeginTransaction();
-                vnsToBeUpserted.ForEach(vn => DBConn.UpsertSingleVN(vn, true));
-                foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
-                DBConn.EndTransaction();
-                await GetCharactersForMultipleVN(currentArray);
-                done += APIMaxResults;
             }
-            await ReloadListsFromDbAsync();
         }
 
         private void RemoveDeletedVNs(VNRoot root, int[] currentArray)

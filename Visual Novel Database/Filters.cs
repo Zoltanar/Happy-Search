@@ -224,8 +224,7 @@ namespace Happy_Search
             }
             catch (Exception e)
             {
-                LogToFile("Failed to load filters.json");
-                LogToFile(e);
+                LogToFile("Failed to load filters.json", e);
                 result = new Filters();
             }
             if (result.ReleaseDate.Equals(default(DateRange))) result.ReleaseDate = DateRange.Default();
@@ -296,8 +295,7 @@ namespace Happy_Search
             }
             catch (Exception e)
             {
-                LogToFile("Failed to save filters.");
-                LogToFile(e);
+                LogToFile("Failed to save filters.", e);
             }
         }
 

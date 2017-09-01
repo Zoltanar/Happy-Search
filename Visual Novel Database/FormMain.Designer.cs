@@ -219,7 +219,7 @@ namespace Happy_Search
             this.tagTypeS2.TabIndex = 63;
             this.tagTypeS2.Text = "S";
             this.tagTypeS2.UseVisualStyleBackColor = true;
-            this.tagTypeS2.Click += new System.EventHandler(this.DisplayCommonTagsURT);
+            this.tagTypeS2.Click += new System.EventHandler(this.DisplayCommonTagsURTClick);
             // 
             // tagTypeT2
             // 
@@ -232,7 +232,7 @@ namespace Happy_Search
             this.tagTypeT2.TabIndex = 62;
             this.tagTypeT2.Text = "T";
             this.tagTypeT2.UseVisualStyleBackColor = true;
-            this.tagTypeT2.Click += new System.EventHandler(this.DisplayCommonTagsURT);
+            this.tagTypeT2.Click += new System.EventHandler(this.DisplayCommonTagsURTClick);
             // 
             // tagTypeC2
             // 
@@ -245,7 +245,7 @@ namespace Happy_Search
             this.tagTypeC2.TabIndex = 61;
             this.tagTypeC2.Text = "C";
             this.tagTypeC2.UseVisualStyleBackColor = true;
-            this.tagTypeC2.Click += new System.EventHandler(this.DisplayCommonTagsURT);
+            this.tagTypeC2.Click += new System.EventHandler(this.DisplayCommonTagsURTClick);
             // 
             // getNewProducersButton
             // 

@@ -78,8 +78,7 @@ namespace Happy_Search.Other_Forms
         {
             var askBox = MessageBox.Show(Resources.are_you_sure, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var selectedFilter = tagFiltersCB.SelectedItem as CustomTagFilter;
-            if (selectedFilter == null) return; //shouldnt happen
+            if (!(tagFiltersCB.SelectedItem is CustomTagFilter selectedFilter)) return; //shouldnt happen
             _customTagFilters.Remove(selectedFilter);
             SaveObjectToJsonFile(_customTagFilters, CustomTagFiltersJson);
             WriteText(tagReply, Resources.filter_deleted);
@@ -101,8 +100,7 @@ namespace Happy_Search.Other_Forms
         private void Filter_CustomTags(object sender, EventArgs e)
         {
             if (DontTriggerEvent) return;
-            var selectedItem = tagFiltersCB.SelectedItem as CustomTagFilter;
-            if (selectedItem == null) return;
+            if (!(tagFiltersCB.SelectedItem is CustomTagFilter selectedItem)) return;
             customTagFilterNameBox.Text = selectedItem.Name;
             _filters.Tags.SetRange(selectedItem.Filters.ToArray());
         }
@@ -205,8 +203,7 @@ namespace Happy_Search.Other_Forms
         {
             if (tagFiltersCB.SelectedIndex > 0)
             {
-                var selectedFilter = tagFiltersCB.SelectedItem as CustomTagFilter;
-                if (selectedFilter == null) return; //shouldnt happen
+                if (!(tagFiltersCB.SelectedItem is CustomTagFilter selectedFilter)) return; //shouldnt happen
                 var message = selectedFilter.Updated != DateTime.MinValue
                     ? $"This filter was last updated {DaysSince(selectedFilter.Updated)} days ago.\n{Resources.update_custom_filter}"
                     : Resources.update_custom_filter;
@@ -242,7 +239,7 @@ namespace Happy_Search.Other_Forms
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await _mainForm.GetMultipleVN(vnItems.Select(x => x.ID).ToList(), false);
+            await _mainForm.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -254,7 +251,7 @@ namespace Happy_Search.Other_Forms
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await _mainForm.GetMultipleVN(moreVNItems.Select(x => x.ID).ToList(), false);
+                await _mainForm.GetMultipleVN(moreVNItems.Select(x => x.ID).ToArray(), false);
                 moreResults = moreVNRoot.More;
             }
             await _mainForm.ReloadListsFromDbAsync();

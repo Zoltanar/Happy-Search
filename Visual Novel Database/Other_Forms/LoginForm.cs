@@ -32,8 +32,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void LoginButtonClick(object sender, EventArgs e)
         {
-            int userID;
-            switch (GetIDMethod(out userID))
+            switch (GetIDMethod(out var userID))
             {
                 case 0:
                     ChangeUserOnly(newId: userID);
@@ -106,10 +105,9 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async void LoginWithPasswordButtonClick(object sender, EventArgs e)
         {
-            int userID;
             string username;
             _parentForm.ActiveQuery = new FormMain.ApiQuery(true,_parentForm);
-            switch (GetIDMethod(out userID))
+            switch (GetIDMethod(out var userID))
             {
                 case 0:
                     username = await _parentForm.GetUsernameFromID(userID);

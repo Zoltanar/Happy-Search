@@ -105,8 +105,7 @@ namespace Happy_Search
             }
             catch (Exception ex) when (ex is PathTooLongException || ex is UnauthorizedAccessException)
             {
-                LogToFile(ex);
-                LogToFile("Couldn't backup previous version.");
+                LogToFile("Couldn't backup previous version.",ex);
             }
             if (current < DatabaseVersion.V1_4_0)
             {

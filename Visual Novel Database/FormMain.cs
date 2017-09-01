@@ -567,7 +567,7 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = StartQuery(userListReply, "Update All Data (All)", true, true, true);
             if (!result) return;
-            await GetMultipleVN(VNList.Select(t => t.VNID), true);
+            await GetMultipleVN(VNList.Select(t => t.VNID).ToArray(), true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Updated data on all titles.");
@@ -804,7 +804,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 DBConn.Close();
             });
             if (unfetchedTitles == null || !unfetchedTitles.Any()) return;
-            await GetMultipleVN(unfetchedTitles, false);
+            await GetMultipleVN(unfetchedTitles.ToArray(), false);
             await ReloadListsFromDbAsync();
         }
 
@@ -817,7 +817,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 ulstatswl.Text = @"-";
                 ulstatsvl.Text = @"-";
                 ulstatsavs.Text = @"-";
-                DisplayCommonTagsURT(null, null);
+                DisplayCommonTagsURT();
                 return;
             }
             var ulCount = 0;
@@ -837,7 +837,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             ulstatswl.Text = wlCount.ToString();
             ulstatsvl.Text = vlCount.ToString();
             ulstatsavs.Text = (cumulativeScore / vlCount).ToString("#.##");
-            DisplayCommonTagsURT(null, null);
+            DisplayCommonTagsURT();
         }
 
         #endregion
@@ -920,7 +920,29 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// <summary>
         ///     Display ten most common tags in user related titles.
         /// </summary>
-        internal void DisplayCommonTagsURT(object sender, EventArgs e)
+        internal void DisplayCommonTagsURTClick(object sender, EventArgs e)
+        {
+            if (sender == null || DontTriggerEvent) return;
+            var checkBox = (CheckBox)sender;
+            DontTriggerEvent = true;
+            switch (checkBox.Name)
+            {
+                case "tagTypeC2":
+                    Settings.ContentTags = checkBox.Checked;
+                    break;
+                case "tagTypeS2":
+                    Settings.SexualTags = checkBox.Checked;
+                    break;
+                case "tagTypeT2":
+                    Settings.TechnicalTags = checkBox.Checked;
+                    break;
+            }
+            DontTriggerEvent = false;
+            Settings.Save();
+            DisplayCommonTagsURT();
+        }
+
+        internal void DisplayCommonTagsURT()
         {
             if (!URTList.Any())
             {
@@ -934,27 +956,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 }
                 return;
             }
-            //userlist stats - most common tags
-            if (sender != null && !DontTriggerEvent)
-            {
-                var checkBox = (CheckBox)sender;
-                DontTriggerEvent = true;
-                switch (checkBox.Name)
-                {
-                    case "tagTypeC2":
-                        Settings.ContentTags = checkBox.Checked;
-                        break;
-                    case "tagTypeS2":
-                        Settings.SexualTags = checkBox.Checked;
-                        break;
-                    case "tagTypeT2":
-                        Settings.TechnicalTags = checkBox.Checked;
-                        break;
-                }
-                DontTriggerEvent = false;
-                Settings.Save();
-            }
-
             if (tagTypeC2.Checked == false && tagTypeS2.Checked == false && tagTypeT2.Checked == false)
             {
                 var labelCount = 1;
@@ -1079,7 +1080,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     }
                     catch (Exception e)
                     {
-                        LogToFile(e);
+                        LogToFile("GetNewDumpFiles Error", e);
                     }
                 }
             }
@@ -1107,7 +1108,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     }
                     catch (Exception e)
                     {
-                        LogToFile(e);
+                        LogToFile("GetNewDumpFiles Error", e);
                     }
                 }
             }
@@ -1147,8 +1148,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     PlainTags = new List<WrittenTag>();
                     return;
                 }
-                LogToFile(e);
-                LogToFile($"{TagsJson} could not be read, deleting it and loading default tagdump.");
+                LogToFile($"{TagsJson} could not be read, deleting it and loading default tagdump.", e);
                 File.Delete(TagsJson);
                 LoadTagdump(true);
             }
@@ -1180,8 +1180,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                     PlainTraits = new List<WrittenTrait>();
                     return;
                 }
-                LogToFile(e);
-                LogToFile($"{TraitsJson} could not be read, deleting it and loading default traitdump.");
+                LogToFile($"{TraitsJson} could not be read, deleting it and loading default traitdump.", e);
                 File.Delete(TraitsJson);
                 LoadTraitdump(true);
             }
@@ -1448,8 +1447,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void RightClickSeeOnWebsite(object sender, EventArgs e)
         {
-            var vn = tileOLV.SelectedObject as ListedVN;
-            if (vn == null) return;
+            if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             Process.Start($"http://vndb.org/v{vn.VNID}/");
         }
     }

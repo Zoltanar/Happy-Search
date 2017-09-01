@@ -92,7 +92,7 @@ namespace Happy_Search.Other_Forms
                         break;
                 }
                 DontTriggerEvent = false;
-                _parentForm.DisplayCommonTagsURT(null, null);
+                _parentForm.DisplayCommonTagsURT();
                 FormMain.Settings.Save();
             }
             if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = new[] { "No Tags Found" };
@@ -587,8 +587,6 @@ namespace Happy_Search.Other_Forms
                 BackgroundImageLayout = ImageLayout.Stretch
             };
             control.Controls.Add(pictureBox);
-            //Debug.Print($"Original ratio = {(double)screenItem.Width / (double)screenItem.Height}");
-            //Debug.Print($"New ratio = {(double)newWidth / (double)newHeight}");
             return newWidth;
         }
 

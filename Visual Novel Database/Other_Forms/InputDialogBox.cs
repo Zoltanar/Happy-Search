@@ -37,8 +37,7 @@ namespace Happy_Search.Other_Forms
         {
             if (_preciseVote)
             {
-                double inputDouble;
-                if (!double.TryParse(answerBox.Text, out inputDouble))
+                if (!double.TryParse(answerBox.Text, out var inputDouble))
                 {
                     WriteError(replyLabel, Resources.valid_vote_error);
                     return;

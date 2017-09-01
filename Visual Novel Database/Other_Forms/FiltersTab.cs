@@ -430,8 +430,7 @@ namespace Happy_Search.Other_Forms
         private void RemoveFromListBox(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Delete) return;
-            var listbox = sender as ListBox;
-            if (listbox == null) return;
+            if (!(sender is ListBox listbox)) return;
             var selectedItem = listbox.SelectedItem;
             ((IList) listbox.DataSource).Remove(selectedItem);
         }

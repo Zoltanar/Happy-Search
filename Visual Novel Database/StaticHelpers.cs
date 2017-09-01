@@ -111,6 +111,58 @@ namespace Happy_Search
         public enum TagCategory { Content, Sexual, Technical }
 #pragma warning restore 1591
 
+
+
+        /// <summary>
+        /// Get brush from vn UL or WL status or null if no statuses are found.
+        /// </summary>
+        public static SolidBrush GetBrushFromStatuses(ListedVN vn)
+        {
+            if (vn == null) return null;
+            var brush = GetColorFromULStatus(vn.ULStatus);
+            if (brush != null) return brush;
+            brush = GetColorFromWLStatus(vn.WLStatus);
+            return brush;
+        }
+
+        /// <summary>
+        /// Return color based on wishlist status, or null if no status
+        /// </summary>
+        public static SolidBrush GetColorFromWLStatus(WishlistStatus? status)
+        {
+            if (status == null) return null;
+            switch (status)
+            {
+                case WishlistStatus.High:
+                    return WLHighBrush;
+                case WishlistStatus.Medium:
+                    return WLMediumBrush;
+                case WishlistStatus.Low:
+                    return WLLowBrush;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Return color based on userlist status, or null if no status
+        /// </summary>
+        public static SolidBrush GetColorFromULStatus(UserlistStatus? status)
+        {
+            if (status == null) return null;
+            switch (status)
+            {
+                case UserlistStatus.Finished:
+                    return ULFinishedBrush;
+                case UserlistStatus.Stalled:
+                    return ULStalledBrush;
+                case UserlistStatus.Dropped:
+                    return ULDroppedBrush;
+                case UserlistStatus.Unknown:
+                    return ULUnknownBrush;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Serialize object to JSON string and save to file.
         /// </summary>
@@ -122,8 +174,7 @@ namespace Happy_Search
             }
             catch (Exception e)
             {
-                LogToFile("Couldn't save object to file");
-                LogToFile(e);
+                LogToFile("Couldn't save object to file", e);
             }
         }
 
@@ -139,8 +190,7 @@ namespace Happy_Search
             }
             catch (Exception e)
             {
-                LogToFile("Couldn't save object to file");
-                LogToFile(e);
+                LogToFile("Couldn't save object to file", e);
                 returned = default(T);
             }
             return returned;
@@ -246,9 +296,11 @@ namespace Happy_Search
         /// <summary>
         /// Print exception to Debug and write it to log file.
         /// </summary>
+        /// <param name="header">Human-given location or reason for error</param>
         /// <param name="exception">Exception to be written to file</param>
-        public static void LogToFile(Exception exception)
+        public static void LogToFile(string header, Exception exception)
         {
+            Debug.Print(header);
             Debug.Print(exception.Message);
             Debug.Print(exception.StackTrace);
             while (IsFileLocked(new FileInfo(LogFile)))
@@ -257,6 +309,7 @@ namespace Happy_Search
             }
             using (var writer = new StreamWriter(LogFile, true))
             {
+                writer.WriteLine(header);
                 writer.WriteLine(exception.Message);
                 writer.WriteLine(exception.StackTrace);
             }
@@ -303,11 +356,7 @@ namespace Happy_Search
         {
             FieldInfo field = value.GetType().GetField(value.ToString());
 
-            DescriptionAttribute attribute
-                = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute))
-                    as DescriptionAttribute;
-
-            return attribute == null ? value.ToString() : attribute.Description;
+            return !(Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute) ? value.ToString() : attribute.Description;
         }
 
         /// <summary>
@@ -370,8 +419,8 @@ namespace Happy_Search
         public static DateTime StringToDate(string date)
         {
             //unreleased if date is null or doesnt have any digits (tba, n/a etc)
-            if (date == null || !date.Any(char.IsDigit)) return DateTime.MaxValue;
-            int[] dateArray = date.Split('-').Select(int.Parse).ToArray();
+            if (date == null || !date.Any(Char.IsDigit)) return DateTime.MaxValue;
+            int[] dateArray = date.Split('-').Select(Int32.Parse).ToArray();
             var dtDate = new DateTime();
             var dateRegex = new Regex(@"^\d{4}-\d{2}-\d{2}$");
             if (dateRegex.IsMatch(date))
@@ -529,7 +578,7 @@ namespace Happy_Search
             catch (Exception ex)
             when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException || ex is ExternalException)
             {
-                LogToFile(ex);
+                LogToFile("SaveImage Error", ex);
             }
         }
 
@@ -610,7 +659,7 @@ namespace Happy_Search
             }
             catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentNullException || ex is SecurityException || ex is UriFormatException)
             {
-                LogToFile(ex);
+                LogToFile("SaveImageAsync Error", ex);
             }
         }
 
