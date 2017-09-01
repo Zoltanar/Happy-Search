@@ -206,7 +206,6 @@ namespace Happy_Search
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            //await GetMultipleVN(vnItems.Select(x => x.ID), replyText);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)

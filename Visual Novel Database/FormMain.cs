@@ -1019,11 +1019,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             if (Conn.Status != VndbConnection.APIStatus.Ready) return;
             Conn.Query("dbstats");
-            if (AdvancedMode)
-            {
-                serverQ.Text += @"dbstats" + Environment.NewLine;
-                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            }
+            HandleAdvancedMode("dbstats");
             if (Conn.LastResponse.Type != ResponseType.DBStats)
             {
                 dbs1r.Text = Resources.dbs_unknown_error;
@@ -1354,15 +1350,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             public UrtListItem(ListedVN vn)
             {
                 ID = vn.VNID;
-                //dont pre populate with current data, otherwise it will keep old data that may not be true anymore
-                /*ULStatus = vn.ULStatus;
-                ULAdded = (int)DateTimeToUnixTimestamp(vn.ULAdded);
-                ULNote = vn.ULNote;
-                WLStatus = vn.WLStatus;
-                WLAdded = (int)DateTimeToUnixTimestamp(vn.WLAdded);
-                Vote = (int)(vn.Vote * 10);
-                VoteAdded = (int)DateTimeToUnixTimestamp(vn.VoteAdded);*/
-                //Default action is delete, until it is found in fetched data (then it will be update)
                 Action = Command.Delete;
             }
 

@@ -512,10 +512,6 @@ namespace Happy_Search
             if (vn.Image == null || vn.Image.Equals("")) return;
             string imageLocation = $"{VNImagesFolder}{vn.ID}{Path.GetExtension(vn.Image)}";
             if (File.Exists(imageLocation) && update == false) return;
-            /*if (File.Exists(imageLocation))
-            {
-                File.Delete(imageLocation);
-            }*/
             LogToFile($"Start downloading cover image for {vn}");
             try
             {

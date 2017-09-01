@@ -19,7 +19,6 @@ namespace Happy_Search.Other_Forms
         /// <param name="listLabel">The label for the list</param>
         public ListDialogBox(List<string> stringList, string windowTitle, string listLabel)
         {
-            //TODO add params for item name and plural (itemSingular = cube, itemPlural = cubes, etc)
             InitializeComponent();
             replyLabel.Text = "";
             Text = $@"{windowTitle} - Happy Search";

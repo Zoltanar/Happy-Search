@@ -435,7 +435,6 @@ namespace Happy_Search.Other_Forms
             IEnumerable<IGrouping<string, RelationsItem>> groups = relationItems.GroupBy(x => x.Relation);
             foreach (IGrouping<string, RelationsItem> group in groups)
             {
-                //stringList.Add(RelationsItem.relationDict[group.Key]);
                 stringList.AddRange(group.Select(relation => relation.Print()));
                 stringList.Add("--------------");
             }
@@ -474,7 +473,6 @@ namespace Happy_Search.Other_Forms
                 }
                 else
                 {
-                    //imageX += DrawImageFitToHeight(picturePanel, dist, imageX, screen) + ScreenshotPadding;
                     imageX += DrawImageFitToWidth(picturePanel, dist, imageX, screen) + ScreenshotPadding;
                 }
             }

@@ -2,6 +2,7 @@ Next Milestone == Convert Database to DbContext using EF?
 
 Changelog
 ---------
+-1.4.8 released (test)-
 Improved: Completed Filters overhaul, can now create and save custom filters.
 Improved: Updated Help files.
 Added: See VNDB page option on right-click context menu.
@@ -10,9 +11,7 @@ Improved: ULAdded/WLAdded displays short date instead of full date.
 Added: Save Custom Filters
 Fixed: Changing VN status via right-click context menu.
 Overhaul: Filtering, new filters: Length, release date, unreleased status, voted, language, original language.
----
 Changed: Move query params into start query rather than passing
---
 Fixed: Changing VN statuses to none.
 Fixed: Update URT List wasn't deleting statuses that it no longer had, only adding or updating, now fixed.
 -1.4.7.1 released (test)-

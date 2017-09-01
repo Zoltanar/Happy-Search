@@ -75,30 +75,23 @@ namespace Happy_Search
                 await Task.Delay(wait);
                 ChangeAPIStatus(VndbConnection.APIStatus.Busy);
                 await Conn.QueryAsync(query);
-                if (AdvancedMode)
-                {
-                    if (serverR.TextLength > 10000) ClearLog(null, null);
-                    serverQ.Text += query + Environment.NewLine;
-                    serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-                }
+                HandleAdvancedMode(query);
             }
             return true;
         }
 
         private void HandleAdvancedMode(string query)
         {
-            if (AdvancedMode)
-            {
-                if (serverR.TextLength > 10000) ClearLog(null, null);
-                if (serverQ.InvokeRequired)
-                    serverQ.Invoke(new MethodInvoker(() => serverQ.Text += query + Environment.NewLine));
-                else
-                    serverQ.Text += query + Environment.NewLine;
-                if (serverR.InvokeRequired)
-                    serverR.Invoke(new MethodInvoker(() => serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine));
-                else
-                    serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            }
+            if (!AdvancedMode) return;
+            if (serverR.TextLength > 10000) ClearLog(null, null);
+            if (serverQ.InvokeRequired)
+                serverQ.Invoke(new MethodInvoker(() => serverQ.Text += query + Environment.NewLine));
+            else
+                serverQ.Text += query + Environment.NewLine;
+            if (serverR.InvokeRequired)
+                serverR.Invoke(new MethodInvoker(() => serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine));
+            else
+                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
 
         /// <summary>
@@ -117,12 +110,7 @@ namespace Happy_Search
                 LogToFile(query);
                 Conn.Query(query);
             });
-            if (AdvancedMode)
-            {
-                if (serverR.TextLength > 10000) ClearLog(null, null);
-                serverQ.Text += query + Environment.NewLine;
-                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
-            }
+            HandleAdvancedMode(query);
             return Conn.LastResponse.Type != ResponseType.Unknown && Conn.LastResponse.Type != ResponseType.Error;
         }
 
@@ -224,7 +212,7 @@ namespace Happy_Search
             var producerList = new List<ListedProducer>();
             foreach (var producerID in producerIDs)
             {
-                var result = await GetProducer(producerID, "GetLanguagesForProducers Error",false);
+                var result = await GetProducer(producerID, "GetLanguagesForProducers Error", false);
                 if (!result.Item1 || result.Item2 == null) continue;
                 producerList.Add(result.Item2);
                 TitlesAdded++;
@@ -310,20 +298,9 @@ namespace Happy_Search
             string currentArrayString = '[' + string.Join(",", currentArray) + ']';
             string multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
-            if (!queryResult)
-            {
-                return;
-            }
+            if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-            if (vnRoot.Num < currentArray.Length)
-            {
-                //some vns were deleted, find which ones and remove them
-                var root = vnRoot;
-                IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                DBConn.BeginTransaction();
-                foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                DBConn.EndTransaction();
-            }
+            RemoveDeletedVNs(vnRoot, currentArray);
             var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
             var producersToBeUpserted = new List<ListedProducer>();
             foreach (var vnItem in vnRoot.Items)
@@ -363,15 +340,7 @@ namespace Happy_Search
                     return;
                 }
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
-                if (vnRoot.Num < currentArray.Length)
-                {
-                    //some vns were deleted, find which ones and remove them
-                    var root = vnRoot;
-                    IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    DBConn.BeginTransaction();
-                    foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                    DBConn.EndTransaction();
-                }
+                RemoveDeletedVNs(vnRoot, currentArray);
                 vnsToBeUpserted.Clear();
                 producersToBeUpserted.Clear();
                 foreach (var vnItem in vnRoot.Items)
@@ -383,7 +352,7 @@ namespace Happy_Search
                     VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
                     if (relProducer != null)
                     {
-                        var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error,updateAll);
+                        var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
                         if (!gpResult.Item1)
                         {
                             ChangeAPIStatus(Conn.Status);
@@ -404,6 +373,15 @@ namespace Happy_Search
             await ReloadListsFromDbAsync();
         }
 
+        private void RemoveDeletedVNs(VNRoot root, int[] currentArray)
+        {
+            if (root.Num >= currentArray.Length) return;
+            //some vns were deleted, find which ones and remove them
+            IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
+            DBConn.BeginTransaction();
+            foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
+            DBConn.EndTransaction();
+        }
 
         /// <summary>
         /// Update tags, traits and stats of titles.
@@ -620,7 +598,7 @@ namespace Happy_Search
         internal void APILogin()
         {
             Conn.Login(ClientName, ClientVersion);
-            ActiveQuery = new ApiQuery(true,this);
+            ActiveQuery = new ApiQuery(true, this);
             ChangeAPIStatus(Conn.Status);
             switch (Conn.LastResponse.Type)
             {
@@ -650,7 +628,7 @@ namespace Happy_Search
         /// <param name="password">User's password</param>
         internal void APILoginWithPassword(char[] password)
         {
-            ActiveQuery = new ApiQuery(true,this);
+            ActiveQuery = new ApiQuery(true, this);
             Conn.Login(ClientName, ClientVersion, Settings.Username, password);
             switch (Conn.LastResponse.Type)
             {

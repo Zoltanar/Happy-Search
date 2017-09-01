@@ -58,7 +58,6 @@ namespace Happy_Search
                     var sslStream = new SslStream(_tcpClient.GetStream());
                     LogToFile("SSL Stream received...");
                     sslStream.AuthenticateAsClient(VndbHost, certs, SslProtocols.Tls12, true);
-                    //sslStream.AuthenticateAsClient(VndbHost);
                     LogToFile("SSL Stream authenticated...");
                     if (sslStream.RemoteCertificate != null)
                     {

@@ -66,27 +66,7 @@ namespace Happy_Search
         /// Date of last time that User's User-related titles (URT) were fetched.
         /// </summary>
         public DateTime URTDate { get; set; }
-
-        /// <summary>
-        /// Constructor for parsing from file.
-        /// </summary>
-        // ReSharper disable once UnusedMember.Global
-        public UserSettings(string username, int userID, bool contentTags, bool sexualTags, bool technicalTags, bool nsfwImages, bool autoUpdate, bool decadeLimit, bool rememberPassword, DateTime dumpfileDate, DateTime statsDate, DateTime urtDate)
-        {
-            Username = username;
-            UserID = userID;
-            ContentTags = contentTags;
-            SexualTags = sexualTags;
-            TechnicalTags = technicalTags;
-            NSFWImages = nsfwImages;
-            AutoUpdate = autoUpdate;
-            DecadeLimit = decadeLimit;
-            RememberPassword = rememberPassword;
-            DumpfileDate = dumpfileDate;
-            StatsDate = statsDate;
-            URTDate = urtDate;
-        }
-
+        
         /// <summary>
         /// Default constructor, sets all values to default.
         /// </summary>

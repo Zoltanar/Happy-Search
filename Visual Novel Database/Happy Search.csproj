@@ -155,6 +155,7 @@
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="ListedVN.cs" />
     <Compile Include="Other_Forms\FiltersTab.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -230,6 +231,9 @@
     </Compile>
     <Compile Include="Other_Forms\SplashScreen.Designer.cs">
       <DependentUpon>SplashScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="VNTileRenderer.cs">
+      <SubType>Component</SubType>
     </Compile>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
