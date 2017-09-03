@@ -11,7 +11,8 @@ using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -156,9 +157,9 @@ namespace Happy_Search
                     catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
                 }
             }
-            DBConn.BeginTransaction();
-            foreach (var title in titles) DBConn.RemoveVisualNovel(title.VNID);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            foreach (var title in titles) LocalDatabase.RemoveVisualNovel(title.VNID);
+            LocalDatabase.EndTransaction();
         }
 
         #region Searching
@@ -296,7 +297,7 @@ namespace Happy_Search
             }
             var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var producerItem = ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+            var producerItem = LocalDatabase.ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
             if (producerItem == null)
             {
                 var askBox2 = MessageBox.Show($@"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
@@ -320,7 +321,7 @@ namespace Happy_Search
                 }
                 ChangeAPIStatus(Conn.Status);
                 await ReloadListsFromDbAsync();
-                producerItem = ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
+                producerItem = LocalDatabase.ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
                 ListByTB.Text = producer;
             }
             var result = StartQuery(replyText, "Update Producer Titles", false, false, false);
@@ -594,7 +595,7 @@ namespace Happy_Search
                         return;
                     }
                     statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
-                    success = await ChangeVNStatus(vn, ChangeType.UL, statusInt);
+                    success = await ChangeVNStatus(vn, VNDatabase.ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
                     if (vn.WLStatus.ToString().Equals(nitem.Text))
@@ -603,7 +604,7 @@ namespace Happy_Search
                         return;
                     }
                     statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
-                    success = await ChangeVNStatus(vn, ChangeType.WL, statusInt);
+                    success = await ChangeVNStatus(vn, VNDatabase.ChangeType.WL, statusInt);
                     break;
                 case "Vote":
                     double newVoteValue = -1;
@@ -628,7 +629,7 @@ namespace Happy_Search
                         WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
-                    success = await ChangeVNStatus(vn, ChangeType.Vote, statusInt, newVoteValue);
+                    success = await ChangeVNStatus(vn, VNDatabase.ChangeType.Vote, statusInt, newVoteValue);
                     break;
                 default:
                     return;
@@ -646,7 +647,7 @@ namespace Happy_Search
         private async void RightClickAddProducer(object sender, EventArgs e)
         {
             if (!(tileOLV.SelectedObject is ListedVN vn)) return;
-            ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
+            ListedVN[] producerVNs = LocalDatabase.URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
             double userAverageVote = -1;
             double userDropRate = -1;
             if (producerVNs.Any())
@@ -659,16 +660,16 @@ namespace Happy_Search
                     ? (double)droppedCount / (droppedCount + finishedCount)
                     : -1;
             }
-            var producer = ProducerList.Find(x => x.Name == vn.Producer);
+            var producer = LocalDatabase.ProducerList.Find(x => x.Name == vn.Producer);
             var addProducerList = new List<ListedProducer>
             {
                 new ListedProducer(vn.Producer, producerVNs.Length, DateTime.UtcNow,
                     producer.ID, producer.Language,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
-            DBConn.BeginTransaction();
-            DBConn.InsertFavoriteProducers(addProducerList, Settings.UserID);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
+            LocalDatabase.EndTransaction();
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
             WriteText(replyText, $"{vn.Producer} added to list.");
@@ -745,9 +746,9 @@ namespace Happy_Search
             VNControl vnf;
             if (ActiveQuery.Completed)
             {
-                DBConn.Open();
-                vnItem = DBConn.GetSingleVN(vnItem.VNID, Settings.UserID);
-                DBConn.Close();
+                LocalDatabase.Open();
+                vnItem = LocalDatabase.GetSingleVN(vnItem.VNID, Settings.UserID);
+                LocalDatabase.Close();
                 vnf = new VNControl(vnItem, this, tabPage, true);
             }
             else vnf = new VNControl(vnItem, this, tabPage, false);
@@ -774,7 +775,7 @@ namespace Happy_Search
             if (listedVN.ULStatus == UserlistStatus.Playing) e.Item.GetSubItem(tileColumnULS.Index).ForeColor = ULPlayingBrush.Color;
             if (listedVN.WLStatus == WishlistStatus.None) e.Item.GetSubItem(tileColumnWLS.Index).Text = "";
             if (listedVN.Vote < 1) e.Item.GetSubItem(tileColumnVote.Index).Text = "";
-            if (FavoriteProducerList.Any(x => x.Name.Equals(listedVN.Producer))) e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
+            if (LocalDatabase.FavoriteProducerList.Any(x => x.Name.Equals(listedVN.Producer))) e.Item.GetSubItem(tileColumnProducer.Index).ForeColor = FavoriteProducerBrush.Color;
             e.Item.GetSubItem(tileColumnLength.Index).Text = listedVN.LengthString;
             e.Item.GetSubItem(tileColumnDate.Index).Text = listedVN.RelDate;
             e.Item.GetSubItem(tileColumnRating.Index).Text = listedVN.VoteCount > 0 ? $"{listedVN.Rating:0.00} ({listedVN.VoteCount} Votes)" : "";
@@ -796,9 +797,9 @@ namespace Happy_Search
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
             var apiResult = await TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
-            DBConn.Open();
-            DBConn.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
-            DBConn.Close();
+            LocalDatabase.Open();
+            LocalDatabase.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
+            LocalDatabase.Close();
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(replyText, replyMessage);

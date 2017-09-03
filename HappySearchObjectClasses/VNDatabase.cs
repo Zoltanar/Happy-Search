@@ -2,49 +2,78 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using static Happy_Search.FormMain;
-using static Happy_Search.StaticHelpers;
+using static Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
 
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
-    internal class DbHelper
+    public class VNDatabase
     {
+        /// <summary>
+        /// Contains all VNs in database.
+        /// </summary>
+        public List<ListedVN> VNList;
+
+        /// <summary>
+        /// Contains all producers in local database
+        /// </summary>
+        public List<ListedProducer> ProducerList;
+
+        /// <summary>
+        /// Contains all characters in local database
+        /// </summary>
+        public List<CharacterItem> CharacterList;
+
+        /// <summary>
+        /// Contains all favorite producers for logged in user
+        /// </summary>
+        public List<ListedProducer> FavoriteProducerList;
+
+        /// <summary>
+        /// Contains all user-related titles.
+        /// </summary>
+        public List<ListedVN> URTList;
+
         #region Initialization
-#if DEBUG
-        private const string DbFile = "..\\Release\\Stored Data\\Happy-Search-Local-DB.sqlite";
-#else
-        private const string DbFile = "Stored Data\\Happy-Search-Local-DB.sqlite";
-#endif
 
-        private const string DbConnectionString = "Data Source=" + DbFile + ";Version=3;";
-        private readonly SQLiteConnection _conn;
+        private readonly string _dbFile;
+        protected readonly SQLiteConnection Conn;
         private static bool _dbLog;
-
-        public DbHelper(bool dbLog = false)
+        
+        public VNDatabase(string dbFile = null, bool dbLog = false)
         {
+            _dbFile = dbFile;
+            if (string.IsNullOrWhiteSpace(_dbFile))
+            {
+#if DEBUG
+        _dbFile = "..\\Release\\Stored Data\\Happy-Search-Local-DB.sqlite";
+#else
+        _dbFile = "Stored Data\\Happy-Search-Local-DB.sqlite";
+#endif
+            }
+            var dbConnectionString = "Data Source=" + _dbFile + ";Version=3;";
             _dbLog = dbLog;
             _printSetMethods = dbLog;
-            _printGetMethods = dbLog;
+            PrintGetMethods = dbLog;
 
-            _conn = new SQLiteConnection(DbConnectionString);
+            Conn = new SQLiteConnection(dbConnectionString);
             InitDatabase();
 
         }
-
-
+        
         private void InitDatabase()
         {
-            if (File.Exists(DbFile))
+            if (File.Exists(_dbFile))
             {
                 //check database version and update if necessary.
                 Open();
@@ -58,7 +87,7 @@ namespace Happy_Search
                 Close();
                 return;
             }
-            SQLiteConnection.CreateFile(DbFile);
+            SQLiteConnection.CreateFile(_dbFile);
             if (_dbLog) LogToFile("Creating Database");
             BeginTransaction();
             //must be in this order
@@ -77,14 +106,14 @@ namespace Happy_Search
         {
             //check if table exists
             var selectString = "SELECT name FROM sqlite_master WHERE type='table' AND name='tabledetails';";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var returned = command.ExecuteScalar();
             if (returned == null) return DatabaseVersion.Pre;
             //check table version
             selectString = "SELECT Value FROM tabledetails WHERE Key='databaseversion';";
-            if (_printGetMethods) LogToFile(selectString);
-            command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            command = new SQLiteCommand(selectString, Conn);
             var version = command.ExecuteScalar().ToString();
             switch (version)
             {
@@ -111,13 +140,13 @@ namespace Happy_Search
             {
                 //remove update producerlist date trigger
                 var commandString = "DROP TRIGGER UpdateTimestampProducerList;";
-                if (_printGetMethods) LogToFile(commandString);
-                var command = new SQLiteCommand(commandString, _conn);
+                if (PrintGetMethods) LogToFile(commandString);
+                var command = new SQLiteCommand(commandString, Conn);
                 command.ExecuteNonQuery();
                 //set Updated values to null
                 commandString = "UPDATE producerlist SET Updated = NULL;";
-                if (_printGetMethods) LogToFile(commandString);
-                command = new SQLiteCommand(commandString, _conn);
+                if (PrintGetMethods) LogToFile(commandString);
+                command = new SQLiteCommand(commandString, Conn);
                 command.ExecuteNonQuery();
                 //create tabledetails table
                 CreateTableDetails();
@@ -131,12 +160,12 @@ ALTER TABLE vnlist
  ADD Languages TEXT;
 ALTER TABLE vnlist
  ADD DateFullyUpdated DATE;";
-                if (_printGetMethods) LogToFile(commandString);
-                var command = new SQLiteCommand(commandString, _conn);
+                if (PrintGetMethods) LogToFile(commandString);
+                var command = new SQLiteCommand(commandString, Conn);
                 command.ExecuteNonQuery();
                 commandString = @"ALTER TABLE producerlist ADD Language TEXT;";
-                if (_printGetMethods) LogToFile(commandString);
-                command = new SQLiteCommand(commandString, _conn);
+                if (PrintGetMethods) LogToFile(commandString);
+                command = new SQLiteCommand(commandString, Conn);
                 command.ExecuteNonQuery();
             }
             SetDbVersion(DatabaseVersion.Latest);
@@ -144,13 +173,12 @@ ALTER TABLE vnlist
 
         private void BackupPreviousDatabase(DatabaseVersion previous)
         {
-            if (File.Exists(DbFile))
-            {
-                var extLength = Path.GetExtension(DbFile).Length;
-                var backupFile = $"{DbFile.Substring(0, DbFile.Length - extLength)} - {previous} Backup.sqlite";
-                if (File.Exists(backupFile)) File.Delete(backupFile);
-                File.Copy(DbFile, backupFile);
-            }
+            if (!File.Exists(_dbFile)) return;
+            Debug.Assert(_dbFile != null, nameof(_dbFile) + " != null");
+            var extLength = Path.GetExtension(_dbFile).Length;
+            var backupFile = $"{_dbFile.Substring(0, _dbFile.Length - extLength)} - {previous} Backup.sqlite";
+            if (File.Exists(backupFile)) File.Delete(backupFile);
+            File.Copy(_dbFile, backupFile);
         }
 
         private void CreateTableDetails()
@@ -161,19 +189,19 @@ ALTER TABLE vnlist
 	`Value`	TEXT,
 	PRIMARY KEY(`Key`)
 );";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
             string insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('databaseversion','V1_4_7');";
-            command = new SQLiteCommand(insertCommand, _conn);
+            command = new SQLiteCommand(insertCommand, Conn);
             command.ExecuteNonQuery();
             insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('programname','Happy Search');";
-            command = new SQLiteCommand(insertCommand, _conn);
+            command = new SQLiteCommand(insertCommand, Conn);
             command.ExecuteNonQuery();
             insertCommand = @"INSERT INTO tabledetails  (Key,Value) VALUES ('author','zoltanar');";
-            command = new SQLiteCommand(insertCommand, _conn);
+            command = new SQLiteCommand(insertCommand, Conn);
             command.ExecuteNonQuery();
             insertCommand = $@"INSERT INTO tabledetails  (Key,Value) VALUES ('projecturl','{ProjectURL}');";
-            command = new SQLiteCommand(insertCommand, _conn);
+            command = new SQLiteCommand(insertCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -192,7 +220,7 @@ ALTER TABLE vnlist
                     return;
             }
             string insertCommand = $@"INSERT OR REPLACE INTO tabledetails  (Key,Value) VALUES ('databaseversion','{versionString}');";
-            var command = new SQLiteCommand(insertCommand, _conn);
+            var command = new SQLiteCommand(insertCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -220,7 +248,7 @@ ALTER TABLE vnlist
 `Languages` TEXT, 
 PRIMARY KEY(`VNID`), 
 FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -235,7 +263,7 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
 	`Language`	TEXT,
 	PRIMARY KEY(`ProducerID`)
 );";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -249,7 +277,7 @@ FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
 `VNs` TEXT, 
 `DateUpdated` INTEGER, 
 PRIMARY KEY(`CharacterID`) )";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -267,7 +295,7 @@ PRIMARY KEY(`CharacterID`) )";
  `VoteAdded`	INTEGER,
  PRIMARY KEY(VNID,UserID)
 )";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -280,7 +308,7 @@ PRIMARY KEY(`CharacterID`) )";
 	`UserDropRate`	INTEGER,
 	PRIMARY KEY(ProducerID, UserID)
 )";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -299,9 +327,9 @@ BEGIN
 UPDATE charlist SET DateUpdated=CURRENT_TIMESTAMP 
 WHERE CharacterID=OLD.CharacterID; 
 END";
-            var command = new SQLiteCommand(createCommand, _conn);
+            var command = new SQLiteCommand(createCommand, Conn);
             command.ExecuteNonQuery();
-            var command3 = new SQLiteCommand(createCommand3, _conn);
+            var command3 = new SQLiteCommand(createCommand3, Conn);
             command3.ExecuteNonQuery();
         }
 
@@ -317,7 +345,7 @@ END";
             var insertString =
                 $"UPDATE userlist SET ULNote = '{noteString}' WHERE VNID = {vnid} AND UserID = {userID};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
         public void AddRelationsToVN(int vnid, RelationsItem[] relations)
@@ -327,7 +355,7 @@ END";
             var insertString =
                 $"UPDATE vnlist SET Relations = '{relationsString}' WHERE VNID = {vnid};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -337,7 +365,7 @@ END";
             var insertString =
                 $"UPDATE vnlist SET Screens = '{screensString}' WHERE VNID = {vnid};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -348,7 +376,7 @@ END";
             var insertString =
                 $"UPDATE vnlist SET Anime = '{animeString}' WHERE VNID = {vnid};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -358,7 +386,7 @@ END";
             var insertString =
                 $"UPDATE vnlist SET Tags = '{tags}', Popularity = {vnItem.Popularity.ToString("0.00", CultureInfo.InvariantCulture)}, Rating = {vnItem.Rating.ToString("0.00", CultureInfo.InvariantCulture)}, VoteCount = {vnItem.VoteCount} WHERE VNID = {vnItem.ID};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -368,7 +396,7 @@ END";
             {
                 string deleteString = $"DELETE FROM userlist WHERE VNID = {vnid} AND UserID = {userID};";
                 if (_printSetMethods) LogToFile(deleteString);
-                var cmd = new SQLiteCommand(deleteString, _conn);
+                var cmd = new SQLiteCommand(deleteString, Conn);
                 cmd.ExecuteNonQuery();
                 return;
             }
@@ -422,7 +450,7 @@ END";
             }
             if (commandString.Equals("")) return;
             if (_printSetMethods) LogToFile(commandString);
-            var cmd2 = new SQLiteCommand(commandString, _conn);
+            var cmd2 = new SQLiteCommand(commandString, Conn);
             cmd2.ExecuteNonQuery();
         }
 
@@ -432,16 +460,16 @@ END";
             {
                 var insertString =
                     $"INSERT OR REPLACE INTO userprodlist (ProducerID, UserID, UserAverageVote, UserDropRate) VALUES ({item.ID}, {userid}, {item.UserAverageVote.ToString("0.00", CultureInfo.InvariantCulture)}, {item.UserDropRate});";
-                var command = new SQLiteCommand(insertString, _conn);
+                var command = new SQLiteCommand(insertString, Conn);
                 if (_printSetMethods) LogToFile(insertString);
                 command.ExecuteNonQuery();
             }
         }
 
 
-        internal bool IsBusy()
+        public bool IsBusy()
         {
-            return _conn.State != ConnectionState.Closed;
+            return Conn.State != ConnectionState.Closed;
         }
 
         /// <summary>
@@ -456,7 +484,7 @@ END";
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Language, Titles, Updated) VALUES ({producer.ID}, '{name}', '{producer.Language}', {producer.NumberOfTitles}, NULL);" :
                 $"INSERT OR REPLACE INTO producerlist (ProducerID, Name, Language, Titles) VALUES ({producer.ID}, '{name}', '{producer.Language}', {producer.NumberOfTitles});";
             if (_printSetMethods) LogToFile(commandString);
-            var cmd = new SQLiteCommand(commandString, _conn);
+            var cmd = new SQLiteCommand(commandString, Conn);
             cmd.ExecuteNonQuery();
         }
 
@@ -469,7 +497,7 @@ END";
         {
             foreach (var item in urtList)
             {
-                var comm = new SQLiteCommand(_conn);
+                var comm = new SQLiteCommand(Conn);
                 switch (item.Action)
                 {
                     case Command.New:
@@ -500,7 +528,7 @@ END";
             var insertString =
                 $"INSERT OR REPLACE INTO charlist (CharacterID, Traits, VNs) VALUES ('{character.ID}', '{ListToJsonArray(new List<object>(character.Traits))}','{ListToJsonArray(new List<object>(character.VNs))}');";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -508,7 +536,7 @@ END";
         {
             var (item, producer, languages) = data;
             var tags = ListToJsonArray(new List<object>(item.Tags));
-            var command = new SQLiteCommand(_conn);
+            var command = new SQLiteCommand(Conn);
             if (setFullyUpdated)
             {
                 command.CommandText = "INSERT OR REPLACE INTO vnlist (" +
@@ -560,7 +588,7 @@ END";
             var insertString =
                 $"UPDATE producerlist SET Language = '{producer.Language}' WHERE ProducerID = {producer.ID};";
             if (_printSetMethods) LogToFile(insertString);
-            var command = new SQLiteCommand(insertString, _conn);
+            var command = new SQLiteCommand(insertString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -568,7 +596,7 @@ END";
         {
             var commandString = $"DELETE FROM userprodlist WHERE ProducerID={producerID} AND UserID={userid};";
             if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, _conn);
+            var command = new SQLiteCommand(commandString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -576,7 +604,7 @@ END";
         {
             var commandString = $"DELETE FROM vnlist WHERE VNID={vnid};";
             if (_printSetMethods) LogToFile(commandString);
-            var command = new SQLiteCommand(commandString, _conn);
+            var command = new SQLiteCommand(commandString, Conn);
             command.ExecuteNonQuery();
         }
 
@@ -584,15 +612,15 @@ END";
 
         #region Get Methods
 
-        private static bool _printGetMethods;
+        protected static bool PrintGetMethods;
 
         public List<int> GetUnfetchedUserRelatedTitles(int userid)
         {
             var selectString =
                 $"SELECT VNID FROM userlist WHERE VNID NOT IN (SELECT VNID FROM vnlist) AND UserID = {userid};";
             var list = new List<int>();
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) list.Add(DbInt(reader["VNID"]));
             return list;
@@ -602,73 +630,73 @@ END";
         {
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID={vnid};";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             ListedVN vn = null;
             while (reader.Read()) vn = new ListedVN(reader);
             return vn;
         }
 
-        public List<ListedProducer> GetAllProducers()
+        public void GetAllProducers()
         {
             var list = new List<ListedProducer>();
             var selectString = "SELECT * FROM producerlist;";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
                 list.Add(GetListedProducer(reader));
             }
-            return list;
+            ProducerList = list;
         }
 
-        public List<ListedProducer> GetFavoriteProducersForUser(int userid)
+        public void GetFavoriteProducersForUser(int userid)
         {
             var readerList = new List<ListedProducer>();
             var selectString =
                 $"SELECT producerlist.*, userprodlist.UserAverageVote, userprodlist.UserDropRate FROM producerlist LEFT JOIN userprodlist ON producerlist.ProducerID = userprodlist.ProducerID WHERE userprodlist.UserID = {userid};";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetFavoriteProducer(reader));
-            return readerList;
+            FavoriteProducerList = readerList;
         }
 
-        public List<ListedVN> GetUserRelatedTitles(int userid)
+        public void GetUserRelatedTitles(int userid)
         {
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist, userlist  LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE vnlist.VNID = userlist.VNID AND UserID = {userid};";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(new ListedVN(reader));
-            return readerList;
+            URTList = readerList;
         }
 
-        public List<ListedVN> GetAllTitles(int userid)
+        public void GetAllTitles(int userid)
         {
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT vnlist.*, userlist.*, producerlist.Name FROM vnlist LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID ={userid} LEFT JOIN producerlist ON producerlist.ProducerID = vnlist.ProducerID WHERE Title NOT NULL;";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(new ListedVN(reader));
-            return readerList;
+            VNList = readerList;
         }
 
-        public List<CharacterItem> GetAllCharacters()
+        public void GetAllCharacters()
         {
             var readerList = new List<CharacterItem>();
             var selectString = "SELECT * FROM charlist;";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(GetCharacterItem(reader));
-            return readerList;
+            CharacterList = readerList;
         }
 
         /// <summary>
@@ -682,8 +710,8 @@ END";
             var readerList = new List<ListedVN>();
             var selectString =
                 $"SELECT * FROM vnlist LEFT JOIN producerlist ON vnlist.ProducerID = producerlist.ProducerID LEFT JOIN userlist ON vnlist.VNID = userlist.VNID AND userlist.UserID={userID} WHERE vnlist.ProducerID={producerID};";
-            if (_printGetMethods) LogToFile(selectString);
-            var command = new SQLiteCommand(selectString, _conn);
+            if (PrintGetMethods) LogToFile(selectString);
+            var command = new SQLiteCommand(selectString, Conn);
             var reader = command.ExecuteReader();
             while (reader.Read()) readerList.Add(new ListedVN(reader));
             return readerList;
@@ -692,6 +720,142 @@ END";
         #endregion
 
         #region Other
+
+
+        /// <summary>
+        ///     Type of VN status to be changed.
+        /// </summary>
+        public enum ChangeType
+        {
+            UL,
+            WL,
+            Vote
+        }
+
+        /// <summary>
+        /// Object for updating user-related list.
+        /// </summary>
+        public class UrtListItem
+        {
+#pragma warning disable 1591
+            public int ID { get; }
+            public UserlistStatus? ULStatus { get; private set; }
+            public int? ULAdded { get; private set; }
+            public string ULNote { get; private set; }
+            public WishlistStatus? WLStatus { get; private set; }
+            public int? WLAdded { get; private set; }
+            public int? Vote { get; private set; }
+            public int? VoteAdded { get; private set; }
+            public Command Action { get; private set; }
+#pragma warning restore 1591
+
+            /// <summary>
+            /// Create URT item from previously fetched data. (For Method Group)
+            /// </summary>
+            public static UrtListItem FromVN(ListedVN vn)
+            {
+                return new UrtListItem(vn);
+            }
+
+            /// <summary>
+            /// Create URT item from previously fetched data.
+            /// </summary>
+            public UrtListItem(ListedVN vn)
+            {
+                ID = vn.VNID;
+                Action = Command.Delete;
+            }
+
+            /// <summary>
+            /// Create new URT item from user list data.
+            /// </summary>
+            public UrtListItem(UserListItem item)
+            {
+                ID = item.VN;
+                ULStatus = (UserlistStatus)item.Status;
+                ULAdded = item.Added;
+                ULNote = item.Notes;
+                Action = Command.New;
+            }
+
+            /// <summary>
+            /// Create new URT item from wish list data.
+            /// </summary>
+            public UrtListItem(WishListItem item)
+            {
+                ID = item.VN;
+                WLStatus = (WishlistStatus)item.Priority;
+                WLAdded = item.Added;
+                Action = Command.New;
+            }
+
+            /// <summary>
+            /// Create new URT item from vote list data.
+            /// </summary>
+            public UrtListItem(VoteListItem item)
+            {
+                ID = item.VN;
+                Vote = item.Vote;
+                VoteAdded = item.Added;
+                Action = Command.New;
+            }
+
+            /// <summary>
+            /// Update URT item with user list data.
+            /// </summary>
+            public void Update(UserListItem item)
+            {
+                ULStatus = (UserlistStatus)item.Status;
+                ULAdded = item.Added;
+                ULNote = item.Notes;
+                Action = Command.Update;
+            }
+
+
+            /// <summary>
+            /// Update URT item with wish list data.
+            /// </summary>
+            public void Update(WishListItem item)
+            {
+                WLStatus = (WishlistStatus)item.Priority;
+                WLAdded = item.Added;
+                Action = Command.Update;
+            }
+
+            /// <summary>
+            /// Update URT item with vote list data.
+            /// </summary>
+            public void Update(VoteListItem item)
+            {
+                Vote = item.Vote;
+                VoteAdded = item.Added;
+                Action = Command.Update;
+            }
+
+            /// <summary>Returns a string that represents the current object.</summary>
+            /// <returns>A string that represents the current object.</returns>
+            /// <filterpriority>2</filterpriority>
+            public override string ToString() => $"{Action} - {ID}";
+        }
+
+        /// <summary>
+        ///     Command to change VN status.
+        /// </summary>
+        public enum Command
+        {
+            /// <summary>
+            /// Add to URT list
+            /// </summary>
+            New,
+            /// <summary>
+            /// Update item in URT list
+            /// </summary>
+            Update,
+            /// <summary>
+            /// Delete item from URT list
+            /// </summary>
+            Delete
+        }
 
         private static CharacterItem GetCharacterItem(SQLiteDataReader reader)
         {
@@ -706,30 +870,22 @@ END";
         private static ListedProducer GetListedProducer(SQLiteDataReader reader)
         {
             return new ListedProducer(
-                reader["Name"].ToString(),
-                DbInt(reader["Titles"]),
-                DbDateTime(reader["Updated"]),
-                DbInt(reader["ProducerID"]),
+                reader["Name"].ToString(), DbInt(reader["Titles"]), DbDateTime(reader["Updated"]), DbInt(reader["ProducerID"]),
                 reader["Language"].ToString());
         }
 
         private static ListedProducer GetFavoriteProducer(SQLiteDataReader reader)
         {
             return new ListedProducer(
-                reader["Name"].ToString(),
-                DbInt(reader["Titles"]),
-                DbDateTime(reader["Updated"]),
-                DbInt(reader["ProducerID"]),
-                reader["Language"].ToString(),
-                DbDouble(reader["UserAverageVote"]),
-                DbInt(reader["UserDropRate"]));
+                reader["Name"].ToString(), DbInt(reader["Titles"]), DbDateTime(reader["Updated"]), DbInt(reader["ProducerID"]),
+                reader["Language"].ToString(), DbDouble(reader["UserAverageVote"]), DbInt(reader["UserDropRate"]));
         }
 
         public void Open()
         {
-            if (_conn.State == ConnectionState.Closed)
+            if (Conn.State == ConnectionState.Closed)
             {
-                _conn.Open();
+                Conn.Open();
                 if (_dbLog) LogToFile("Opened Database");
             }
             else
@@ -740,7 +896,7 @@ END";
 
         public void Close()
         {
-            _conn.Close();
+            Conn.Close();
             if (_dbLog) LogToFile("Closed Database");
         }
 
@@ -748,7 +904,7 @@ END";
         public void BeginTransaction()
         {
             Open();
-            _transaction = _conn.BeginTransaction();
+            _transaction = Conn.BeginTransaction();
             if (_dbLog) LogToFile("Started Transaction");
         }
 
@@ -759,29 +915,7 @@ END";
             _transaction = null;
             Close();
         }
-
-        public static int DbInt(object dbObject)
-        {
-            return int.TryParse(dbObject.ToString(), out int i) ? i : -1;
-        }
-
-        public static double DbDouble(object dbObject)
-        {
-            return double.TryParse(dbObject.ToString(), out double i) ? i : -1;
-        }
-
-        public static DateTime DbDateTime(object dbObject)
-        {
-            return DateTime.TryParse(dbObject.ToString(), out DateTime upDateTime) ? upDateTime : DateTime.MinValue;
-        }
-
-        public static bool GetImageStatus(object imageNSFW)
-        {
-            if (!int.TryParse(imageNSFW.ToString(), out int i)) return false;
-            return i == 1;
-        }
-
-
+        
         /// <summary>
         /// Convert list of objects to JSON array string.
         /// </summary>
@@ -829,7 +963,6 @@ END";
         }
         // ReSharper restore InconsistentNaming
         #endregion
-
     }
 
 }

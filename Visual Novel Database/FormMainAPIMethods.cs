@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -30,7 +31,7 @@ namespace Happy_Search
             }
             await Task.Run(() =>
             {
-                if (Settings.DecadeLimit && !ActiveQuery.IgnoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
+                if (GuiSettings.DecadeLimit && !ActiveQuery.IgnoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
                 {
                     query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
                 }
@@ -159,9 +160,9 @@ namespace Happy_Search
             var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
             if (!queryResult) return;
             var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-            DBConn.BeginTransaction();
-            foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character);
+            LocalDatabase.EndTransaction();
             bool moreResults = charRoot.More;
             int pageNo = 1;
             while (moreResults)
@@ -177,9 +178,9 @@ namespace Happy_Search
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
                 if (!queryResult) return;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                DBConn.BeginTransaction();
-                foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
-                DBConn.EndTransaction();
+                LocalDatabase.BeginTransaction();
+                foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character);
+                LocalDatabase.EndTransaction();
                 moreResults = charRoot.More;
                 pageNo = 1;
                 while (moreResults)
@@ -197,9 +198,9 @@ namespace Happy_Search
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
                 if (!queryResult) return false;
                 charRoot = JsonConvert.DeserializeObject<CharacterRoot>(Conn.LastResponse.JsonPayload);
-                DBConn.BeginTransaction();
-                foreach (var character in charRoot.Items) DBConn.UpsertSingleCharacter(character);
-                DBConn.EndTransaction();
+                LocalDatabase.BeginTransaction();
+                foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character);
+                LocalDatabase.EndTransaction();
                 moreResults = charRoot.More;
                 // ReSharper restore AccessToModifiedClosure
                 return true;
@@ -218,15 +219,15 @@ namespace Happy_Search
                 TitlesAdded++;
                 if (producerList.Count > 24)
                 {
-                    DBConn.BeginTransaction();
-                    foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
-                    DBConn.EndTransaction();
+                    LocalDatabase.BeginTransaction();
+                    foreach (var producer in producerList) LocalDatabase.SetProducerLanguage(producer);
+                    LocalDatabase.EndTransaction();
                     producerList.Clear();
                 }
             }
-            DBConn.BeginTransaction();
-            foreach (var producer in producerList) DBConn.SetProducerLanguage(producer);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            foreach (var producer in producerList) LocalDatabase.SetProducerLanguage(producer);
+            LocalDatabase.EndTransaction();
         }
 
         /// <summary>
@@ -256,11 +257,11 @@ namespace Happy_Search
             }
             for (int index = prodItems.Count - 1; index >= 0; index--)
             {
-                if (ProducerList.Exists(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+                if (LocalDatabase.ProducerList.Exists(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
             }
-            DBConn.BeginTransaction();
-            foreach (var producer in prodItems) DBConn.InsertProducer((ListedProducer)producer, true);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            foreach (var producer in prodItems) LocalDatabase.InsertProducer((ListedProducer)producer, true);
+            LocalDatabase.EndTransaction();
             return prodItems;
 
         }
@@ -279,7 +280,7 @@ namespace Happy_Search
                 if (updateAll) vnsToGet = vnIDs.ToList();
                 else
                 {
-                    vnsToGet = vnIDs.Except(VNList.Select(x => x.VNID)).ToList();
+                    vnsToGet = vnIDs.Except(LocalDatabase.VNList.Select(x => x.VNID)).ToList();
                     TitlesSkipped = TitlesSkipped + vnIDs.Length - vnsToGet.Count;
                 }
                 vnsToGet.Remove(0);
@@ -295,10 +296,10 @@ namespace Happy_Search
             var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
             var producersToBeUpserted = new List<ListedProducer>();
             await HandleVNItems(vnRoot.Items);
-            DBConn.BeginTransaction();
-            vnsToBeUpserted.ForEach(vn => DBConn.UpsertSingleVN(vn, true));
-            foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true));
+            foreach (var producer in producersToBeUpserted) LocalDatabase.InsertProducer(producer, true);
+            LocalDatabase.EndTransaction();
             await GetCharactersForMultipleVN(currentArray);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
@@ -313,10 +314,10 @@ namespace Happy_Search
                 vnsToBeUpserted.Clear();
                 producersToBeUpserted.Clear();
                 await HandleVNItems(vnRoot.Items);
-                DBConn.BeginTransaction();
-                vnsToBeUpserted.ForEach(vn => DBConn.UpsertSingleVN(vn, true));
-                foreach (var producer in producersToBeUpserted) DBConn.InsertProducer(producer, true);
-                DBConn.EndTransaction();
+                LocalDatabase.BeginTransaction();
+                vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true));
+                foreach (var producer in producersToBeUpserted) LocalDatabase.InsertProducer(producer, true);
+                LocalDatabase.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray);
                 done += APIMaxResults;
             }
@@ -352,9 +353,9 @@ namespace Happy_Search
             if (root.Num >= currentArray.Length) return;
             //some vns were deleted, find which ones and remove them
             IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-            DBConn.BeginTransaction();
-            foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN);
+            LocalDatabase.EndTransaction();
         }
 
         /// <summary>
@@ -376,17 +377,17 @@ namespace Happy_Search
                 //some vns were deleted, find which ones and remove them
                 var root = vnRoot;
                 IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                DBConn.BeginTransaction();
-                foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                DBConn.EndTransaction();
+                LocalDatabase.BeginTransaction();
+                foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN);
+                LocalDatabase.EndTransaction();
             }
-            DBConn.BeginTransaction();
+            LocalDatabase.BeginTransaction();
             foreach (var vnItem in vnRoot.Items)
             {
-                DBConn.UpdateVNTagsStats(vnItem);
+                LocalDatabase.UpdateVNTagsStats(vnItem);
                 TitlesAdded++;
             }
-            DBConn.EndTransaction();
+            LocalDatabase.EndTransaction();
             await GetCharactersForMultipleVN(currentArray);
             int done = APIMaxResults;
             while (done < vnsToGet.Count)
@@ -402,17 +403,17 @@ namespace Happy_Search
                     //some vns were deleted, find which ones and remove them
                     var root = vnRoot;
                     IEnumerable<int> deletedVNs = currentArray.Where(currentvn => root.Items.All(receivedvn => receivedvn.ID != currentvn));
-                    DBConn.BeginTransaction();
-                    foreach (var deletedVN in deletedVNs) DBConn.RemoveVisualNovel(deletedVN);
-                    DBConn.EndTransaction();
+                    LocalDatabase.BeginTransaction();
+                    foreach (var deletedVN in deletedVNs) LocalDatabase.RemoveVisualNovel(deletedVN);
+                    LocalDatabase.EndTransaction();
                 }
-                DBConn.BeginTransaction();
+                LocalDatabase.BeginTransaction();
                 foreach (var vnItem in vnRoot.Items)
                 {
-                    DBConn.UpdateVNTagsStats(vnItem);
+                    LocalDatabase.UpdateVNTagsStats(vnItem);
                     TitlesAdded++;
                 }
-                DBConn.EndTransaction();
+                LocalDatabase.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray);
                 done += APIMaxResults;
             }
@@ -447,7 +448,7 @@ namespace Happy_Search
         /// <returns>Tuple of bool (indicating successful api connection) and ListedProducer (null if none found or already added)</returns>
         internal async Task<(bool, ListedProducer)> GetProducer(int producerID, string errorMessage, bool update)
         {
-            if (!update && (producerID == -1 || ProducerList.Exists(p => p.ID == producerID))) return (true, null);
+            if (!update && (producerID == -1 || LocalDatabase.ProducerList.Exists(p => p.ID == producerID))) return (true, null);
             string producerQuery = $"get producer basic (id={producerID})";
             var producerResult =
                 await TryQuery(producerQuery, errorMessage);
@@ -509,7 +510,7 @@ namespace Happy_Search
         /// <param name="statusInt">The new value</param>
         /// <param name="newVoteValue">New vote value</param>
         /// <returns>Returns whether it as successful.</returns>
-        internal async Task<bool> ChangeVNStatus(ListedVN vn, ChangeType type, int statusInt, double newVoteValue = -1)
+        internal async Task<bool> ChangeVNStatus(ListedVN vn, VNDatabase.ChangeType type, int statusInt, double newVoteValue = -1)
         {
             var hasULStatus = vn.ULStatus > UserlistStatus.None;
             var hasWLStatus = vn.WLStatus > WishlistStatus.None;
@@ -519,48 +520,48 @@ namespace Happy_Search
             if (!result) return false;
             switch (type)
             {
-                case ChangeType.UL:
+                case VNDatabase.ChangeType.UL:
                     queryString = statusInt == -1
                         ? $"set vnlist {vn.VNID}"
                         : $"set vnlist {vn.VNID} {{\"status\":{statusInt}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
-                    DBConn.BeginTransaction();
+                    LocalDatabase.BeginTransaction();
                     if (hasWLStatus || hasVote)
-                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.UL, statusInt, Command.Update);
+                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.UL, statusInt, VNDatabase.Command.Update);
                     else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.UL, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.UL, statusInt, Command.New);
+                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.UL, statusInt, VNDatabase.Command.Delete);
+                    else LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.UL, statusInt, VNDatabase.Command.New);
                     break;
-                case ChangeType.WL:
+                case VNDatabase.ChangeType.WL:
                     queryString = statusInt == -1
                         ? $"set wishlist {vn.VNID}"
                         : $"set wishlist {vn.VNID} {{\"priority\":{statusInt}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
-                    DBConn.BeginTransaction();
+                    LocalDatabase.BeginTransaction();
                     if (hasULStatus || hasVote)
-                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.Update);
+                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.WL, statusInt, VNDatabase.Command.Update);
                     else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.WL, statusInt, Command.New);
+                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.WL, statusInt, VNDatabase.Command.Delete);
+                    else LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.WL, statusInt, VNDatabase.Command.New);
                     break;
-                case ChangeType.Vote:
+                case VNDatabase.ChangeType.Vote:
                     int vote = (int)Math.Floor(newVoteValue * 10);
                     queryString = statusInt == -1
                         ? $"set votelist {vn.VNID}"
                         : $"set votelist {vn.VNID} {{\"vote\":{vote}}}";
                     result = await TryQuery(queryString, Resources.cvns_query_error);
                     if (!result) return false;
-                    DBConn.BeginTransaction();
+                    LocalDatabase.BeginTransaction();
                     if (hasULStatus || hasWLStatus)
-                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Update, newVoteValue);
+                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.Vote, statusInt, VNDatabase.Command.Update, newVoteValue);
                     else if (statusInt == -1)
-                        DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.Vote, statusInt, Command.Delete);
-                    else DBConn.UpdateVNStatus(Settings.UserID, vn.VNID, ChangeType.Vote, statusInt, Command.New, newVoteValue);
+                        LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.Vote, statusInt, VNDatabase.Command.Delete);
+                    else LocalDatabase.UpdateVNStatus(Settings.UserID, vn.VNID, VNDatabase.ChangeType.Vote, statusInt, VNDatabase.Command.New, newVoteValue);
                     break;
             }
-            DBConn.EndTransaction();
+            LocalDatabase.EndTransaction();
             await UpdateFavoriteProducerForURTChange(vn.Producer);
             ChangeAPIStatus(Conn.Status);
             return true;

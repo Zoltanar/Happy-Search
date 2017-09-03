@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Happy_Apps_Core;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable MemberCanBePrivate.Global
 #pragma warning disable 1591
@@ -40,6 +41,7 @@ namespace Happy_Search
         public bool TraitsOn { get; set; }
         // ReSharper restore MemberCanBeProtected.Global
     }
+
     public class FixedFilter : FilterBase
     {
         public bool LengthFixed { get; set; }

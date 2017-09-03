@@ -75,21 +75,15 @@
     <ApplicationIcon>Resources\logo copy.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HtmlAgilityPack, Version=1.4.9.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ObjectListView, Version=2.8.0.2724, Culture=neutral, PublicKeyToken=b1c5bf581481bcd4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\ObjectListView.dll</HintPath>
     </Reference>
-    <Reference Include="Octokit, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Octokit.0.23.0\lib\net45\Octokit.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.26.0\lib\net45\Octokit.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <Private>False</Private>
@@ -100,10 +94,6 @@
     <Reference Include="System.Core">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data.SQLite, Version=1.0.101.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\System.Data.SQLite.dll</HintPath>
-    </Reference>
     <Reference Include="System.Design">
       <Private>False</Private>
     </Reference>
@@ -111,8 +101,8 @@
     <Reference Include="System.Security">
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq">
       <Private>False</Private>
@@ -140,9 +130,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="APIClasses.cs" />
     <Compile Include="Filters.cs" />
-    <Compile Include="FilterClasses.cs" />
     <Compile Include="FormMainAPIMethods.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
@@ -155,7 +143,6 @@
       <DependentUpon>FormMain.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ListedVN.cs" />
     <Compile Include="Other_Forms\FiltersTab.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -200,18 +187,13 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="FixedFilter.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="StaticHelpers.cs" />
-    <Compile Include="UserSettings.cs" />
-    <Compile Include="VndbConnection.cs" />
-    <Compile Include="DBHelper.cs" />
+    <Compile Include="GuiSettings.cs" />
     <Compile Include="Other_Forms\LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Other_Forms\LoginForm.Designer.cs">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ObjectListItems.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -268,6 +250,7 @@
     <EmbeddedResource Include="Other_Forms\SplashScreen.resx">
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -530,6 +513,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HappySearchObjectClasses\Happy Apps Core.csproj">
+      <Project>{c5e4c647-35ba-4525-b78a-f2263a628a5a}</Project>
+      <Name>Happy Apps Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

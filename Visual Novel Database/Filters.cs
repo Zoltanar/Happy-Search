@@ -7,7 +7,8 @@ using System.IO;
 using System.Linq;
 using Happy_Search.Other_Forms;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -244,7 +245,7 @@ namespace Happy_Search
             if (UnreleasedOn) andFunctions.Add(vn => (t.Unreleased & vn.Unreleased) != 0);
             if (BlacklistedOn) andFunctions.Add(vn => t.Blacklisted == vn.Blacklisted);
             if (VotedOn) andFunctions.Add(vn => t.Voted == vn.Voted);
-            if (FavoriteProducersOn) andFunctions.Add(vn => t.FavoriteProducers == vn.ByFavoriteProducer(form.FavoriteProducerList));
+            if (FavoriteProducersOn) andFunctions.Add(vn => t.FavoriteProducers == vn.ByFavoriteProducer(form.LocalDatabase.FavoriteProducerList));
             if (WishlistOn) andFunctions.Add(vn => (t.Wishlist & vn.Wishlist) != 0);
             if (UserlistOn) andFunctions.Add(vn => (t.Userlist & vn.Userlist) != 0);
             var cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
@@ -269,7 +270,7 @@ namespace Happy_Search
             {
                 Stopwatch watch = Stopwatch.StartNew();
                 //Make list of characters which contain traits
-                List<CharacterItem> chars = form.CharacterList.ToList();
+                List<CharacterItem> chars = form.LocalDatabase.CharacterList.ToList();
                 IEnumerable<CharacterItem> traitCharacters = chars.Where(x => x.ContainsTraits(t.Traits)).ToList();
                 //get all vns that those characters are in
                 var characterVNs = traitCharacters.SelectMany(ci => ci.VNs.Select(civn => civn.ID));

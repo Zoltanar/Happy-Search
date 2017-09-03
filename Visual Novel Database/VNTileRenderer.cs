@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
+using Happy_Apps_Core;
 
 namespace Happy_Search
 {
@@ -87,7 +88,7 @@ namespace Happy_Search
             if (vn == null) return;
             var ext = Path.GetExtension(vn.ImageURL);
             var photoFile = string.Format($"{StaticHelpers.VNImagesFolder}{vn.VNID}{ext}");
-            if (vn.ImageNSFW && !FormMain.Settings.NSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
+            if (vn.ImageNSFW && !FormMain.GuiSettings.NSFWImages) g.DrawImage(Resources.nsfw_image, photoArea);
             else if (File.Exists(photoFile))
             {
                 DrawImageFitToSize(g, photoArea, photoFile);
@@ -133,7 +134,7 @@ namespace Happy_Search
             g.DrawString(vn.Title, BoldFont, TextBrush, textBoxRect, fmtNear); //line 1: vn title
             //text below picture
             textBoxRect.Y += textHeight + photoArea.Height;
-            var favoriteProducers = (olv.FindForm() as FormMain)?.FavoriteProducerList;
+            var favoriteProducers = (olv.FindForm() as FormMain)?.LocalDatabase.FavoriteProducerList;
             Brush producerBrush = favoriteProducers != null && favoriteProducers.Exists(x => x.Name == vn.Producer) ? StaticHelpers.FavoriteProducerBrush : TextBrush;
             Brush dateBrush = StaticHelpers.DateIsUnreleased(vn.RelDate) ? StaticHelpers.UnreleasedBrush : TextBrush;
             g.DrawString(vn.Producer, NormalFont, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 

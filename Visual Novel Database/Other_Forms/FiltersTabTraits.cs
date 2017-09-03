@@ -5,7 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Happy_Search.Properties;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -115,9 +116,8 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             var traitName = traitSearchBox.Text;
-            var root = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
-            var trait = FormMain.PlainTraits.Find(x =>
-                    x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
+            var root = DumpFiles.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            var trait = DumpFiles.PlainTraits.Find(x => x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
                     x.TopmostParent == root.ID);
             if (trait != null)
             {
@@ -154,14 +154,14 @@ namespace Happy_Search.Other_Forms
         private void TraitRootChanged(object sender, EventArgs e)
         {
             if (traitRootsDropdown.SelectedIndex < 0) return;
-            var trait = FormMain.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            var trait = DumpFiles.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
             if (trait == null)
             {
                 WriteError(traitReply, "Root trait not found.");
                 return;
             }
             var traitSource = new AutoCompleteStringCollection();
-            traitSource.AddRange(FormMain.PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
+            traitSource.AddRange(DumpFiles.PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
             traitSearchBox.AutoCompleteCustomSource = traitSource;
         }
 
@@ -177,7 +177,7 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             var text = traitSearchBox.Text.ToLowerInvariant();
-            var results = FormMain.PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+            var results = DumpFiles.PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
                                                  t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
             if (results.Length == 0)
             {

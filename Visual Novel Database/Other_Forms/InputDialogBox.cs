@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using static Happy_Search.StaticHelpers;
+using static Happy_Apps_Core.StaticHelpers;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 

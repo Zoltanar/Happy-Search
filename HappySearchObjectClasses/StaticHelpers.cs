@@ -17,14 +17,13 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 using Timer = System.Windows.Forms.Timer;
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// Static Methods
     /// </summary>
     public static class StaticHelpers
     {
-
         #region File Locations
 
 #pragma warning disable 1591
@@ -37,34 +36,21 @@ namespace Happy_Search
         public const string FlagsFolder = "Program Data\\Flags\\";
 
 #if DEBUG
-        public const string VNImagesFolder = "..\\Release\\Stored Data\\Saved Cover Images\\";
-        public const string VNScreensFolder = "..\\Release\\Stored Data\\Saved Screenshots\\";
-        public const string DBStatsJson = "..\\Release\\Stored Data\\dbs.json";
-        public const string SettingsJson = "..\\Release\\Stored Data\\settings.json";
-        public const string CustomFiltersJson = "..\\Release\\Stored Data\\customfilters.json";
-        public const string CustomTagFiltersJson = "..\\Release\\Stored Data\\customtagfilters.json";
-        public const string CustomTraitFiltersJson = "..\\Release\\Stored Data\\customtraitfilters.json";
-        public const string FiltersJson = "..\\Release\\Stored Data\\filters.json";
-        public const string LogFile = "..\\Release\\Stored Data\\message.log";
-        public const string TagsJsonGz = "..\\Release\\Stored Data\\tags.json.gz";
-        public const string TraitsJsonGz = "..\\Release\\Stored Data\\traits.json.gz";
-        public const string TagsJson = "..\\Release\\Stored Data\\tags.json";
-        public const string TraitsJson = "..\\Release\\Stored Data\\traits.json";
+        public const string StoredDataFolder = "..\\Release\\Stored Data\\";
 #else
-        public const string VNImagesFolder = "Stored Data\\Saved Cover Images\\";
-        public const string VNScreensFolder = "Stored Data\\Saved Screenshots\\";
-        public const string DBStatsJson = "Stored Data\\dbs.json";
-        public const string SettingsJson = "Stored Data\\settings.json";
-        public const string CustomFiltersJson = "Stored Data\\customfilters.json";
-        public const string CustomTagFiltersJson = "Stored Data\\customtagfilters.json";
-        public const string CustomTraitFiltersJson = "Stored Data\\customtraitfilters.json";
-        public const string FiltersJson = "Stored Data\\filters.json";
-        public const string LogFile = "Stored Data\\message.log";
-        public const string TagsJsonGz = "Stored Data\\tags.json.gz";
-        public const string TraitsJsonGz = "Stored Data\\traits.json.gz";
-        public const string TagsJson = "Stored Data\\tags.json";
-        public const string TraitsJson = "Stored Data\\traits.json";
+        public const string StoredDataFolder = "Stored Data\\";;
 #endif
+
+        public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
+        public const string VNScreensFolder = StoredDataFolder + "Saved Screenshots\\";
+        public const string DBStatsJson = StoredDataFolder + "dbs.json";
+        public const string SettingsJson = StoredDataFolder + "settings.json";
+        public const string CustomFiltersJson = StoredDataFolder + "customfilters.json";
+        public const string CustomTagFiltersJson = StoredDataFolder + "customtagfilters.json";
+        public const string CustomTraitFiltersJson = StoredDataFolder + "customtraitfilters.json";
+        public const string FiltersJson = StoredDataFolder + "filters.json";
+        public const string LogFile = StoredDataFolder + "message.log";
+        public const string CoreSettingsJson = StoredDataFolder + "coresettings.json";
 #pragma warning restore 1591
 
         #endregion
@@ -101,27 +87,27 @@ namespace Happy_Search
         private static readonly Color NormalColor = SystemColors.ControlLightLight;
         private static readonly Color NormalLinkColor = Color.FromArgb(0, 192, 192);
         private static readonly Color WarningColor = Color.DarkKhaki;
-
-
+        
         public static bool DontTriggerEvent; //used to skip indexchanged events
 
         /// <summary>
         /// Categories of VN Tags
         /// </summary>
         public enum TagCategory { Content, Sexual, Technical }
+
+        public static readonly CoreSettings Settings = CoreSettings.Load();
 #pragma warning restore 1591
-
-
-
+        
+        
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.
         /// </summary>
-        public static SolidBrush GetBrushFromStatuses(ListedVN vn)
+        public static SolidBrush GetBrushFromStatuses(ListedVN vnBase)
         {
-            if (vn == null) return null;
-            var brush = GetColorFromULStatus(vn.ULStatus);
+            if (vnBase == null) return null;
+            var brush = GetColorFromULStatus(vnBase.ULStatus);
             if (brush != null) return brush;
-            brush = GetColorFromWLStatus(vn.WLStatus);
+            brush = GetColorFromWLStatus(vnBase.WLStatus);
             return brush;
         }
 
@@ -636,17 +622,17 @@ namespace Happy_Search
         /// <summary>
         ///     Saves a title's cover image (unless it already exists)
         /// </summary>
-        /// <param name="vn">Title</param>
-        public static async Task SaveImageAsync(ListedVN vn)
+        /// <param name="vnBase">Title</param>
+        public static async Task SaveImageAsync(ListedVN vnBase)
         {
             if (!Directory.Exists(VNImagesFolder)) Directory.CreateDirectory(VNImagesFolder);
-            if (vn.ImageURL == null || vn.ImageURL.Equals("")) return;
-            string imageLocation = $"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}";
+            if (vnBase.ImageURL == null || vnBase.ImageURL.Equals("")) return;
+            string imageLocation = $"{VNImagesFolder}{vnBase.VNID}{Path.GetExtension(vnBase.ImageURL)}";
             if (File.Exists(imageLocation)) return;
-            LogToFile($"Start downloading cover image for {vn}");
+            LogToFile($"Start downloading cover image for {vnBase}");
             try
             {
-                var requestPic = WebRequest.Create(vn.ImageURL);
+                var requestPic = WebRequest.Create(vnBase.ImageURL);
                 using (var responsePic = await requestPic.GetResponseAsync())
                 {
                     using (var stream = responsePic.GetResponseStream())
@@ -680,6 +666,27 @@ namespace Happy_Search
         {
             string[] urlSplit = screenItem.Image.Split('/');
             return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
+        }
+
+        public static int DbInt(object dbObject)
+        {
+            return Int32.TryParse(dbObject.ToString(), out int i) ? i : -1;
+        }
+
+        public static double DbDouble(object dbObject)
+        {
+            return Double.TryParse(dbObject.ToString(), out double i) ? i : -1;
+        }
+
+        public static DateTime DbDateTime(object dbObject)
+        {
+            return DateTime.TryParse(dbObject.ToString(), out DateTime upDateTime) ? upDateTime : DateTime.MinValue;
+        }
+
+        public static bool GetImageStatus(object imageNSFW)
+        {
+            if (!int.TryParse(imageNSFW.ToString(), out int i)) return false;
+            return i == 1;
         }
     }
 }

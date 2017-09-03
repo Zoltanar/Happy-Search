@@ -8,8 +8,9 @@ using System.Windows.Forms;
 using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Happy_Search.Other_Forms;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
 
 namespace Happy_Search
 {
@@ -24,7 +25,7 @@ namespace Happy_Search
             var favoriteProducerList = new List<ListedProducer>();
             foreach (ListedProducer producer in olFavoriteProducers.Objects)
             {
-                ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+                ListedVN[] producerVNs = LocalDatabase.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
                 double userDropRate = -1;
                 double userAverageVote = -1;
                 if (producerVNs.Any())
@@ -40,9 +41,9 @@ namespace Happy_Search
                 favoriteProducerList.Add(new ListedProducer(producer.Name, producer.NumberOfTitles,
                     DateTime.UtcNow, producer.ID, producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
-            DBConn.BeginTransaction();
-            DBConn.InsertFavoriteProducers(favoriteProducerList, Settings.UserID);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            LocalDatabase.InsertFavoriteProducers(favoriteProducerList, Settings.UserID);
+            LocalDatabase.EndTransaction();
         }
 
         /// <summary>
@@ -82,12 +83,12 @@ namespace Happy_Search
                 WriteError(prodReply, Resources.no_items_selected);
                 return;
             }
-            DBConn.BeginTransaction();
+            LocalDatabase.BeginTransaction();
             foreach (ListedProducer item in olFavoriteProducers.SelectedObjects)
             {
-                DBConn.RemoveFavoriteProducer(item.ID, Settings.UserID);
+                LocalDatabase.RemoveFavoriteProducer(item.ID, Settings.UserID);
             }
-            DBConn.EndTransaction();
+            LocalDatabase.EndTransaction();
             LoadFPListToGui();
         }
 
@@ -197,11 +198,11 @@ This may take a while...",
                 moreResults = releaseRoot.More;
             }
             await GetMultipleVN(producerVNList.Distinct().ToArray(), updateAll);
-            DBConn.Open();
-            List<ListedVN> producerTitles = DBConn.GetTitlesFromProducerID(Settings.UserID, producer.ID);
-            DBConn.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
+            LocalDatabase.Open();
+            List<ListedVN> producerTitles = LocalDatabase.GetTitlesFromProducerID(Settings.UserID, producer.ID);
+            LocalDatabase.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
                 producer.ID, producer.Language));
-            DBConn.Close();
+            LocalDatabase.Close();
             LogToFile($"Finished getting titles for Producer= {producer}, {producerTitles.Count} titles.");
         }
 
@@ -212,15 +213,15 @@ This may take a while...",
         internal void LoadFPListToGui()
         {
             if (Settings.UserID < 1) return;
-            DBConn.Open();
-            FavoriteProducerList = DBConn.GetFavoriteProducersForUser(Settings.UserID);
-            DBConn.Close();
-            foreach (var favoriteProducer in FavoriteProducerList)
+            LocalDatabase.Open();
+            LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
+            LocalDatabase.Close();
+            foreach (var favoriteProducer in LocalDatabase.FavoriteProducerList)
             {
-                double[] vnsWithVotes = VNList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
+                double[] vnsWithVotes = LocalDatabase.VNList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();
                 favoriteProducer.GeneralRating = vnsWithVotes.Any() ? Math.Round(vnsWithVotes.Average(), 2) : -1;
             }
-            olFavoriteProducers.SetObjects(FavoriteProducerList);
+            olFavoriteProducers.SetObjects(LocalDatabase.FavoriteProducerList);
             olFavoriteProducers.Sort(ol2Name.Index);
         }
 
@@ -237,8 +238,8 @@ This may take a while...",
                 LoadVNListToGui();
                 return;
             }
-            var producer = ProducerList.Find(x => x.Name == producerName);
-            ListedVN[] producerVNs = URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+            var producer = LocalDatabase.ProducerList.Find(x => x.Name == producerName);
+            ListedVN[] producerVNs = LocalDatabase.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
             double userDropRate = -1;
             double userAverageVote = -1;
             if (producerVNs.Any())
@@ -250,9 +251,9 @@ This may take a while...",
                 userAverageVote = producerVotedVNs.Any() ? producerVotedVNs.Select(x => x.Vote).Average() : -1;
             }
             producer = new ListedProducer(producer.Name, producer.NumberOfTitles, DateTime.UtcNow, producer.ID, producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100));
-            DBConn.BeginTransaction();
-            DBConn.InsertFavoriteProducers(new List<ListedProducer> { producer }, Settings.UserID);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            LocalDatabase.InsertFavoriteProducers(new List<ListedProducer> { producer }, Settings.UserID);
+            LocalDatabase.EndTransaction();
             UpdateUserStats();
             await ReloadListsFromDbAsync();
             LoadVNListToGui();

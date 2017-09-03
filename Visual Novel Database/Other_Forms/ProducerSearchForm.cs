@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -16,7 +17,6 @@ namespace Happy_Search.Other_Forms
     public partial class ProducerSearchForm : Form
     {
         private readonly FormMain _parentForm;
-        private readonly List<ListedProducer> _favoriteProducerList;
 
         /// <summary>
         /// Form to search and add producers to user's favorite producers list.
@@ -26,9 +26,6 @@ namespace Happy_Search.Other_Forms
             InitializeComponent();
             _parentForm = parentForm;
             prodSearchReply.Text = "";
-            _parentForm.DBConn.Open();
-            _favoriteProducerList = _parentForm.DBConn.GetFavoriteProducersForUser(FormMain.Settings.UserID);
-            _parentForm.DBConn.Close();
         }
         
         /// <summary>
@@ -37,11 +34,11 @@ namespace Happy_Search.Other_Forms
         private void SuggestProducers(object sender, EventArgs e)
         {
             var suggestions = new List<ListedSearchedProducer>();
-            foreach (var producer in _parentForm.ProducerList)
+            foreach (var producer in _parentForm.LocalDatabase.ProducerList)
             {
-                if (_favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                int finishedTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
-                int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
+                if (_parentForm.LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                int finishedTitles = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
+                int urtTitles = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name);
                 if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, producer.Language, finishedTitles, urtTitles));
             }
             if (!suggestions.Any())
@@ -99,13 +96,13 @@ namespace Happy_Search.Other_Forms
             }
             olProdSearch.SetObjects(searchedProducers);
             olProdSearch.Sort(olProdSearch.GetColumn(0), SortOrder.Ascending);
-            _parentForm.DBConn.BeginTransaction();
+            _parentForm.LocalDatabase.BeginTransaction();
             foreach (var producer in searchedProducers)
             {
-                if (_favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                _parentForm.DBConn.InsertProducer((ListedProducer) producer, true);
+                if (_parentForm.LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                _parentForm.LocalDatabase.InsertProducer((ListedProducer) producer, true);
             }
-            _parentForm.DBConn.EndTransaction();
+            _parentForm.LocalDatabase.EndTransaction();
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             prodSearchReply.Text = $@"{searchedProducers.Count} producers found.";
         }
@@ -149,7 +146,7 @@ namespace Happy_Search.Other_Forms
                 if (producer.InList.Equals("Yes")) continue;
                 olProdSearch.SelectedItems[i].SubItems[1].Text = @"Yes";
                 producer.InList = @"Yes";
-                ListedVN[] producerVNs = _parentForm.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+                ListedVN[] producerVNs = _parentForm.LocalDatabase.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
                 double userAverageVote = -1;
                 double userDropRate = -1;
                 if (producerVNs.Any())
@@ -165,19 +162,19 @@ namespace Happy_Search.Other_Forms
                 addProducerList.Add(new ListedProducer(producer.Name, -1, DateTime.UtcNow, producer.ID,
                     producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
-            _parentForm.DBConn.BeginTransaction();
-            _parentForm.DBConn.InsertFavoriteProducers(addProducerList, FormMain.Settings.UserID);
-            _parentForm.DBConn.EndTransaction();
-            _favoriteProducerList.AddRange(addProducerList);
+            _parentForm.LocalDatabase.BeginTransaction();
+            _parentForm.LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
+            _parentForm.LocalDatabase.EndTransaction();
+            _parentForm.LocalDatabase.FavoriteProducerList.AddRange(addProducerList);
             prodSearchReply.Text = $@"{addProducerList.Count} added.";
         }
 
 
         private ListedSearchedProducer NewListedSearchedProducer(ProducerItem producer)
         {
-            string inList = _favoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
-            int finished = _parentForm.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
-            int urtTitles = _parentForm.URTList.Count(x => x.Producer == producer.Name);
+            string inList = _parentForm.LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
+            int finished = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
+            int urtTitles = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name);
             return new ListedSearchedProducer(producer.Name, inList, producer.ID, producer.Language, finished, urtTitles);
         }
     }

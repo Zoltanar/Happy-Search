@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
-
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 namespace Happy_Search.Other_Forms
 {
     /// <summary>
@@ -52,9 +52,9 @@ namespace Happy_Search.Other_Forms
             vnReplyText.Text = "";
             _tabPage = tabPage;
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
-            tagTypeC.Checked = FormMain.Settings.ContentTags;
-            tagTypeS.Checked = FormMain.Settings.SexualTags;
-            tagTypeT.Checked = FormMain.Settings.TechnicalTags;
+            tagTypeC.Checked = FormMain.GuiSettings.ContentTags;
+            tagTypeS.Checked = FormMain.GuiSettings.SexualTags;
+            tagTypeT.Checked = FormMain.GuiSettings.TechnicalTags;
             tagTypeC.CheckedChanged += DisplayTags;
             tagTypeS.CheckedChanged += DisplayTags;
             tagTypeT.CheckedChanged += DisplayTags;
@@ -79,21 +79,21 @@ namespace Happy_Search.Other_Forms
                 switch (checkBox.Name)
                 {
                     case "tagTypeC":
-                        FormMain.Settings.ContentTags = checkBox.Checked;
+                        FormMain.GuiSettings.ContentTags = checkBox.Checked;
                         _parentForm.tagTypeC2.Checked = checkBox.Checked;
                         break;
                     case "tagTypeS":
-                        FormMain.Settings.SexualTags = checkBox.Checked;
+                        FormMain.GuiSettings.SexualTags = checkBox.Checked;
                         _parentForm.tagTypeS2.Checked = checkBox.Checked;
                         break;
                     case "tagTypeT":
-                        FormMain.Settings.TechnicalTags = checkBox.Checked;
+                        FormMain.GuiSettings.TechnicalTags = checkBox.Checked;
                         _parentForm.tagTypeT2.Checked = checkBox.Checked;
                         break;
                 }
                 DontTriggerEvent = false;
                 _parentForm.DisplayCommonTagsURT();
-                FormMain.Settings.Save();
+                FormMain.GuiSettings.Save();
             }
             if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = new[] { "No Tags Found" };
             else
@@ -115,7 +115,7 @@ namespace Happy_Search.Other_Forms
                     }
                     visibleTags.Add(tag);
                 }
-                List<string> stringList = visibleTags.Select(x => x.Print(FormMain.PlainTags)).ToList();
+                List<string> stringList = visibleTags.Select(x => x.Print(DumpFiles.PlainTags)).ToList();
                 stringList.Sort();
                 vnTagCB.DataSource = stringList;
             }
@@ -131,9 +131,9 @@ namespace Happy_Search.Other_Forms
             ListedVN vn = null;
             await Task.Run(() =>
             {
-                _parentForm.DBConn.Open();
-                vn = _parentForm.DBConn.GetSingleVN(vnid, FormMain.Settings.UserID);
-                _parentForm.DBConn.Close();
+                _parentForm.LocalDatabase.Open();
+                vn = _parentForm.LocalDatabase.GetSingleVN(vnid, Settings.UserID);
+                _parentForm.LocalDatabase.Close();
             });
             SetDeletedData(); //clear before setting new data
             await SetData(vn, updateAPIStruct);
@@ -154,7 +154,7 @@ namespace Happy_Search.Other_Forms
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             //prepare data
             _displayedVN = vnItem;
-            _producer = _parentForm.ProducerList.Find(p => p.Name == _displayedVN.Producer);
+            _producer = _parentForm.LocalDatabase.ProducerList.Find(p => p.Name == _displayedVN.Producer);
             DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
             //set data
@@ -173,7 +173,7 @@ namespace Happy_Search.Other_Forms
                     boxIndex++;
                 }
             }
-            if (_parentForm.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
+            if (_parentForm.LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
             {
                 producerLabel.LinkColor = FavoriteProducerBrush.Color;
                 producerLabel.ActiveLinkColor = FavoriteProducerBrush.Color;
@@ -193,14 +193,14 @@ namespace Happy_Search.Other_Forms
             SetCoverImage(vnItem);
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             DisplayTextOnScreenshotArea("Getting data from VNDB...");
-            while (_parentForm.DBConn.IsBusy()) await Task.Delay(25);
+            while (_parentForm.LocalDatabase.IsBusy()) await Task.Delay(25);
             var loadResult = await LoadFromAPI(vnItem, update);
             switch (loadResult.Status)
             {
                 case FetchStatus.Error:
-                    _parentForm.DBConn.Open();
-                    _parentForm.DBConn.RemoveVisualNovel(vnItem.VNID);
-                    _parentForm.DBConn.Close();
+                    _parentForm.LocalDatabase.Open();
+                    _parentForm.LocalDatabase.RemoveVisualNovel(vnItem.VNID);
+                    _parentForm.LocalDatabase.Close();
                     SetDeletedData();
                     break;
                 case FetchStatus.Throttled:
@@ -220,7 +220,7 @@ namespace Happy_Search.Other_Forms
         private void SetCoverImage(ListedVN vnItem)
         {
             var imageLoc = vnItem.GetImageLocation();
-            if (vnItem.ImageNSFW && !FormMain.Settings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
+            if (vnItem.ImageNSFW && !FormMain.GuiSettings.NSFWImages) pcbImages.Image = Resources.nsfw_image;
             else if (File.Exists(imageLoc))
             {
                 Image coverImage;
@@ -298,14 +298,14 @@ namespace Happy_Search.Other_Forms
 
         private void DisplayVNCharacterTraits(ListedVN vnItem)
         {
-            var vnCharacters = vnItem.GetCharacters(_parentForm.CharacterList);
+            var vnCharacters = vnItem.GetCharacters(_parentForm.LocalDatabase.CharacterList);
             var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
             foreach (var characterItem in vnCharacters)
             {
                 stringList.Add($"Character {characterItem.ID}");
                 foreach (var trait in characterItem.Traits)
                 {
-                    stringList.Add(FormMain.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
+                    stringList.Add(DumpFiles.PlainTraits.Find(x => x.ID == trait.ID)?.ToString());
                 }
                 stringList.Add("---------------");
             }
@@ -340,9 +340,9 @@ namespace Happy_Search.Other_Forms
             RelationsItem[] relations = root.Items[0].Relations;
             await Task.Run(() =>
             {
-                _parentForm.DBConn.Open();
-                _parentForm.DBConn.AddRelationsToVN(vnItem.VNID, relations);
-                _parentForm.DBConn.Close();
+                _parentForm.LocalDatabase.Open();
+                _parentForm.LocalDatabase.AddRelationsToVN(vnItem.VNID, relations);
+                _parentForm.LocalDatabase.Close();
             });
             return (FetchStatus.Success, relations);
         }
@@ -374,9 +374,9 @@ namespace Happy_Search.Other_Forms
             AnimeItem[] animeItems = root.Items[0].Anime;
             await Task.Run(() =>
             {
-                _parentForm.DBConn.Open();
-                _parentForm.DBConn.AddAnimeToVN(vnItem.VNID, animeItems);
-                _parentForm.DBConn.Close();
+                _parentForm.LocalDatabase.Open();
+                _parentForm.LocalDatabase.AddAnimeToVN(vnItem.VNID, animeItems);
+                _parentForm.LocalDatabase.Close();
             });
             return (FetchStatus.Success, animeItems);
         }
@@ -415,9 +415,9 @@ namespace Happy_Search.Other_Forms
             await Task.Run(() =>
             {
                 screens = root.Items[0].Screens;
-                _parentForm.DBConn.Open();
-                _parentForm.DBConn.AddScreensToVN(vnItem.VNID, screens);
-                _parentForm.DBConn.Close();
+                _parentForm.LocalDatabase.Open();
+                _parentForm.LocalDatabase.AddScreensToVN(vnItem.VNID, screens);
+                _parentForm.LocalDatabase.Close();
             });
             _screens = screens;
             return (FetchStatus.Success, screens);
@@ -467,7 +467,7 @@ namespace Happy_Search.Other_Forms
             int imageX = 0;
             foreach (var screen in screenItems)
             {
-                if (screen.Nsfw && !FormMain.Settings.NSFWImages)
+                if (screen.Nsfw && !FormMain.GuiSettings.NSFWImages)
                 {
                     imageX += DrawNSFWImageFitToHeight(picturePanel, 400, imageX) + ScreenshotPadding;
                 }
@@ -540,9 +540,9 @@ namespace Happy_Search.Other_Forms
                 default:
                     string[] parts = dropdownlist.SelectedItem.ToString().Split('-');
                     var vnid = Convert.ToInt32(parts.Last());
-                    _parentForm.DBConn.Open();
-                    var vn = _parentForm.DBConn.GetSingleVN(vnid, FormMain.Settings.UserID);
-                    _parentForm.DBConn.Close();
+                    _parentForm.LocalDatabase.Open();
+                    var vn = _parentForm.LocalDatabase.GetSingleVN(vnid, Settings.UserID);
+                    _parentForm.LocalDatabase.Close();
                     if (vn == null) await SetNewData(vnid);
                     else
                     {
@@ -730,7 +730,7 @@ namespace Happy_Search.Other_Forms
                     }
                     Working = true;
                     statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
-                    success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.UL, statusInt);
+                    success = await _parentForm.ChangeVNStatus(_displayedVN, VNDatabase.ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
                     if (_displayedVN.WLStatus.ToString().Equals(nitem.Text))
@@ -740,7 +740,7 @@ namespace Happy_Search.Other_Forms
                     }
                     Working = true;
                     statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
-                    success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.WL, statusInt);
+                    success = await _parentForm.ChangeVNStatus(_displayedVN, VNDatabase.ChangeType.WL, statusInt);
                     break;
                 case "Vote":
                     double newVoteValue = -1;
@@ -766,7 +766,7 @@ namespace Happy_Search.Other_Forms
                         return;
                     }
                     Working = true;
-                    success = await _parentForm.ChangeVNStatus(_displayedVN, FormMain.ChangeType.Vote, statusInt, newVoteValue);
+                    success = await _parentForm.ChangeVNStatus(_displayedVN, VNDatabase.ChangeType.Vote, statusInt, newVoteValue);
                     Working = false;
                     break;
                 default:
@@ -786,7 +786,7 @@ namespace Happy_Search.Other_Forms
         {
             if (_displayedVN == null || Working) return;
             Working = true;
-            ListedVN[] producerVNs = _parentForm.URTList.Where(x => x.Producer.Equals(_displayedVN.Producer)).ToArray();
+            ListedVN[] producerVNs = _parentForm.LocalDatabase.URTList.Where(x => x.Producer.Equals(_displayedVN.Producer)).ToArray();
             double userAverageVote = -1;
             double userDropRate = -1;
             if (producerVNs.Any())
@@ -798,16 +798,16 @@ namespace Happy_Search.Other_Forms
                 userDropRate = finishedCount + droppedCount != 0 ?
                     (double)droppedCount / (droppedCount + finishedCount) : -1;
             }
-            var producer = _parentForm.ProducerList.Find(x => x.Name == _displayedVN.Producer);
+            var producer = _parentForm.LocalDatabase.ProducerList.Find(x => x.Name == _displayedVN.Producer);
             var addProducerList = new List<ListedProducer>
             {
                 new ListedProducer(_displayedVN.Producer, producerVNs.Length, DateTime.UtcNow,
                     producer.ID, producer.Language,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
-            _parentForm.DBConn.BeginTransaction();
-            _parentForm.DBConn.InsertFavoriteProducers(addProducerList, FormMain.Settings.UserID);
-            _parentForm.DBConn.EndTransaction();
+            _parentForm.LocalDatabase.BeginTransaction();
+            _parentForm.LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
+            _parentForm.LocalDatabase.EndTransaction();
             await _parentForm.ReloadListsFromDbAsync();
             _parentForm.LoadFPListToGui();
             WriteText(vnReplyText, $"{_displayedVN.Producer} added to list.");
@@ -897,9 +897,9 @@ namespace Happy_Search.Other_Forms
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
             var apiResult = await _parentForm.TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
-            _parentForm.DBConn.Open();
-            _parentForm.DBConn.AddNoteToVN(vnid, serializedNotes, FormMain.Settings.UserID);
-            _parentForm.DBConn.Close();
+            _parentForm.LocalDatabase.Open();
+            _parentForm.LocalDatabase.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
+            _parentForm.LocalDatabase.Close();
             await _parentForm.ReloadListsFromDbAsync();
             _parentForm.LoadVNListToGui();
             WriteText(vnReplyText, replyMessage);

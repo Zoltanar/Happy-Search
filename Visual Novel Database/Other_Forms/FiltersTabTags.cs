@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -119,7 +120,7 @@ namespace Happy_Search.Other_Forms
             }
             string text = tagSearchBox.Text.ToLowerInvariant();
             //if exact match is found, add it
-            var exact = FormMain.PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
+            var exact = DumpFiles.PlainTags.Find(tag => tag.Name.Equals(text, StringComparison.InvariantCultureIgnoreCase));
             if (exact != null)
             {
                 tagSearchBox.Text = "";
@@ -160,7 +161,7 @@ namespace Happy_Search.Other_Forms
             int[] children = Enumerable.Empty<int>().ToArray();
             var difference = 1;
             //new
-            int[] childrenForThisRound = FormMain.PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
+            int[] childrenForThisRound = DumpFiles.PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
                 .Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
             while (difference > 0)
             {
@@ -172,11 +173,11 @@ namespace Happy_Search.Other_Forms
                 children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
                 difference = children.Length - initial;
                 var tmp = new List<int>();
-                foreach (var child in childrenForThisRound) tmp.AddRange(FormMain.PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
+                foreach (var child in childrenForThisRound) tmp.AddRange(DumpFiles.PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
                 childrenForThisRound = tmp.ToArray();
             }
             var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, children);
-            var count = _mainForm.VNList.Count(vn => VNMatchesSingleTag(vn, newFilter));
+            var count = _mainForm.LocalDatabase.VNList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
             TagFilter moreSpecificFilter = null;
             var notNeeded = false;
@@ -275,7 +276,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         /// <param name="vn">Visual Novel to be checked</param>
         /// <returns>Whether it matches</returns>
-        internal bool VNMatchesTagFilter(ListedVN vn)
+        public bool VNMatchesTagFilter(ListedVN vn)
         {
             int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
             var filtersMatched = _filters.Tags?.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
@@ -310,7 +311,7 @@ namespace Happy_Search.Other_Forms
                 }
             }
             //find all results with similar name or alias
-            var results = FormMain.PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+            var results = DumpFiles.PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
                                                t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
             //if no results, return not found
             if (results.Length == 0)

@@ -8,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using static Happy_Apps_Core.StaticHelpers;
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// Class for establishing connection with VNDB API and interacting with it.
@@ -23,9 +23,9 @@ namespace Happy_Search
         private const byte EndOfStreamByte = 0x04;
         private Stream _stream;
         private TcpClient _tcpClient;
-        internal Response LastResponse;
-        internal LogInStatus LogIn = LogInStatus.No;
-        internal APIStatus Status = APIStatus.Closed;
+        public Response LastResponse;
+        public LogInStatus LogIn = LogInStatus.No;
+        public APIStatus Status = APIStatus.Closed;
 
         /// <summary>
         /// Open stream with VNDB API.
@@ -168,7 +168,7 @@ namespace Happy_Search
             }
         }
 
-        internal void Query(string command)
+        public void Query(string command)
         {
             if (Status == APIStatus.Error) return;
             Status = APIStatus.Busy;
@@ -194,7 +194,7 @@ namespace Happy_Search
             SetStatusFromLastResponseType();
         }
 
-        internal async Task QueryAsync(string query)
+        public async Task QueryAsync(string query)
         {
             byte[] encoded = Encoding.UTF8.GetBytes(query);
             var requestBuffer = new byte[encoded.Length + 1];
@@ -301,14 +301,14 @@ namespace Happy_Search
             }
         }
 
-        internal enum LogInStatus
+        public enum LogInStatus
         {
             No,
             Yes,
             YesWithPassword
         }
 
-        internal enum APIStatus
+        public enum APIStatus
         {
             Ready,
             Busy,

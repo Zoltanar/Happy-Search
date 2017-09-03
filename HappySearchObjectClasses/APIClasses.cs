@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
-using static Happy_Search.StaticHelpers;
+using static Happy_Apps_Core.StaticHelpers;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable ClassNeverInstantiated.Global
@@ -13,7 +13,7 @@ using static Happy_Search.StaticHelpers;
 
 // ReSharper disable InconsistentNaming
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
 
     //object received by 'get vn' command
@@ -513,7 +513,7 @@ namespace Happy_Search
         public int[] Children { get; set; }
         public int[] AllIDs { get; set; }
 
-        internal void SetItemChildren(List<ItemWithParents> list)
+        public void SetItemChildren(List<ItemWithParents> list)
         {
 
             int[] children = Enumerable.Empty<int>().ToArray();

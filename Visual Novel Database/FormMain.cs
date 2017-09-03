@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +12,8 @@ using Happy_Search.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Octokit;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 using Application = System.Windows.Forms.Application;
 using Label = System.Windows.Forms.Label;
 
@@ -27,16 +27,11 @@ namespace Happy_Search
     public partial class FormMain : Form
     {
         internal readonly VndbConnection Conn = new VndbConnection();
-        internal readonly DbHelper DBConn;
+        internal readonly VNDatabase LocalDatabase;
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
-        internal List<ListedProducer> ProducerList; //contains all producers in local database
-        internal List<CharacterItem> CharacterList; //contains all producers in local database
-        internal List<ListedProducer> FavoriteProducerList; //contains all favorite producers for logged in user
-        /// <summary>
-        /// Contains all VNs in database.
-        /// </summary>
-        public List<ListedVN> VNList { get; private set; }
+
+
         /// <summary>
         /// Count of titles added in last query.
         /// </summary>
@@ -45,11 +40,9 @@ namespace Happy_Search
         /// Count of titles skipped in last query.
         /// </summary>
         public int TitlesSkipped { get; private set; }
-        internal static List<WrittenTag> PlainTags; //Contains all tags as in tags.json
-        internal static List<WrittenTrait> PlainTraits; //Contains all tags as in tags.json
-        internal List<ListedVN> URTList; //contains all user-related vns
+
         private bool _wideView;
-        internal static UserSettings Settings;
+        internal static GuiSettings GuiSettings;
         internal string LoginString;
 
         /// <summary>
@@ -76,7 +69,7 @@ namespace Happy_Search
             LoadUserSettings();
             LoadTagAndTraitFiles();
             SplashScreen.SetStatus("Connecting to SQLite Database...");
-            DBConn = new DbHelper(args.Contains("-dl") || args.Contains("-debug"));
+            LocalDatabase = new VNDatabase(dbLog:args.Contains("-dl") || args.Contains("-debug"));
             LoadDataFromDatabase();
             SplashScreen.SetStatus("Updating User Stats...");
             UpdateUserStats();
@@ -126,44 +119,34 @@ https://github.com/FredTheBarber/VndbClient";
             void LoadUserSettings()
             {
                 SplashScreen.SetStatus("Loading User Settings...");
-                Settings = UserSettings.Load();
-                tagTypeC2.Checked = Settings.ContentTags;
-                tagTypeS2.Checked = Settings.SexualTags;
-                tagTypeT2.Checked = Settings.TechnicalTags;
-                nsfwToggle.Checked = Settings.NSFWImages;
-                autoUpdateURTBox.Checked = Settings.AutoUpdate;
-                yearLimitBox.Checked = Settings.DecadeLimit;
+                GuiSettings = GuiSettings.Load();
+                tagTypeC2.Checked = GuiSettings.ContentTags;
+                tagTypeS2.Checked = GuiSettings.SexualTags;
+                tagTypeT2.Checked = GuiSettings.TechnicalTags;
+                nsfwToggle.Checked = GuiSettings.NSFWImages;
+                autoUpdateURTBox.Checked = GuiSettings.AutoUpdate;
+                yearLimitBox.Checked = GuiSettings.DecadeLimit;
             }
             void LoadTagAndTraitFiles()
             {
-                SplashScreen.SetStatus("Loading Tag and Trait files...");
-                LogToFile(
-                    $"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
-                if (DaysSince(Settings.DumpfileDate) > 2 || DaysSince(Settings.DumpfileDate) == -1)
-                {
-                    GetNewDumpFiles();
-                }
-                else
-                {
-                    //load dump files if they exist, otherwise load default.
-                    LoadTagdump(!File.Exists(TagsJson));
-                    LoadTraitdump(!File.Exists(TraitsJson));
-                }
+                SplashScreen.SetStatus("Loading Tag and Trait dump files...");
+                LogToFile($"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
+                DumpFiles.Load();
             }
             void LoadDataFromDatabase()
             {
                 SplashScreen.SetStatus("Loading Data from Database...");
-                DBConn.Open();
-                VNList = DBConn.GetAllTitles(Settings.UserID);
-                ProducerList = DBConn.GetAllProducers();
-                CharacterList = DBConn.GetAllCharacters();
-                URTList = DBConn.GetUserRelatedTitles(Settings.UserID);
-                DBConn.Close();
+                LocalDatabase.Open();
+                LocalDatabase.GetAllTitles(Settings.UserID);
+                LocalDatabase.GetAllProducers();
+                LocalDatabase.GetAllCharacters();
+                LocalDatabase.GetUserRelatedTitles(Settings.UserID);
+                LocalDatabase.Close();
                 LoadFPListToGui();
-                LogToFile("VN Items= " + VNList.Count);
-                LogToFile("Producers= " + ProducerList.Count);
-                LogToFile("Characters= " + CharacterList.Count);
-                LogToFile("UserRelated Items= " + URTList.Count);
+                LogToFile("VN Items= " + LocalDatabase.VNList.Count);
+                LogToFile("Producers= " + LocalDatabase.ProducerList.Count);
+                LogToFile("Characters= " + LocalDatabase.CharacterList.Count);
+                LogToFile("UserRelated Items= " + LocalDatabase.URTList.Count);
                 PopulateProducerSearchBox();
                 PopulateGroupSearchBox();
             }
@@ -182,7 +165,7 @@ https://github.com/FredTheBarber/VndbClient";
             if (DaysSince(Settings.StatsDate) > 2 || DaysSince(Settings.StatsDate) == -1) GetNewDBStats();
             else LoadDBStats();
             //urt update
-            if (Settings.UserID > 0 && (Settings.AutoUpdate || args.Contains("-flu")))
+            if (Settings.UserID > 0 && (GuiSettings.AutoUpdate || args.Contains("-flu")))
             { await URTUpdateAsync(); }
             FiltersTab = new FiltersTab(this);
             filtersTab.Controls.Add(FiltersTab);
@@ -243,7 +226,7 @@ https://github.com/FredTheBarber/VndbClient";
                 return;
             }
             //login with password if setting is enabled and stored password exists, otherwise login without password
-            if (Settings.RememberPassword)
+            if (GuiSettings.RememberPassword)
             {
                 LogToFile("Attempting log in with password.");
                 char[] password = LoadPassword();
@@ -286,6 +269,7 @@ https://github.com/FredTheBarber/VndbClient";
                     Settings.UserID = await GetIDFromUsername(Settings.Username);
                 }
                 ChangeAPIStatus(Conn.Status);
+                GuiSettings.Save();
                 Settings.Save();
                 SetLoginText();
                 UpdateUserStats();
@@ -295,6 +279,7 @@ https://github.com/FredTheBarber/VndbClient";
                 return;
             }
             if (dialogResult != DialogResult.Yes) return; //do nothing
+            GuiSettings.Save();
             Settings.Save();
             SetLoginText();
             UpdateUserStats();
@@ -355,10 +340,10 @@ https://github.com/FredTheBarber/VndbClient";
         private async void UpdateTagsTraitsStatsClick(object sender, EventArgs e)
         {
             //limit to titles release in last 10 years but include all favorite producers' titles
-            DBConn.Open();
-            IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(Settings.UserID).Select(x => x.Name);
-            DBConn.Close();
-            var tieredVns = new TieredVNs(VNList, favProList, false);
+            LocalDatabase.Open();
+            LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
+            LocalDatabase.Close();
+            var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x=>x.Name), false);
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
@@ -374,10 +359,10 @@ https://github.com/FredTheBarber/VndbClient";
         private async void UpdateAllDataClick(object sender, EventArgs e)
         {
             //limit to titles release in last 10 years but include all favorite producers' titles
-            DBConn.Open();
-            IEnumerable<string> favProList = DBConn.GetFavoriteProducersForUser(Settings.UserID).Select(x => x.Name);
-            DBConn.Close();
-            var tieredVns = new TieredVNs(VNList, favProList, true);
+            LocalDatabase.Open();
+            LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
+            LocalDatabase.Close();
+            var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x=>x.Name), true);
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
@@ -467,21 +452,21 @@ https://github.com/FredTheBarber/VndbClient";
 
         private void ToggleNSFWImages(object sender, EventArgs e)
         {
-            Settings.NSFWImages = nsfwToggle.Checked;
-            Settings.Save();
+            GuiSettings.NSFWImages = nsfwToggle.Checked;
+            GuiSettings.Save();
             tileOLV.SetObjects(tileOLV.Objects);
         }
 
         private void ToggleAutoUpdateURT(object sender, EventArgs e)
         {
-            Settings.AutoUpdate = autoUpdateURTBox.Checked;
-            Settings.Save();
+            GuiSettings.AutoUpdate = autoUpdateURTBox.Checked;
+            GuiSettings.Save();
         }
 
         private void ToggleLimit10Years(object sender, EventArgs e)
         {
-            Settings.DecadeLimit = yearLimitBox.Checked;
-            Settings.Save();
+            GuiSettings.DecadeLimit = yearLimitBox.Checked;
+            GuiSettings.Save();
         }
 
         /// <summary>
@@ -550,7 +535,7 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = StartQuery(userListReply, "Get Producer Languages", true, true, true);
             if (!result) return;
-            await GetLanguagesForProducers(ProducerList.Select(t => t.ID).ToArray());
+            await GetLanguagesForProducers(LocalDatabase.ProducerList.Select(t => t.ID).ToArray());
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Got producer languages.");
@@ -567,7 +552,7 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = StartQuery(userListReply, "Update All Data (All)", true, true, true);
             if (!result) return;
-            await GetMultipleVN(VNList.Select(t => t.VNID).ToArray(), true);
+            await GetMultipleVN(LocalDatabase.VNList.Select(t => t.VNID).ToArray(), true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Updated data on all titles.");
@@ -590,7 +575,7 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)", true, true, true);
             if (!result) return;
-            await UpdateTagsTraitsStats(VNList.Select(t => t.VNID));
+            await UpdateTagsTraitsStats(LocalDatabase.VNList.Select(t => t.VNID));
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             WriteText(userListReply, "Updated tags/traits/stats on all titles.");
@@ -599,7 +584,7 @@ https://github.com/FredTheBarber/VndbClient";
 
         private async Task GetAllMissingImages()
         {
-            IEnumerable<ListedVN> vnsWithImages = VNList.Where(x => !x.ImageURL.Equals(""));
+            IEnumerable<ListedVN> vnsWithImages = LocalDatabase.VNList.Where(x => !x.ImageURL.Equals(""));
             ListedVN[] vnsMissingImages = (from vn in vnsWithImages
                                            let photoFile = string.Format($"{VNImagesFolder}{vn.VNID}{Path.GetExtension(vn.ImageURL)}")
                                            where !File.Exists(photoFile)
@@ -651,7 +636,7 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
 especially if this is the first time.
 Are you sure?
 
-You currently have {URTList
+You currently have {LocalDatabase.URTList
                         .Count} items in the local database, they can
 be displayed by clicking the User Related Titles (URT) filter.",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
@@ -668,19 +653,19 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (Settings.UserID < 1) return;
             var result = StartQuery(userListReply, featureName, true, true, true);
             if (!result) return;
-            LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {URTList.Count} titles.");
+            LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {LocalDatabase.URTList.Count} titles.");
             //clone list to make sure it doesnt keep command status.
-            List<UrtListItem> localURTList = URTList.Select(UrtListItem.FromVN).ToList();
+            List<VNDatabase.UrtListItem> localURTList = LocalDatabase.URTList.Select(VNDatabase.UrtListItem.FromVN).ToList();
             await GetUserList(localURTList);
             await GetWishList(localURTList);
             await GetVoteList(localURTList);
-            DBConn.BeginTransaction();
-            DBConn.UpdateURTTitles(Settings.UserID, localURTList);
-            DBConn.EndTransaction();
+            LocalDatabase.BeginTransaction();
+            LocalDatabase.UpdateURTTitles(Settings.UserID, localURTList);
+            LocalDatabase.EndTransaction();
             await GetRemainingTitles();
-            DBConn.Open();
-            VNList = DBConn.GetAllTitles(Settings.UserID);
-            DBConn.Close();
+            LocalDatabase.Open();
+            LocalDatabase.GetAllTitles(Settings.UserID);
+            LocalDatabase.Close();
             SetFavoriteProducersData();
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
@@ -696,7 +681,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         /// </summary>
         /// <param name="urtList">list of title IDs (avoids duplicate fetching)</param>
         /// <returns>list of title IDs (avoids duplicate fetching)</returns>
-        private async Task GetUserList(List<UrtListItem> urtList)
+        private async Task GetUserList(List<VNDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
@@ -723,13 +708,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 if (item.VN == _vnidToDebug) { }
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new UrtListItem(item));
+                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
                 //update if it already exists
                 else itemInlist.Update(item);
             }
         }
 
-        private async Task GetWishList(List<UrtListItem> urtList)
+        private async Task GetWishList(List<VNDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
@@ -755,13 +740,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 if (item.VN == _vnidToDebug) { }
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new UrtListItem(item));
+                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
                 //update if it already exists
                 else itemInlist.Update(item);
             }
         }
 
-        private async Task GetVoteList(List<UrtListItem> urtList)
+        private async Task GetVoteList(List<VNDatabase.UrtListItem> urtList)
         {
             LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
@@ -787,7 +772,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 if (item.VN == _vnidToDebug) { }
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new UrtListItem(item));
+                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
                 //update if it already exists
                 else itemInlist.Update(item);
             }
@@ -799,9 +784,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             await Task.Run(() =>
             {
                 LogToFile("Starting GetRemainingTitles");
-                DBConn.Open();
-                unfetchedTitles = DBConn.GetUnfetchedUserRelatedTitles(Settings.UserID);
-                DBConn.Close();
+                LocalDatabase.Open();
+                unfetchedTitles = LocalDatabase.GetUnfetchedUserRelatedTitles(Settings.UserID);
+                LocalDatabase.Close();
             });
             if (unfetchedTitles == null || !unfetchedTitles.Any()) return;
             await GetMultipleVN(unfetchedTitles.ToArray(), false);
@@ -810,7 +795,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void UpdateUserStats()
         {
-            if (!URTList.Any())
+            if (!LocalDatabase.URTList.Any())
             {
                 ulstatsall.Text = @"None";
                 ulstatsul.Text = @"-";
@@ -824,7 +809,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             var wlCount = 0;
             var vlCount = 0;
             double cumulativeScore = 0;
-            foreach (var item in URTList)
+            foreach (var item in LocalDatabase.URTList)
             {
                 if (item.ULStatus > UserlistStatus.None) ulCount++;
                 if (item.WLStatus > WishlistStatus.None) wlCount++;
@@ -832,7 +817,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 vlCount++;
                 cumulativeScore += item.Vote;
             }
-            ulstatsall.Text = URTList.Count.ToString();
+            ulstatsall.Text = LocalDatabase.URTList.Count.ToString();
             ulstatsul.Text = ulCount.ToString();
             ulstatswl.Text = wlCount.ToString();
             ulstatsvl.Text = vlCount.ToString();
@@ -872,7 +857,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         internal bool VNIsByFavoriteProducer(ListedVN vn)
         {
-            return FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
+            return LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
         }
 
         /// <summary>
@@ -882,12 +867,12 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             await Task.Run(() =>
             {
-                DBConn.Open();
-                VNList = DBConn.GetAllTitles(Settings.UserID);
-                ProducerList = DBConn.GetAllProducers();
-                CharacterList = DBConn.GetAllCharacters();
-                URTList = DBConn.GetUserRelatedTitles(Settings.UserID);
-                DBConn.Close();
+                LocalDatabase.Open();
+                LocalDatabase.GetAllTitles(Settings.UserID);
+                LocalDatabase.GetAllProducers();
+                LocalDatabase.GetAllCharacters();
+                LocalDatabase.GetUserRelatedTitles(Settings.UserID);
+                LocalDatabase.Close();
                 FiltersTab?.PopulateLanguages(false);
             });
         }
@@ -898,7 +883,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private void PopulateGroupSearchBox()
         {
             var groupFilterSource = new AutoCompleteStringCollection { "(Group)" };
-            groupFilterSource.AddRange(VNList.SelectMany(vn => vn.GetCustomItemNotes().Groups).Distinct().ToArray());
+            groupFilterSource.AddRange(LocalDatabase.VNList.SelectMany(vn => vn.GetCustomItemNotes().Groups).Distinct().ToArray());
             ListByCBQuery.AutoCompleteCustomSource = groupFilterSource;
             ListByCBQuery.DataSource = groupFilterSource;
         }
@@ -912,7 +897,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             ListByTB.AutoCompleteSource = AutoCompleteSource.CustomSource;
             ListByTB.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             var producerFilterSource = new AutoCompleteStringCollection();
-            producerFilterSource.AddRange(ProducerList.Select(v => v.Name).ToArray());
+            producerFilterSource.AddRange(LocalDatabase.ProducerList.Select(v => v.Name).ToArray());
             ListByTB.AutoCompleteCustomSource = producerFilterSource;
         }
 
@@ -928,23 +913,23 @@ be displayed by clicking the User Related Titles (URT) filter.",
             switch (checkBox.Name)
             {
                 case "tagTypeC2":
-                    Settings.ContentTags = checkBox.Checked;
+                    GuiSettings.ContentTags = checkBox.Checked;
                     break;
                 case "tagTypeS2":
-                    Settings.SexualTags = checkBox.Checked;
+                    GuiSettings.SexualTags = checkBox.Checked;
                     break;
                 case "tagTypeT2":
-                    Settings.TechnicalTags = checkBox.Checked;
+                    GuiSettings.TechnicalTags = checkBox.Checked;
                     break;
             }
             DontTriggerEvent = false;
-            Settings.Save();
+            GuiSettings.Save();
             DisplayCommonTagsURT();
         }
 
         internal void DisplayCommonTagsURT()
         {
-            if (!URTList.Any())
+            if (!LocalDatabase.URTList.Any())
             {
                 var labelCount = 1;
                 while (labelCount <= 10)
@@ -969,13 +954,13 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 return;
             }
             var ulTagList = new Dictionary<int, int>();
-            if (URTList.Count == 0) return;
-            foreach (var vn in URTList)
+            if (LocalDatabase.URTList.Count == 0) return;
+            foreach (var vn in LocalDatabase.URTList)
             {
                 if (!vn.TagList.Any()) continue;
                 foreach (var tag in vn.TagList)
                 {
-                    var tagtag = PlainTags.Find(item => item.ID == tag.ID);
+                    var tagtag = DumpFiles.PlainTags.Find(item => item.ID == tag.ID);
                     if (tagtag == null) continue;
                     if (tagtag.Cat.Equals(ContentTag) && tagTypeC2.Checked == false) continue;
                     if (tagtag.Cat.Equals(SexualTag) && tagTypeS2.Checked == false) continue;
@@ -999,7 +984,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 var name = TagTypeUrt + p;
                 var mctULLabel = (Label)Controls.Find(name, true).First();
-                var tagName = PlainTags.Find(item => item.ID == ulProdlistlist[p - 1].Key).Name;
+                var tagName = DumpFiles.PlainTags.Find(item => item.ID == ulProdlistlist[p - 1].Key).Name;
                 mctULLabel.Text = $@"{tagName} ({ulProdlistlist[p - 1].Value})";
                 mctULLabel.Visible = true;
                 p++;
@@ -1054,138 +1039,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             dbs9r.Text = Convert.ToString(dbXml.Traits);
         }
 
-        private void GetNewDumpFiles()
-        {
-            const int maxTries = 5;
-            int tries = 0;
-            bool complete = false;
-            //tagdump section
-            while (!complete && tries < maxTries)
-            {
-                if (!File.Exists(TagsJsonGz))
-                {
-                    SplashScreen.SetStatus("Downloading new Tagdump file...");
-                    tries++;
-                    try
-                    {
-                        using (var client = new WebClient())
-                        {
-                            client.DownloadFile(TagsURL, TagsJsonGz);
-                        }
-
-
-                        GZipDecompress(TagsJsonGz, TagsJson);
-                        File.Delete(TagsJsonGz);
-                        complete = true;
-                    }
-                    catch (Exception e)
-                    {
-                        LogToFile("GetNewDumpFiles Error", e);
-                    }
-                }
-            }
-            //load default file if new one couldnt be received or for some reason doesn't exist.
-            if (!complete || !File.Exists(TagsJson)) LoadTagdump(true);
-            else LoadTagdump();
-            //traitdump section
-            tries = 0;
-            complete = false;
-            while (!complete && tries < maxTries)
-            {
-                if (!File.Exists(TraitsJsonGz))
-                {
-                    SplashScreen.SetStatus("Downloading new Traitdump file...");
-                    tries++;
-                    try
-                    {
-                        using (var client = new WebClient())
-                        {
-                            client.DownloadFile(TraitsURL, TraitsJsonGz);
-                        }
-                        GZipDecompress(TraitsJsonGz, TraitsJson);
-                        File.Delete(TraitsJsonGz);
-                        complete = true;
-                    }
-                    catch (Exception e)
-                    {
-                        LogToFile("GetNewDumpFiles Error", e);
-                    }
-                }
-            }
-            //load default file if new one couldnt be received or for some reason doesn't exist.
-            if (!complete || !File.Exists(TraitsJson)) LoadTraitdump(true);
-            else
-            {
-                Settings.DumpfileDate = DateTime.UtcNow;
-                Settings.Save();
-                LoadTraitdump();
-            }
-        }
-
-        /// <summary>
-        ///     Load Tags from Tag dump file.
-        /// </summary>
-        /// <param name="loadDefault">Load default file?</param>
-        private void LoadTagdump(bool loadDefault = false)
-        {
-            var fileToLoad = loadDefault ? DefaultTagsJson : TagsJson;
-            LogToFile($"Attempting to load {fileToLoad}");
-            try
-            {
-                PlainTags = JsonConvert.DeserializeObject<List<WrittenTag>>(File.ReadAllText(fileToLoad));
-                List<ItemWithParents> baseList = PlainTags.Cast<ItemWithParents>().ToList();
-                foreach (var writtenTag in PlainTags)
-                {
-                    writtenTag.SetItemChildren(baseList);
-                }
-            }
-            catch (JsonReaderException e)
-            {
-                if (fileToLoad.Equals(DefaultTagsJson))
-                {
-                    //Should never happen.
-                    LogToFile($"Failed to read default tags.json file, please download a new one from {TagsURL} uncompress it and paste it in {DefaultTagsJson}.");
-                    PlainTags = new List<WrittenTag>();
-                    return;
-                }
-                LogToFile($"{TagsJson} could not be read, deleting it and loading default tagdump.", e);
-                File.Delete(TagsJson);
-                LoadTagdump(true);
-            }
-        }
-
-        /// <summary>
-        ///     Load Traits from Trait dump file.
-        /// </summary>
-        private void LoadTraitdump(bool loadDefault = false)
-        {
-            var fileToLoad = loadDefault ? DefaultTraitsJson : TraitsJson;
-            LogToFile($"Attempting to load {fileToLoad}");
-            try
-            {
-                PlainTraits = JsonConvert.DeserializeObject<List<WrittenTrait>>(File.ReadAllText(fileToLoad));
-                List<ItemWithParents> baseList = PlainTraits.Cast<ItemWithParents>().ToList();
-                foreach (var writtenTrait in PlainTraits)
-                {
-                    writtenTrait.SetTopmostParent(PlainTraits);
-                    writtenTrait.SetItemChildren(baseList);
-                }
-            }
-            catch (JsonReaderException e)
-            {
-                if (fileToLoad.Equals(DefaultTraitsJson))
-                {
-                    //Should never happen.
-                    LogToFile($"Failed to read default traits.json file, please download a new one from {TraitsURL} uncompress it and paste it in {DefaultTraitsJson}.");
-                    PlainTraits = new List<WrittenTrait>();
-                    return;
-                }
-                LogToFile($"{TraitsJson} could not be read, deleting it and loading default traitdump.", e);
-                File.Delete(TraitsJson);
-                LoadTraitdump(true);
-            }
-        }
-
         private void OnFiltersLeave(object sender, EventArgs e)
         {
             FiltersTab?.LeftFiltersTab();
@@ -1197,7 +1050,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         internal void LoadVNListToGui(bool skipComboSearch = false)
         {
             var watch = Stopwatch.StartNew();
-            tileOLV.SetObjects(VNList.Where(_currentList));
+            tileOLV.SetObjects(LocalDatabase.VNList.Where(_currentList));
             Debug.WriteLine($"Took {watch.ElapsedMilliseconds}ms to set VN objects.");
             if (!skipComboSearch)
             {
@@ -1278,7 +1131,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             var vn = (ListedVN)e.Model;
             var notes = vn.GetCustomItemNotes();
-            var characterCount = vn.GetCharacters(CharacterList).Length;
+            var characterCount = vn.GetCharacters(LocalDatabase.CharacterList).Length;
             var toolTipLines = new List<string>
             {
                 $"{TruncateString(vn.Title, 50)}",
@@ -1308,140 +1161,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
         #region Classes/Enums
 
 
-        /// <summary>
-        ///     Type of VN status to be changed.
-        /// </summary>
-        internal enum ChangeType
-        {
-            UL,
-            WL,
-            Vote
-        }
-
-        /// <summary>
-        /// Object for updating user-related list.
-        /// </summary>
-        public class UrtListItem
-        {
-#pragma warning disable 1591
-            public int ID { get; }
-            public UserlistStatus? ULStatus { get; private set; }
-            public int? ULAdded { get; private set; }
-            public string ULNote { get; private set; }
-            public WishlistStatus? WLStatus { get; private set; }
-            public int? WLAdded { get; private set; }
-            public int? Vote { get; private set; }
-            public int? VoteAdded { get; private set; }
-            public Command Action { get; private set; }
-#pragma warning restore 1591
-
-            /// <summary>
-            /// Create URT item from previously fetched data. (For Method Group)
-            /// </summary>
-            public static UrtListItem FromVN(ListedVN vn)
-            {
-                return new UrtListItem(vn);
-            }
-
-            /// <summary>
-            /// Create URT item from previously fetched data.
-            /// </summary>
-            public UrtListItem(ListedVN vn)
-            {
-                ID = vn.VNID;
-                Action = Command.Delete;
-            }
-
-            /// <summary>
-            /// Create new URT item from user list data.
-            /// </summary>
-            public UrtListItem(UserListItem item)
-            {
-                ID = item.VN;
-                ULStatus = (UserlistStatus)item.Status;
-                ULAdded = item.Added;
-                ULNote = item.Notes;
-                Action = Command.New;
-            }
-
-            /// <summary>
-            /// Create new URT item from wish list data.
-            /// </summary>
-            public UrtListItem(WishListItem item)
-            {
-                ID = item.VN;
-                WLStatus = (WishlistStatus)item.Priority;
-                WLAdded = item.Added;
-                Action = Command.New;
-            }
-
-            /// <summary>
-            /// Create new URT item from vote list data.
-            /// </summary>
-            public UrtListItem(VoteListItem item)
-            {
-                ID = item.VN;
-                Vote = item.Vote;
-                VoteAdded = item.Added;
-                Action = Command.New;
-            }
-
-            /// <summary>
-            /// Update URT item with user list data.
-            /// </summary>
-            public void Update(UserListItem item)
-            {
-                ULStatus = (UserlistStatus)item.Status;
-                ULAdded = item.Added;
-                ULNote = item.Notes;
-                Action = Command.Update;
-            }
-
-
-            /// <summary>
-            /// Update URT item with wish list data.
-            /// </summary>
-            public void Update(WishListItem item)
-            {
-                WLStatus = (WishlistStatus)item.Priority;
-                WLAdded = item.Added;
-                Action = Command.Update;
-            }
-
-            /// <summary>
-            /// Update URT item with vote list data.
-            /// </summary>
-            public void Update(VoteListItem item)
-            {
-                Vote = item.Vote;
-                VoteAdded = item.Added;
-                Action = Command.Update;
-            }
-
-            /// <summary>Returns a string that represents the current object.</summary>
-            /// <returns>A string that represents the current object.</returns>
-            /// <filterpriority>2</filterpriority>
-            public override string ToString() => $"{Action} - {ID}";
-        }
-
-        /// <summary>
-        ///     Command to change VN status.
-        /// </summary>
-        public enum Command
-        {
-            /// <summary>
-            /// Add to URT list
-            /// </summary>
-            New,
-            /// <summary>
-            /// Update item in URT list
-            /// </summary>
-            Update,
-            /// <summary>
-            /// Delete item from URT list
-            /// </summary>
-            Delete
-        }
         #endregion
 
 

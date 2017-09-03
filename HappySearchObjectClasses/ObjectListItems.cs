@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
 
     /// <summary>

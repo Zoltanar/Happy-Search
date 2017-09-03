@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
 #pragma warning disable 1591
     // ReSharper disable UnusedMember.Global

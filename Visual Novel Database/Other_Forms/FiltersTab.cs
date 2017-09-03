@@ -8,7 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Happy_Search.Properties;
-using static Happy_Search.StaticHelpers;
+using Happy_Apps_Core;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -29,9 +30,9 @@ namespace Happy_Search.Other_Forms
             InitializeComponent();
             _mainForm = parentForm;
             var tagSource = new AutoCompleteStringCollection();
-            tagSource.AddRange(FormMain.PlainTags.Select(v => v.Name).ToArray());
+            tagSource.AddRange(DumpFiles.PlainTags.Select(v => v.Name).ToArray());
             tagSearchBox.AutoCompleteCustomSource = tagSource;
-            string[] traitRootNames = FormMain.PlainTraits.Where(x => x.TopmostParentName == null).Select(x => x.Name).ToArray();
+            string[] traitRootNames = DumpFiles.PlainTraits.Where(x => x.TopmostParentName == null).Select(x => x.Name).ToArray();
             traitRootsDropdown.Items.Clear();
             foreach (var rootName in traitRootNames)
             {
@@ -96,7 +97,7 @@ namespace Happy_Search.Other_Forms
             var autoCompleteOriginalLanguages = new AutoCompleteStringCollection { "(Language)" };
             var langList = new HashSet<string>();
             var origLangList = new HashSet<string>();
-            foreach (var vn in _mainForm.VNList)
+            foreach (var vn in _mainForm.LocalDatabase.VNList)
             {
                 if (vn.Languages == null) continue;
                 foreach (var lang in vn.Languages.All)

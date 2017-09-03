@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using BrightIdeasSoftware;
 using Newtonsoft.Json;
+using static Happy_Apps_Core.StaticHelpers;
 
-namespace Happy_Search
+namespace Happy_Apps_Core
 {
     /// <summary>
     /// Object for displaying Visual Novel in Object List View.
@@ -30,51 +30,44 @@ namespace Happy_Search
         public ListedVN(IDataRecord reader)
         {
             var relDate = reader["RelDate"].ToString();
-            var length = DbHelper.DbInt(reader["LengthTime"]);
-            var vote = DbHelper.DbInt(reader["Vote"]);
+            var length = DbInt(reader["LengthTime"]);
+            var vote = DbInt(reader["Vote"]);
 
             if (relDate.Equals("") || relDate.Equals("tba")) relDate = "N/A";
-            ULStatus = (UserlistStatus)DbHelper.DbInt(reader["ULStatus"]);
-            WLStatus = (WishlistStatus)DbHelper.DbInt(reader["WLStatus"]);
+            ULStatus = (UserlistStatus)DbInt(reader["ULStatus"]);
+            WLStatus = (WishlistStatus)DbInt(reader["WLStatus"]);
             if (vote != -1) Vote = (double)vote / 10;
             Title = reader["Title"].ToString();
             KanjiTitle = reader["KanjiTitle"].ToString();
             RelDate = relDate;
-            DateForSorting = StaticHelpers.StringToDate(relDate);
+            DateForSorting = StringToDate(relDate);
             Producer = reader["Name"].ToString();
             Length = LengthMap[length];
-            ULAdded = DateTimeOffset.FromUnixTimeSeconds(DbHelper.DbInt(reader["ULAdded"])).UtcDateTime;
+            ULAdded = DateTimeOffset.FromUnixTimeSeconds(DbInt(reader["ULAdded"])).UtcDateTime;
             ULNote = reader["ULNote"].ToString();
-            WLAdded = DateTimeOffset.FromUnixTimeSeconds(DbHelper.DbInt(reader["WLAdded"])).UtcDateTime;
-            VoteAdded = DateTimeOffset.FromUnixTimeSeconds(DbHelper.DbInt(reader["VoteAdded"])).UtcDateTime;
-            var tagList = StaticHelpers.StringToTags(reader["Tags"].ToString());
-            foreach (var tag in tagList) tag.SetCategory(FormMain.PlainTags);
+            WLAdded = DateTimeOffset.FromUnixTimeSeconds(DbInt(reader["WLAdded"])).UtcDateTime;
+            VoteAdded = DateTimeOffset.FromUnixTimeSeconds(DbInt(reader["VoteAdded"])).UtcDateTime;
+            var tagList = StringToTags(reader["Tags"].ToString());
+            foreach (var tag in tagList) tag.SetCategory(DumpFiles.PlainTags);
             TagList = tagList;
-            VNID = DbHelper.DbInt(reader["VNID"]);
-            UpdatedDate = StaticHelpers.DaysSince(DbHelper.DbDateTime(reader["DateUpdated"]));
+            VNID = DbInt(reader["VNID"]);
+            UpdatedDate = DaysSince(DbDateTime(reader["DateUpdated"]));
             ImageURL = reader["ImageURL"].ToString();
-            ImageNSFW = DbHelper.GetImageStatus(reader["ImageNSFW"]);
+            ImageNSFW = GetImageStatus(reader["ImageNSFW"]);
             Description = reader["Description"].ToString();
-            Popularity = DbHelper.DbDouble(reader["Popularity"]);
-            Rating = DbHelper.DbDouble(reader["Rating"]);
-            VoteCount = DbHelper.DbInt(reader["VoteCount"]);
+            Popularity = DbDouble(reader["Popularity"]);
+            Rating = DbDouble(reader["Rating"]);
+            VoteCount = DbInt(reader["VoteCount"]);
             Relations = reader["Relations"].ToString();
             Screens = reader["Screens"].ToString();
             Anime = reader["Anime"].ToString();
             Aliases = reader["Aliases"].ToString();
             Languages = JsonConvert.DeserializeObject<VNLanguages>(reader["Languages"].ToString());
-            DateFullyUpdated = StaticHelpers.DaysSince(DbHelper.DbDateTime(reader["DateFullyUpdated"]));
-        }
-        
-        /// <summary>
-        /// Returns whether vn is by a favorite producer.
-        /// </summary>
-        /// <param name="favoriteProducers">List of favorite producers.</param>
-        internal bool ByFavoriteProducer(IEnumerable<ListedProducer> favoriteProducers)
-        {
-            return favoriteProducers.FirstOrDefault(fp => fp.Name == Producer) != null;
+            DateFullyUpdated = DaysSince(DbDateTime(reader["DateFullyUpdated"]));
         }
 
+        public ListedVN() { }
+        
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
@@ -207,49 +200,41 @@ namespace Happy_Search
         /// <summary>
         /// URL of VN's cover image
         /// </summary>
-        [OLVIgnore]
         public string ImageURL { get; set; }
 
         /// <summary>
         /// Is VN's cover NSFW?
         /// </summary>
-        [OLVIgnore]
         public bool ImageNSFW { get; set; }
 
         /// <summary>
         /// VN description
         /// </summary>
-        [OLVIgnore]
         public string Description { get; set; }
 
         /// <summary>
         /// JSON Array string containing List of Relation Items
         /// </summary>
-        [OLVIgnore]
         public string Relations { get; }
 
         /// <summary>
         /// JSON Array string containing List of Screenshot Items
         /// </summary>
-        [OLVIgnore]
         public string Screens { get; }
 
         /// <summary>
         /// JSON Array string containing List of Anime Items
         /// </summary>
-        [OLVIgnore]
         public string Anime { get; }
 
         /// <summary>
         /// Newline separated string of aliases
         /// </summary>
-        [OLVIgnore]
         public string Aliases { get; }
 
         /// <summary>
         /// Language of producer
         /// </summary>
-        [OLVIgnore]
         public VNLanguages Languages { get; }
 
         /// <summary>
@@ -424,6 +409,16 @@ namespace Happy_Search
         /// <summary>
         /// Get location of cover image in system (not online)
         /// </summary>
-        public string GetImageLocation() => $"{StaticHelpers.VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
+        public string GetImageLocation() => $"{VNImagesFolder}{VNID}{Path.GetExtension(ImageURL)}";
+
+        /// <summary>
+        /// Returns whether vn is by a favorite producer.
+        /// </summary>
+        /// <param name="favoriteProducers">List of favorite producers.</param>
+        public bool ByFavoriteProducer(IEnumerable<ListedProducer> favoriteProducers)
+        {
+            return favoriteProducers.FirstOrDefault(fp => fp.Name == Producer) != null;
+        }
+
     }
 }

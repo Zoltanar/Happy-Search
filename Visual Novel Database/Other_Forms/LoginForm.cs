@@ -5,7 +5,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
+using Happy_Apps_Core;
 using Microsoft.Win32;
+using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Search.Other_Forms
 {
@@ -23,7 +25,7 @@ namespace Happy_Search.Other_Forms
         {
             InitializeComponent();
             _parentForm = parentForm;
-            rememberBox.Checked = FormMain.Settings.RememberPassword;
+            rememberBox.Checked = FormMain.GuiSettings.RememberPassword;
             rememberBox.CheckedChanged += rememberBox_CheckedChanged;
         }
 
@@ -81,15 +83,15 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void ChangeUserOnly(int newId = -1, string newUsername = "")
         {
-            FormMain.Settings.Username = "";
-            FormMain.Settings.UserID = -1;
+            Settings.Username = "";
+            Settings.UserID = -1;
             if (newId > 0)
             {
-                FormMain.Settings.UserID = newId;
+                Settings.UserID = newId;
             }
             else if (!newUsername.Equals(""))
             {
-                FormMain.Settings.Username = newUsername;
+                Settings.Username = newUsername;
             }
             else
             {
@@ -142,13 +144,13 @@ namespace Happy_Search.Other_Forms
                 replyLabel.Text = @"There was an error opening connection to API server.";
                 return;
             }
-            _parentForm.Conn.Login(StaticHelpers.ClientName, StaticHelpers.ClientVersion, credentials.Key, credentials.Value);
+            _parentForm.Conn.Login(ClientName, ClientVersion, credentials.Key, credentials.Value);
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             switch (_parentForm.Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
-                    FormMain.Settings.Username = credentials.Key;
-                    if (userId < 1) FormMain.Settings.UserID = await _parentForm.GetIDFromUsername(credentials.Key);
+                    Settings.Username = credentials.Key;
+                    if (userId < 1) Settings.UserID = await _parentForm.GetIDFromUsername(credentials.Key);
                     DialogResult = DialogResult.Yes;
                     return;
                 case ResponseType.Error:
@@ -182,14 +184,14 @@ namespace Happy_Search.Other_Forms
 
         private void rememberBox_CheckedChanged(object sender, EventArgs e)
         {
-            FormMain.Settings.RememberPassword = rememberBox.Checked;
-            FormMain.Settings.Save();
+            FormMain.GuiSettings.RememberPassword = rememberBox.Checked;
+            FormMain.GuiSettings.Save();
         }
 
         private void ClearSavedCredentials(object sender, EventArgs e)
         {
-            var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{StaticHelpers.ClientName}");
-            if (key != null) Registry.CurrentUser.DeleteSubKey($"SOFTWARE\\{StaticHelpers.ClientName}");
+            var key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{ClientName}");
+            if (key != null) Registry.CurrentUser.DeleteSubKey($"SOFTWARE\\{ClientName}");
         }
     }
 }
