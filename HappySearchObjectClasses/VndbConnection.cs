@@ -17,6 +17,13 @@ namespace Happy_Apps_Core
     /// </summary>
     public partial class VndbConnection
     {
+        public VndbConnection(Action<string> advancedModeAction, Action refreshListAction,Action<APIStatus> changeStatusAction)
+        {
+            _advancedAction = advancedModeAction;
+            _refreshListAction = refreshListAction ?? ReloadListsFromDb;
+            _changeStatusAction = changeStatusAction;
+        }
+
         private const string VndbHost = "api.vndb.org";
         private const ushort VndbPort = 19534;
         private const ushort VndbPortTLS = 19535;

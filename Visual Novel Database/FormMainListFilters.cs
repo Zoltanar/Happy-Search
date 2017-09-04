@@ -86,7 +86,7 @@ namespace Happy_Search
                     }
                     WriteWarning(replyText, "Removing titles...");
                     await Task.Run(() => RemoveTitlesFromDB(titles));
-                    await ReloadListsFromDbAsync();
+                    ReloadListsFromDb();
                     LoadVNListToGui();
                     WriteText(replyText, "Titles Removed.");
                     multiActionBox.SelectedIndex = 0;
@@ -105,7 +105,7 @@ namespace Happy_Search
                         return;
                     }
                     WriteWarning(replyText, "Updating titles...");
-                    await UpdateTagsTraitsStats(titles.Select(vn => vn.VNID));
+                    await Conn.UpdateTagsTraitsStats(titles.Select(vn => vn.VNID));
                     break;
                 case 5:
                     string message5 = $"You've selected {titles.Length} titles.\nAre you sure you wish to update all data for them?";
@@ -121,11 +121,11 @@ namespace Happy_Search
                         return;
                     }
                     WriteWarning(replyText, "Updating titles...");
-                    await GetMultipleVN(titles.Select(vn => vn.VNID).ToArray(), true);
+                    await Conn.GetMultipleVN(titles.Select(vn => vn.VNID).ToArray(), true);
                     break;
             }
             ChangeAPIStatus(Conn.Status);
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(replyText, "Titles updated.");
             multiActionBox.SelectedIndex = 0;
@@ -203,7 +203,7 @@ namespace Happy_Search
             var searchString = ListByTB.Text;
             ListByTB.Text = "";
             string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error);
+            var queryResult = await Conn.TryQuery(vnSearchQuery, Resources.vn_query_error);
             if (!queryResult) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
@@ -213,18 +213,18 @@ namespace Happy_Search
             {
                 pageNo++;
                 vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error);
+                queryResult = await Conn.TryQuery(vnSearchQuery, Resources.vn_query_error);
                 if (!queryResult) return;
                 vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 vnItems.AddRange(vnRoot.Items);
                 moreResults = vnRoot.More;
             }
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
+            await Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             WriteText(replyText, $"Found {Conn.TitlesAdded + Conn.TitlesSkipped} titles, {Conn.TitlesAdded}/{Conn.TitlesAdded + Conn.TitlesSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
             _currentListLabel = $"{searchString} (Search)";
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             ChangeAPIStatus(Conn.Status);
         }
@@ -255,11 +255,11 @@ namespace Happy_Search
             _currentListLabel = $"{ListByTB.Text} (Year)";
             string vnInfoQuery =
                 $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}}}";
-            result = await TryQuery(vnInfoQuery, Resources.gyt_query_error);
+            result = await Conn.TryQuery(vnInfoQuery, Resources.gyt_query_error);
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
-            await GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
+            await Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
@@ -267,15 +267,15 @@ namespace Happy_Search
                 pageNo++;
                 string vnInfoMoreQuery =
                     $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(vnInfoMoreQuery, Resources.gyt_query_error);
+                var moreResult = await Conn.TryQuery(vnInfoMoreQuery, Resources.gyt_query_error);
                 if (!moreResult) return;
                 var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
-                await GetMultipleVN(vnMoreItems.Select(x => x.ID).ToArray(), false);
+                await Conn.GetMultipleVN(vnMoreItems.Select(x => x.ID).ToArray(), false);
                 moreResults = vnMoreRoot.More;
             }
             var span = DateTime.UtcNow.ToLocalTime() - startTime;
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(replyText,
                 span < TimeSpan.FromMinutes(1)
@@ -315,12 +315,12 @@ namespace Happy_Search
                 if (!producers.Exists(x => x.Name.Equals(producer)))
                 {
                     WriteError(replyText, $"{producer} wasn't found but {producers.Count} other producers were added.");
-                    await ReloadListsFromDbAsync();
+                    ReloadListsFromDb();
                     ChangeAPIStatus(Conn.Status);
                     return;
                 }
                 ChangeAPIStatus(Conn.Status);
-                await ReloadListsFromDbAsync();
+                ReloadListsFromDb();
                 producerItem = LocalDatabase.ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
                 ListByTB.Text = producer;
             }
@@ -328,7 +328,7 @@ namespace Happy_Search
             if (!result) return;
             await GetProducerTitles(producerItem, false);
             WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {Conn.TitlesAdded} titles.");
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             ChangeAPIStatus(Conn.Status);
         }
@@ -644,7 +644,7 @@ namespace Happy_Search
             List_Producer(vn.Producer);
         }
 
-        private async void RightClickAddProducer(object sender, EventArgs e)
+        private void RightClickAddProducer(object sender, EventArgs e)
         {
             if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             ListedVN[] producerVNs = LocalDatabase.URTList.Where(x => x.Producer.Equals(vn.Producer)).ToArray();
@@ -670,7 +670,7 @@ namespace Happy_Search
             LocalDatabase.BeginTransaction();
             LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
             LocalDatabase.EndTransaction();
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadFPListToGui();
             WriteText(replyText, $"{vn.Producer} added to list.");
         }
@@ -795,12 +795,12 @@ namespace Happy_Search
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
-            var apiResult = await TryQuery(query, "UIN Query Error");
+            var apiResult = await Conn.TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
             LocalDatabase.Open();
             LocalDatabase.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
             LocalDatabase.Close();
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(replyText, replyMessage);
             ChangeAPIStatus(Conn.Status);

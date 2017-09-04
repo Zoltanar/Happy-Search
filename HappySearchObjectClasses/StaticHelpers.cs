@@ -96,9 +96,24 @@ namespace Happy_Apps_Core
         public enum TagCategory { Content, Sexual, Technical }
 
         public static readonly CoreSettings Settings = CoreSettings.Load();
+
+        public static VNDatabase LocalDatabase;
 #pragma warning restore 1591
-        
-        
+
+
+        /// <summary>
+        ///     Loads lists from local database.
+        /// </summary>
+        public static void ReloadListsFromDb()
+        {
+                LocalDatabase.Open();
+                LocalDatabase.GetAllTitles(Settings.UserID);
+                LocalDatabase.GetAllProducers();
+                LocalDatabase.GetAllCharacters();
+                LocalDatabase.GetUserRelatedTitles(Settings.UserID);
+                LocalDatabase.Close();
+        }
+
         /// <summary>
         /// Get brush from vn UL or WL status or null if no statuses are found.
         /// </summary>

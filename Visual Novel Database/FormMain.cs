@@ -26,13 +26,9 @@ namespace Happy_Search
     /// </summary>
     public partial class FormMain : Form
     {
-        internal readonly VndbConnection Conn = new VndbConnection();
-        internal readonly VNDatabase LocalDatabase;
+        internal readonly VndbConnection Conn;
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
-
-
-
         private bool _wideView;
         internal static GuiSettings GuiSettings;
         internal string LoginString;
@@ -56,6 +52,8 @@ namespace Happy_Search
         public FormMain()
         {
             InitializeComponent();
+            Conn = new VndbConnection(HandleAdvancedMode, RefreshListAction, ChangeAPIStatus);
+            LocalDatabase = new VNDatabase();
             string[] args = Environment.GetCommandLineArgs();
             InitializeControls();
             LoadUserSettings();
@@ -63,7 +61,7 @@ namespace Happy_Search
             LogToFile($"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
             DumpFiles.Load();
             SplashScreen.SetStatus("Connecting to SQLite Database...");
-            LocalDatabase = new VNDatabase(dbLog:args.Contains("-dl") || args.Contains("-debug"));
+            LocalDatabase = new VNDatabase(dbLog: args.Contains("-dl") || args.Contains("-debug"));
             LoadDataFromDatabase();
             SplashScreen.SetStatus("Updating User Stats...");
             UpdateUserStats();
@@ -135,6 +133,7 @@ https://github.com/FredTheBarber/VndbClient";
                 PopulateGroupSearchBox();
             }
         }
+
 
 
         private async void OnLoadRoutines(object sender, EventArgs e)
@@ -257,7 +256,7 @@ https://github.com/FredTheBarber/VndbClient";
                 Settings.Save();
                 SetLoginText();
                 UpdateUserStats();
-                await ReloadListsFromDbAsync();
+                ReloadListsFromDb();
                 LoadVNListToGui();
                 LoadFPListToGui();
                 return;
@@ -267,7 +266,7 @@ https://github.com/FredTheBarber/VndbClient";
             Settings.Save();
             SetLoginText();
             UpdateUserStats();
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             LoadFPListToGui();
         }
@@ -327,14 +326,14 @@ https://github.com/FredTheBarber/VndbClient";
             LocalDatabase.Open();
             LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
             LocalDatabase.Close();
-            var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x=>x.Name), false);
+            var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x => x.Name), false);
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             var result = Conn.StartQuery(userListReply, "Update Tags/Traits/Stats", true, true, false);
             if (!result) return;
-            await UpdateTagsTraitsStats(tieredVns.AllVns);
-            await ReloadListsFromDbAsync();
+            await Conn.UpdateTagsTraitsStats(tieredVns.AllVns);
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(userListReply, $"Updated tags, traits and stats on {Conn.TitlesAdded} titles.");
             ChangeAPIStatus(Conn.Status);
@@ -346,14 +345,14 @@ https://github.com/FredTheBarber/VndbClient";
             LocalDatabase.Open();
             LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
             LocalDatabase.Close();
-            var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x=>x.Name), true);
+            var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x => x.Name), true);
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             var result = Conn.StartQuery(userListReply, "Update All Data", true, true, true);
             if (!result) return;
-            await GetMultipleVN(tieredVns.AllVns, true);
-            await ReloadListsFromDbAsync();
+            await Conn.GetMultipleVN(tieredVns.AllVns, true);
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(userListReply, $"Updated data on {Conn.TitlesAdded} titles.");
             ChangeAPIStatus(Conn.Status);
@@ -520,7 +519,7 @@ https://github.com/FredTheBarber/VndbClient";
             var result = Conn.StartQuery(userListReply, "Get Producer Languages", true, true, true);
             if (!result) return;
             await GetLanguagesForProducers(LocalDatabase.ProducerList.Select(t => t.ID).ToArray());
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(userListReply, "Got producer languages.");
             ChangeAPIStatus(Conn.Status);
@@ -536,8 +535,8 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = Conn.StartQuery(userListReply, "Update All Data (All)", true, true, true);
             if (!result) return;
-            await GetMultipleVN(LocalDatabase.VNList.Select(t => t.VNID).ToArray(), true);
-            await ReloadListsFromDbAsync();
+            await Conn.GetMultipleVN(LocalDatabase.VNList.Select(t => t.VNID).ToArray(), true);
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(userListReply, "Updated data on all titles.");
             ChangeAPIStatus(Conn.Status);
@@ -559,8 +558,8 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = Conn.StartQuery(userListReply, "Update Tags/Traits/Stats (All)", true, true, true);
             if (!result) return;
-            await UpdateTagsTraitsStats(LocalDatabase.VNList.Select(t => t.VNID));
-            await ReloadListsFromDbAsync();
+            await Conn.UpdateTagsTraitsStats(LocalDatabase.VNList.Select(t => t.VNID));
+            ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(userListReply, "Updated tags/traits/stats on all titles.");
             ChangeAPIStatus(Conn.Status);
@@ -651,7 +650,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LocalDatabase.GetAllTitles(Settings.UserID);
             LocalDatabase.Close();
             SetFavoriteProducersData();
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadFPListToGui();
             LoadVNListToGui();
             UpdateUserStats();
@@ -670,7 +669,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LogToFile("Starting GetUserList");
             string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             //1 - fetch from VNDB using API
-            var result = await TryQuery(userListQuery, Resources.gul_query_error);
+            var result = await Conn.TryQuery(userListQuery, Resources.gul_query_error);
             if (!result) return;
             var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
             if (ulRoot.Num == 0) return;
@@ -681,7 +680,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error);
+                var moreResult = await Conn.TryQuery(userListQuery2, Resources.gul_query_error);
                 if (!moreResult) return;
                 var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
                 ulList.AddRange(ulMoreRoot.Items);
@@ -702,7 +701,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             LogToFile("Starting GetWishList");
             string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
+            var result = await Conn.TryQuery(wishListQuery, Resources.gwl_query_error);
             if (!result) return;
             var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
             if (wlRoot.Num == 0) return;
@@ -713,7 +712,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error);
+                var moreResult = await Conn.TryQuery(wishListQuery2, Resources.gwl_query_error);
                 if (!moreResult) return;
                 var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
                 wlList.AddRange(wlMoreRoot.Items);
@@ -734,7 +733,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         {
             LogToFile("Starting GetVoteList");
             string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            var result = await TryQuery(voteListQuery, Resources.gvl_query_error);
+            var result = await Conn.TryQuery(voteListQuery, Resources.gvl_query_error);
             if (!result) return;
             var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
             if (vlRoot.Num == 0) return;
@@ -745,7 +744,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 pageNo++;
                 string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error);
+                var moreResult = await Conn.TryQuery(voteListQuery2, Resources.gvl_query_error);
                 if (!moreResult) return;
                 var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
                 vlList.AddRange(vlMoreRoot.Items);
@@ -773,8 +772,8 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 LocalDatabase.Close();
             });
             if (unfetchedTitles == null || !unfetchedTitles.Any()) return;
-            await GetMultipleVN(unfetchedTitles.ToArray(), false);
-            await ReloadListsFromDbAsync();
+            await Conn.GetMultipleVN(unfetchedTitles.ToArray(), false);
+            ReloadListsFromDb();
         }
 
         private void UpdateUserStats()
@@ -844,22 +843,6 @@ be displayed by clicking the User Related Titles (URT) filter.",
             return LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
         }
 
-        /// <summary>
-        ///     Loads lists from local database.
-        /// </summary>
-        internal async Task ReloadListsFromDbAsync()
-        {
-            await Task.Run(() =>
-            {
-                LocalDatabase.Open();
-                LocalDatabase.GetAllTitles(Settings.UserID);
-                LocalDatabase.GetAllProducers();
-                LocalDatabase.GetAllCharacters();
-                LocalDatabase.GetUserRelatedTitles(Settings.UserID);
-                LocalDatabase.Close();
-                FiltersTab?.PopulateLanguages(false);
-            });
-        }
 
         /// <summary>
         /// Populates group search box with group data from titles.

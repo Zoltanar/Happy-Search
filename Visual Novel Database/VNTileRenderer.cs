@@ -107,10 +107,10 @@ namespace Happy_Search
                     startingY += 16;
                 }
             }
-            DrawTileText(photoArea, textHeight, g, vn, olv);
+            DrawTileText(photoArea, textHeight, g, vn);
         }
 
-        private void DrawTileText(RectangleF photoArea, float textHeight, Graphics g, ListedVN vn, ObjectListView olv)
+        private void DrawTileText(RectangleF photoArea, float textHeight, Graphics g, ListedVN vn)
         {
             var dateWidth = g.MeasureString("9999-99-99", NormalFont).Width;
             var fmtNear = new StringFormat(StringFormatFlags.NoWrap)
@@ -134,7 +134,7 @@ namespace Happy_Search
             g.DrawString(vn.Title, BoldFont, TextBrush, textBoxRect, fmtNear); //line 1: vn title
             //text below picture
             textBoxRect.Y += textHeight + photoArea.Height;
-            var favoriteProducers = (olv.FindForm() as FormMain)?.LocalDatabase.FavoriteProducerList;
+            var favoriteProducers = StaticHelpers.LocalDatabase.FavoriteProducerList;
             Brush producerBrush = favoriteProducers != null && favoriteProducers.Exists(x => x.Name == vn.Producer) ? StaticHelpers.FavoriteProducerBrush : TextBrush;
             Brush dateBrush = StaticHelpers.DateIsUnreleased(vn.RelDate) ? StaticHelpers.UnreleasedBrush : TextBrush;
             g.DrawString(vn.Producer, NormalFont, producerBrush, textBoxRect, fmtNear); //line 2: vn producer 

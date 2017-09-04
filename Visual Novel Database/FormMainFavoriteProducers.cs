@@ -111,7 +111,7 @@ This may take a while...",
             var result = Conn.StartQuery(prodReply, "Refresh Favorite Producer Titles", true, true, true);
             if (!result) return;
             foreach (ListedProducer producer in olFavoriteProducers.Objects) await GetProducerTitles(producer,true);
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadFPListToGui();
             WriteText(prodReply, Resources.update_fp_titles_success + $" ({Conn.TitlesAdded} new titles)");
             ChangeAPIStatus(Conn.Status);
@@ -161,7 +161,7 @@ This may take a while...",
             if (!result) return;
             LogToFile($"{producers.Count} to be updated");
             foreach (var producer in producers) await GetProducerTitles(producer,false);
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             LoadFPListToGui();
             WriteText(prodReply, $"Got {Conn.TitlesAdded} new titles by Favorite Producers.");
@@ -174,11 +174,11 @@ This may take a while...",
         /// </summary>
         /// <param name="producer">Producer whose titles should be found</param>
         /// <param name="updateAll">Should already known fetched titles be updated as well?</param>
-        private async Task GetProducerTitles(ListedProducer producer, bool updateAll)
+        public async Task GetProducerTitles(ListedProducer producer, bool updateAll)
         {
             LogToFile($"Getting Titles for Producer {producer.Name}");
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
-            var result = await TryQuery(prodReleaseQuery, Resources.upt_query_error);
+            var result = await Conn.TryQuery(prodReleaseQuery, Resources.upt_query_error);
             if (!result) return;
             var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
@@ -190,14 +190,14 @@ This may take a while...",
                 pageNo++;
                 string prodReleaseMoreQuery =
                     $"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await TryQuery(prodReleaseMoreQuery, Resources.upt_query_error);
+                var moreResult = await Conn.TryQuery(prodReleaseMoreQuery, Resources.upt_query_error);
                 if (!moreResult) return;
                 releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
                 releaseItems = releaseRoot.Items;
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;
             }
-            await GetMultipleVN(producerVNList.Distinct().ToArray(), updateAll);
+            await Conn.GetMultipleVN(producerVNList.Distinct().ToArray(), updateAll);
             LocalDatabase.Open();
             List<ListedVN> producerTitles = LocalDatabase.GetTitlesFromProducerID(Settings.UserID, producer.ID);
             LocalDatabase.InsertProducer(new ListedProducer(producer.Name, producerTitles.Count, DateTime.UtcNow,
@@ -229,12 +229,12 @@ This may take a while...",
         /// Update Favorite Producer stats for changes in URT list.
         /// </summary>
         /// <param name="producerName">Name of producer to be updated</param>
-        private async Task UpdateFavoriteProducerForURTChange(string producerName)
+        private void UpdateFavoriteProducerForURTChange(string producerName)
         {
             var favoriteProducers = olFavoriteProducers.Objects as List<ListedProducer>;
             if (favoriteProducers?.Find(x => x.Name.Equals(producerName)) == null)
             {
-                await ReloadListsFromDbAsync();
+                ReloadListsFromDb();
                 LoadVNListToGui();
                 return;
             }
@@ -255,7 +255,7 @@ This may take a while...",
             LocalDatabase.InsertFavoriteProducers(new List<ListedProducer> { producer }, Settings.UserID);
             LocalDatabase.EndTransaction();
             UpdateUserStats();
-            await ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             LoadVNListToGui();
             LoadFPListToGui();
         }

@@ -34,11 +34,11 @@ namespace Happy_Search.Other_Forms
         private void SuggestProducers(object sender, EventArgs e)
         {
             var suggestions = new List<ListedSearchedProducer>();
-            foreach (var producer in _parentForm.LocalDatabase.ProducerList)
+            foreach (var producer in LocalDatabase.ProducerList)
             {
-                if (_parentForm.LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                int finishedTitles = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
-                int urtTitles = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name);
+                if (LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                int finishedTitles = LocalDatabase.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
+                int urtTitles = LocalDatabase.URTList.Count(x => x.Producer == producer.Name);
                 if (finishedTitles >= 2) suggestions.Add(new ListedSearchedProducer(producer.Name, "No", producer.ID, producer.Language, finishedTitles, urtTitles));
             }
             if (!suggestions.Any())
@@ -73,7 +73,7 @@ namespace Happy_Search.Other_Forms
             if (!result) return;
             var producerName = producerSearchBox.Text;
             string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
-            result = await _parentForm.TryQuery(prodSearchQuery, Resources.ps_query_error);
+            result = await _parentForm.Conn.TryQuery(prodSearchQuery, Resources.ps_query_error);
             if (!result) return;
             var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             List<ProducerItem> prodItems = prodRoot.Items;
@@ -86,7 +86,7 @@ namespace Happy_Search.Other_Forms
                 string prodSearchMoreQuery =
                     $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult =
-                    await _parentForm.TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
+                    await _parentForm.Conn.TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
                 if (!moreResult) return;
                 var prodMoreRoot =
                     JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
@@ -96,13 +96,13 @@ namespace Happy_Search.Other_Forms
             }
             olProdSearch.SetObjects(searchedProducers);
             olProdSearch.Sort(olProdSearch.GetColumn(0), SortOrder.Ascending);
-            _parentForm.LocalDatabase.BeginTransaction();
+            LocalDatabase.BeginTransaction();
             foreach (var producer in searchedProducers)
             {
-                if (_parentForm.LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
-                _parentForm.LocalDatabase.InsertProducer((ListedProducer) producer, true);
+                if (LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null) continue;
+                LocalDatabase.InsertProducer((ListedProducer) producer, true);
             }
-            _parentForm.LocalDatabase.EndTransaction();
+            LocalDatabase.EndTransaction();
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
             prodSearchReply.Text = $@"{searchedProducers.Count} producers found.";
         }
@@ -146,7 +146,7 @@ namespace Happy_Search.Other_Forms
                 if (producer.InList.Equals("Yes")) continue;
                 olProdSearch.SelectedItems[i].SubItems[1].Text = @"Yes";
                 producer.InList = @"Yes";
-                ListedVN[] producerVNs = _parentForm.LocalDatabase.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
+                ListedVN[] producerVNs = LocalDatabase.URTList.Where(x => x.Producer.Equals(producer.Name)).ToArray();
                 double userAverageVote = -1;
                 double userDropRate = -1;
                 if (producerVNs.Any())
@@ -162,19 +162,19 @@ namespace Happy_Search.Other_Forms
                 addProducerList.Add(new ListedProducer(producer.Name, -1, DateTime.UtcNow, producer.ID,
                     producer.Language, userAverageVote, (int)Math.Round(userDropRate * 100)));
             }
-            _parentForm.LocalDatabase.BeginTransaction();
-            _parentForm.LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
-            _parentForm.LocalDatabase.EndTransaction();
-            _parentForm.LocalDatabase.FavoriteProducerList.AddRange(addProducerList);
+            LocalDatabase.BeginTransaction();
+            LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
+            LocalDatabase.EndTransaction();
+            LocalDatabase.FavoriteProducerList.AddRange(addProducerList);
             prodSearchReply.Text = $@"{addProducerList.Count} added.";
         }
 
 
         private ListedSearchedProducer NewListedSearchedProducer(ProducerItem producer)
         {
-            string inList = _parentForm.LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
-            int finished = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
-            int urtTitles = _parentForm.LocalDatabase.URTList.Count(x => x.Producer == producer.Name);
+            string inList = LocalDatabase.FavoriteProducerList.Find(x => x.Name.Equals(producer.Name)) != null ? "Yes" : "No";
+            int finished = LocalDatabase.URTList.Count(x => x.Producer == producer.Name && x.ULStatus == UserlistStatus.Finished);
+            int urtTitles = LocalDatabase.URTList.Count(x => x.Producer == producer.Name);
             return new ListedSearchedProducer(producer.Name, inList, producer.ID, producer.Language, finished, urtTitles);
         }
     }

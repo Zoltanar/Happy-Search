@@ -97,7 +97,7 @@ namespace Happy_Search.Other_Forms
             var autoCompleteOriginalLanguages = new AutoCompleteStringCollection { "(Language)" };
             var langList = new HashSet<string>();
             var origLangList = new HashSet<string>();
-            foreach (var vn in _mainForm.LocalDatabase.VNList)
+            foreach (var vn in LocalDatabase.VNList)
             {
                 if (vn.Languages == null) continue;
                 foreach (var lang in vn.Languages.All)

@@ -131,9 +131,9 @@ namespace Happy_Search.Other_Forms
             ListedVN vn = null;
             await Task.Run(() =>
             {
-                _parentForm.LocalDatabase.Open();
-                vn = _parentForm.LocalDatabase.GetSingleVN(vnid, Settings.UserID);
-                _parentForm.LocalDatabase.Close();
+                LocalDatabase.Open();
+                vn = LocalDatabase.GetSingleVN(vnid, Settings.UserID);
+                LocalDatabase.Close();
             });
             SetDeletedData(); //clear before setting new data
             await SetData(vn, updateAPIStruct);
@@ -154,7 +154,7 @@ namespace Happy_Search.Other_Forms
             _tabPage.Text = TruncateString($@"{vnItem.Title}", 25);
             //prepare data
             _displayedVN = vnItem;
-            _producer = _parentForm.LocalDatabase.ProducerList.Find(p => p.Name == _displayedVN.Producer);
+            _producer = LocalDatabase.ProducerList.Find(p => p.Name == _displayedVN.Producer);
             DisplayTags(null, null);
             DisplayVNCharacterTraits(vnItem);
             //set data
@@ -173,7 +173,7 @@ namespace Happy_Search.Other_Forms
                     boxIndex++;
                 }
             }
-            if (_parentForm.LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
+            if (LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vnItem.Producer)))
             {
                 producerLabel.LinkColor = FavoriteProducerBrush.Color;
                 producerLabel.ActiveLinkColor = FavoriteProducerBrush.Color;
@@ -193,14 +193,14 @@ namespace Happy_Search.Other_Forms
             SetCoverImage(vnItem);
             //relations, anime and screenshots are only fetched here but are saved to database/disk
             DisplayTextOnScreenshotArea("Getting data from VNDB...");
-            while (_parentForm.LocalDatabase.IsBusy()) await Task.Delay(25);
+            while (LocalDatabase.IsBusy()) await Task.Delay(25);
             var loadResult = await LoadFromAPI(vnItem, update);
             switch (loadResult.Status)
             {
                 case FetchStatus.Error:
-                    _parentForm.LocalDatabase.Open();
-                    _parentForm.LocalDatabase.RemoveVisualNovel(vnItem.VNID);
-                    _parentForm.LocalDatabase.Close();
+                    LocalDatabase.Open();
+                    LocalDatabase.RemoveVisualNovel(vnItem.VNID);
+                    LocalDatabase.Close();
                     SetDeletedData();
                     break;
                 case FetchStatus.Throttled:
@@ -298,7 +298,7 @@ namespace Happy_Search.Other_Forms
 
         private void DisplayVNCharacterTraits(ListedVN vnItem)
         {
-            var vnCharacters = vnItem.GetCharacters(_parentForm.LocalDatabase.CharacterList);
+            var vnCharacters = vnItem.GetCharacters(LocalDatabase.CharacterList);
             var stringList = new List<string> { $"{vnCharacters.Length} Characters" };
             foreach (var characterItem in vnCharacters)
             {
@@ -331,7 +331,7 @@ namespace Happy_Search.Other_Forms
             {
                 return (FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error");
+            await _parentForm.Conn.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error");
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
@@ -340,9 +340,9 @@ namespace Happy_Search.Other_Forms
             RelationsItem[] relations = root.Items[0].Relations;
             await Task.Run(() =>
             {
-                _parentForm.LocalDatabase.Open();
-                _parentForm.LocalDatabase.AddRelationsToVN(vnItem.VNID, relations);
-                _parentForm.LocalDatabase.Close();
+                LocalDatabase.Open();
+                LocalDatabase.AddRelationsToVN(vnItem.VNID, relations);
+                LocalDatabase.Close();
             });
             return (FetchStatus.Success, relations);
         }
@@ -365,7 +365,7 @@ namespace Happy_Search.Other_Forms
             {
                 return (FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error");
+            await _parentForm.Conn.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error");
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
@@ -374,9 +374,9 @@ namespace Happy_Search.Other_Forms
             AnimeItem[] animeItems = root.Items[0].Anime;
             await Task.Run(() =>
             {
-                _parentForm.LocalDatabase.Open();
-                _parentForm.LocalDatabase.AddAnimeToVN(vnItem.VNID, animeItems);
-                _parentForm.LocalDatabase.Close();
+                LocalDatabase.Open();
+                LocalDatabase.AddAnimeToVN(vnItem.VNID, animeItems);
+                LocalDatabase.Close();
             });
             return (FetchStatus.Success, animeItems);
         }
@@ -406,7 +406,7 @@ namespace Happy_Search.Other_Forms
             {
                 return (FetchStatus.Throttled, null);
             }
-            await _parentForm.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error");
+            await _parentForm.Conn.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error");
             var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
@@ -415,9 +415,9 @@ namespace Happy_Search.Other_Forms
             await Task.Run(() =>
             {
                 screens = root.Items[0].Screens;
-                _parentForm.LocalDatabase.Open();
-                _parentForm.LocalDatabase.AddScreensToVN(vnItem.VNID, screens);
-                _parentForm.LocalDatabase.Close();
+                LocalDatabase.Open();
+                LocalDatabase.AddScreensToVN(vnItem.VNID, screens);
+                LocalDatabase.Close();
             });
             _screens = screens;
             return (FetchStatus.Success, screens);
@@ -500,7 +500,7 @@ namespace Happy_Search.Other_Forms
             _parentForm.Conn.StartQuery(vnReplyText, "Update VN", false, true, true);
             try
             {
-                await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID }, true);
+                await _parentForm.Conn.GetMultipleVN(new[] { _displayedVN.VNID }, true);
                 await SetNewData(_displayedVN.VNID, true);
             }
 #pragma warning disable 168
@@ -540,9 +540,9 @@ namespace Happy_Search.Other_Forms
                 default:
                     string[] parts = dropdownlist.SelectedItem.ToString().Split('-');
                     var vnid = Convert.ToInt32(parts.Last());
-                    _parentForm.LocalDatabase.Open();
-                    var vn = _parentForm.LocalDatabase.GetSingleVN(vnid, Settings.UserID);
-                    _parentForm.LocalDatabase.Close();
+                    LocalDatabase.Open();
+                    var vn = LocalDatabase.GetSingleVN(vnid, Settings.UserID);
+                    LocalDatabase.Close();
                     if (vn == null) await SetNewData(vnid);
                     else
                     {
@@ -786,7 +786,7 @@ namespace Happy_Search.Other_Forms
         {
             if (_displayedVN == null || Working) return;
             Working = true;
-            ListedVN[] producerVNs = _parentForm.LocalDatabase.URTList.Where(x => x.Producer.Equals(_displayedVN.Producer)).ToArray();
+            ListedVN[] producerVNs = LocalDatabase.URTList.Where(x => x.Producer.Equals(_displayedVN.Producer)).ToArray();
             double userAverageVote = -1;
             double userDropRate = -1;
             if (producerVNs.Any())
@@ -798,17 +798,17 @@ namespace Happy_Search.Other_Forms
                 userDropRate = finishedCount + droppedCount != 0 ?
                     (double)droppedCount / (droppedCount + finishedCount) : -1;
             }
-            var producer = _parentForm.LocalDatabase.ProducerList.Find(x => x.Name == _displayedVN.Producer);
+            var producer = LocalDatabase.ProducerList.Find(x => x.Name == _displayedVN.Producer);
             var addProducerList = new List<ListedProducer>
             {
                 new ListedProducer(_displayedVN.Producer, producerVNs.Length, DateTime.UtcNow,
                     producer.ID, producer.Language,
                     userAverageVote, (int) Math.Round(userDropRate*100))
             };
-            _parentForm.LocalDatabase.BeginTransaction();
-            _parentForm.LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
-            _parentForm.LocalDatabase.EndTransaction();
-            await _parentForm.ReloadListsFromDbAsync();
+            LocalDatabase.BeginTransaction();
+            LocalDatabase.InsertFavoriteProducers(addProducerList, Settings.UserID);
+            LocalDatabase.EndTransaction();
+            ReloadListsFromDb();
             _parentForm.LoadFPListToGui();
             WriteText(vnReplyText, $"{_displayedVN.Producer} added to list.");
             await SetNewData(_displayedVN.VNID);
@@ -895,12 +895,12 @@ namespace Happy_Search.Other_Forms
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
-            var apiResult = await _parentForm.TryQuery(query, "UIN Query Error");
+            var apiResult = await _parentForm.Conn.TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
-            _parentForm.LocalDatabase.Open();
-            _parentForm.LocalDatabase.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
-            _parentForm.LocalDatabase.Close();
-            await _parentForm.ReloadListsFromDbAsync();
+            LocalDatabase.Open();
+            LocalDatabase.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
+            LocalDatabase.Close();
+            ReloadListsFromDb();
             _parentForm.LoadVNListToGui();
             WriteText(vnReplyText, replyMessage);
             _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);

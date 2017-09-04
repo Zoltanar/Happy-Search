@@ -177,7 +177,7 @@ namespace Happy_Search.Other_Forms
                 childrenForThisRound = tmp.ToArray();
             }
             var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, -1, children);
-            var count = _mainForm.LocalDatabase.VNList.Count(vn => VNMatchesSingleTag(vn, newFilter));
+            var count = LocalDatabase.VNList.Count(vn => VNMatchesSingleTag(vn, newFilter));
             newFilter.Titles = count;
             TagFilter moreSpecificFilter = null;
             var notNeeded = false;
@@ -235,27 +235,27 @@ namespace Happy_Search.Other_Forms
             IEnumerable<string> betterTags = _filters.Tags.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
-            var result = await _mainForm.TryQuery(tagQuery, "UCF Query Error");
+            var result = await _mainForm.Conn.TryQuery(tagQuery, "UCF Query Error");
             if (!result) return;
             var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await _mainForm.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
+            await _mainForm.Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await _mainForm.TryQuery(moreTagQuery, "UCFM Query Error");
+                var moreResult = await _mainForm.Conn.TryQuery(moreTagQuery, "UCFM Query Error");
                 if (!moreResult) return;
                 var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await _mainForm.GetMultipleVN(moreVNItems.Select(x => x.ID).ToArray(), false);
+                await _mainForm.Conn.GetMultipleVN(moreVNItems.Select(x => x.ID).ToArray(), false);
                 moreResults = moreVNRoot.More;
             }
-            await _mainForm.ReloadListsFromDbAsync();
+            ReloadListsFromDb();
             _mainForm.LoadVNListToGui();
             WriteText(_mainForm.Conn.ActiveQuery.ReplyLabel, $"Update complete, added {_mainForm.Conn.TitlesAdded} and skipped {_mainForm.Conn.TitlesSkipped} titles.");
         }
