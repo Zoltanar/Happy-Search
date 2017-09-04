@@ -210,7 +210,7 @@ namespace Happy_Search.Other_Forms
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result = _mainForm.StartQuery(tagReply, "Update Filter Results", true, true, false);
+                var result = _mainForm.Conn.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
                 selectedFilter.Updated = DateTime.UtcNow;
@@ -220,7 +220,7 @@ namespace Happy_Search.Other_Forms
             {
                 var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                var result = _mainForm.StartQuery(tagReply, "Update Filter Results", true, true, false);
+                var result = _mainForm.Conn.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
             }
@@ -257,7 +257,7 @@ namespace Happy_Search.Other_Forms
             }
             await _mainForm.ReloadListsFromDbAsync();
             _mainForm.LoadVNListToGui();
-            WriteText(_mainForm.ActiveQuery.ReplyLabel, $"Update complete, added {_mainForm.TitlesAdded} and skipped {_mainForm.TitlesSkipped} titles.");
+            WriteText(_mainForm.Conn.ActiveQuery.ReplyLabel, $"Update complete, added {_mainForm.Conn.TitlesAdded} and skipped {_mainForm.Conn.TitlesSkipped} titles.");
         }
 
         /// <summary>

@@ -69,7 +69,7 @@ namespace Happy_Search.Other_Forms
                 WriteError(prodSearchReply, Resources.enter_producer_name);
                 return;
             }
-            var result = _parentForm.StartQuery(prodSearchReply, "Producer Search",false,true,false);
+            var result = _parentForm.Conn.StartQuery(prodSearchReply, "Producer Search",false,true,false);
             if (!result) return;
             var producerName = producerSearchBox.Text;
             string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";

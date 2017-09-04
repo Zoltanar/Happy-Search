@@ -2011,7 +2011,6 @@ namespace Happy_Search
         private Button removeProducersButton;
         private Button addProducersButton;
         private Label prodReply;
-        private Label replyText;
         private ComboBox viewPicker;
         private ObjectListView tileOLV;
         private OLVColumn tileColumnTitle;
@@ -2078,6 +2077,10 @@ namespace Happy_Search
         internal ComboBox filterDropdown;
         private Button button2;
         private ToolStripMenuItem seeOnWebsiteToolStripMenuItem;
+        /// <summary>
+        /// Label where most query replies are shown.
+        /// </summary>
+        public Label replyText;
     }
 }
 

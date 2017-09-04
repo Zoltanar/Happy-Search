@@ -108,12 +108,12 @@ namespace Happy_Search
 This may take a while...",
                     Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (askBox != DialogResult.Yes) return;
-            var result = StartQuery(prodReply, "Refresh Favorite Producer Titles", true, true, true);
+            var result = Conn.StartQuery(prodReply, "Refresh Favorite Producer Titles", true, true, true);
             if (!result) return;
             foreach (ListedProducer producer in olFavoriteProducers.Objects) await GetProducerTitles(producer,true);
             await ReloadListsFromDbAsync();
             LoadFPListToGui();
-            WriteText(prodReply, Resources.update_fp_titles_success + $" ({TitlesAdded} new titles)");
+            WriteText(prodReply, Resources.update_fp_titles_success + $" ({Conn.TitlesAdded} new titles)");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -157,14 +157,14 @@ This may take a while...",
                 WriteWarning(prodReply, "No producers require an update.");
                 return;
             }
-            var result = StartQuery(prodReply, "Get New FP Titles",true,true,true);
+            var result = Conn.StartQuery(prodReply, "Get New FP Titles",true,true,true);
             if (!result) return;
             LogToFile($"{producers.Count} to be updated");
             foreach (var producer in producers) await GetProducerTitles(producer,false);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             LoadFPListToGui();
-            WriteText(prodReply, $"Got {TitlesAdded} new titles by Favorite Producers.");
+            WriteText(prodReply, $"Got {Conn.TitlesAdded} new titles by Favorite Producers.");
             ChangeAPIStatus(Conn.Status);
         }
 

@@ -15,7 +15,7 @@ namespace Happy_Apps_Core
     /// <summary>
     /// Class for establishing connection with VNDB API and interacting with it.
     /// </summary>
-    public class VndbConnection
+    public partial class VndbConnection
     {
         private const string VndbHost = "api.vndb.org";
         private const ushort VndbPort = 19534;

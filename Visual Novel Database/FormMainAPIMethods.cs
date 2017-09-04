@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Happy_Search.Properties;
@@ -14,7 +13,6 @@ namespace Happy_Search
 {
     public partial class FormMain
     {
-        internal ApiQuery ActiveQuery;
 
         /// <summary>
         /// Send query through API Connection.
@@ -24,75 +22,30 @@ namespace Happy_Search
         /// <returns>Returns whether it was successful.</returns>
         internal async Task<bool> TryQuery(string query, string errorMessage)
         {
-            if (Conn.Status != VndbConnection.APIStatus.Ready)
+            var result = await Conn.TryQuery(query, errorMessage, HandleAdvancedMode);
+            while (result == VndbConnection.QueryResult.Throttled)
             {
-                WriteError(ActiveQuery.ReplyLabel, "API Connection isn't ready.");
-                return false;
-            }
-            await Task.Run(() =>
-            {
-                if (GuiSettings.DecadeLimit && !ActiveQuery.IgnoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
-                {
-                    query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
-                }
-                LogToFile(query);
-                Conn.Query(query);
-            });
-            HandleAdvancedMode(query);
-            if (Conn.LastResponse.Type == ResponseType.Unknown)
-            {
-                ChangeAPIStatus(VndbConnection.APIStatus.Error);
-                return false;
-            }
-            while (Conn.LastResponse.Type == ResponseType.Error)
-            {
-                if (!Conn.LastResponse.Error.ID.Equals("throttled"))
-                {
-                    WriteError(ActiveQuery.ReplyLabel, errorMessage);
-                    ChangeAPIStatus(Conn.Status);
-                    return false;
-                }
-                string fullThrottleMessage = "";
-                double minWait = 0;
-                await Task.Run(() =>
-                {
-                    minWait = Math.Min(5 * 60, Conn.LastResponse.Error.Fullwait); //wait 5 minutes
-                    string normalWarning = $"Throttled for {Math.Floor(minWait / 60)} mins.";
-                    string additionalWarning = "";
-                    if (TitlesAdded > 0) additionalWarning += $" Added {TitlesAdded}.";
-                    if (TitlesSkipped > 0) additionalWarning += $" Skipped {TitlesSkipped}.";
-                    fullThrottleMessage = ActiveQuery.AdditionalMessage ? normalWarning + additionalWarning : normalWarning;
-                });
-                WriteWarning(ActiveQuery.ReplyLabel, fullThrottleMessage);
-                ChangeAPIStatus(VndbConnection.APIStatus.Throttled);
-                LogToFile($"Local: {DateTime.Now} - {fullThrottleMessage}");
-                if (ActiveQuery.RefreshList)
+                if (Conn.ActiveQuery.RefreshList)
                 {
                     await ReloadListsFromDbAsync();
                     LoadVNListToGui();
                 }
-                var waitMS = minWait * 1000;
-                var wait = Convert.ToInt32(waitMS);
-                await Task.Delay(wait);
+                ChangeAPIStatus(Conn.Status);
+                await Task.Delay(Conn.ThrottleWaitTime);
                 ChangeAPIStatus(VndbConnection.APIStatus.Busy);
-                await Conn.QueryAsync(query);
-                HandleAdvancedMode(query);
+                result = await Conn.TryQuery(query, errorMessage, HandleAdvancedMode);
+                ChangeAPIStatus(Conn.Status);
             }
-            return true;
+            ChangeAPIStatus(Conn.Status);
+            return result == VndbConnection.QueryResult.Success;
         }
 
         private void HandleAdvancedMode(string query)
         {
             if (!AdvancedMode) return;
             if (serverR.TextLength > 10000) ClearLog(null, null);
-            if (serverQ.InvokeRequired)
-                serverQ.Invoke(new MethodInvoker(() => serverQ.Text += query + Environment.NewLine));
-            else
-                serverQ.Text += query + Environment.NewLine;
-            if (serverR.InvokeRequired)
-                serverR.Invoke(new MethodInvoker(() => serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine));
-            else
-                serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
+            serverQ.Invoke(new MethodInvoker(() => serverQ.Text += query + Environment.NewLine));
+            serverR.Invoke(new MethodInvoker(() => serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine));
         }
 
         /// <summary>
@@ -216,7 +169,7 @@ namespace Happy_Search
                 var result = await GetProducer(producerID, "GetLanguagesForProducers Error", false);
                 if (!result.Item1 || result.Item2 == null) continue;
                 producerList.Add(result.Item2);
-                TitlesAdded++;
+                Conn.TitlesAdded++;
                 if (producerList.Count > 24)
                 {
                     LocalDatabase.BeginTransaction();
@@ -281,7 +234,7 @@ namespace Happy_Search
                 else
                 {
                     vnsToGet = vnIDs.Except(LocalDatabase.VNList.Select(x => x.VNID)).ToList();
-                    TitlesSkipped = TitlesSkipped + vnIDs.Length - vnsToGet.Count;
+                    Conn.TitlesSkipped = Conn.TitlesSkipped + vnIDs.Length - vnsToGet.Count;
                 }
                 vnsToGet.Remove(0);
             });
@@ -342,7 +295,7 @@ namespace Happy_Search
                         }
                         if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
                     }
-                    TitlesAdded++;
+                    Conn.TitlesAdded++;
                     vnsToBeUpserted.Add((vnItem, relProducer, languages));
                 }
             }
@@ -385,7 +338,7 @@ namespace Happy_Search
             foreach (var vnItem in vnRoot.Items)
             {
                 LocalDatabase.UpdateVNTagsStats(vnItem);
-                TitlesAdded++;
+                Conn.TitlesAdded++;
             }
             LocalDatabase.EndTransaction();
             await GetCharactersForMultipleVN(currentArray);
@@ -411,7 +364,7 @@ namespace Happy_Search
                 foreach (var vnItem in vnRoot.Items)
                 {
                     LocalDatabase.UpdateVNTagsStats(vnItem);
-                    TitlesAdded++;
+                    Conn.TitlesAdded++;
                 }
                 LocalDatabase.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray);
@@ -470,32 +423,32 @@ namespace Happy_Search
             switch (apiStatus)
             {
                 case VndbConnection.APIStatus.Ready:
-                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{ActiveQuery.ActionName} Ended");
-                    ActiveQuery.Completed = true;
+                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{Conn.ActiveQuery.ActionName} Ended");
+                    Conn.ActiveQuery.Completed = true;
                     statusLabel.Text = loginString + @"Ready";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.LightGreen;
                     break;
                 case VndbConnection.APIStatus.Busy:
-                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{ActiveQuery.ActionName} Started");
-                    statusLabel.Text = loginString + $@"Busy ({ActiveQuery.ActionName})";
+                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{Conn.ActiveQuery.ActionName} Started");
+                    statusLabel.Text = loginString + $@"Busy ({Conn.ActiveQuery.ActionName})";
                     statusLabel.ForeColor = Color.Red;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Throttled:
-                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{ActiveQuery.ActionName} Throttled");
-                    statusLabel.Text = loginString + $@"Throttled ({ActiveQuery.ActionName})";
+                    if (Environment.GetCommandLineArgs().Contains("-debug")) LogToFile($"{Conn.ActiveQuery.ActionName} Throttled");
+                    statusLabel.Text = loginString + $@"Throttled ({Conn.ActiveQuery.ActionName})";
                     statusLabel.ForeColor = Color.DarkRed;
                     statusLabel.BackColor = Color.Khaki;
                     break;
                 case VndbConnection.APIStatus.Error:
-                    statusLabel.Text = loginString + $@"Error ({ActiveQuery.ActionName})";
+                    statusLabel.Text = loginString + $@"Error ({Conn.ActiveQuery.ActionName})";
                     statusLabel.ForeColor = Color.Black;
                     statusLabel.BackColor = Color.Red;
                     Conn.Close();
                     break;
                 case VndbConnection.APIStatus.Closed:
-                    statusLabel.Text = loginString + $@"Closed ({ActiveQuery.ActionName})";
+                    statusLabel.Text = loginString + $@"Closed ({Conn.ActiveQuery.ActionName})";
                     statusLabel.ForeColor = Color.White;
                     statusLabel.BackColor = Color.Black;
                     break;
@@ -516,8 +469,9 @@ namespace Happy_Search
             var hasWLStatus = vn.WLStatus > WishlistStatus.None;
             var hasVote = vn.Vote > 0;
             string queryString;
-            var result = StartQuery(replyText, "Change VN Status", false, false, true);
+            var result = Conn.StartQuery(replyText, "Change VN Status", false, false, true);
             if (!result) return false;
+            ChangeAPIStatus(VndbConnection.APIStatus.Busy);
             switch (type)
             {
                 case VNDatabase.ChangeType.UL:
@@ -573,7 +527,7 @@ namespace Happy_Search
         internal void APILogin()
         {
             Conn.Login(ClientName, ClientVersion);
-            ActiveQuery = new ApiQuery(true, this);
+            Conn.ActiveQuery = new ApiQuery(true, replyText);
             ChangeAPIStatus(Conn.Status);
             switch (Conn.LastResponse.Type)
             {
@@ -603,7 +557,7 @@ namespace Happy_Search
         /// <param name="password">User's password</param>
         internal void APILoginWithPassword(char[] password)
         {
-            ActiveQuery = new ApiQuery(true, this);
+            Conn.ActiveQuery = new ApiQuery(true, replyText);
             Conn.Login(ClientName, ClientVersion, Settings.Username, password);
             switch (Conn.LastResponse.Type)
             {
@@ -633,93 +587,6 @@ namespace Happy_Search
             ChangeAPIStatus(Conn.Status);
         }
 
-        /// <summary>
-        /// Check if API Connection is ready, change status accordingly and write error if it isnt ready.
-        /// </summary>
-        /// <param name="replyLabel">Label where error reply will be printed</param>
-        /// <param name="featureName">Name of feature calling the query</param>
-        /// <param name="refreshList">Refresh OLV on throttled connection</param>
-        /// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
-        /// <param name="ignoreDateLimit">Ignore 10 year limit (if applicable)</param>
-        /// <returns>If connection was ready</returns>
-        internal bool StartQuery(Label replyLabel, string featureName, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
-        {
-            if (!ActiveQuery.Completed)
-            {
-                WriteError(replyLabel, $"Wait until {ActiveQuery.ActionName} is done.");
-                return false;
-            }
-            ActiveQuery = new ApiQuery(featureName, replyLabel, refreshList, additionalMessage, ignoreDateLimit);
-            TitlesAdded = 0;
-            TitlesSkipped = 0;
-            ChangeAPIStatus(VndbConnection.APIStatus.Busy);
-            return true;
-        }
-
-        /// <summary>
-        /// Contains settings for API Query
-        /// </summary>
-        public class ApiQuery
-        {
-            /// <summary>
-            /// Name of action
-            /// </summary>
-            public readonly string ActionName;
-            /// <summary>
-            /// Refresh OLV on throttled connection
-            /// </summary>
-            public readonly bool RefreshList;
-            /// <summary>
-            /// Print Added/Skipped message on throttled connection
-            /// </summary>
-            public readonly bool AdditionalMessage;
-            /// <summary>
-            /// Ignore 10 year limit (if applicable)
-            /// </summary>
-            public readonly bool IgnoreDateLimit;
-            /// <summary>
-            /// Query has been completed
-            /// </summary>
-            public bool Completed;
-            /// <summary>
-            /// Label where result will be shown.
-            /// </summary>
-            public readonly Label ReplyLabel;
-
-            /// <summary>
-            /// Set API query settings.
-            /// </summary>
-            /// <param name="actionName">Name of action</param>
-            /// <param name="replyLabel">Label where result will be shown</param>
-            /// <param name="refreshList">Refresh OLV on throttled connection</param>
-            /// <param name="additionalMessage">Print Added/Skipped message on throttled connection</param>
-            /// <param name="ignoreDateLimit">Ignore 10 year limit (if applicable)</param>
-            public ApiQuery(string actionName, Label replyLabel, bool refreshList, bool additionalMessage, bool ignoreDateLimit)
-            {
-                ActionName = actionName;
-                ReplyLabel = replyLabel;
-                RefreshList = refreshList;
-                AdditionalMessage = additionalMessage;
-                IgnoreDateLimit = ignoreDateLimit;
-                Completed = false;
-            }
-
-            /// <summary>
-            /// Constructor for initializing ActiveQuery.
-            /// </summary>
-            /// <param name="isStartup">Necessary parameter</param>
-            /// <param name="form">Form calling the method</param>
-            public ApiQuery(bool isStartup, FormMain form)
-            {
-                if (!isStartup) throw new ArgumentException("This method should only be used for startup.");
-                ActionName = "Startup";
-                ReplyLabel = form.replyText;
-                RefreshList = false;
-                AdditionalMessage = false;
-                IgnoreDateLimit = false;
-                Completed = true;
-            }
-        }
 
     }
 }

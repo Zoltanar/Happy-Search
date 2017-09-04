@@ -99,7 +99,7 @@ namespace Happy_Search
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
-                    if (!StartQuery(replyText, "UpdateTagsTraitsStats (MA)", true, true, false))
+                    if (!Conn.StartQuery(replyText, "UpdateTagsTraitsStats (MA)", true, true, false))
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
@@ -115,7 +115,7 @@ namespace Happy_Search
                         multiActionBox.SelectedIndex = 0;
                         return;
                     }
-                    if (!StartQuery(replyText, "Update All Data (MA)", true, true, true))
+                    if (!Conn.StartQuery(replyText, "Update All Data (MA)", true, true, true))
                     {
                         multiActionBox.SelectedIndex = 0;
                         return;
@@ -198,7 +198,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title + " (atleast 3 chars)");
                 return;
             }
-            var result = StartQuery(replyText, "Search_ByName", false, false, true);
+            var result = Conn.StartQuery(replyText, "Search_ByName", false, false, true);
             if (!result) return;
             var searchString = ListByTB.Text;
             ListByTB.Text = "";
@@ -220,7 +220,7 @@ namespace Happy_Search
                 moreResults = vnRoot.More;
             }
             await GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
-            WriteText(replyText, $"Found {TitlesAdded + TitlesSkipped} titles, {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
+            WriteText(replyText, $"Found {Conn.TitlesAdded + Conn.TitlesSkipped} titles, {Conn.TitlesAdded}/{Conn.TitlesAdded + Conn.TitlesSkipped} added.");
             IEnumerable<int> idList = vnItems.Select(x => x.ID);
             _currentList = x => idList.Contains(x.VNID);
             _currentListLabel = $"{searchString} (Search)";
@@ -245,7 +245,7 @@ namespace Happy_Search
                 WriteError(replyText, Resources.must_be_integer);
                 return;
             }
-            var result = StartQuery(replyText, "Search_ByYear", true, true, true);
+            var result = Conn.StartQuery(replyText, "Search_ByYear", true, true, true);
             if (!result) return;
             var startTime = DateTime.UtcNow.ToLocalTime();
             var startTimeString = startTime.ToString("HH:mm");
@@ -279,8 +279,8 @@ namespace Happy_Search
             LoadVNListToGui();
             WriteText(replyText,
                 span < TimeSpan.FromMinutes(1)
-                    ? $"Got VNs for {year} in <1 min. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added."
-                    : $"Got VNs for {year} in {span:hh\\:mm}. {TitlesAdded}/{TitlesAdded + TitlesSkipped} added.");
+                    ? $"Got VNs for {year} in <1 min. {Conn.TitlesAdded}/{Conn.TitlesAdded + Conn.TitlesSkipped} added."
+                    : $"Got VNs for {year} in {span:hh\\:mm}. {Conn.TitlesAdded}/{Conn.TitlesAdded + Conn.TitlesSkipped} added.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -302,7 +302,7 @@ namespace Happy_Search
             {
                 var askBox2 = MessageBox.Show($@"A producer named {producer} was not found in local database.\nWould you like to search VNDB?", Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result2 = StartQuery(replyText, "Update Producer Titles", false, false, false);
+                var result2 = Conn.StartQuery(replyText, "Update Producer Titles", false, false, false);
                 if (!result2) return;
                 var producers = await AddProducersBySearchedName(producer);
                 if (producers == null) return;
@@ -324,10 +324,10 @@ namespace Happy_Search
                 producerItem = LocalDatabase.ProducerList.Find(x => x.Name.Equals(producer, StringComparison.InvariantCultureIgnoreCase));
                 ListByTB.Text = producer;
             }
-            var result = StartQuery(replyText, "Update Producer Titles", false, false, false);
+            var result = Conn.StartQuery(replyText, "Update Producer Titles", false, false, false);
             if (!result) return;
             await GetProducerTitles(producerItem, false);
-            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {TitlesAdded} titles.");
+            WriteText(replyText, $"Got new VNs for {producerItem.Name}, added {Conn.TitlesAdded} titles.");
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
             ChangeAPIStatus(Conn.Status);
@@ -744,7 +744,7 @@ namespace Happy_Search
             var vnItem = (ListedVN)e.Model;
             var tabPage = new TabPage();
             VNControl vnf;
-            if (ActiveQuery.Completed)
+            if (Conn.ActiveQuery.Completed)
             {
                 LocalDatabase.Open();
                 vnItem = LocalDatabase.GetSingleVN(vnItem.VNID, Settings.UserID);
@@ -791,7 +791,7 @@ namespace Happy_Search
         /// <param name="itemNotes">Object containing new data to replace old</param>
         private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
         {
-            var result = StartQuery(replyText, "Update Item Notes", false, false, false);
+            var result = Conn.StartQuery(replyText, "Update Item Notes", false, false, false);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";

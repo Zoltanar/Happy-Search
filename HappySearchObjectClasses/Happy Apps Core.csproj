@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIClasses.cs" />
+    <Compile Include="ApiQuery.cs" />
     <Compile Include="CoreSettings.cs" />
     <Compile Include="DumpFiles.cs" />
     <Compile Include="VNDatabase.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="VndbConnection.cs" />
+    <Compile Include="VndbConnectionActions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

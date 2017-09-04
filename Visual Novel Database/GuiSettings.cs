@@ -31,10 +31,6 @@ namespace Happy_Search
         /// </summary>
         public bool AutoUpdate { get; set; }
 
-        /// <summary>
-        /// Don't get titles released over a decade ago (does not apply to searched by name or favorite producer titles).
-        /// </summary>
-        public bool DecadeLimit { get; set; }
 
         /// <summary>
         /// Automatically log in using previously saved credentials.
@@ -51,7 +47,6 @@ namespace Happy_Search
             TechnicalTags = true;
             NSFWImages = false;
             AutoUpdate = false;
-            DecadeLimit = true;
             RememberPassword = false;
         }
 

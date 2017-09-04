@@ -33,12 +33,18 @@ namespace Happy_Apps_Core
         public DateTime URTDate { get; set; }
 
         /// <summary>
+        /// Don't get titles released over a decade ago (does not apply to searched by name or favorite producer titles).
+        /// </summary>
+        public bool DecadeLimit { get; set; }
+
+        /// <summary>
         /// Default constructor, sets all values to default.
         /// </summary>
         public CoreSettings()
         {
             Username = "";
             UserID = -1;
+            DecadeLimit = true;
             DumpfileDate = DateTime.MinValue;
             StatsDate = DateTime.MinValue;
             URTDate = DateTime.MinValue;

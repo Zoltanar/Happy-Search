@@ -497,7 +497,7 @@ namespace Happy_Search.Other_Forms
         {
             if (vnReplyText.Text.Equals("Updating...")) return;
             WriteWarning(vnReplyText, "Updating...");
-            _parentForm.StartQuery(vnReplyText, "Update VN", false, true, true);
+            _parentForm.Conn.StartQuery(vnReplyText, "Update VN", false, true, true);
             try
             {
                 await _parentForm.GetMultipleVN(new[] { _displayedVN.VNID }, true);
@@ -891,7 +891,7 @@ namespace Happy_Search.Other_Forms
         {
             if (Working) return;
             Working = true;
-            var result = _parentForm.StartQuery(vnReplyText, "Update Item Notes", false, false, true);
+            var result = _parentForm.Conn.StartQuery(vnReplyText, "Update Item Notes", false, false, true);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";

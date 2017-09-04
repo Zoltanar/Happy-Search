@@ -108,7 +108,7 @@ namespace Happy_Search.Other_Forms
         private async void LoginWithPasswordButtonClick(object sender, EventArgs e)
         {
             string username;
-            _parentForm.ActiveQuery = new FormMain.ApiQuery(true,_parentForm);
+            _parentForm.Conn.ActiveQuery = new ApiQuery(true,_parentForm.replyText);
             switch (GetIDMethod(out var userID))
             {
                 case 0:

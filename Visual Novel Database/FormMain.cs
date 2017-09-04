@@ -32,14 +32,6 @@ namespace Happy_Search
         private string _currentListLabel;
 
 
-        /// <summary>
-        /// Count of titles added in last query.
-        /// </summary>
-        public int TitlesAdded { get; private set; }
-        /// <summary>
-        /// Count of titles skipped in last query.
-        /// </summary>
-        public int TitlesSkipped { get; private set; }
 
         private bool _wideView;
         internal static GuiSettings GuiSettings;
@@ -67,7 +59,9 @@ namespace Happy_Search
             string[] args = Environment.GetCommandLineArgs();
             InitializeControls();
             LoadUserSettings();
-            LoadTagAndTraitFiles();
+            SplashScreen.SetStatus("Loading Tag and Trait dump files...");
+            LogToFile($"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
+            DumpFiles.Load();
             SplashScreen.SetStatus("Connecting to SQLite Database...");
             LocalDatabase = new VNDatabase(dbLog:args.Contains("-dl") || args.Contains("-debug"));
             LoadDataFromDatabase();
@@ -95,11 +89,7 @@ namespace Happy_Search
                 prodReply.Text = "";
                 advancedCheckBox.Checked = args.Contains("-am") || args.Contains("-debug");
                 tileOLV.ItemRenderer = new VNTileRenderer();
-#if DEBUG
-                Directory.CreateDirectory("..\\Release\\Stored Data");
-#else
-                Directory.CreateDirectory("Stored Data");
-#endif
+                Directory.CreateDirectory(StoredDataFolder);
                 File.Create(LogFile).Close();
                 aboutTextBox.Text = $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
 VNDB API Client for filtering/organizing and finding visual novels.
@@ -125,13 +115,7 @@ https://github.com/FredTheBarber/VndbClient";
                 tagTypeT2.Checked = GuiSettings.TechnicalTags;
                 nsfwToggle.Checked = GuiSettings.NSFWImages;
                 autoUpdateURTBox.Checked = GuiSettings.AutoUpdate;
-                yearLimitBox.Checked = GuiSettings.DecadeLimit;
-            }
-            void LoadTagAndTraitFiles()
-            {
-                SplashScreen.SetStatus("Loading Tag and Trait dump files...");
-                LogToFile($"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
-                DumpFiles.Load();
+                yearLimitBox.Checked = Settings.DecadeLimit;
             }
             void LoadDataFromDatabase()
             {
@@ -219,7 +203,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void InitAPIConnection()
         {
             Conn.Open();
-            ActiveQuery = new ApiQuery(true, this);
+            Conn.ActiveQuery = new ApiQuery(true, replyText);
             if (Conn.Status == VndbConnection.APIStatus.Error)
             {
                 ChangeAPIStatus(Conn.Status);
@@ -347,12 +331,12 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Tags/Traits/Stats", true, true, false);
+            var result = Conn.StartQuery(userListReply, "Update Tags/Traits/Stats", true, true, false);
             if (!result) return;
             await UpdateTagsTraitsStats(tieredVns.AllVns);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
-            WriteText(userListReply, $"Updated tags, traits and stats on {TitlesAdded} titles.");
+            WriteText(userListReply, $"Updated tags, traits and stats on {Conn.TitlesAdded} titles.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -366,12 +350,12 @@ https://github.com/FredTheBarber/VndbClient";
             var messageBox =
                 MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update All Data", true, true, true);
+            var result = Conn.StartQuery(userListReply, "Update All Data", true, true, true);
             if (!result) return;
             await GetMultipleVN(tieredVns.AllVns, true);
             await ReloadListsFromDbAsync();
             LoadVNListToGui();
-            WriteText(userListReply, $"Updated data on {TitlesAdded} titles.");
+            WriteText(userListReply, $"Updated data on {Conn.TitlesAdded} titles.");
             ChangeAPIStatus(Conn.Status);
         }
 
@@ -465,8 +449,8 @@ https://github.com/FredTheBarber/VndbClient";
 
         private void ToggleLimit10Years(object sender, EventArgs e)
         {
-            GuiSettings.DecadeLimit = yearLimitBox.Checked;
-            GuiSettings.Save();
+            Settings.DecadeLimit = yearLimitBox.Checked;
+            Settings.Save();
         }
 
         /// <summary>
@@ -533,7 +517,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "It could take a while, Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Get Producer Languages", true, true, true);
+            var result = Conn.StartQuery(userListReply, "Get Producer Languages", true, true, true);
             if (!result) return;
             await GetLanguagesForProducers(LocalDatabase.ProducerList.Select(t => t.ID).ToArray());
             await ReloadListsFromDbAsync();
@@ -550,7 +534,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update All Data (All)", true, true, true);
+            var result = Conn.StartQuery(userListReply, "Update All Data (All)", true, true, true);
             if (!result) return;
             await GetMultipleVN(LocalDatabase.VNList.Select(t => t.VNID).ToArray(), true);
             await ReloadListsFromDbAsync();
@@ -573,7 +557,7 @@ https://github.com/FredTheBarber/VndbClient";
                 "Are you sure?",
                 "Are you sure?", MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
-            var result = StartQuery(userListReply, "Update Tags/Traits/Stats (All)", true, true, true);
+            var result = Conn.StartQuery(userListReply, "Update Tags/Traits/Stats (All)", true, true, true);
             if (!result) return;
             await UpdateTagsTraitsStats(LocalDatabase.VNList.Select(t => t.VNID));
             await ReloadListsFromDbAsync();
@@ -651,7 +635,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
         private async Task UpdateURT(string featureName)
         {
             if (Settings.UserID < 1) return;
-            var result = StartQuery(userListReply, featureName, true, true, true);
+            var result = Conn.StartQuery(userListReply, featureName, true, true, true);
             if (!result) return;
             LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {LocalDatabase.URTList.Count} titles.");
             //clone list to make sure it doesnt keep command status.
@@ -671,7 +655,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LoadFPListToGui();
             LoadVNListToGui();
             UpdateUserStats();
-            WriteText(userListReply, $"Updated URT ({TitlesAdded} added).");
+            WriteText(userListReply, $"Updated URT ({Conn.TitlesAdded} added).");
             ChangeAPIStatus(Conn.Status);
         }
 
