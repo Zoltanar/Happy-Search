@@ -46,24 +46,24 @@
             this.loginButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.loginButton.FlatAppearance.BorderSize = 0;
             this.loginButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.loginButton.Location = new System.Drawing.Point(184, 11);
+            this.loginButton.Location = new System.Drawing.Point(90, 61);
             this.loginButton.Name = "loginButton";
-            this.loginButton.Size = new System.Drawing.Size(75, 44);
+            this.loginButton.Size = new System.Drawing.Size(211, 22);
             this.loginButton.TabIndex = 0;
-            this.loginButton.Text = "Login";
+            this.loginButton.Text = "Login With User ID";
             this.loginButton.UseVisualStyleBackColor = false;
-            this.loginButton.Click += new System.EventHandler(this.LoginButtonClick);
+            this.loginButton.Click += new System.EventHandler(this.LoginWithIDClick);
             // 
             // loginWithPasswordButton
             // 
             this.loginWithPasswordButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.loginWithPasswordButton.FlatAppearance.BorderSize = 0;
             this.loginWithPasswordButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.loginWithPasswordButton.Location = new System.Drawing.Point(90, 61);
+            this.loginWithPasswordButton.Location = new System.Drawing.Point(226, 9);
             this.loginWithPasswordButton.Name = "loginWithPasswordButton";
-            this.loginWithPasswordButton.Size = new System.Drawing.Size(168, 22);
+            this.loginWithPasswordButton.Size = new System.Drawing.Size(75, 46);
             this.loginWithPasswordButton.TabIndex = 1;
-            this.loginWithPasswordButton.Text = "Log In With Password";
+            this.loginWithPasswordButton.Text = "Login With Password";
             this.loginWithPasswordButton.UseVisualStyleBackColor = false;
             this.loginWithPasswordButton.Click += new System.EventHandler(this.LoginWithPasswordButtonClick);
             // 
@@ -71,7 +71,7 @@
             // 
             this.UsernameBox.Location = new System.Drawing.Point(90, 9);
             this.UsernameBox.Name = "UsernameBox";
-            this.UsernameBox.Size = new System.Drawing.Size(88, 20);
+            this.UsernameBox.Size = new System.Drawing.Size(130, 20);
             this.UsernameBox.TabIndex = 4;
             // 
             // label2
@@ -97,14 +97,14 @@
             this.PasswordBox.Location = new System.Drawing.Point(90, 35);
             this.PasswordBox.Name = "PasswordBox";
             this.PasswordBox.PasswordChar = '●';
-            this.PasswordBox.Size = new System.Drawing.Size(88, 20);
+            this.PasswordBox.Size = new System.Drawing.Size(130, 20);
             this.PasswordBox.TabIndex = 8;
             // 
             // loginInstructions
             // 
-            this.loginInstructions.Location = new System.Drawing.Point(13, 137);
+            this.loginInstructions.Location = new System.Drawing.Point(12, 139);
             this.loginInstructions.Name = "loginInstructions";
-            this.loginInstructions.Size = new System.Drawing.Size(247, 83);
+            this.loginInstructions.Size = new System.Drawing.Size(289, 106);
             this.loginInstructions.TabIndex = 9;
             this.loginInstructions.Text = resources.GetString("loginInstructions.Text");
             // 
@@ -112,7 +112,7 @@
             // 
             this.replyLabel.Location = new System.Drawing.Point(16, 86);
             this.replyLabel.Name = "replyLabel";
-            this.replyLabel.Size = new System.Drawing.Size(162, 51);
+            this.replyLabel.Size = new System.Drawing.Size(204, 53);
             this.replyLabel.TabIndex = 10;
             this.replyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
@@ -131,9 +131,9 @@
             this.clearSaved.BackColor = System.Drawing.Color.MistyRose;
             this.clearSaved.FlatAppearance.BorderSize = 0;
             this.clearSaved.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.clearSaved.Location = new System.Drawing.Point(183, 89);
+            this.clearSaved.Location = new System.Drawing.Point(226, 89);
             this.clearSaved.Name = "clearSaved";
-            this.clearSaved.Size = new System.Drawing.Size(75, 22);
+            this.clearSaved.Size = new System.Drawing.Size(75, 47);
             this.clearSaved.TabIndex = 12;
             this.clearSaved.Text = "Clear Saved";
             this.clearSaved.UseVisualStyleBackColor = false;
@@ -143,7 +143,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(270, 229);
+            this.ClientSize = new System.Drawing.Size(313, 254);
             this.Controls.Add(this.clearSaved);
             this.Controls.Add(this.rememberBox);
             this.Controls.Add(this.replyLabel);

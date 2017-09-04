@@ -118,8 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="loginInstructions.Text" xml:space="preserve">
-    <value>Log in with your VNDB username/ID, password is required to change list status and votes.
-If there is no internet access at the moment, you must enter user ID.
-You can find it in your profile page. (https://vndb.org/u######)</value>
+    <value>Log in with your VNDB ID to see your public data.
+You can also log in with Username and Password if you
+wish to modify your lists/votes or if your lists are not public.
+If there is no internet access at the moment, you must log in with ID.
+
+User ID is found in VNDB profile page.
+(https://vndb.org/u######)</value>
   </data>
 </root>
