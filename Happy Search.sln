@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Search", "Visual Nove
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Apps Core", "HappySearchObjectClasses\Happy Apps Core.csproj", "{C5E4C647-35BA-4525-B78A-F2263A628A5A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Happy Apps Core Tests", "Happy Apps Core Tests\Happy Apps Core Tests.csproj", "{2560AE44-7A1F-4320-8F86-18F06D3AC79B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{C5E4C647-35BA-4525-B78A-F2263A628A5A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C5E4C647-35BA-4525-B78A-F2263A628A5A}.Release|x64.ActiveCfg = Release|Any CPU
 		{C5E4C647-35BA-4525-B78A-F2263A628A5A}.Release|x64.Build.0 = Release|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Debug|x64.Build.0 = Debug|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Release|x64.ActiveCfg = Release|Any CPU
+		{2560AE44-7A1F-4320-8F86-18F06D3AC79B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

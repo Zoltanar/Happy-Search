@@ -38,7 +38,7 @@ namespace Happy_Apps_Core
 #if DEBUG
         public const string StoredDataFolder = "..\\Release\\Stored Data\\";
 #else
-        public const string StoredDataFolder = "Stored Data\\";;
+        public const string StoredDataFolder = "Stored Data\\";
 #endif
 
         public const string VNImagesFolder = StoredDataFolder + "Saved Cover Images\\";
@@ -100,6 +100,11 @@ namespace Happy_Apps_Core
         public static VNDatabase LocalDatabase;
 #pragma warning restore 1591
 
+        static StaticHelpers()
+        {
+            Directory.CreateDirectory(StoredDataFolder);
+            File.Create(LogFile).Close();
+        }
 
         /// <summary>
         ///     Loads lists from local database.

@@ -67,7 +67,7 @@ namespace Happy_Apps_Core
             _changeStatusAction?.Invoke(Status);
             await Task.Run(() =>
             {
-                if (Settings.DecadeLimit && !ActiveQuery.IgnoreDateLimit && query.StartsWith("get vn ") && !query.Contains("id = "))
+                if (Settings.DecadeLimit && (!ActiveQuery?.IgnoreDateLimit ?? false) && query.StartsWith("get vn ") && !query.Contains("id = "))
                 {
                     query = Regex.Replace(query, "\\)", $" and released > \"{DateTime.UtcNow.Year - 10}\")");
                 }

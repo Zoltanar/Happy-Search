@@ -87,8 +87,6 @@ namespace Happy_Search
                 prodReply.Text = "";
                 advancedCheckBox.Checked = args.Contains("-am") || args.Contains("-debug");
                 tileOLV.ItemRenderer = new VNTileRenderer();
-                Directory.CreateDirectory(StoredDataFolder);
-                File.Create(LogFile).Close();
                 aboutTextBox.Text = $@"{ClientName} (Version {ClientVersion}, for VNDB API {APIVersion})
 VNDB API Client for filtering/organizing and finding visual novels.
 Created by Zolty, visit the project at {ProjectURL}
@@ -327,8 +325,7 @@ https://github.com/FredTheBarber/VndbClient";
             LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
             LocalDatabase.Close();
             var tieredVns = new TieredVNs(LocalDatabase.VNList, LocalDatabase.FavoriteProducerList.Select(x => x.Name), false);
-            var messageBox =
-                MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
+            var messageBox = MessageBox.Show(tieredVns.MessageString, Resources.are_you_sure, MessageBoxButtons.YesNo);
             if (messageBox != DialogResult.Yes) return;
             var result = Conn.StartQuery(userListReply, "Update Tags/Traits/Stats", true, true, false);
             if (!result) return;
@@ -600,7 +597,9 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
 
         #region Get User-Related Titles
 
+#if DEBUG
         private int _vnidToDebug = 20367;
+#endif
 
         //Get user's user/wish/votelists from VNDB
         /// <summary>
@@ -688,7 +687,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             foreach (var item in ulList)
             {
+#if DEBUG
                 if (item.VN == _vnidToDebug) { }
+#endif
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
                 if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
@@ -720,7 +721,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             foreach (var item in wlList)
             {
+#if DEBUG
                 if (item.VN == _vnidToDebug) { }
+#endif
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
                 if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
@@ -752,7 +755,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             }
             foreach (var item in vlList)
             {
+#if DEBUG
                 if (item.VN == _vnidToDebug) { }
+#endif
                 var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
                 //add if it doesn't exist
                 if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
@@ -808,9 +813,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DisplayCommonTagsURT();
         }
 
-        #endregion
+#endregion
 
-        #region Other/General
+#region Other/General
 
 
         internal static bool AdvancedMode; //when true, print all api queries and responses to information tab.
@@ -1116,19 +1121,19 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (notes != null && notes.Groups.Count != 0) toolTipLines.Add($"{TruncateString($"Groups: {string.Join(", ", notes.Groups)}", 50)}");
             e.Text = string.Join("\n", toolTipLines);
         }
-        #endregion
+#endregion
 
-        #region Press Enter On Text Boxes
-
-
+#region Press Enter On Text Boxes
 
 
-        #endregion
-
-        #region Classes/Enums
 
 
-        #endregion
+#endregion
+
+#region Classes/Enums
+
+
+#endregion
 
 
         private void RightClickSeeOnWebsite(object sender, EventArgs e)
