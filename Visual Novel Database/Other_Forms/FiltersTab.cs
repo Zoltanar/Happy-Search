@@ -49,7 +49,7 @@ namespace Happy_Search.Other_Forms
             _doubleClickTimer.Interval = 250;
             SetFilterTags();
             InitialLoadFromFile();
-            _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
+            _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
             _mainForm.LoadVNListToGui();
             _filters.RefreshKind = RefreshType.None;
 
@@ -334,7 +334,7 @@ namespace Happy_Search.Other_Forms
             SetFiltersToGui();
             if (sender == _mainForm)
             {
-                _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
+                _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
                 _mainForm.LoadVNListToGui();
             }
         }
@@ -498,7 +498,7 @@ namespace Happy_Search.Other_Forms
                     _mainForm.CurrentFilterLabel = _filters.Name;
                     break;
             }
-            _mainForm.SetVNList(_filters.GetFunction(_mainForm, this), _filters.Name);
+            _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
             SaveFilters();
             _mainForm.LoadVNListToGui();
             _filters.RefreshKind = RefreshType.None;
@@ -507,7 +507,7 @@ namespace Happy_Search.Other_Forms
         private void Help_Filters(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            Debug.Assert(path != null, "path != null");
+            Debug.Assert(path != null, nameof(path) + " != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\filtering.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }

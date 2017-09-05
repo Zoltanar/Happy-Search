@@ -257,19 +257,32 @@ namespace Happy_Search.Other_Forms
                 response.Status = FetchStatus.Throttled;
                 return response;
             }
-            var relationsResponse = await GetVNRelations(vnItem, update);
-            response.Status = relationsResponse.Item1;
-            if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
-            response.Relations = relationsResponse.Item2;
-            var animeResponse = await GetVNAnime(vnItem, update);
-            response.Status = animeResponse.Item1;
-            if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
-            response.Anime = animeResponse.Item2;
-            var screenshotsResponse = await GetVNScreenshots(vnItem, update);
-            response.Status = screenshotsResponse.Item1;
-            if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
-            response.Screens = screenshotsResponse.Item2;
-            return response;
+            var result = Conn.StartQuery(vnReplyText, "LoadVNInfo", false, false, true);
+            if (!result)
+            {
+                response.Status = FetchStatus.Error;
+                return response;
+            }
+            try
+            {
+                var relationsResponse = await GetVNRelations(vnItem, update);
+                response.Status = relationsResponse.Item1;
+                if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
+                response.Relations = relationsResponse.Item2;
+                var animeResponse = await GetVNAnime(vnItem, update);
+                response.Status = animeResponse.Item1;
+                if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
+                response.Anime = animeResponse.Item2;
+                var screenshotsResponse = await GetVNScreenshots(vnItem, update);
+                response.Status = screenshotsResponse.Item1;
+                if (response.Status == FetchStatus.Error || response.Status == FetchStatus.Throttled) return response;
+                response.Screens = screenshotsResponse.Item2;
+                return response;
+            }
+            finally
+            {
+                _parentForm.ChangeAPIStatus(Conn.Status);
+            }
         }
 
         private void SetDeletedData()
@@ -327,12 +340,12 @@ namespace Happy_Search.Other_Forms
                 return (FetchStatus.Success, loadedRelations);
             }
             //relations haven't been fetched before
-            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 return (FetchStatus.Throttled, null);
             }
-            await _parentForm.Conn.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error");
-            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+            await Conn.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error");
+            var root = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 return (FetchStatus.Error, null);
@@ -361,12 +374,12 @@ namespace Happy_Search.Other_Forms
                 return (FetchStatus.Success, loadedAnime);
             }
             //anime hasn't been fetched before
-            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 return (FetchStatus.Throttled, null);
             }
-            await _parentForm.Conn.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error");
-            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            await Conn.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error");
+            var root = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
                 return (FetchStatus.Error, null);
@@ -402,12 +415,12 @@ namespace Happy_Search.Other_Forms
                 return (FetchStatus.Success, screens);
             }
             //screenshots haven't been fetched yet
-            if (_parentForm.Conn.Status != VndbConnection.APIStatus.Ready)
+            if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 return (FetchStatus.Throttled, null);
             }
-            await _parentForm.Conn.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error");
-            var root = JsonConvert.DeserializeObject<VNRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+            await Conn.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error");
+            var root = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 return (FetchStatus.Error, null);
@@ -497,10 +510,10 @@ namespace Happy_Search.Other_Forms
         {
             if (vnReplyText.Text.Equals("Updating...")) return;
             WriteWarning(vnReplyText, "Updating...");
-            _parentForm.Conn.StartQuery(vnReplyText, "Update VN", false, true, true);
+            Conn.StartQuery(vnReplyText, "Update VN", false, true, true);
             try
             {
-                await _parentForm.Conn.GetMultipleVN(new[] { _displayedVN.VNID }, true);
+                await Conn.GetMultipleVN(new[] { _displayedVN.VNID }, true);
                 await SetNewData(_displayedVN.VNID, true);
             }
 #pragma warning disable 168
@@ -511,7 +524,7 @@ namespace Happy_Search.Other_Forms
             }
             finally
             {
-                _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+                _parentForm.ChangeAPIStatus(Conn.Status);
             }
         }
 
@@ -699,7 +712,7 @@ namespace Happy_Search.Other_Forms
                 addChangeVNNoteToolStripMenuItem.Enabled = true;
                 addChangeVNGroupsToolStripMenuItem.Enabled = true;
             }
-            if (_parentForm.VNIsByFavoriteProducer(vn))
+            if (VNIsByFavoriteProducer(vn))
             {
                 addProducerToFavoritesToolStripMenuItem.Enabled = false;
                 addProducerToFavoritesToolStripMenuItem.ToolTipText = @"Already in list.";
@@ -710,7 +723,7 @@ namespace Happy_Search.Other_Forms
         private async void ChangeVNStatus(object sender, ToolStripItemClickedEventArgs e)
         {
 
-            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(vnReplyText, "Not Logged In");
                 return;
@@ -838,7 +851,7 @@ namespace Happy_Search.Other_Forms
         private async void AddNote(object sender, EventArgs e)
         {
             if (Working) return;
-            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(vnReplyText, "Not Logged In");
                 return;
@@ -864,7 +877,7 @@ namespace Happy_Search.Other_Forms
         private async void AddGroup(object sender, EventArgs e)
         {
             if (Working) return;
-            if (_parentForm.Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
+            if (Conn.LogIn != VndbConnection.LogInStatus.YesWithPassword)
             {
                 WriteError(vnReplyText, "Not Logged In");
                 return;
@@ -891,11 +904,11 @@ namespace Happy_Search.Other_Forms
         {
             if (Working) return;
             Working = true;
-            var result = _parentForm.Conn.StartQuery(vnReplyText, "Update Item Notes", false, false, true);
+            var result = Conn.StartQuery(vnReplyText, "Update Item Notes", false, false, true);
             if (!result) return;
             string serializedNotes = itemNotes.Serialize();
             var query = $"set vnlist {vnid} {{\"notes\":\"{serializedNotes}\"}}";
-            var apiResult = await _parentForm.Conn.TryQuery(query, "UIN Query Error");
+            var apiResult = await Conn.TryQuery(query, "UIN Query Error");
             if (!apiResult) return;
             LocalDatabase.Open();
             LocalDatabase.AddNoteToVN(vnid, serializedNotes, Settings.UserID);
@@ -903,7 +916,7 @@ namespace Happy_Search.Other_Forms
             ReloadListsFromDb();
             _parentForm.LoadVNListToGui();
             WriteText(vnReplyText, replyMessage);
-            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+            _parentForm.ChangeAPIStatus(Conn.Status);
             await SetNewData(_displayedVN.VNID);
             Working = false;
         }

@@ -24,7 +24,7 @@ namespace Happy_Search
         private void Help_ListingAndSearching(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
+            Debug.Assert(path != null, nameof(path) + " != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listingandsearching.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -304,7 +304,7 @@ namespace Happy_Search
                 if (askBox2 != DialogResult.Yes) return;
                 var result2 = Conn.StartQuery(replyText, "Update Producer Titles", false, false, false);
                 if (!result2) return;
-                var producers = await AddProducersBySearchedName(producer);
+                var producers = await Conn.AddProducersBySearchedName(producer);
                 if (producers == null) return;
                 if (producers.Count == 0)
                 {
@@ -729,7 +729,7 @@ namespace Happy_Search
         private void Help_ListResults(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
+            Debug.Assert(path != null, nameof(path) + " != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\listresults.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -858,7 +858,7 @@ namespace Happy_Search
         private void FilterChanged(object sender, EventArgs e)
         {
             CustomFilter selectedItem = (CustomFilter)filterDropdown.SelectedItem;
-            FiltersTab?.ChangeCustomFilter(this, selectedItem);
+            _filtersTab?.ChangeCustomFilter(this, selectedItem);
         }
 
         private void SetAllTitles(object sender, EventArgs e)

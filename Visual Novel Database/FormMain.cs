@@ -26,17 +26,16 @@ namespace Happy_Search
     /// </summary>
     public partial class FormMain : Form
     {
-        internal readonly VndbConnection Conn;
         private Func<ListedVN, bool> _currentList = x => true;
         private string _currentListLabel;
         private bool _wideView;
         internal static GuiSettings GuiSettings;
-        internal string LoginString;
+        private string _loginString;
 
         /// <summary>
         /// Holds information on state of filters for VN list.
         /// </summary>
-        internal FiltersTab FiltersTab;
+        private FiltersTab _filtersTab;
 
         /*credits and resources
         ObjectListView by Phillip Piper (GPLv3)from http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView
@@ -53,14 +52,13 @@ namespace Happy_Search
         {
             InitializeComponent();
             Conn = new VndbConnection(HandleAdvancedMode, RefreshListAction, ChangeAPIStatus);
-            LocalDatabase = new VNDatabase();
             string[] args = Environment.GetCommandLineArgs();
             InitializeControls();
             LoadUserSettings();
             SplashScreen.SetStatus("Loading Tag and Trait dump files...");
             LogToFile($"Dumpfiles Update = {Settings.DumpfileDate}, days since = {DaysSince(Settings.DumpfileDate)}");
             DumpFiles.Load();
-            SplashScreen.SetStatus("Connecting to SQLite Database...");
+            SplashScreen.SetStatus("Connecting to and loading SQLite Database...");
             LocalDatabase = new VNDatabase(dbLog: args.Contains("-dl") || args.Contains("-debug"));
             LoadDataFromDatabase();
             SplashScreen.SetStatus("Updating User Stats...");
@@ -83,7 +81,7 @@ namespace Happy_Search
                 replyText.Text = "";
                 userListReply.Text = "";
                 resultLabel.Text = "";
-                LoginString = "";
+                _loginString = "";
                 prodReply.Text = "";
                 advancedCheckBox.Checked = args.Contains("-am") || args.Contains("-debug");
                 tileOLV.ItemRenderer = new VNTileRenderer();
@@ -116,24 +114,12 @@ https://github.com/FredTheBarber/VndbClient";
             void LoadDataFromDatabase()
             {
                 SplashScreen.SetStatus("Loading Data from Database...");
-                LocalDatabase.Open();
-                LocalDatabase.GetAllTitles(Settings.UserID);
-                LocalDatabase.GetAllProducers();
-                LocalDatabase.GetAllCharacters();
-                LocalDatabase.GetUserRelatedTitles(Settings.UserID);
-                LocalDatabase.Close();
                 LoadFPListToGui();
-                LogToFile("VN Items= " + LocalDatabase.VNList.Count);
-                LogToFile("Producers= " + LocalDatabase.ProducerList.Count);
-                LogToFile("Characters= " + LocalDatabase.CharacterList.Count);
-                LogToFile("UserRelated Items= " + LocalDatabase.URTList.Count);
                 PopulateProducerSearchBox();
                 PopulateGroupSearchBox();
             }
         }
-
-
-
+        
         private async void OnLoadRoutines(object sender, EventArgs e)
         {
             //client update
@@ -148,9 +134,9 @@ https://github.com/FredTheBarber/VndbClient";
             //urt update
             if (Settings.UserID > 0 && (GuiSettings.AutoUpdate || args.Contains("-flu")))
             { await URTUpdateAsync(); }
-            FiltersTab = new FiltersTab(this);
-            filtersTab.Controls.Add(FiltersTab);
-            FiltersTab.Dock = DockStyle.Fill;
+            _filtersTab = new FiltersTab(this);
+            filtersTab.Controls.Add(_filtersTab);
+            _filtersTab.Dock = DockStyle.Fill;
             LoadVNListToGui();
             tileOLV.Sort(tileColumnDate, SortOrder.Descending);
         }
@@ -243,11 +229,11 @@ https://github.com/FredTheBarber/VndbClient";
                 //get username from id if none was entered
                 if (Settings.Username.Equals(""))
                 {
-                    Settings.Username = await GetUsernameFromID(Settings.UserID);
+                    Settings.Username = await Conn.GetUsernameFromID(Settings.UserID);
                 }
                 if (Settings.UserID < 1)
                 {
-                    Settings.UserID = await GetIDFromUsername(Settings.Username);
+                    Settings.UserID = await Conn.GetIDFromUsername(Settings.Username);
                 }
                 ChangeAPIStatus(Conn.Status);
                 GuiSettings.Save();
@@ -277,36 +263,36 @@ https://github.com/FredTheBarber/VndbClient";
             if (Conn.Status != VndbConnection.APIStatus.Ready)
             {
                 string user = Settings.Username.Equals("") ? Settings.UserID.ToString() : $"{Settings.Username}({Settings.UserID})";
-                LoginString = $"Connection error, showing data for {user}.";
+                _loginString = $"Connection error, showing data for {user}.";
                 ChangeAPIStatus(Conn.Status);
                 return;
             }
             switch (Conn.LogIn)
             {
                 case VndbConnection.LogInStatus.YesWithPassword:
-                    LoginString = $"Logged in as {Settings.Username}({Settings.UserID}).";
+                    _loginString = $"Logged in as {Settings.Username}({Settings.UserID}).";
                     ChangeAPIStatus(Conn.Status);
                     return;
                 case VndbConnection.LogInStatus.Yes:
                     if (Settings.UserID < 1)
                     {
-                        LoginString = "Connected.";
+                        _loginString = "Connected.";
                         ChangeAPIStatus(Conn.Status);
                         return;
                     }
-                    LoginString = !Settings.Username.Equals("")
+                    _loginString = !Settings.Username.Equals("")
                         ? $"Connected as {Settings.Username}({Settings.UserID})."
                         : $"Connected as {Settings.UserID}.";
                     ChangeAPIStatus(Conn.Status);
                     return;
                 case VndbConnection.LogInStatus.No:
-                    LoginString = "Not logged in.";
+                    _loginString = "Not logged in.";
                     ChangeAPIStatus(Conn.Status);
                     return;
             }
         }
 
-        private void OnProcessExit(object sender, EventArgs e)
+        private static void OnProcessExit(object sender, EventArgs e)
         {
             Conn.Close();
         }
@@ -427,9 +413,7 @@ https://github.com/FredTheBarber/VndbClient";
 {fpTitleCount} Titles by Favorite Producers.";
             }
         }
-
-
-
+        
         private void ToggleNSFWImages(object sender, EventArgs e)
         {
             GuiSettings.NSFWImages = nsfwToggle.Checked;
@@ -461,7 +445,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void CloseTabMiddleClick(object sender, MouseEventArgs e)
         {
             var tabControl = sender as TabControl;
-            Debug.Assert(tabControl != null, "tabControl != null");
+            Debug.Assert(tabControl != null, nameof(tabControl) + " != null");
             var tabs = tabControl.TabPages;
 
             if (e.Button != MouseButtons.Middle) return;
@@ -477,7 +461,7 @@ https://github.com/FredTheBarber/VndbClient";
         private void Help_GetStarted(object sender, EventArgs e)
         {
             var path = Path.GetDirectoryName(Application.ExecutablePath);
-            Debug.Assert(path != null, "Path.GetDirectoryName(Application.ExecutablePath) != null");
+            Debug.Assert(path != null, nameof(path) + " != null");
             var helpFile = $"{Path.Combine(path, "Program Data\\Help\\getstarted.html")}";
             new HtmlForm($"file:///{helpFile}").Show();
         }
@@ -515,7 +499,7 @@ https://github.com/FredTheBarber/VndbClient";
             if (messageBox != DialogResult.Yes) return;
             var result = Conn.StartQuery(userListReply, "Get Producer Languages", true, true, true);
             if (!result) return;
-            await GetLanguagesForProducers(LocalDatabase.ProducerList.Select(t => t.ID).ToArray());
+            await Conn.GetLanguagesForProducers(LocalDatabase.ProducerList.Select(t => t.ID).ToArray());
             ReloadListsFromDb();
             LoadVNListToGui();
             WriteText(userListReply, "Got producer languages.");
@@ -538,10 +522,7 @@ https://github.com/FredTheBarber/VndbClient";
             WriteText(userListReply, "Updated data on all titles.");
             ChangeAPIStatus(Conn.Status);
         }
-
-
-
-
+        
         /// <summary>
         /// Update title data of all titles regardless of release date/last update date.
         /// </summary>
@@ -596,12 +577,7 @@ The total download size is estimated to be {estimatedSizeString} ~ {doubleEstima
         #endregion
 
         #region Get User-Related Titles
-
-#if DEBUG
-        private int _vnidToDebug = 20367;
-#endif
-
-        //Get user's user/wish/votelists from VNDB
+        
         /// <summary>
         ///     Get user's userlist, wishlist and votelist from VNDB.
         /// </summary>
@@ -638,9 +614,9 @@ be displayed by clicking the User Related Titles (URT) filter.",
             LogToFile($"Starting GetUserRelatedTitles for {Settings.UserID}, previously had {LocalDatabase.URTList.Count} titles.");
             //clone list to make sure it doesnt keep command status.
             List<VNDatabase.UrtListItem> localURTList = LocalDatabase.URTList.Select(VNDatabase.UrtListItem.FromVN).ToList();
-            await GetUserList(localURTList);
-            await GetWishList(localURTList);
-            await GetVoteList(localURTList);
+            await Conn.GetUserList(localURTList);
+            await Conn.GetWishList(localURTList);
+            await Conn.GetVoteList(localURTList);
             LocalDatabase.BeginTransaction();
             LocalDatabase.UpdateURTTitles(Settings.UserID, localURTList);
             LocalDatabase.EndTransaction();
@@ -656,116 +632,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             WriteText(userListReply, $"Updated URT ({Conn.TitlesAdded} added).");
             ChangeAPIStatus(Conn.Status);
         }
-
-
-        /// <summary>
-        ///     Get user's userlist from VNDB, add titles that aren't in local db already.
-        /// </summary>
-        /// <param name="urtList">list of title IDs (avoids duplicate fetching)</param>
-        /// <returns>list of title IDs (avoids duplicate fetching)</returns>
-        private async Task GetUserList(List<VNDatabase.UrtListItem> urtList)
-        {
-            LogToFile("Starting GetUserList");
-            string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            //1 - fetch from VNDB using API
-            var result = await Conn.TryQuery(userListQuery, Resources.gul_query_error);
-            if (!result) return;
-            var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
-            if (ulRoot.Num == 0) return;
-            List<UserListItem> ulList = ulRoot.Items; //make list of vns in list
-            var pageNo = 1;
-            var moreResults = ulRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await Conn.TryQuery(userListQuery2, Resources.gul_query_error);
-                if (!moreResult) return;
-                var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(Conn.LastResponse.JsonPayload);
-                ulList.AddRange(ulMoreRoot.Items);
-                moreResults = ulMoreRoot.More;
-            }
-            foreach (var item in ulList)
-            {
-#if DEBUG
-                if (item.VN == _vnidToDebug) { }
-#endif
-                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
-                //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
-                //update if it already exists
-                else itemInlist.Update(item);
-            }
-        }
-
-        private async Task GetWishList(List<VNDatabase.UrtListItem> urtList)
-        {
-            LogToFile("Starting GetWishList");
-            string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            var result = await Conn.TryQuery(wishListQuery, Resources.gwl_query_error);
-            if (!result) return;
-            var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
-            if (wlRoot.Num == 0) return;
-            List<WishListItem> wlList = wlRoot.Items; //make list of vn in list
-            var pageNo = 1;
-            var moreResults = wlRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await Conn.TryQuery(wishListQuery2, Resources.gwl_query_error);
-                if (!moreResult) return;
-                var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(Conn.LastResponse.JsonPayload);
-                wlList.AddRange(wlMoreRoot.Items);
-                moreResults = wlMoreRoot.More;
-            }
-            foreach (var item in wlList)
-            {
-#if DEBUG
-                if (item.VN == _vnidToDebug) { }
-#endif
-                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
-                //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
-                //update if it already exists
-                else itemInlist.Update(item);
-            }
-        }
-
-        private async Task GetVoteList(List<VNDatabase.UrtListItem> urtList)
-        {
-            LogToFile("Starting GetVoteList");
-            string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
-            var result = await Conn.TryQuery(voteListQuery, Resources.gvl_query_error);
-            if (!result) return;
-            var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
-            if (vlRoot.Num == 0) return;
-            List<VoteListItem> vlList = vlRoot.Items; //make list of vn in list
-            var pageNo = 1;
-            var moreResults = vlRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
-                var moreResult = await Conn.TryQuery(voteListQuery2, Resources.gvl_query_error);
-                if (!moreResult) return;
-                var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(Conn.LastResponse.JsonPayload);
-                vlList.AddRange(vlMoreRoot.Items);
-                moreResults = vlMoreRoot.More;
-            }
-            foreach (var item in vlList)
-            {
-#if DEBUG
-                if (item.VN == _vnidToDebug) { }
-#endif
-                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
-                //add if it doesn't exist
-                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
-                //update if it already exists
-                else itemInlist.Update(item);
-            }
-        }
-
+        
         private async Task GetRemainingTitles()
         {
             List<int> unfetchedTitles = null;
@@ -813,12 +680,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
             DisplayCommonTagsURT();
         }
 
-#endregion
+        #endregion
 
-#region Other/General
+        #region Other/General
 
-
-        internal static bool AdvancedMode; //when true, print all api queries and responses to information tab.
+        /// <summary>
+        /// when true, print all api queries and responses to information tab.
+        /// </summary>
+        internal static bool AdvancedMode; 
         internal string CurrentFilterLabel;
 
         private void ToggleAdvancedMode(object sender, EventArgs e)
@@ -842,13 +711,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 serverR.Text = @"(Advanced Mode Disabled)";
             }
         }
-
-        internal bool VNIsByFavoriteProducer(ListedVN vn)
-        {
-            return LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
-        }
-
-
+        
         /// <summary>
         /// Populates group search box with group data from titles.
         /// </summary>
@@ -872,12 +735,11 @@ be displayed by clicking the User Related Titles (URT) filter.",
             producerFilterSource.AddRange(LocalDatabase.ProducerList.Select(v => v.Name).ToArray());
             ListByTB.AutoCompleteCustomSource = producerFilterSource;
         }
-
-
+        
         /// <summary>
         ///     Display ten most common tags in user related titles.
         /// </summary>
-        internal void DisplayCommonTagsURTClick(object sender, EventArgs e)
+        private void DisplayCommonTagsURTClick(object sender, EventArgs e)
         {
             if (sender == null || DontTriggerEvent) return;
             var checkBox = (CheckBox)sender;
@@ -1013,7 +875,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
 
         private void OnFiltersLeave(object sender, EventArgs e)
         {
-            FiltersTab?.LeftFiltersTab();
+            _filtersTab?.LeftFiltersTab();
         }
 
         /// <summary>
@@ -1097,8 +959,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             else
                 serverR.Text = "";
         }
-
-
+        
         private void VNToolTip(object sender, BrightIdeasSoftware.ToolTipShowingEventArgs e)
         {
             var vn = (ListedVN)e.Model;
@@ -1121,26 +982,14 @@ be displayed by clicking the User Related Titles (URT) filter.",
             if (notes != null && notes.Groups.Count != 0) toolTipLines.Add($"{TruncateString($"Groups: {string.Join(", ", notes.Groups)}", 50)}");
             e.Text = string.Join("\n", toolTipLines);
         }
-#endregion
-
-#region Press Enter On Text Boxes
-
-
-
-
-#endregion
-
-#region Classes/Enums
-
-
-#endregion
-
 
         private void RightClickSeeOnWebsite(object sender, EventArgs e)
         {
             if (!(tileOLV.SelectedObject is ListedVN vn)) return;
             Process.Start($"http://vndb.org/v{vn.VNID}/");
         }
+        #endregion
+
     }
 
 

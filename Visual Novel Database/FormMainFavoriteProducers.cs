@@ -213,9 +213,6 @@ This may take a while...",
         internal void LoadFPListToGui()
         {
             if (Settings.UserID < 1) return;
-            LocalDatabase.Open();
-            LocalDatabase.GetFavoriteProducersForUser(Settings.UserID);
-            LocalDatabase.Close();
             foreach (var favoriteProducer in LocalDatabase.FavoriteProducerList)
             {
                 double[] vnsWithVotes = LocalDatabase.VNList.Where(x => x.Producer.Equals(favoriteProducer.Name) && x.Rating > 0).Select(x => x.Rating).ToArray();

@@ -235,7 +235,7 @@ namespace Happy_Search
         /// <summary>
         /// Returns function to filter VNList.
         /// </summary>
-        public Func<ListedVN, bool> GetFunction(FormMain form, FiltersTab tab)
+        public Func<ListedVN, bool> GetFunction(FiltersTab tab)
         {
             var andFunctions = new List<Func<ListedVN, bool>>();
             var orFunctions = new List<Func<ListedVN, bool>>();
@@ -268,7 +268,7 @@ namespace Happy_Search
             }
             if (TraitsOn && Traits.Count > 0)
             {
-                Stopwatch watch = Stopwatch.StartNew();
+                var watch = Stopwatch.StartNew();
                 //Make list of characters which contain traits
                 List<CharacterItem> chars = LocalDatabase.CharacterList.ToList();
                 IEnumerable<CharacterItem> traitCharacters = chars.Where(x => x.ContainsTraits(t.Traits)).ToList();

@@ -44,7 +44,7 @@ namespace Happy_Search
             g.Clear(olv.BackColor);
             g.SmoothingMode = ObjectListView.SmoothingMode;
             g.TextRenderingHint = ObjectListView.TextRenderingHint;
-            DrawVNTile(g, itemBounds, rowObject, olv, e.Item.Selected);
+            DrawVNTile(g, itemBounds, rowObject, e.Item.Selected);
             // Finally render the buffered graphics
             buffered.Render();
             buffered.Dispose();
@@ -59,9 +59,8 @@ namespace Happy_Search
         /// <param name="g">A Graphics for rendering</param>
         /// <param name="itemBounds">The bounds of the item</param>
         /// <param name="rowObject">The model object to be drawn</param>
-        /// <param name="olv">OLV where tile is drawn</param>
         /// <param name="isSelected">Whether tile is selected</param>
-        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, ObjectListView olv, bool isSelected)
+        public void DrawVNTile(Graphics g, Rectangle itemBounds, object rowObject, bool isSelected)
         {
             //tile size 230,375
             //image 230-spacing, 300-spacing

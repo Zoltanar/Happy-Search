@@ -210,7 +210,7 @@ namespace Happy_Search.Other_Forms
                     : Resources.update_custom_filter;
                 var askBox2 = MessageBox.Show(message, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox2 != DialogResult.Yes) return;
-                var result = _mainForm.Conn.StartQuery(tagReply, "Update Filter Results", true, true, false);
+                var result = Conn.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
                 selectedFilter.Updated = DateTime.UtcNow;
@@ -220,7 +220,7 @@ namespace Happy_Search.Other_Forms
             {
                 var askBox = MessageBox.Show(Resources.update_custom_filter, Resources.are_you_sure, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
-                var result = _mainForm.Conn.StartQuery(tagReply, "Update Filter Results", true, true, false);
+                var result = Conn.StartQuery(tagReply, "Update Filter Results", true, true, false);
                 if (!result) return;
                 await UpdateFilterResults();
             }
@@ -235,29 +235,29 @@ namespace Happy_Search.Other_Forms
             IEnumerable<string> betterTags = _filters.Tags.Select(x => x.ID).Select(s => $"tags = {s}");
             var tags = string.Join(" and ", betterTags);
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
-            var result = await _mainForm.Conn.TryQuery(tagQuery, "UCF Query Error");
+            var result = await Conn.TryQuery(tagQuery, "UCF Query Error");
             if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
-            await _mainForm.Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
+            await Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             var pageNo = 1;
             var moreResults = vnRoot.More;
             while (moreResults)
             {
                 pageNo++;
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
-                var moreResult = await _mainForm.Conn.TryQuery(moreTagQuery, "UCFM Query Error");
+                var moreResult = await Conn.TryQuery(moreTagQuery, "UCFM Query Error");
                 if (!moreResult) return;
-                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(_mainForm.Conn.LastResponse.JsonPayload);
+                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
-                await _mainForm.Conn.GetMultipleVN(moreVNItems.Select(x => x.ID).ToArray(), false);
+                await Conn.GetMultipleVN(moreVNItems.Select(x => x.ID).ToArray(), false);
                 moreResults = moreVNRoot.More;
             }
             ReloadListsFromDb();
             _mainForm.LoadVNListToGui();
-            WriteText(_mainForm.Conn.ActiveQuery.ReplyLabel, $"Update complete, added {_mainForm.Conn.TitlesAdded} and skipped {_mainForm.Conn.TitlesSkipped} titles.");
+            WriteText(Conn.ActiveQuery.ReplyLabel, $"Update complete, added {Conn.TitlesAdded} and skipped {Conn.TitlesSkipped} titles.");
         }
 
         /// <summary>

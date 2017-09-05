@@ -69,13 +69,13 @@ namespace Happy_Search.Other_Forms
                 WriteError(prodSearchReply, Resources.enter_producer_name);
                 return;
             }
-            var result = _parentForm.Conn.StartQuery(prodSearchReply, "Producer Search",false,true,false);
+            var result = Conn.StartQuery(prodSearchReply, "Producer Search",false,true,false);
             if (!result) return;
             var producerName = producerSearchBox.Text;
             string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
-            result = await _parentForm.Conn.TryQuery(prodSearchQuery, Resources.ps_query_error);
+            result = await Conn.TryQuery(prodSearchQuery, Resources.ps_query_error);
             if (!result) return;
-            var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+            var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
             List<ProducerItem> prodItems = prodRoot.Items;
             List<ListedSearchedProducer> searchedProducers = prodItems.Select(NewListedSearchedProducer).ToList();
             var moreResults = prodRoot.More;
@@ -86,10 +86,10 @@ namespace Happy_Search.Other_Forms
                 string prodSearchMoreQuery =
                     $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult =
-                    await _parentForm.Conn.TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
+                    await Conn.TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
                 if (!moreResult) return;
                 var prodMoreRoot =
-                    JsonConvert.DeserializeObject<ProducersRoot>(_parentForm.Conn.LastResponse.JsonPayload);
+                    JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
                 List<ProducerItem> prodMoreItems = prodMoreRoot.Items;
                 searchedProducers.AddRange(prodMoreItems.Select(NewListedSearchedProducer));
                 moreResults = prodMoreRoot.More;
@@ -103,7 +103,7 @@ namespace Happy_Search.Other_Forms
                 LocalDatabase.InsertProducer((ListedProducer) producer, true);
             }
             LocalDatabase.EndTransaction();
-            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
+            _parentForm.ChangeAPIStatus(Conn.Status);
             prodSearchReply.Text = $@"{searchedProducers.Count} producers found.";
         }
         

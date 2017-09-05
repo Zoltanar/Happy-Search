@@ -44,7 +44,7 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private async void LoginWithPasswordButtonClick(object sender, EventArgs e)
         {
-            _parentForm.Conn.ActiveQuery = new ApiQuery(true, _parentForm.replyText);
+            Conn.ActiveQuery = new ApiQuery(true, _parentForm.replyText);
             if (!ValidateCredentials(true)) return;
             char[] password = PasswordBox.Text.ToCharArray();
             ClearSavedCredentials(null, null);
@@ -101,32 +101,32 @@ namespace Happy_Search.Other_Forms
         /// <param name="credentials">User's username and password</param>
         private async Task APILoginWithCredentials(KeyValuePair<string, char[]> credentials)
         {
-            if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
+            if (Conn.Status == VndbConnection.APIStatus.Error)
             {
                 replyLabel.Text = @"There was an error opening connection to API server.";
                 return;
             }
-            _parentForm.Conn.Login(ClientName, ClientVersion, credentials.Key, credentials.Value);
-            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
-            switch (_parentForm.Conn.LastResponse.Type)
+            Conn.Login(ClientName, ClientVersion, credentials.Key, credentials.Value);
+            _parentForm.ChangeAPIStatus(Conn.Status);
+            switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
                     Settings.Username = credentials.Key;
-                    Settings.UserID = await _parentForm.GetIDFromUsername(credentials.Key);
+                    Settings.UserID = await Conn.GetIDFromUsername(credentials.Key);
                     DialogResult = DialogResult.Yes;
                     return;
                 case ResponseType.Error:
-                    if (_parentForm.Conn.LastResponse.Error.ID.Equals("loggedin"))
+                    if (Conn.LastResponse.Error.ID.Equals("loggedin"))
                     {
                         //should never happen
                         replyLabel.ForeColor = Color.LightGreen;
                         replyLabel.Text = Resources.already_logged_in;
                         break;
                     }
-                    if (_parentForm.Conn.LastResponse.Error.ID.Equals("auth"))
+                    if (Conn.LastResponse.Error.ID.Equals("auth"))
                     {
                         replyLabel.ForeColor = Color.Red;
-                        replyLabel.Text = _parentForm.Conn.LastResponse.Error.Msg;
+                        replyLabel.Text = Conn.LastResponse.Error.Msg;
                         break;
                     }
                     replyLabel.ForeColor = Color.Red;
@@ -139,7 +139,7 @@ namespace Happy_Search.Other_Forms
             }
             if (FormMain.AdvancedMode)
             {
-                _parentForm.serverR.Text += _parentForm.Conn.LastResponse.JsonPayload + Environment.NewLine;
+                _parentForm.serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             }
         }
         
@@ -149,32 +149,32 @@ namespace Happy_Search.Other_Forms
         /// <param name="userId">VNDB User ID</param>
         private async Task APILoginWithUserID(int userId)
         {
-            if (_parentForm.Conn.Status == VndbConnection.APIStatus.Error)
+            if (Conn.Status == VndbConnection.APIStatus.Error)
             {
                 replyLabel.Text = @"There was an error opening connection to API server.";
                 return;
             }
             Settings.UserID = userId;
-            _parentForm.Conn.Login(ClientName, ClientVersion);
-            _parentForm.ChangeAPIStatus(_parentForm.Conn.Status);
-            switch (_parentForm.Conn.LastResponse.Type)
+            Conn.Login(ClientName, ClientVersion);
+            _parentForm.ChangeAPIStatus(Conn.Status);
+            switch (Conn.LastResponse.Type)
             {
                 case ResponseType.Ok:
-                    Settings.Username = await _parentForm.GetUsernameFromID(userId);
+                    Settings.Username = await Conn.GetUsernameFromID(userId);
                     DialogResult = DialogResult.Yes;
                     return;
                 case ResponseType.Error:
-                    if (_parentForm.Conn.LastResponse.Error.ID.Equals("loggedin"))
+                    if (Conn.LastResponse.Error.ID.Equals("loggedin"))
                     {
                         //should never happen
                         replyLabel.ForeColor = Color.LightGreen;
                         replyLabel.Text = Resources.already_logged_in;
                         break;
                     }
-                    if (_parentForm.Conn.LastResponse.Error.ID.Equals("auth"))
+                    if (Conn.LastResponse.Error.ID.Equals("auth"))
                     {
                         replyLabel.ForeColor = Color.Red;
-                        replyLabel.Text = _parentForm.Conn.LastResponse.Error.Msg;
+                        replyLabel.Text = Conn.LastResponse.Error.Msg;
                         break;
                     }
                     replyLabel.ForeColor = Color.Red;
@@ -187,7 +187,7 @@ namespace Happy_Search.Other_Forms
             }
             if (FormMain.AdvancedMode)
             {
-                _parentForm.serverR.Text += _parentForm.Conn.LastResponse.JsonPayload + Environment.NewLine;
+                _parentForm.serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
             }
         }
         

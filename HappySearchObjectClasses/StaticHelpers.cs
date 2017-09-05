@@ -98,6 +98,7 @@ namespace Happy_Apps_Core
         public static readonly CoreSettings Settings = CoreSettings.Load();
 
         public static VNDatabase LocalDatabase;
+        public static VndbConnection Conn;
 #pragma warning restore 1591
 
         static StaticHelpers()
@@ -117,6 +118,12 @@ namespace Happy_Apps_Core
                 LocalDatabase.GetAllCharacters();
                 LocalDatabase.GetUserRelatedTitles(Settings.UserID);
                 LocalDatabase.Close();
+        }
+
+
+        public static bool VNIsByFavoriteProducer(ListedVN vn)
+        {
+            return LocalDatabase.FavoriteProducerList.Exists(fp => fp.Name.Equals(vn.Producer));
         }
 
         /// <summary>

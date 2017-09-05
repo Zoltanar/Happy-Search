@@ -91,7 +91,7 @@ namespace Happy_Apps_Core
                 await Task.Run(() =>
                 {
 #if DEBUG
-                    minWait = Math.Min(1 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
+                    minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
 #else
                     minWait = Math.Min(5 * 60, LastResponse.Error.Fullwait); //wait 5 minutes
 #endif
@@ -163,7 +163,7 @@ namespace Happy_Apps_Core
         /// <param name="updateAll">If false, will skip VNs already fetched</param>
         public async Task GetMultipleVN(int[] vnIDs, bool updateAll)
         {
-            List<int> vnsToGet = new List<int>();
+            var vnsToGet = new List<int>();
             await Task.Run(() =>
             {
                 if (updateAll) vnsToGet = vnIDs.ToList();
@@ -175,44 +175,30 @@ namespace Happy_Apps_Core
                 vnsToGet.Remove(0);
             });
             if (!vnsToGet.Any()) return;
-            int[] currentArray = vnsToGet.Take(APIMaxResults).ToArray();
-            string currentArrayString = '[' + string.Join(",", currentArray) + ']';
-            string multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-            var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
-            if (!queryResult) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(LastResponse.JsonPayload);
-            RemoveDeletedVNs(vnRoot, currentArray);
-            var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
-            var producersToBeUpserted = new List<ListedProducer>();
-            await HandleVNItems(vnRoot.Items);
-            LocalDatabase.BeginTransaction();
-            vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true));
-            foreach (var producer in producersToBeUpserted) LocalDatabase.InsertProducer(producer, true);
-            LocalDatabase.EndTransaction();
-            await GetCharactersForMultipleVN(currentArray);
-            int done = APIMaxResults;
-            while (done < vnsToGet.Count)
+            int done = 0;
+            do
             {
-                currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
-                currentArrayString = '[' + string.Join(",", currentArray) + ']';
-                multiVNQuery = $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
-                queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
+                int[] currentArray = vnsToGet.Skip(done).Take(APIMaxResults).ToArray();
+                string currentArrayString = '[' + string.Join(",", currentArray) + ']';
+                string multiVNQuery =
+                    $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
+                var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
                 if (!queryResult) return;
-                vnRoot = JsonConvert.DeserializeObject<VNRoot>(LastResponse.JsonPayload);
+                var vnRoot = JsonConvert.DeserializeObject<VNRoot>(LastResponse.JsonPayload);
                 RemoveDeletedVNs(vnRoot, currentArray);
-                vnsToBeUpserted.Clear();
-                producersToBeUpserted.Clear();
-                await HandleVNItems(vnRoot.Items);
+                var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
+                var producersToBeUpserted = new List<ListedProducer>();
+                await HandleVNItems(vnRoot.Items, producersToBeUpserted, vnsToBeUpserted);
                 LocalDatabase.BeginTransaction();
                 vnsToBeUpserted.ForEach(vn => LocalDatabase.UpsertSingleVN(vn, true));
-                foreach (var producer in producersToBeUpserted) LocalDatabase.InsertProducer(producer, true);
+                producersToBeUpserted.ForEach(producer => LocalDatabase.InsertProducer(producer, true));
                 LocalDatabase.EndTransaction();
                 await GetCharactersForMultipleVN(currentArray);
                 done += APIMaxResults;
-            }
+            } while (done < vnsToGet.Count);
             ReloadListsFromDb();
 
-            async Task HandleVNItems(List<VNItem> itemList)
+            async Task HandleVNItems(List<VNItem> itemList, List<ListedProducer> upsertProducers, List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)> upsertTitles)
             {
                 foreach (var vnItem in itemList)
                 {
@@ -229,10 +215,10 @@ namespace Happy_Apps_Core
                             _changeStatusAction?.Invoke(Status);
                             return;
                         }
-                        if (gpResult.Item2 != null) producersToBeUpserted.Add(gpResult.Item2);
+                        if (gpResult.Item2 != null) upsertProducers.Add(gpResult.Item2);
                     }
                     TitlesAdded++;
-                    vnsToBeUpserted.Add((vnItem, relProducer, languages));
+                    upsertTitles.Add((vnItem, relProducer, languages));
                 }
             }
         }
@@ -348,7 +334,6 @@ namespace Happy_Apps_Core
             return (true, (ListedProducer)producer);
         }
 
-
         /// <summary>
         /// Update tags, traits and stats of titles.
         /// </summary>
@@ -410,7 +395,6 @@ namespace Happy_Apps_Core
             }
             ReloadListsFromDb();
         }
-
 
         /// <summary>
         /// Change userlist status, wishlist priority or user vote.
@@ -475,6 +459,208 @@ namespace Happy_Apps_Core
             return true;
         }
 
+        /// <summary>
+        /// Get username from VNDB user ID, returns empty string if error.
+        /// </summary>
+        public async Task<string> GetUsernameFromID(int userID)
+        {
+
+            var result = await TryQueryNoReply($"get user basic (id={userID})");
+            if (!result)
+            {
+                _changeStatusAction?.Invoke(Status);
+                return "";
+            }
+            var response = JsonConvert.DeserializeObject<UserRootItem>(LastResponse.JsonPayload);
+            return response.Items.Any() ? response.Items[0].Username : "";
+        }
+
+        /// <summary>
+        /// Get user ID from VNDB username, returns -1 if error.
+        /// </summary>
+        public async Task<int> GetIDFromUsername(string username)
+        {
+            var result = await TryQueryNoReply($"get user basic (username=\"{username}\")");
+            if (!result)
+            {
+                _changeStatusAction?.Invoke(Status);
+                return -1;
+            }
+            var response = JsonConvert.DeserializeObject<UserRootItem>(LastResponse.JsonPayload);
+            return response.Items.Any() ? response.Items[0].ID : -1;
+        }
+
+        public async Task GetLanguagesForProducers(int[] producerIDs)
+        {
+            if (!producerIDs.Any()) return;
+            var producerList = new List<ListedProducer>();
+            foreach (var producerID in producerIDs)
+            {
+                var result = await GetProducer(producerID, "GetLanguagesForProducers Error", false);
+                if (!result.Item1 || result.Item2 == null) continue;
+                producerList.Add(result.Item2);
+                TitlesAdded++;
+                if (producerList.Count > 24)
+                {
+                    LocalDatabase.BeginTransaction();
+                    foreach (var producer in producerList) LocalDatabase.SetProducerLanguage(producer);
+                    LocalDatabase.EndTransaction();
+                    producerList.Clear();
+                }
+            }
+            LocalDatabase.BeginTransaction();
+            foreach (var producer in producerList) LocalDatabase.SetProducerLanguage(producer);
+            LocalDatabase.EndTransaction();
+        }
+
+        /// <summary>
+        /// Searches VNDB for producers by name, independent.
+        /// Call StartQuery prior to it and ChangeAPIStatus afterwards.
+        /// </summary>
+        public async Task<List<ProducerItem>> AddProducersBySearchedName(string producerName)
+        {
+            string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
+            var result = await TryQuery(prodSearchQuery, Resources.ps_query_error);
+            if (!result) return null;
+            var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(LastResponse.JsonPayload);
+            List<ProducerItem> prodItems = prodRoot.Items;
+            var moreResults = prodRoot.More;
+            var pageNo = 1;
+            while (moreResults)
+            {
+                pageNo++;
+                string prodSearchMoreQuery =
+                    $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
+                var moreResult =
+                    await TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
+                if (!moreResult) return null;
+                var prodMoreRoot = JsonConvert.DeserializeObject<ProducersRoot>(LastResponse.JsonPayload);
+                prodItems.AddRange(prodMoreRoot.Items);
+                moreResults = prodMoreRoot.More;
+            }
+            for (int index = prodItems.Count - 1; index >= 0; index--)
+            {
+                if (LocalDatabase.ProducerList.Exists(x => x.Name.Equals(prodItems[index].Name))) prodItems.RemoveAt(index);
+            }
+            LocalDatabase.BeginTransaction();
+            foreach (var producer in prodItems) LocalDatabase.InsertProducer((ListedProducer)producer, true);
+            LocalDatabase.EndTransaction();
+            return prodItems;
+
+        }
+
+
+#if DEBUG
+        private const int VNIDToDebug = 20367;
+#endif
+
+        /// <summary>
+        ///     Get user's userlist from VNDB, add titles that aren't in local db already.
+        /// </summary>
+        /// <param name="urtList">list of title IDs (avoids duplicate fetching)</param>
+        /// <returns>list of title IDs (avoids duplicate fetching)</returns>
+        public async Task GetUserList(List<VNDatabase.UrtListItem> urtList)
+        {
+            LogToFile("Starting GetUserList");
+            string userListQuery = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
+            //1 - fetch from VNDB using API
+            var result = await TryQuery(userListQuery, Resources.gul_query_error);
+            if (!result) return;
+            var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(LastResponse.JsonPayload);
+            if (ulRoot.Num == 0) return;
+            List<UserListItem> ulList = ulRoot.Items; //make list of vns in list
+            var pageNo = 1;
+            var moreResults = ulRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error);
+                if (!moreResult) return;
+                var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(LastResponse.JsonPayload);
+                ulList.AddRange(ulMoreRoot.Items);
+                moreResults = ulMoreRoot.More;
+            }
+            foreach (var item in ulList)
+            {
+#if DEBUG
+                if (item.VN == VNIDToDebug) { }
+#endif
+                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
+                //add if it doesn't exist
+                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
+                //update if it already exists
+                else itemInlist.Update(item);
+            }
+        }
+
+        public async Task GetWishList(List<VNDatabase.UrtListItem> urtList)
+        {
+            LogToFile("Starting GetWishList");
+            string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
+            var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
+            if (!result) return;
+            var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(LastResponse.JsonPayload);
+            if (wlRoot.Num == 0) return;
+            List<WishListItem> wlList = wlRoot.Items; //make list of vn in list
+            var pageNo = 1;
+            var moreResults = wlRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error);
+                if (!moreResult) return;
+                var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(LastResponse.JsonPayload);
+                wlList.AddRange(wlMoreRoot.Items);
+                moreResults = wlMoreRoot.More;
+            }
+            foreach (var item in wlList)
+            {
+#if DEBUG
+                if (item.VN == VNIDToDebug) { }
+#endif
+                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
+                //add if it doesn't exist
+                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
+                //update if it already exists
+                else itemInlist.Update(item);
+            }
+        }
+
+        public async Task GetVoteList(List<VNDatabase.UrtListItem> urtList)
+        {
+            LogToFile("Starting GetVoteList");
+            string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
+            var result = await TryQuery(voteListQuery, Resources.gvl_query_error);
+            if (!result) return;
+            var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(LastResponse.JsonPayload);
+            if (vlRoot.Num == 0) return;
+            List<VoteListItem> vlList = vlRoot.Items; //make list of vn in list
+            var pageNo = 1;
+            var moreResults = vlRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
+                var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error);
+                if (!moreResult) return;
+                var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(LastResponse.JsonPayload);
+                vlList.AddRange(vlMoreRoot.Items);
+                moreResults = vlMoreRoot.More;
+            }
+            foreach (var item in vlList)
+            {
+#if DEBUG
+                if (item.VN == VNIDToDebug) { }
+#endif
+                var itemInlist = urtList.FirstOrDefault(vn => vn.ID == item.VN);
+                //add if it doesn't exist
+                if (itemInlist == null) urtList.Add(new VNDatabase.UrtListItem(item));
+                //update if it already exists
+                else itemInlist.Update(item);
+            }
+        }
 
     }
 }

@@ -22,27 +22,27 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Contains all VNs in database.
         /// </summary>
-        public List<ListedVN> VNList;
+        public List<ListedVN> VNList { get; private set; }
 
         /// <summary>
         /// Contains all producers in local database
         /// </summary>
-        public List<ListedProducer> ProducerList;
+        public List<ListedProducer> ProducerList { get; private set; }
 
         /// <summary>
         /// Contains all characters in local database
         /// </summary>
-        public List<CharacterItem> CharacterList;
+        public List<CharacterItem> CharacterList { get; private set; }
 
         /// <summary>
         /// Contains all favorite producers for logged in user
         /// </summary>
-        public List<ListedProducer> FavoriteProducerList;
+        public List<ListedProducer> FavoriteProducerList { get; private set; }
 
         /// <summary>
         /// Contains all user-related titles.
         /// </summary>
-        public List<ListedVN> URTList;
+        public List<ListedVN> URTList { get; private set; }
 
         #region Initialization
 
@@ -69,6 +69,17 @@ namespace Happy_Apps_Core
             Conn = new SQLiteConnection(dbConnectionString);
             InitDatabase();
 
+            Open();
+            GetAllTitles(Settings.UserID);
+            GetAllProducers();
+            GetAllCharacters();
+            GetUserRelatedTitles(Settings.UserID);
+            GetFavoriteProducersForUser(Settings.UserID);
+            Close();
+            LogToFile("VN Items= " + VNList.Count);
+            LogToFile("Producers= " + ProducerList.Count);
+            LogToFile("Characters= " + CharacterList.Count);
+            LogToFile("UserRelated Items= " + URTList.Count);
         }
         
         private void InitDatabase()
