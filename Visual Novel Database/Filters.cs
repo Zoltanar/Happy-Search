@@ -103,7 +103,7 @@ namespace Happy_Search
         public readonly BindingList<string> Language = new BindingList<string>();
         public readonly BindingList<string> OriginalLanguage = new BindingList<string>();
         public readonly BindingList<TagFilter> Tags = new BindingList<TagFilter>();
-        public readonly BindingList<WrittenTrait> Traits = new BindingList<WrittenTrait>();
+        public readonly BindingList<DumpFiles.WrittenTrait> Traits = new BindingList<DumpFiles.WrittenTrait>();
         /// <summary>
         /// True means OR, false means AND
         /// </summary>

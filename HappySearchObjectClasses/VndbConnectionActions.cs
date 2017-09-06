@@ -184,7 +184,7 @@ namespace Happy_Apps_Core
                     $"get vn basic,details,tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
                 if (!queryResult) return;
-                var vnRoot = JsonConvert.DeserializeObject<VNRoot>(LastResponse.JsonPayload);
+                var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
                 RemoveDeletedVNs(vnRoot, currentArray);
                 var vnsToBeUpserted = new List<(VNItem VN, ProducerItem Producer, VNLanguages Languages)>();
                 var producersToBeUpserted = new List<ListedProducer>();
@@ -206,7 +206,7 @@ namespace Happy_Apps_Core
                     var releases = await GetReleases(vnItem.ID, Resources.svn_query_error);
                     var mainRelease = releases.FirstOrDefault(item => item.Producers.Exists(x => x.Developer));
                     var relProducer = mainRelease?.Producers.FirstOrDefault(p => p.Developer);
-                    VNLanguages languages = mainRelease != null ? new VNLanguages(mainRelease.Languages, releases.SelectMany(r => r.Languages).ToArray()) : null;
+                    VNLanguages languages = new VNLanguages(vnItem.Orig_Lang, vnItem.Languages);
                     if (relProducer != null)
                     {
                         var gpResult = await GetProducer(relProducer.ID, Resources.gmvn_query_error, updateAll);
@@ -223,7 +223,7 @@ namespace Happy_Apps_Core
             }
         }
 
-        private void RemoveDeletedVNs(VNRoot root, int[] currentArray)
+        private void RemoveDeletedVNs(ResultsRoot<VNItem> root, int[] currentArray)
         {
             if (root.Num >= currentArray.Length) return;
             //some vns were deleted, find which ones and remove them
@@ -246,7 +246,7 @@ namespace Happy_Apps_Core
             string charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
             if (!queryResult) return;
-            var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(LastResponse.JsonPayload);
+            var charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
             LocalDatabase.BeginTransaction();
             foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character);
             LocalDatabase.EndTransaction();
@@ -264,7 +264,7 @@ namespace Happy_Apps_Core
                 charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
                 if (!queryResult) return;
-                charRoot = JsonConvert.DeserializeObject<CharacterRoot>(LastResponse.JsonPayload);
+                charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
                 LocalDatabase.BeginTransaction();
                 foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character);
                 LocalDatabase.EndTransaction();
@@ -284,7 +284,7 @@ namespace Happy_Apps_Core
                 charsForVNQuery = $"get character traits,vns (vn = {currentArrayString}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 queryResult = await TryQuery(charsForVNQuery, "GetCharactersForMultipleVN Query Error");
                 if (!queryResult) return false;
-                charRoot = JsonConvert.DeserializeObject<CharacterRoot>(LastResponse.JsonPayload);
+                charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(LastResponse.JsonPayload);
                 LocalDatabase.BeginTransaction();
                 foreach (var character in charRoot.Items) LocalDatabase.UpsertSingleCharacter(character);
                 LocalDatabase.EndTransaction();
@@ -305,7 +305,7 @@ namespace Happy_Apps_Core
             var releaseResult =
                 await TryQuery(developerQuery, errorMessage);
             if (!releaseResult) return null;
-            var relInfo = JsonConvert.DeserializeObject<ReleasesRoot>(LastResponse.JsonPayload);
+            var relInfo = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = relInfo.Items.Where(rel => !rel.Type.Equals("trial")).ToList();
             if (!releaseItems.Any()) releaseItems = relInfo.Items;
             releaseItems.Sort((x, y) => DateTime.Compare(StringToDate(x.Released), StringToDate(y.Released)));
@@ -327,7 +327,7 @@ namespace Happy_Apps_Core
             var producerResult =
                 await TryQuery(producerQuery, errorMessage);
             if (!producerResult) return (false, null);
-            var root = JsonConvert.DeserializeObject<ProducersRoot>(LastResponse.JsonPayload);
+            var root = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
             List<ProducerItem> producers = root.Items;
             if (!producers.Any()) return (true, null);
             var producer = producers.First();
@@ -347,7 +347,7 @@ namespace Happy_Apps_Core
             string multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
             var queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
             if (!queryResult) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
             if (vnRoot.Num < currentArray.Length)
             {
                 //some vns were deleted, find which ones and remove them
@@ -373,7 +373,7 @@ namespace Happy_Apps_Core
                 multiVNQuery = $"get vn tags,stats (id = {currentArrayString}) {{{MaxResultsString}}}";
                 queryResult = await TryQuery(multiVNQuery, Resources.gmvn_query_error);
                 if (!queryResult) return;
-                vnRoot = JsonConvert.DeserializeObject<VNRoot>(LastResponse.JsonPayload);
+                vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
                 if (vnRoot.Num < currentArray.Length)
                 {
                     //some vns were deleted, find which ones and remove them
@@ -471,7 +471,7 @@ namespace Happy_Apps_Core
                 _changeStatusAction?.Invoke(Status);
                 return "";
             }
-            var response = JsonConvert.DeserializeObject<UserRootItem>(LastResponse.JsonPayload);
+            var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
             return response.Items.Any() ? response.Items[0].Username : "";
         }
 
@@ -486,7 +486,7 @@ namespace Happy_Apps_Core
                 _changeStatusAction?.Invoke(Status);
                 return -1;
             }
-            var response = JsonConvert.DeserializeObject<UserRootItem>(LastResponse.JsonPayload);
+            var response = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(LastResponse.JsonPayload);
             return response.Items.Any() ? response.Items[0].ID : -1;
         }
 
@@ -522,7 +522,7 @@ namespace Happy_Apps_Core
             string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
             var result = await TryQuery(prodSearchQuery, Resources.ps_query_error);
             if (!result) return null;
-            var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(LastResponse.JsonPayload);
+            var prodRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
             List<ProducerItem> prodItems = prodRoot.Items;
             var moreResults = prodRoot.More;
             var pageNo = 1;
@@ -534,7 +534,7 @@ namespace Happy_Apps_Core
                 var moreResult =
                     await TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
                 if (!moreResult) return null;
-                var prodMoreRoot = JsonConvert.DeserializeObject<ProducersRoot>(LastResponse.JsonPayload);
+                var prodMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(LastResponse.JsonPayload);
                 prodItems.AddRange(prodMoreRoot.Items);
                 moreResults = prodMoreRoot.More;
             }
@@ -566,7 +566,7 @@ namespace Happy_Apps_Core
             //1 - fetch from VNDB using API
             var result = await TryQuery(userListQuery, Resources.gul_query_error);
             if (!result) return;
-            var ulRoot = JsonConvert.DeserializeObject<UserListRoot>(LastResponse.JsonPayload);
+            var ulRoot = JsonConvert.DeserializeObject<ResultsRoot<UserListItem>>(LastResponse.JsonPayload);
             if (ulRoot.Num == 0) return;
             List<UserListItem> ulList = ulRoot.Items; //make list of vns in list
             var pageNo = 1;
@@ -577,7 +577,7 @@ namespace Happy_Apps_Core
                 string userListQuery2 = $"get vnlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(userListQuery2, Resources.gul_query_error);
                 if (!moreResult) return;
-                var ulMoreRoot = JsonConvert.DeserializeObject<UserListRoot>(LastResponse.JsonPayload);
+                var ulMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<UserListItem>>(LastResponse.JsonPayload);
                 ulList.AddRange(ulMoreRoot.Items);
                 moreResults = ulMoreRoot.More;
             }
@@ -600,7 +600,7 @@ namespace Happy_Apps_Core
             string wishListQuery = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             var result = await TryQuery(wishListQuery, Resources.gwl_query_error);
             if (!result) return;
-            var wlRoot = JsonConvert.DeserializeObject<WishListRoot>(LastResponse.JsonPayload);
+            var wlRoot = JsonConvert.DeserializeObject<ResultsRoot<WishListItem>>(LastResponse.JsonPayload);
             if (wlRoot.Num == 0) return;
             List<WishListItem> wlList = wlRoot.Items; //make list of vn in list
             var pageNo = 1;
@@ -611,7 +611,7 @@ namespace Happy_Apps_Core
                 string wishListQuery2 = $"get wishlist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(wishListQuery2, Resources.gwl_query_error);
                 if (!moreResult) return;
-                var wlMoreRoot = JsonConvert.DeserializeObject<WishListRoot>(LastResponse.JsonPayload);
+                var wlMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<WishListItem>>(LastResponse.JsonPayload);
                 wlList.AddRange(wlMoreRoot.Items);
                 moreResults = wlMoreRoot.More;
             }
@@ -634,7 +634,7 @@ namespace Happy_Apps_Core
             string voteListQuery = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100}}";
             var result = await TryQuery(voteListQuery, Resources.gvl_query_error);
             if (!result) return;
-            var vlRoot = JsonConvert.DeserializeObject<VoteListRoot>(LastResponse.JsonPayload);
+            var vlRoot = JsonConvert.DeserializeObject<ResultsRoot<VoteListItem>>(LastResponse.JsonPayload);
             if (vlRoot.Num == 0) return;
             List<VoteListItem> vlList = vlRoot.Items; //make list of vn in list
             var pageNo = 1;
@@ -645,7 +645,7 @@ namespace Happy_Apps_Core
                 string voteListQuery2 = $"get votelist basic (uid = {Settings.UserID} ) {{\"results\":100, \"page\":{pageNo}}}";
                 var moreResult = await TryQuery(voteListQuery2, Resources.gvl_query_error);
                 if (!moreResult) return;
-                var vlMoreRoot = JsonConvert.DeserializeObject<VoteListRoot>(LastResponse.JsonPayload);
+                var vlMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<VoteListItem>>(LastResponse.JsonPayload);
                 vlList.AddRange(vlMoreRoot.Items);
                 moreResults = vlMoreRoot.More;
             }

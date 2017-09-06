@@ -14,6 +14,93 @@ namespace Happy_Apps_Core
         private const string TraitsJsonGz = StoredDataFolder + "traits.json.gz";
         private const string TagsJson = StoredDataFolder + "tags.json";
         private const string TraitsJson = StoredDataFolder + "traits.json";
+        
+        public class ItemWithParents
+        {
+            public int ID { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public List<string> Aliases { get; set; }
+            public bool Meta { get; set; }
+            public List<int> Parents { get; set; }
+            public int[] Children { get; set; }
+            public int[] AllIDs { get; set; }
+
+            public void SetItemChildren(List<ItemWithParents> list)
+            {
+
+                int[] children = Enumerable.Empty<int>().ToArray();
+                //LogToFile($"Getting children for {this}");
+                //new
+                int[] childrenForThisRound = list.Where(x => x.Parents.Contains(ID)).Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
+                var difference = childrenForThisRound.Length;
+                while (difference > 0)
+                {
+                    var initial = children.Length;
+                    //debug printout
+                    //IEnumerable<ItemWithParents> debuglist = childrenForThisRound.Select(childID => list.Find(x => x.ID == childID));
+                    //Debug.WriteLine(string.Join(", ", debuglist));
+                    //
+                    children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
+                    difference = children.Length - initial;
+                    var tmp = new List<int>();
+                    foreach (var child in childrenForThisRound)
+                    {
+                        IEnumerable<int> childsChildren = list.Where(x => x.Parents.Contains(child)).Select(x => x.ID);
+                        //LogToFile($"{child} has {childsChildren.Count()}");
+                        tmp.AddRange(childsChildren);
+                    }
+                    childrenForThisRound = tmp.ToArray();
+                }
+                Children = children;
+                AllIDs = children.Union(new[] { ID }).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Object contained in tag dump file
+        /// </summary>
+        public class WrittenTag : ItemWithParents
+        {
+            public int VNs { get; set; }
+            public string Cat { get; set; }
+
+            /// <summary>Returns a string that represents the current object.</summary>
+            /// <returns>A string that represents the current object.</returns>
+            /// <filterpriority>2</filterpriority>
+            public override string ToString() => Name;
+        }
+
+        /// <summary>
+        /// Object contained in trait dump file
+        /// </summary>
+        public class WrittenTrait : ItemWithParents
+        {
+            public int Chars { get; set; }
+
+            public int TopmostParent { get; set; }
+            public string TopmostParentName { get; set; }
+
+            /// <summary>Returns name of tag in the form of Root > Trait (e.g. Hair > Green)</summary>
+            public override string ToString() => $"{TopmostParentName} > {Name}";
+            
+            public void SetTopmostParent(List<WrittenTrait> plainTraits)
+            {
+                if (Parents.Count == 0)
+                {
+                    TopmostParent = ID;
+                    return;
+                }
+                var idOfParent = Parents.First();
+                while (plainTraits.Find(x => x.ID == idOfParent).Parents.Count > 0)
+                {
+                    List<int> parents = plainTraits.Find(x => x.ID == idOfParent).Parents;
+                    idOfParent = parents.First();
+                }
+                TopmostParent = idOfParent;
+                TopmostParentName = plainTraits.Find(x => x.ID == TopmostParent).Name;
+            }
+        }
 
         /// <summary>
         /// Contains all tags as in tags.json

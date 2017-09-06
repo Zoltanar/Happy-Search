@@ -845,7 +845,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
                 dbs1r.Text = Resources.dbs_unknown_error;
                 return;
             }
-            var dbInfo = JsonConvert.DeserializeObject<DbRoot>(Conn.LastResponse.JsonPayload);
+            var dbInfo = JsonConvert.DeserializeObject<DbStats>(Conn.LastResponse.JsonPayload);
             SaveObjectToJsonFile(dbInfo, DBStatsJson);
             Settings.StatsDate = DateTime.UtcNow;
             Settings.Save();
@@ -861,7 +861,7 @@ be displayed by clicking the User Related Titles (URT) filter.",
             {
                 GetNewDBStats();
             }
-            var dbXml = LoadObjectFromJsonFile<DbRoot>(DBStatsJson);
+            var dbXml = LoadObjectFromJsonFile<DbStats>(DBStatsJson);
             dbs1r.Text = Convert.ToString(dbXml.Users);
             dbs2r.Text = Convert.ToString(dbXml.Threads);
             dbs3r.Text = Convert.ToString(dbXml.Tags);

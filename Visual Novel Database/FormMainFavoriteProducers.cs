@@ -180,7 +180,7 @@ This may take a while...",
             string prodReleaseQuery = $"get release vn (producer={producer.ID}) {{{MaxResultsString}}}";
             var result = await Conn.TryQuery(prodReleaseQuery, Resources.upt_query_error);
             if (!result) return;
-            var releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
+            var releaseRoot = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(Conn.LastResponse.JsonPayload);
             List<ReleaseItem> releaseItems = releaseRoot.Items;
             List<int> producerVNList = releaseItems.SelectMany(item => item.VN.Select(x => x.ID)).ToList();
             var moreResults = releaseRoot.More;
@@ -192,7 +192,7 @@ This may take a while...",
                     $"get release vn (producer={producer.ID}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await Conn.TryQuery(prodReleaseMoreQuery, Resources.upt_query_error);
                 if (!moreResult) return;
-                releaseRoot = JsonConvert.DeserializeObject<ReleasesRoot>(Conn.LastResponse.JsonPayload);
+                releaseRoot = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(Conn.LastResponse.JsonPayload);
                 releaseItems = releaseRoot.Items;
                 producerVNList.AddRange(releaseItems.SelectMany(item => item.VN.Select(x => x.ID)));
                 moreResults = releaseRoot.More;

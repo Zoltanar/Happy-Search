@@ -139,7 +139,7 @@ namespace Happy_Search
         {
             foreach (var title in titles)
             {
-                var screenItems = JsonConvert.DeserializeObject<ScreenItem[]>(title.Screens);
+                var screenItems = JsonConvert.DeserializeObject<VNItem.ScreenItem[]>(title.Screens);
                 if (screenItems != null)
                 {
                     foreach (var screen in screenItems)
@@ -205,7 +205,7 @@ namespace Happy_Search
             string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
             var queryResult = await Conn.TryQuery(vnSearchQuery, Resources.vn_query_error);
             if (!queryResult) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
             var pageNo = 1;
             var moreResults = vnRoot.More;
@@ -215,7 +215,7 @@ namespace Happy_Search
                 vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 queryResult = await Conn.TryQuery(vnSearchQuery, Resources.vn_query_error);
                 if (!queryResult) return;
-                vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
                 vnItems.AddRange(vnRoot.Items);
                 moreResults = vnRoot.More;
             }
@@ -257,7 +257,7 @@ namespace Happy_Search
                 $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}}}";
             result = await Conn.TryQuery(vnInfoQuery, Resources.gyt_query_error);
             if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
             List<VNItem> vnItems = vnRoot.Items;
             await Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
             var pageNo = 1;
@@ -269,7 +269,7 @@ namespace Happy_Search
                     $"get vn basic (released > \"{year - 1}\" and released <= \"{year}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await Conn.TryQuery(vnInfoMoreQuery, Resources.gyt_query_error);
                 if (!moreResult) return;
-                var vnMoreRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                var vnMoreRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
                 List<VNItem> vnMoreItems = vnMoreRoot.Items;
                 await Conn.GetMultipleVN(vnMoreItems.Select(x => x.ID).ToArray(), false);
                 moreResults = vnMoreRoot.More;
@@ -686,7 +686,7 @@ namespace Happy_Search
                 return;
             }
             if (!(tileOLV.SelectedObject is ListedVN vn)) return;
-            CustomItemNotes itemNotes = vn.GetCustomItemNotes();
+            VNItem.CustomItemNotes itemNotes = vn.GetCustomItemNotes();
             StringBuilder notesSb = new StringBuilder(itemNotes.Notes);
             var result = new InputDialogBox(notesSb, "Add Note to Title", "Enter Note:").ShowDialog();
             if (result != DialogResult.OK) return;
@@ -711,7 +711,7 @@ namespace Happy_Search
                 return;
             }
             if (!(tileOLV.SelectedObject is ListedVN vn)) return;
-            CustomItemNotes itemNotes = vn.GetCustomItemNotes();
+            VNItem.CustomItemNotes itemNotes = vn.GetCustomItemNotes();
             var result = new ListDialogBox(itemNotes.Groups, "Add Title to Groups", $"{vn.Title} is in groups:").ShowDialog();
             if (result != DialogResult.OK) return;
             if (itemNotes.Groups.Any(group => group.Contains('\n')))
@@ -789,7 +789,7 @@ namespace Happy_Search
         /// <param name="replyMessage">Message to be printed if query is successful</param>
         /// <param name="vnid">ID of VN</param>
         /// <param name="itemNotes">Object containing new data to replace old</param>
-        private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
+        private async Task UpdateItemNotes(string replyMessage, int vnid, VNItem.CustomItemNotes itemNotes)
         {
             var result = Conn.StartQuery(replyText, "Update Item Notes", false, false, false);
             if (!result) return;

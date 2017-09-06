@@ -75,7 +75,7 @@ namespace Happy_Search.Other_Forms
             string prodSearchQuery = $"get producer basic (search~\"{producerName}\") {{{MaxResultsString}}}";
             result = await Conn.TryQuery(prodSearchQuery, Resources.ps_query_error);
             if (!result) return;
-            var prodRoot = JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
+            var prodRoot = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(Conn.LastResponse.JsonPayload);
             List<ProducerItem> prodItems = prodRoot.Items;
             List<ListedSearchedProducer> searchedProducers = prodItems.Select(NewListedSearchedProducer).ToList();
             var moreResults = prodRoot.More;
@@ -89,7 +89,7 @@ namespace Happy_Search.Other_Forms
                     await Conn.TryQuery(prodSearchMoreQuery, Resources.ps_query_error);
                 if (!moreResult) return;
                 var prodMoreRoot =
-                    JsonConvert.DeserializeObject<ProducersRoot>(Conn.LastResponse.JsonPayload);
+                    JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(Conn.LastResponse.JsonPayload);
                 List<ProducerItem> prodMoreItems = prodMoreRoot.Items;
                 searchedProducers.AddRange(prodMoreItems.Select(NewListedSearchedProducer));
                 moreResults = prodMoreRoot.More;

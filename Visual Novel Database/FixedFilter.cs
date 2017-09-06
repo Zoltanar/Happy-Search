@@ -21,7 +21,7 @@ namespace Happy_Search
         public string[] Language { get; set; }
         public string[] OriginalLanguage { get; set; }
         public TagFilter[] Tags { get; set; }
-        public WrittenTrait[] Traits { get; set; }
+        public DumpFiles.WrittenTrait[] Traits { get; set; }
         /// <summary>
         /// True means OR, false means AND
         /// </summary>

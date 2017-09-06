@@ -80,7 +80,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="APIClasses.cs" />
+    <Compile Include="API Objects\TopAPIObjects.cs" />
     <Compile Include="ApiQuery.cs" />
     <Compile Include="CoreSettings.cs" />
     <Compile Include="DumpFiles.cs" />
@@ -90,6 +90,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="API Objects\SubAPIObjects.cs" />
     <Compile Include="VNDatabase.cs" />
     <Compile Include="FilterClasses.cs" />
     <Compile Include="ListedVN.cs" />

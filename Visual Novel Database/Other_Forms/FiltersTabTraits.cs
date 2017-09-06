@@ -133,7 +133,7 @@ namespace Happy_Search.Other_Forms
         /// Add trait to active filter.
         /// </summary>
         /// <param name="trait"></param>
-        private void AddFilterTrait(WrittenTrait trait)
+        private void AddFilterTrait(DumpFiles.WrittenTrait trait)
         {
             if (trait == null)
             {
@@ -205,7 +205,7 @@ namespace Happy_Search.Other_Forms
             var lb = (ListBox)sender;
             traitSearchBox.Text = "";
             lb.Visible = false;
-            AddFilterTrait(lb.SelectedItem as WrittenTrait);
+            AddFilterTrait(lb.SelectedItem as DumpFiles.WrittenTrait);
         }
 
         /// <summary>

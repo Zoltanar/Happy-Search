@@ -189,7 +189,7 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="name">User-set name of filter</param>
         /// <param name="filters">List of traits in filter</param>
-        public CustomTraitFilter(string name, WrittenTrait[] filters)
+        public CustomTraitFilter(string name, DumpFiles.WrittenTrait[] filters)
         {
             Name = name;
             Filters = filters;
@@ -203,7 +203,7 @@ namespace Happy_Apps_Core
         /// <summary>
         ///     List of traits in custom filter
         /// </summary>
-        public WrittenTrait[] Filters { get; set; }
+        public DumpFiles.WrittenTrait[] Filters { get; set; }
 
         /// <summary>
         ///     Date of last update to custom filter

@@ -89,7 +89,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// List of Tags in this VN.
         /// </summary>
-        public List<TagItem> TagList { get; }
+        public List<VNItem.TagItem> TagList { get; }
 
         /// <summary>
         /// Gets characters involved in VN.
@@ -369,16 +369,16 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Get CustomItemNotes containing note and list of groups that vn is in.
         /// </summary>
-        public CustomItemNotes GetCustomItemNotes()
+        public VNItem.CustomItemNotes GetCustomItemNotes()
         {
             //
-            if (ULNote.Equals("")) return new CustomItemNotes("", new List<string>());
+            if (ULNote.Equals("")) return new VNItem.CustomItemNotes("", new List<string>());
             if (!ULNote.StartsWith("Notes: "))
             {
                 //escape ulnote
                 string fixedNote = ULNote.Replace("|", "(sep)");
                 fixedNote = fixedNote.Replace("Groups: ", "groups: ");
-                return new CustomItemNotes(fixedNote, new List<string>());
+                return new VNItem.CustomItemNotes(fixedNote, new List<string>());
             }
             int endOfNotes = ULNote.IndexOf("|", StringComparison.InvariantCulture);
             string notes;
@@ -394,7 +394,7 @@ namespace Happy_Apps_Core
                 groupsString = "";
             }
             List<string> groups = groupsString.Equals("") ? new List<string>() : groupsString.Split(',').ToList();
-            return new CustomItemNotes(notes, groups);
+            return new VNItem.CustomItemNotes(notes, groups);
         }
 
         /// <summary>

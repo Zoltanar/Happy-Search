@@ -24,7 +24,7 @@ namespace Happy_Apps_Core_Tests
             string multiVNQuery = $"get vn basic,details,tags,stats (id = 1) {{{MaxResultsString}}}";
             var queryResult = await _conn.TryQueryNoReply(multiVNQuery);
             if (!queryResult) throw new Exception("GetVN Query Failed");
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(_conn.LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(_conn.LastResponse.JsonPayload);
             var vn = vnRoot.Items.Single();
             //basic
             Assert.AreEqual(1, vn.ID, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
@@ -44,7 +44,7 @@ namespace Happy_Apps_Core_Tests
             string developerQuery = $"get release basic,producers (vn = 1) {{{MaxResultsString}}}";
             var queryResult = await _conn.TryQueryNoReply(developerQuery);
             if (!queryResult) throw new Exception("GetRelease Query Failed");
-            var relRoot = JsonConvert.DeserializeObject<ReleasesRoot>(_conn.LastResponse.JsonPayload);
+            var relRoot = JsonConvert.DeserializeObject<ResultsRoot<ReleaseItem>>(_conn.LastResponse.JsonPayload);
             var releaseItems = relRoot.Items.OrderBy(x => x.ID);
             var release = releaseItems.First();
             //basic
@@ -62,7 +62,7 @@ namespace Happy_Apps_Core_Tests
             string producerQuery = "get producer basic (id = 1)";
             var producerResult =await _conn.TryQueryNoReply(producerQuery);
             if (!producerResult) throw new Exception("GetProducer Query Failed");
-            var root = JsonConvert.DeserializeObject<ProducersRoot>(_conn.LastResponse.JsonPayload);
+            var root = JsonConvert.DeserializeObject<ResultsRoot<ProducerItem>>(_conn.LastResponse.JsonPayload);
             ProducerItem producer = root.Items.Single();
             //basic
             Assert.AreEqual(1, producer.ID, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
@@ -75,7 +75,7 @@ namespace Happy_Apps_Core_Tests
             string charsForVNQuery = $"get character traits,vns (vn = 1) {{{MaxResultsString}}}";
             var queryResult = await _conn.TryQueryNoReply(charsForVNQuery);
             if (!queryResult) throw new Exception("GetCharacter Query Failed");
-            var charRoot = JsonConvert.DeserializeObject<CharacterRoot>(_conn.LastResponse.JsonPayload);
+            var charRoot = JsonConvert.DeserializeObject<ResultsRoot<CharacterItem>>(_conn.LastResponse.JsonPayload);
             var characters = charRoot.Items.OrderBy(x => x.ID);
             var character = characters.First();
             Assert.AreEqual(1783, character.ID, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
@@ -91,14 +91,14 @@ namespace Happy_Apps_Core_Tests
             string userQuery = "get user basic (id = 1) ";
             var queryResult = await _conn.TryQueryNoReply(userQuery);
             if (!queryResult) throw new Exception("GetUser Query Failed");
-            var userRoot = JsonConvert.DeserializeObject<UserRootItem>(_conn.LastResponse.JsonPayload);
+            var userRoot = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_conn.LastResponse.JsonPayload);
             var user = userRoot.Items.Single();
             //basic
             Assert.AreEqual("multi", user.Username, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);
             userQuery = "get user basic (username = \"multi\") ";
             queryResult = await _conn.TryQueryNoReply(userQuery);
             if (!queryResult) throw new Exception("GetUser Query Failed");
-            userRoot = JsonConvert.DeserializeObject<UserRootItem>(_conn.LastResponse.JsonPayload);
+            userRoot = JsonConvert.DeserializeObject<ResultsRoot<UserItem>>(_conn.LastResponse.JsonPayload);
             user = userRoot.Items.Single();
             //basic
             Assert.AreEqual(1, user.ID, "Failed at basic, Payload: " + _conn.LastResponse.JsonPayload);

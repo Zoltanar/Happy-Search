@@ -23,7 +23,7 @@ namespace Happy_Search.Other_Forms
         private ListedVN _displayedVN;
         private ListedProducer _producer;
         private readonly bool _loadFromDb;
-        private ScreenItem[] _screens;
+        private VNItem.ScreenItem[] _screens;
         private readonly TabPage _tabPage;
         private readonly PictureBox[] _flagBoxes;
         private bool _working;
@@ -98,7 +98,7 @@ namespace Happy_Search.Other_Forms
             if (_displayedVN == null || !_displayedVN.TagList.Any()) vnTagCB.DataSource = new[] { "No Tags Found" };
             else
             {
-                var visibleTags = new List<TagItem>();
+                var visibleTags = new List<VNItem.TagItem>();
                 foreach (var tag in _displayedVN.TagList)
                 {
                     switch (tag.Category)
@@ -230,7 +230,7 @@ namespace Happy_Search.Other_Forms
             else pcbImages.Image = Resources.no_image;
         }
 
-        private void DisplayGroups(CustomItemNotes notes)
+        private void DisplayGroups(VNItem.CustomItemNotes notes)
         {
             int groupCount = notes.Groups.Count;
             if (groupCount <= 0)
@@ -326,7 +326,7 @@ namespace Happy_Search.Other_Forms
             vnTraitsCB.SelectedIndex = 0;
         }
 
-        private async Task<(FetchStatus, RelationsItem[])> GetVNRelations(ListedVN vnItem, bool update)
+        private async Task<(FetchStatus, VNItem.RelationsItem[])> GetVNRelations(ListedVN vnItem, bool update)
         {
             //relations were fetched before but nothing was found
             if (vnItem.Relations.Equals("Empty") && update == false)
@@ -336,7 +336,7 @@ namespace Happy_Search.Other_Forms
             //relations were fetched before and something was found
             if (!vnItem.Relations.Equals("") && update == false)
             {
-                var loadedRelations = JsonConvert.DeserializeObject<RelationsItem[]>(vnItem.Relations);
+                var loadedRelations = JsonConvert.DeserializeObject<VNItem.RelationsItem[]>(vnItem.Relations);
                 return (FetchStatus.Success, loadedRelations);
             }
             //relations haven't been fetched before
@@ -345,12 +345,12 @@ namespace Happy_Search.Other_Forms
                 return (FetchStatus.Throttled, null);
             }
             await Conn.TryQuery($"get vn relations (id = {vnItem.VNID})", "Relations Query Error");
-            var root = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 return (FetchStatus.Error, null);
             }
-            RelationsItem[] relations = root.Items[0].Relations;
+            VNItem.RelationsItem[] relations = root.Items[0].Relations;
             await Task.Run(() =>
             {
                 LocalDatabase.Open();
@@ -360,7 +360,7 @@ namespace Happy_Search.Other_Forms
             return (FetchStatus.Success, relations);
         }
 
-        private async Task<(FetchStatus, AnimeItem[])> GetVNAnime(ListedVN vnItem, bool update)
+        private async Task<(FetchStatus, VNItem.AnimeItem[])> GetVNAnime(ListedVN vnItem, bool update)
         {
             //anime was fetched before but nothing was found
             if (vnItem.Anime.Equals("Empty") && update == false)
@@ -370,7 +370,7 @@ namespace Happy_Search.Other_Forms
             //anime was fetched before and something was found
             if (!vnItem.Anime.Equals("") && update == false)
             {
-                var loadedAnime = JsonConvert.DeserializeObject<AnimeItem[]>(vnItem.Anime);
+                var loadedAnime = JsonConvert.DeserializeObject<VNItem.AnimeItem[]>(vnItem.Anime);
                 return (FetchStatus.Success, loadedAnime);
             }
             //anime hasn't been fetched before
@@ -379,12 +379,12 @@ namespace Happy_Search.Other_Forms
                 return (FetchStatus.Throttled, null);
             }
             await Conn.TryQuery($"get vn anime (id = {vnItem.VNID})", "Anime Query Error");
-            var root = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             if (root.Num == 0)
             {
                 return (FetchStatus.Error, null);
             }
-            AnimeItem[] animeItems = root.Items[0].Anime;
+            VNItem.AnimeItem[] animeItems = root.Items[0].Anime;
             await Task.Run(() =>
             {
                 LocalDatabase.Open();
@@ -394,15 +394,15 @@ namespace Happy_Search.Other_Forms
             return (FetchStatus.Success, animeItems);
         }
 
-        private async Task<(FetchStatus, ScreenItem[])> GetVNScreenshots(ListedVN vnItem, bool update)
+        private async Task<(FetchStatus, VNItem.ScreenItem[])> GetVNScreenshots(ListedVN vnItem, bool update)
         {
             //screenshots were fetched before but nothing was found
             if (vnItem.Screens.Equals("Empty") && update == false) return (FetchStatus.Success, null);
-            ScreenItem[] screens = null;
+            VNItem.ScreenItem[] screens = null;
             //screenshots were fetched before and something was found
             if (!vnItem.Screens.Equals("") && update == false)
             {
-                screens = JsonConvert.DeserializeObject<ScreenItem[]>(vnItem.Screens);
+                screens = JsonConvert.DeserializeObject<VNItem.ScreenItem[]>(vnItem.Screens);
                 _screens = screens;
                 foreach (var screenItem in screens)
                 {
@@ -420,7 +420,7 @@ namespace Happy_Search.Other_Forms
                 return (FetchStatus.Throttled, null);
             }
             await Conn.TryQuery($"get vn screens (id = {vnItem.VNID})", "Screens Query Error");
-            var root = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            var root = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
             if (root.Num == 0)
             {
                 return (FetchStatus.Error, null);
@@ -436,7 +436,7 @@ namespace Happy_Search.Other_Forms
             return (FetchStatus.Success, screens);
         }
 
-        private void DisplayRelations(RelationsItem[] relationItems)
+        private void DisplayRelations(VNItem.RelationsItem[] relationItems)
         {
             if (relationItems == null || !relationItems.Any())
             {
@@ -445,8 +445,8 @@ namespace Happy_Search.Other_Forms
             }
             var titleString = relationItems.Length == 1 ? "1 Relation" : $"{relationItems.Length} Relations";
             var stringList = new List<string> { titleString, "--------------" };
-            IEnumerable<IGrouping<string, RelationsItem>> groups = relationItems.GroupBy(x => x.Relation);
-            foreach (IGrouping<string, RelationsItem> group in groups)
+            IEnumerable<IGrouping<string, VNItem.RelationsItem>> groups = relationItems.GroupBy(x => x.Relation);
+            foreach (IGrouping<string, VNItem.RelationsItem> group in groups)
             {
                 stringList.AddRange(group.Select(relation => relation.Print()));
                 stringList.Add("--------------");
@@ -454,7 +454,7 @@ namespace Happy_Search.Other_Forms
             vnRelationsCB.DataSource = stringList;
         }
 
-        private void DisplayAnime(AnimeItem[] animeItems)
+        private void DisplayAnime(VNItem.AnimeItem[] animeItems)
         {
             if (animeItems == null || !animeItems.Any())
             {
@@ -467,7 +467,7 @@ namespace Happy_Search.Other_Forms
             vnAnimeCB.DataSource = stringList;
         }
 
-        private void DisplayScreenshots(ScreenItem[] screenItems)
+        private void DisplayScreenshots(VNItem.ScreenItem[] screenItems)
         {
             picturePanel.Controls.Clear();
             var dist = picturePanel.Size.Width;
@@ -578,7 +578,7 @@ namespace Happy_Search.Other_Forms
         /// <summary>
         /// DrawImage to fit a space with maxWdith, all image is shown but to stay in ratio, there can be space left below or to the right.
         /// </summary>
-        private static int DrawImageFitToWidth(Control control, int maxWidth, int locationX, ScreenItem screenItem)
+        private static int DrawImageFitToWidth(Control control, int maxWidth, int locationX, VNItem.ScreenItem screenItem)
         {
             int maxHeight = control.Height - 20;
             string photoString = screenItem.StoredLocation();
@@ -857,7 +857,7 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             if (_displayedVN == null) return;
-            CustomItemNotes itemNotes = _displayedVN.GetCustomItemNotes();
+            VNItem.CustomItemNotes itemNotes = _displayedVN.GetCustomItemNotes();
             StringBuilder notesSb = new StringBuilder(itemNotes.Notes);
             var result = new InputDialogBox(notesSb, "Add Note to Title", "Enter Note:").ShowDialog();
             if (result != DialogResult.OK) return;
@@ -883,7 +883,7 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             if (_displayedVN == null) return;
-            CustomItemNotes itemNotes = _displayedVN.GetCustomItemNotes();
+            VNItem.CustomItemNotes itemNotes = _displayedVN.GetCustomItemNotes();
             var result = new ListDialogBox(itemNotes.Groups, "Add Title to Groups", $"{_displayedVN.Title} is in groups:").ShowDialog();
             if (result != DialogResult.OK) return;
             if (itemNotes.Groups.Any(group => group.Contains('\n')))
@@ -900,7 +900,7 @@ namespace Happy_Search.Other_Forms
         /// <param name="replyMessage">Message to be printed if query is successful</param>
         /// <param name="vnid">ID of VN</param>
         /// <param name="itemNotes">Object containing new data to replace old</param>
-        private async Task UpdateItemNotes(string replyMessage, int vnid, CustomItemNotes itemNotes)
+        private async Task UpdateItemNotes(string replyMessage, int vnid, VNItem.CustomItemNotes itemNotes)
         {
             if (Working) return;
             Working = true;
@@ -950,15 +950,15 @@ namespace Happy_Search.Other_Forms
             /// <summary>
             /// VN Relations
             /// </summary>
-            public RelationsItem[] Relations;
+            public VNItem.RelationsItem[] Relations;
             /// <summary>
             /// VN Anime
             /// </summary>
-            public AnimeItem[] Anime;
+            public VNItem.AnimeItem[] Anime;
             /// <summary>
             /// VN Screenshots
             /// </summary>
-            public ScreenItem[] Screens;
+            public VNItem.ScreenItem[] Screens;
         }
 
         /// <summary>

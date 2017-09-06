@@ -135,7 +135,7 @@ namespace Happy_Search.Other_Forms
         /// Add tag to list of active tag filters.
         /// </summary>
         /// <param name="writtenTag">Tag to be added to active filter.</param>
-        private void AddFilterTag(WrittenTag writtenTag)
+        private void AddFilterTag(DumpFiles.WrittenTag writtenTag)
         {
             if (writtenTag == null)
             {
@@ -237,7 +237,7 @@ namespace Happy_Search.Other_Forms
             string tagQuery = $"get vn basic ({tags}) {{{MaxResultsString}}}";
             var result = await Conn.TryQuery(tagQuery, "UCF Query Error");
             if (!result) return;
-            var vnRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
             if (vnRoot.Num == 0) return;
             List<VNItem> vnItems = vnRoot.Items;
             await Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
@@ -249,7 +249,7 @@ namespace Happy_Search.Other_Forms
                 string moreTagQuery = $"get vn basic ({tags}) {{{MaxResultsString}, \"page\":{pageNo}}}";
                 var moreResult = await Conn.TryQuery(moreTagQuery, "UCFM Query Error");
                 if (!moreResult) return;
-                var moreVNRoot = JsonConvert.DeserializeObject<VNRoot>(Conn.LastResponse.JsonPayload);
+                var moreVNRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
                 if (vnRoot.Num == 0) break;
                 List<VNItem> moreVNItems = moreVNRoot.Items;
                 await Conn.GetMultipleVN(moreVNItems.Select(x => x.ID).ToArray(), false);
@@ -292,7 +292,7 @@ namespace Happy_Search.Other_Forms
             var lb = (ListBox)sender;
             tagSearchBox.Text = "";
             lb.Visible = false;
-            AddFilterTag(lb.SelectedItem as WrittenTag);
+            AddFilterTag(lb.SelectedItem as DumpFiles.WrittenTag);
         }
 
         /// <summary>

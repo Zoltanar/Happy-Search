@@ -479,9 +479,9 @@ namespace Happy_Apps_Core
         /// </summary>
         /// <param name="tagstring">JSON-formatted string</param>
         /// <returns>List of tags</returns>
-        public static List<TagItem> StringToTags(string tagstring)
+        public static List<VNItem.TagItem> StringToTags(string tagstring)
         {
-            if (tagstring.Equals("")) return new List<TagItem>();
+            if (tagstring.Equals("")) return new List<VNItem.TagItem>();
             var curS = $"{{\"tags\":{tagstring}}}";
             var vnitem = JsonConvert.DeserializeObject<VNItem>(curS);
             return vnitem.Tags;
@@ -493,7 +493,7 @@ namespace Happy_Apps_Core
         /// <param name="tags">Collection of tags</param>
         /// <param name="category">Category that tags should be in</param>
         /// <returns>Number of tags that match</returns>
-        public static int GetTagCountByCat(this IEnumerable<TagItem> tags, TagCategory category)
+        public static int GetTagCountByCat(this IEnumerable<VNItem.TagItem> tags, TagCategory category)
         {
             switch (category)
             {
@@ -689,7 +689,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Get path of stored screenshot (Doesn't check if it exists).
         /// </summary>
-        public static string StoredLocation(this ScreenItem screenItem)
+        public static string StoredLocation(this VNItem.ScreenItem screenItem)
         {
             string[] urlSplit = screenItem.Image.Split('/');
             return $"{VNScreensFolder}{urlSplit[urlSplit.Length - 2]}\\{urlSplit[urlSplit.Length - 1]}";
