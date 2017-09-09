@@ -17,7 +17,7 @@ using static Happy_Apps_Core.StaticHelpers;
 
 namespace Happy_Apps_Core
 {
-    public class VNDatabase
+    public partial class VNDatabase
     {
         /// <summary>
         /// Contains all VNs in database.

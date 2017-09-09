@@ -35,7 +35,9 @@ namespace Happy_Apps_Core
         public const string DefaultFiltersJson = "Program Data\\Default Files\\defaultfilters.json";
         public const string FlagsFolder = "Program Data\\Flags\\";
 
-#if DEBUG
+#if HAPPYREADER
+        public const string StoredDataFolder = @"C:\Users\Gusty\Documents\VNPC-By Zoltanar\Visual Novel Database\Visual Novel Database\bin\x64\Release\Stored Data\";
+#elif DEBUG
         public const string StoredDataFolder = "..\\Release\\Stored Data\\";
 #else
         public const string StoredDataFolder = "Stored Data\\";

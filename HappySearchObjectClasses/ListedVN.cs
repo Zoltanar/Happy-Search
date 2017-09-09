@@ -47,7 +47,7 @@ namespace Happy_Apps_Core
             ULNote = reader["ULNote"].ToString();
             WLAdded = DateTimeOffset.FromUnixTimeSeconds(DbInt(reader["WLAdded"])).UtcDateTime;
             VoteAdded = DateTimeOffset.FromUnixTimeSeconds(DbInt(reader["VoteAdded"])).UtcDateTime;
-            var tagList = StringToTags(reader["Tags"].ToString());
+            List<VNItem.TagItem> tagList = StringToTags(reader["Tags"].ToString());
             foreach (var tag in tagList) tag.SetCategory(DumpFiles.PlainTags);
             TagList = tagList;
             VNID = DbInt(reader["VNID"]);

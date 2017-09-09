@@ -549,6 +549,31 @@ namespace Happy_Apps_Core
 
         }
 
+        public async Task<int[]> SearchByNameOrAlias(string searchString)
+        {
+            string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
+            var queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error);
+            if (!queryResult) return null;
+            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+            List<VNItem> vnItems = vnRoot.Items;
+            var pageNo = 1;
+            var moreResults = vnRoot.More;
+            while (moreResults)
+            {
+                pageNo++;
+                vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
+                queryResult = await TryQuery(vnSearchQuery, Resources.vn_query_error);
+                if (!queryResult) return null;
+                vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(LastResponse.JsonPayload);
+                vnItems.AddRange(vnRoot.Items);
+                moreResults = vnRoot.More;
+            }
+            var ids = vnItems.Select(x => x.ID).ToArray();
+            await GetMultipleVN(ids, false);
+            ReloadListsFromDb();
+            _changeStatusAction?.Invoke(Status);
+            return ids;
+        }
 
 #if DEBUG
         private const int VNIDToDebug = 20367;

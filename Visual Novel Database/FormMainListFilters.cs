@@ -202,31 +202,14 @@ namespace Happy_Search
             if (!result) return;
             var searchString = ListByTB.Text;
             ListByTB.Text = "";
-            string vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}}}";
-            var queryResult = await Conn.TryQuery(vnSearchQuery, Resources.vn_query_error);
-            if (!queryResult) return;
-            var vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
-            List<VNItem> vnItems = vnRoot.Items;
-            var pageNo = 1;
-            var moreResults = vnRoot.More;
-            while (moreResults)
-            {
-                pageNo++;
-                vnSearchQuery = $"get vn basic (search ~ \"{searchString}\") {{{MaxResultsString}, \"page\":{pageNo}}}";
-                queryResult = await Conn.TryQuery(vnSearchQuery, Resources.vn_query_error);
-                if (!queryResult) return;
-                vnRoot = JsonConvert.DeserializeObject<ResultsRoot<VNItem>>(Conn.LastResponse.JsonPayload);
-                vnItems.AddRange(vnRoot.Items);
-                moreResults = vnRoot.More;
-            }
-            await Conn.GetMultipleVN(vnItems.Select(x => x.ID).ToArray(), false);
+            await Conn.SearchByNameOrAlias(searchString);
             WriteText(replyText, $"Found {Conn.TitlesAdded + Conn.TitlesSkipped} titles, {Conn.TitlesAdded}/{Conn.TitlesAdded + Conn.TitlesSkipped} added.");
-            IEnumerable<int> idList = vnItems.Select(x => x.ID);
-            _currentList = x => idList.Contains(x.VNID);
+            _currentList = vn =>
+                vn.Title.ToLowerInvariant().Contains(searchString) ||
+                vn.KanjiTitle.ToLowerInvariant().Contains(searchString) ||
+                vn.Aliases.ToLowerInvariant().Contains(searchString);
             _currentListLabel = $"{searchString} (Search)";
-            ReloadListsFromDb();
             LoadVNListToGui();
-            ChangeAPIStatus(Conn.Status);
         }
 
         /// <summary>

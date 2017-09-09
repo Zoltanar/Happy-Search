@@ -514,7 +514,6 @@ namespace Happy_Search.Other_Forms
             try
             {
                 await Conn.GetMultipleVN(new[] { _displayedVN.VNID }, true);
-                await SetNewData(_displayedVN.VNID, true);
             }
 #pragma warning disable 168
             catch (Exception ex)
@@ -526,6 +525,7 @@ namespace Happy_Search.Other_Forms
             {
                 _parentForm.ChangeAPIStatus(Conn.Status);
             }
+            await SetNewData(_displayedVN.VNID, true);
         }
 
         private void OpenVndbPage(object sender, LinkLabelLinkClickedEventArgs e)
@@ -836,6 +836,7 @@ namespace Happy_Search.Other_Forms
                 vnReplyText.Text = @"Please wait...";
                 return;
             }
+            if (_displayedVN == null) return;
             VNControlContextMenu(_displayedVN).Show(Cursor.Position.X, Cursor.Position.Y + statusChangeButton.Height);
         }
 
