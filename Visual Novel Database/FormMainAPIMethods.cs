@@ -22,7 +22,6 @@ namespace Happy_Search
         private void RefreshListAction()
         {
             ReloadListsFromDb();
-            _filtersTab?.PopulateLanguages(false);
             LoadVNListToGui();
         }
 

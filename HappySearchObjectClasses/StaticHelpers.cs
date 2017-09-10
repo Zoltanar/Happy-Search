@@ -48,8 +48,6 @@ namespace Happy_Apps_Core
         public const string DBStatsJson = StoredDataFolder + "dbs.json";
         public const string SettingsJson = StoredDataFolder + "settings.json";
         public const string CustomFiltersJson = StoredDataFolder + "customfilters.json";
-        public const string CustomTagFiltersJson = StoredDataFolder + "customtagfilters.json";
-        public const string CustomTraitFiltersJson = StoredDataFolder + "customtraitfilters.json";
         public const string FiltersJson = StoredDataFolder + "filters.json";
         public const string LogFile = StoredDataFolder + "message.log";
         public const string CoreSettingsJson = StoredDataFolder + "coresettings.json";

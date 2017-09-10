@@ -259,55 +259,7 @@ namespace Happy_Apps_Core
         /// Gets voted status of vn.
         /// </summary>
         public bool Voted => Vote >= 1;
-
-        /// <summary>
-        /// Gets wishlist status of vn.
-        /// </summary>
-        public WishlistFilter Wishlist
-        {
-            get
-            {
-                switch (WLStatus)
-                {
-                    case WishlistStatus.High:
-                        return WishlistFilter.High;
-                    case WishlistStatus.Medium:
-                        return WishlistFilter.Medium;
-                    case WishlistStatus.Low:
-                        return WishlistFilter.Low;
-                    default:
-                        return WishlistFilter.NA;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns Userlist Status of vn.
-        /// </summary>
-        public UserlistFilter Userlist
-        {
-            get
-            {
-                switch (ULStatus)
-                {
-                    case UserlistStatus.Unknown:
-                        return UserlistFilter.Unknown;
-                    case UserlistStatus.Playing:
-                        return UserlistFilter.Playing;
-                    case UserlistStatus.Finished:
-                        return UserlistFilter.Finished;
-                    case UserlistStatus.Stalled:
-                        return UserlistFilter.Stalled;
-                    case UserlistStatus.Dropped:
-                        return UserlistFilter.Dropped;
-                    default:
-                        return UserlistFilter.NA;
-                }
-            }
-        }
-
-
-
+        
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>

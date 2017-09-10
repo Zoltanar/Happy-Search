@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using BrightIdeasSoftware;
 using Happy_Search.Properties;
 using Happy_Apps_Core;
 using static Happy_Apps_Core.StaticHelpers;
@@ -31,7 +32,7 @@ namespace Happy_Search.Other_Forms
             _mainForm = parentForm;
             var tagSource = new AutoCompleteStringCollection();
             tagSource.AddRange(DumpFiles.PlainTags.Select(v => v.Name).ToArray());
-            tagSearchBox.AutoCompleteCustomSource = tagSource;
+            tagOrTraitSearchBox.AutoCompleteCustomSource = tagSource;
             string[] traitRootNames = DumpFiles.PlainTraits.Where(x => x.TopmostParentName == null).Select(x => x.Name).ToArray();
             traitRootsDropdown.Items.Clear();
             foreach (var rootName in traitRootNames)
@@ -41,273 +42,32 @@ namespace Happy_Search.Other_Forms
             }
             traitRootsDropdown.SelectedIndex = 0;
             customFilterReply.Text = "";
-            traitReply.Text = "";
-            tagReply.Text = "";
-            PopulateLanguages(true);
-            releaseDateResponse.Visible = false;
-            _doubleClickTimer.Tick += delegate { _doubleClickTimer.Stop(); };
-            _doubleClickTimer.Interval = 250;
-            SetFilterTags();
+            tagOrTraitSearchResultBox.Text = "";
+            _languages = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.All).Distinct().Select(x => new CultureInfo(x).DisplayName).OrderBy(x => x).ToArray();
+            _originalLanguages = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.Originals).Distinct().Select(x => new CultureInfo(x).DisplayName).OrderBy(x => x).ToArray();
             InitialLoadFromFile();
             _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
             _mainForm.LoadVNListToGui();
-            _filters.RefreshKind = RefreshType.None;
 
-            void SetFilterTags()
-            {
-                lengthNA.Tag = (int)LengthFilter.NA;
-                lengthUnderTwo.Tag = (int)LengthFilter.UnderTwoHours;
-                lengthTwoToTen.Tag = (int)LengthFilter.TwoToTenHours;
-                lengthTenToThirty.Tag = (int)LengthFilter.TenToThirtyHours;
-                lengthThirtyToFifty.Tag = (int)LengthFilter.ThirtyToFiftyHours;
-                lengthOverFifty.Tag = (int)LengthFilter.OverFiftyHours;
-                unreleasedWithRD.Tag = (int)UnreleasedFilter.WithReleaseDate;
-                unreleasedWithoutRD.Tag = (int)UnreleasedFilter.WithoutReleaseDate;
-                unreleasedReleased.Tag = (int)UnreleasedFilter.Released;
-
-                blacklistedYes.Tag = true;
-                blacklistedNo.Tag = false;
-
-                votedYes.Tag = true;
-                votedNo.Tag = false;
-
-                favoriteProducerYes.Tag = true;
-                favoriteProducerNo.Tag = false;
-
-                wishlistNA.Tag = (int)WishlistFilter.NA;
-                wishlistHigh.Tag = (int)WishlistFilter.High;
-                wishlistMedium.Tag = (int)WishlistFilter.Medium;
-                wishlistLow.Tag = (int)WishlistFilter.Low;
-
-                userlistNA.Tag = (int)UserlistFilter.NA;
-                userlistUnknown.Tag = (int)UserlistFilter.Unknown;
-                userlistPlaying.Tag = (int)UserlistFilter.Playing;
-                userlistFinished.Tag = (int)UserlistFilter.Finished;
-                userlistStalled.Tag = (int)UserlistFilter.Stalled;
-                userlistDropped.Tag = (int)UserlistFilter.Dropped;
-            }
         }
 
         /// <summary>
-        /// Populates Languages in comboboxes.
+        /// Languages of all releases
         /// </summary>
-        internal void PopulateLanguages(bool firstTime)
-        {
-            var autoCompleteLanguages = new AutoCompleteStringCollection { "(Language)" };
-            var autoCompleteOriginalLanguages = new AutoCompleteStringCollection { "(Language)" };
-            var langList = new HashSet<string>();
-            var origLangList = new HashSet<string>();
-            foreach (var vn in LocalDatabase.VNList)
-            {
-                if (vn.Languages == null) continue;
-                foreach (var lang in vn.Languages.All)
-                {
-                    langList.Add(new CultureInfo(lang).DisplayName);
-                }
-                foreach (var lang in vn.Languages.Originals)
-                {
-                    origLangList.Add(new CultureInfo(lang).DisplayName);
-                }
-            }
-            autoCompleteLanguages.AddRange(langList.ToArray());
-            autoCompleteOriginalLanguages.AddRange(origLangList.ToArray());
-            if (firstTime)
-            {
-                languageCB.AutoCompleteCustomSource = autoCompleteLanguages;
-                languageCB.DataSource = autoCompleteLanguages;
-                originalLanguageCB.AutoCompleteCustomSource = autoCompleteOriginalLanguages;
-                originalLanguageCB.DataSource = autoCompleteOriginalLanguages;
-            }
-            else
-            {
-                Invoke(new MethodInvoker(() =>
-                {
-                    languageCB.AutoCompleteCustomSource = autoCompleteLanguages;
-                    languageCB.DataSource = autoCompleteLanguages;
-                    originalLanguageCB.AutoCompleteCustomSource = autoCompleteOriginalLanguages;
-                    originalLanguageCB.DataSource = autoCompleteOriginalLanguages;
-                }));
-            }
-        }
+        private readonly string[] _languages;
 
-        private void ToggleThisFilter(object sender, EventArgs e)
-        {
-            CheckBox checkBox = (CheckBox) sender;
-            checkBox.Text = checkBox.Checked ? "On" : "Off";
-            var panel = checkBox.Parent;
-            //12 panels
-            if (panel == lengthPanel) //1
-            {
-                _filters.LengthOn = checkBox.Checked;
-            }
-            else if (panel == releaseDatePanel) //2
-            {
-                _filters.ReleaseDateOn = checkBox.Checked;
-            }
-            else if (panel == unreleasedPanel) //3
-            {
-                _filters.UnreleasedOn = checkBox.Checked;
-            }
-            else if (panel == blacklistedPanel) //4
-            {
-                _filters.BlacklistedOn = checkBox.Checked;
-            }
-            else if (panel == votedPanel) //5
-            {
-                _filters.VotedOn = checkBox.Checked;
-            }
-            else if (panel == favoriteProducerPanel) //6
-            {
-                _filters.FavoriteProducersOn = checkBox.Checked;
-            }
-            else if (panel == wishlistPanel) //7
-            {
-                _filters.WishlistOn = checkBox.Checked;
-            }
-            else if (panel == userlistPanel) //8
-            {
-                _filters.UserlistOn = checkBox.Checked;
-            }
-            else if (panel == languagePanel) //9
-            {
-                _filters.LanguageOn = checkBox.Checked;
-            }
-            else if (panel == originalLanguagePanel) //10
-            {
-                _filters.OriginalLanguageOn = checkBox.Checked;
-            }
-            else if (panel == tagsPanel) //11
-            {
-                _filters.TagsOn = checkBox.Checked;
-            }
-            else if (panel == traitsPanel) //12
-            {
-                _filters.TraitsOn = checkBox.Checked;
-            }
-        }
+        /// <summary>
+        /// Languages of all original releases
+        /// </summary>
+        private readonly string[] _originalLanguages;
 
-        private DateRange GetReleaseDateFromGui()
-        {
-            releaseDateResponse.Visible = false;
-            try
-            {
-                var fromDate = new DateTime((int)releaseDateFromYear.Value,
-                    releaseDateFromMonth.Items.IndexOf(releaseDateFromMonth.Text) + 1,
-                    (int)releaseDateFromDay.Value);
-                var toDate = new DateTime((int)releaseDateToYear.Value,
-                    releaseDateToMonth.Items.IndexOf(releaseDateToMonth.Text) + 1,
-                    (int)releaseDateToDay.Value);
-                return new DateRange(fromDate, toDate);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                releaseDateResponse.Visible = true;
-                return new DateRange();
-            }
-        }
 
         /// <summary>
         /// Show Filters from object on GUI
         /// </summary>
         private void SetFiltersToGui()
         {
-            lengthTF.Checked = _filters.LengthOn;
-            releaseDateTF.Checked = _filters.ReleaseDateOn;
-            unreleasedTF.Checked = _filters.UnreleasedOn;
-            blacklistedTF.Checked = _filters.BlacklistedOn;
-            votedTF.Checked = _filters.VotedOn;
-            favoriteProducerTF.Checked = _filters.FavoriteProducersOn;
-            wishlistTF.Checked = _filters.WishlistOn;
-            userlistTF.Checked = _filters.UserlistOn;
-            languageTF.Checked = _filters.LanguageOn;
-            originalLanguageTF.Checked = _filters.OriginalLanguageOn;
-            tagsTF.Checked = _filters.TagsOn;
-            traitsTF.Checked = _filters.TraitsOn;
-
-            SetLengthFilter();
-            SetReleaseDateFilter();
-            SetUnreleasedFilter();
-            (_filters.Blacklisted ? blacklistedYes : blacklistedNo).Checked = true;
-            (_filters.Voted ? votedYes : votedNo).Checked = true;
-            (_filters.FavoriteProducers ? favoriteProducerYes : favoriteProducerNo).Checked = true;
-            SetWishlistFilter();
-            SetUserlistFilter();
-
-            lengthFixed.Checked = _filters.LengthFixed;
-            releaseDateFixed.Checked = _filters.ReleaseDateFixed;
-            unreleasedFixed.Checked = _filters.UnreleasedFixed;
-            blacklistedFixed.Checked = _filters.BlacklistedFixed;
-            votedFixed.Checked = _filters.VotedFixed;
-            favoriteProducerFixed.Checked = _filters.FavoriteProducersFixed;
-            wishlistFixed.Checked = _filters.WishlistFixed;
-            userlistFixed.Checked = _filters.UserlistFixed;
-            languageFixed.Checked = _filters.LanguageFixed;
-            originalLanguageFixed.Checked = _filters.OriginalLanguageFixed;
-            tagsFixed.Checked = _filters.TagsFixed;
-            traitsFixed.Checked = _filters.TraitsFixed;
-
-            void SetLengthFilter()
-            {
-                lengthNA.Checked = _filters.Length.HasFlag(LengthFilter.NA);
-                lengthUnderTwo.Checked = _filters.Length.HasFlag(LengthFilter.UnderTwoHours);
-                lengthTwoToTen.Checked = _filters.Length.HasFlag(LengthFilter.TwoToTenHours);
-                lengthTenToThirty.Checked = _filters.Length.HasFlag(LengthFilter.TenToThirtyHours);
-                lengthThirtyToFifty.Checked = _filters.Length.HasFlag(LengthFilter.ThirtyToFiftyHours);
-                lengthOverFifty.Checked = _filters.Length.HasFlag(LengthFilter.OverFiftyHours);
-            }
-            void SetReleaseDateFilter()
-            {
-                releaseDateFromDay.Value = _filters.ReleaseDate.From.Day;
-                releaseDateFromMonth.SelectedIndex = _filters.ReleaseDate.From.Month-1;
-                releaseDateFromYear.Value = _filters.ReleaseDate.From.Year;
-                releaseDateToDay.Value = _filters.ReleaseDate.To.Day;
-                releaseDateToMonth.SelectedIndex = _filters.ReleaseDate.To.Month-1;
-                releaseDateToYear.Value = _filters.ReleaseDate.To.Year;
-            }
-            void SetUnreleasedFilter()
-            {
-                unreleasedWithoutRD.Checked = _filters.Unreleased.HasFlag(UnreleasedFilter.WithoutReleaseDate);
-                unreleasedWithRD.Checked = _filters.Unreleased.HasFlag(UnreleasedFilter.WithReleaseDate);
-                unreleasedReleased.Checked = _filters.Unreleased.HasFlag(UnreleasedFilter.Released);
-            }
-            void SetWishlistFilter()
-            {
-                wishlistNA.Checked = _filters.Wishlist.HasFlag(WishlistFilter.NA);
-                wishlistHigh.Checked = _filters.Wishlist.HasFlag(WishlistFilter.High);
-                wishlistMedium.Checked = _filters.Wishlist.HasFlag(WishlistFilter.Medium);
-                wishlistLow.Checked = _filters.Wishlist.HasFlag(WishlistFilter.Low);
-            }
-            void SetUserlistFilter()
-            {
-                userlistNA.Checked = _filters.Userlist.HasFlag(UserlistFilter.NA);
-                userlistUnknown.Checked = _filters.Userlist.HasFlag(UserlistFilter.Unknown);
-                userlistPlaying.Checked = _filters.Userlist.HasFlag(UserlistFilter.Playing);
-                userlistFinished.Checked = _filters.Userlist.HasFlag(UserlistFilter.Finished);
-                userlistStalled.Checked = _filters.Userlist.HasFlag(UserlistFilter.Stalled);
-                userlistDropped.Checked = _filters.Userlist.HasFlag(UserlistFilter.Dropped);
-            }
-        }
-
-        private readonly Timer _doubleClickTimer = new Timer();
-        private int _doubleClickCount;
-
-        private void FilterCheckboxClick(object sender, MouseEventArgs e)
-        {
-            if (!_doubleClickTimer.Enabled)
-            {
-                _doubleClickTimer.Start();
-                _doubleClickCount = 0;
-            }
-            _doubleClickCount++;
-            if (_doubleClickCount < 2) return;
-            _doubleClickTimer.Stop();
-            var filter = (CheckBox)sender;
-            foreach (Control control in filter.Parent.Controls)
-            {
-                var box = control as CheckBox;
-                if (box == null || box.Appearance == Appearance.Button) continue;
-                box.Checked = box == sender;
-            }
+            //TODO
         }
 
         private void FilterChanged(object sender, EventArgs e)
@@ -339,101 +99,12 @@ namespace Happy_Search.Other_Forms
             }
         }
 
-        private void FilterFixedChanged(object sender, EventArgs e)
-        {
-            var checkBox = (CheckBox)sender;
-            checkBox.Text = checkBox.Checked ? "Fixed" : "Not Fixed";
-            //
-            var panel = checkBox.Parent;
-            //12 panels
-            if (panel == lengthPanel) //1
-            {
-                _filters.LengthFixed = checkBox.Checked;
-            }
-            else if (panel == releaseDatePanel) //2
-            {
-                _filters.ReleaseDateFixed = checkBox.Checked;
-            }
-            else if (panel == unreleasedPanel) //3
-            {
-                _filters.UnreleasedFixed = checkBox.Checked;
-            }
-            else if (panel == blacklistedPanel) //4
-            {
-                _filters.BlacklistedFixed = checkBox.Checked;
-            }
-            else if (panel == votedPanel) //5
-            {
-                _filters.VotedFixed = checkBox.Checked;
-            }
-            else if (panel == favoriteProducerPanel) //6
-            {
-                _filters.FavoriteProducersFixed = checkBox.Checked;
-            }
-            else if (panel == wishlistPanel) //7
-            {
-                _filters.WishlistFixed = checkBox.Checked;
-            }
-            else if (panel == userlistPanel) //8
-            {
-                _filters.UserlistFixed = checkBox.Checked;
-            }
-            else if (panel == languagePanel) //9
-            {
-                _filters.LanguageFixed = checkBox.Checked;
-            }
-            else if (panel == originalLanguagePanel) //10
-            {
-                _filters.OriginalLanguageFixed = checkBox.Checked;
-            }
-            else if (panel == tagsPanel) //11
-            {
-                _filters.TagsFixed = checkBox.Checked;
-            }
-            else if (panel == traitsPanel) //12
-            {
-                _filters.TraitsFixed = checkBox.Checked;
-            }
-        }
-
-        private void ChangeTagsOrTraits(object sender, EventArgs e)
-        {
-            tagsOrTraits.Text = tagsOrTraits.Checked ? "Tags OR Traits" : "Tags AND Traits";
-            _filters.TagsTraitsMode = tagsOrTraits.Checked;
-        }
-
-        private void AddOriginalLanguage(object sender, EventArgs e)
-        {
-            var language = originalLanguageCB.Text;
-            if (language == "(Language)") return;
-            if (_filters.OriginalLanguage.Contains(language)) return;
-            if (!_filters.OriginalLanguage.Contains(language)) _filters.OriginalLanguage.Add(language);
-        }
-
-        private void AddOriginalLanguageEnter(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter) AddOriginalLanguage(sender, null);
-        }
-
-        private void AddLanguage(object sender, EventArgs e)
-        {
-            var language = languageCB.Text;
-            if (language == "(Language)") return;
-            if (_filters.Language.Contains(language)) return;
-            if (!_filters.Language.Contains(language)) _filters.Language.Add(language);
-        }
-
-        private void AddLanguageEnter(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter) AddLanguage(sender, null);
-        }
-
         private void RemoveFromListBox(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Delete) return;
             if (!(sender is ListBox listbox)) return;
             var selectedItem = listbox.SelectedItem;
-            ((IList) listbox.DataSource).Remove(selectedItem);
+            ((IList)listbox.DataSource).Remove(selectedItem);
         }
 
         private void SaveFilters() => _filters.SaveFilters(FiltersJson);
@@ -512,30 +183,8 @@ namespace Happy_Search.Other_Forms
             new HtmlForm($"file:///{helpFile}").Show();
         }
 
-        private void ChangeMultiFilter(object sender, EventArgs e)
-        {
-            var checkBox = (CheckBox)sender;
-            var panel = checkBox.Parent;
-            var toggle = panel.Controls.Find(panel.Name.Replace("Panel", "TF"), false).FirstOrDefault();
-            if (toggle == null || !((CheckBox)toggle).Checked) return;
-            if (panel == lengthPanel)
-                _filters.Length = _filters.Length.SetFlag((LengthFilter)checkBox.Tag, checkBox.Checked);
-            else if (panel == unreleasedPanel)
-                _filters.Unreleased = _filters.Unreleased.SetFlag((UnreleasedFilter)checkBox.Tag, checkBox.Checked);
-            else if (panel == wishlistPanel)
-                _filters.Wishlist = _filters.Wishlist.SetFlag((WishlistFilter)checkBox.Tag, checkBox.Checked);
-            else if (panel == userlistPanel)
-                _filters.Userlist = _filters.Userlist.SetFlag((UserlistFilter)checkBox.Tag, checkBox.Checked);
-        }
-
         private void InitialLoadFromFile()
         {
-            _customTagFilters.Clear();
-            var loadedTagFilters = LoadObjectFromJsonFile<List<CustomTagFilter>>(CustomTagFiltersJson);
-            if (loadedTagFilters != null) _customTagFilters.AddRange(loadedTagFilters);
-            _customTraitFilters.Clear();
-            var loadedTraitFilters = LoadObjectFromJsonFile<List<CustomTraitFilter>>(CustomTraitFiltersJson);
-            if (loadedTraitFilters != null) _customTraitFilters.AddRange(loadedTraitFilters);
             _customFilters.Clear();
             var loadedCustomFilters = LoadObjectFromJsonFile<List<CustomFilter>>(CustomFiltersJson) ?? LoadObjectFromJsonFile<List<CustomFilter>>(DefaultFiltersJson);
             if (loadedCustomFilters != null) _customFilters.AddRange(loadedCustomFilters);
@@ -543,75 +192,324 @@ namespace Happy_Search.Other_Forms
             DontTriggerEvent = true;
             filterDropdown.DataSource = _customFilters;
             _mainForm.filterDropdown.DataSource = _customFilters;
-            tagFiltersCB.DataSource = _customTagFilters;
-            traitFiltersCB.DataSource = _customTraitFilters;
-            originalLanguageLB.DataSource = _customTraitFilters;
-            if (_customTagFilters.Count > 0) tagFiltersCB.SelectedIndex = 0;
-            if (_customTraitFilters.Count > 0) traitFiltersCB.SelectedIndex = 0;
             if (_customFilters.Count > 0) filterDropdown.SelectedIndex = 0;
             if (_customFilters.Count > 0) _mainForm.filterDropdown.SelectedIndex = 0;
-            languageLB.DataSource = _filters.Language;
-            originalLanguageLB.DataSource = _filters.OriginalLanguage;
-            tagsLB.DataSource = _filters.Tags;
-            traitsLB.DataSource = _filters.Traits;
             DontTriggerEvent = false;
             SetFiltersToGui();
         }
 
-        private void FilterStateChanged(object sender, EventArgs e)
+        #region Tags
+
+
+        /// <summary>
+        /// Search for tags by name/alias entered by user.
+        /// </summary>
+        private void AddTagBySearch(string tagName, bool showResults)
         {
-            var control = (Control) sender;
-            if (!(control as RadioButton)?.Checked ?? false) return;
-            var panel = control.Parent;
-            //12 panels
-            if (panel == lengthPanel) //1
+            //if exact match is found, add it
+            var exact = DumpFiles.PlainTags.Find(tag => tag.Name.Equals(tagName, StringComparison.InvariantCultureIgnoreCase));
+            if (exact != null && !showResults)
             {
-                _filters.Length = (LengthFilter)GetIntFromCheckboxes(lengthPanel);
+                tagOrTraitSearchBox.Text = "";
+                AddFilterTag(exact);
+                return;
             }
-            else if (panel == releaseDatePanel) //2
+            //find all results with similar name or alias
+            var results = DumpFiles.PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(tagName) ||
+                                                         t.Aliases.Exists(a => a.ToLowerInvariant().Contains(tagName))).ToArray();
+            //if no results, return not found
+            if (results.Length == 0)
             {
-                _filters.ReleaseDate = GetReleaseDateFromGui();
+                WriteError(tagOrTraitReply, $"Tag {tagOrTraitSearchBox.Text} not found.");
+                return;
             }
-            else if (panel == unreleasedPanel) //3
+            //if only one result, add it
+            if (results.Length == 1)
             {
-                _filters.Unreleased = (UnreleasedFilter)GetIntFromCheckboxes(unreleasedPanel);
+                tagOrTraitSearchBox.Text = "";
+                AddFilterTag(results.First());
+                return;
             }
-            else if (panel == blacklistedPanel) //4
+            //if several results, show list.
+            tagOrTraitSearchResultBox.Items.Clear();
+            // ReSharper disable once CoVariantArrayConversion
+            tagOrTraitSearchResultBox.Items.AddRange(results);
+            tagOrTraitSearchResultBox.Visible = true;
+
+        }
+
+        /// <summary>
+        /// Add tag to list of active tag filters.
+        /// </summary>
+        /// <param name="writtenTag">Tag to be added to active filter.</param>
+        private void AddFilterTag(DumpFiles.WrittenTag writtenTag)
+        {
+            if (writtenTag == null)
             {
-                _filters.Blacklisted = blacklistedPanel.GetRadioOption();
+                WriteError(tagOrTraitReply, "Tag not found.");
+                return;
             }
-            else if (panel == votedPanel) //5
+            //save tag as tag and children
+            int[] children = Enumerable.Empty<int>().ToArray();
+            var difference = 1;
+            //new
+            int[] childrenForThisRound = DumpFiles.PlainTags.Where(x => x.Parents.Contains(writtenTag.ID))
+                .Select(x => x.ID).ToArray(); //at this moment, it contains direct subtags
+            while (difference > 0)
             {
-                _filters.Voted = votedPanel.GetRadioOption();
+                var initial = children.Length;
+                children = children.Union(childrenForThisRound).ToArray(); //first time, adds direct subtags, second time it adds 2-away subtags, etc...
+                difference = children.Length - initial;
+                var tmp = new List<int>();
+                foreach (var child in childrenForThisRound) tmp.AddRange(DumpFiles.PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
+                childrenForThisRound = tmp.ToArray();
             }
-            else if (panel == favoriteProducerPanel) //6
+            var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, children);
+            filterValueCombobox.DataSource = new[] { newFilter };
+            WriteText(tagOrTraitReply, $"Tag {writtenTag.Name} selected.");
+        }
+
+        /// <summary>
+        /// Whether Visual Novel matches list of active tag filters.
+        /// </summary>
+        /// <param name="vn">Visual Novel to be checked</param>
+        /// <returns>Whether it matches</returns>
+        public bool VNMatchesTagFilter(ListedVN vn)
+        {
+            //TODO
+            /*int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
+            var filtersMatched = _filters.Tags?.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
+            if (filtersMatched == null) return false;
+            return filtersMatched == _filters.Tags.Count;*/
+            return true;
+        }
+
+
+        #endregion
+
+        #region Traits
+
+
+        /// <summary>
+        ///     Add trait with name entered by user under selected trait type.
+        /// </summary>
+        private void AddTraitBySearch(string traitName, bool showResults)
+        {
+            var root = DumpFiles.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            var exact = DumpFiles.PlainTraits.Find(x => x.Name.Equals(traitName, StringComparison.InvariantCultureIgnoreCase) &&
+                    x.TopmostParent == root.ID);
+            if (exact != null && !showResults)
             {
-                _filters.FavoriteProducers = favoriteProducerPanel.GetRadioOption();
+                tagOrTraitSearchBox.Text = "";
+                filterValueCombobox.DataSource = new[] { exact };
+                WriteText(tagOrTraitReply, $"Added trait {exact}");
+                return;
             }
-            else if (panel == wishlistPanel) //7
+            tagOrTraitSearchResultBox.Visible = false;
+            if (tagOrTraitSearchBox.Text == "") //check if box is empty
             {
-                _filters.Wishlist = (WishlistFilter)GetIntFromCheckboxes(wishlistPanel);
+                WriteError(tagOrTraitReply, "Enter trait name.");
+                return;
             }
-            else if (panel == userlistPanel) //8
+            var text = tagOrTraitSearchBox.Text.ToLowerInvariant();
+            var results = DumpFiles.PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+                                                           t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
+            if (results.Length == 0)
             {
-                _filters.Userlist = (UserlistFilter)GetIntFromCheckboxes(userlistPanel);
+                WriteError(tagOrTraitReply, "No traits with that name/alias found.");
+                return;
             }
-            else if (panel == languagePanel) //9
+            if (results.Length == 1)
             {
-                _filters.LanguageOn = languageTF.Checked;
+                tagOrTraitSearchBox.Text = "";
+                WriteText(tagOrTraitReply, $"Added trait {results.First()}");
+                filterValueCombobox.DataSource = new[] { results.First() };
+                return;
             }
-            else if (panel == originalLanguagePanel) //10
+            tagOrTraitSearchResultBox.Items.Clear();
+            // ReSharper disable once CoVariantArrayConversion
+            tagOrTraitSearchResultBox.Items.AddRange(results);
+            tagOrTraitSearchResultBox.Visible = true;
+        }
+
+        /// <summary>
+        ///     Change selected trait type.
+        /// </summary>
+        private void TraitRootChanged(object sender, EventArgs e)
+        {
+            if (traitRootsDropdown.SelectedIndex < 0) return;
+            var trait = DumpFiles.PlainTraits.Find(x => x.Name.Equals(traitRootsDropdown.SelectedItem));
+            if (trait == null)
             {
-                _filters.OriginalLanguageOn = originalLanguageTF.Checked;
+                WriteError(tagOrTraitReply, "Root trait not found.");
+                return;
             }
-            else if (panel == tagsPanel) //11
+            var traitSource = new AutoCompleteStringCollection();
+            traitSource.AddRange(DumpFiles.PlainTraits.Where(x => x.TopmostParent == trait.ID).Select(x => x.Name).ToArray());
+            tagOrTraitSearchBox.AutoCompleteCustomSource = traitSource;
+        }
+
+        #endregion
+        //new
+
+        /// <summary>
+        /// Clear results list from view.
+        /// </summary>
+        private void ClearTagOrTraitResults(object sender, EventArgs e)
+        {
+            tagOrTraitSearchResultBox.Visible = false;
+        }
+        
+        private void AddTagOrTraitBySearch(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            SearchTagsOrTraits(false);
+        }
+
+        private void AddTagOrTraitFromList(object sender, EventArgs e)
+        {
+            var type = filterTypeCombobox.SelectedItem as string;
+            Debug.Assert(type != null, nameof(type) + " != null");
+            if (type.Equals("Tags")) AddTagOrTraitFromList<DumpFiles.WrittenTag>();
+            if (type.Equals("Traits")) AddTagOrTraitFromList<DumpFiles.WrittenTrait>();
+        }
+
+        private void SearchTagsOrTraits(object sender, EventArgs e)
+        {
+            SearchTagsOrTraits(true);
+        }
+
+        private void SearchTagsOrTraits(bool showResults)
+        {
+            var type = filterTypeCombobox.SelectedItem as string;
+            Debug.Assert(type != null, nameof(type) + " != null");
+            if (tagOrTraitSearchBox.Text == "") //check if box is empty
             {
-                _filters.TagsOn = tagsTF.Checked;
+                WriteError(tagOrTraitReply, $"Enter {type.Replace("s", "")} name.");
+                return;
             }
-            else if (panel == traitsPanel) //12
+            tagOrTraitSearchResultBox.Visible = false;
+            string searchString = tagOrTraitSearchBox.Text.ToLowerInvariant();
+            if (type.Equals("Tags")) AddTagBySearch(searchString, showResults);
+            if (type.Equals("Traits")) AddTraitBySearch(searchString, showResults);
+        }
+
+        private void FilterTypeChanged(object sender, EventArgs e)
+        {
+            excludeFilterCheckbox.Visible = true;
+            tagOrTraitReply.Text = "";
+            traitRootsDropdown.Visible = false;
+            tagOrTraitSearchBox.Visible = false;
+            tagOrTraitSearchButton.Visible = false;
+            object dataSource = null;
+            switch (filterTypeCombobox.SelectedItem as string)
             {
-                _filters.TraitsOn = traitsTF.Checked;
+                case "Length":
+                    dataSource = (from LengthFilter item in Enum.GetValues(typeof(LengthFilter))
+                                  select new ComboBoxItem(item, item.GetDescription())).ToList();
+                    break;
+                case "Released Between":
+                    //TODO
+                    break;
+                case "Release Status":
+                    dataSource = (from UnreleasedFilter item in Enum.GetValues(typeof(UnreleasedFilter))
+                                  select new ComboBoxItem(item, item.GetDescription())).ToList();
+                    break;
+                case "Voted":
+                case "Blacklisted":
+                case "By Favorite Producer":
+                    excludeFilterCheckbox.Visible = false;
+                    dataSource = new[] { "Include", "Exclude" };
+                    break;
+                case "Wishlist Status":
+                    dataSource = (from WishlistStatus item in Enum.GetValues(typeof(WishlistStatus))
+                                  select new ComboBoxItem(item, item.ToString())).ToList();
+                    break;
+                case "Userlist Status":
+                    dataSource = (from UserlistStatus item in Enum.GetValues(typeof(UserlistStatus))
+                                  select new ComboBoxItem(item, item.ToString())).ToList();
+                    break;
+                case "Language":
+                    dataSource = _languages;
+                    break;
+                case "Original Language":
+                    dataSource = _originalLanguages;
+                    break;
+                case "Tags":
+                    //TODO
+                    tagOrTraitSearchBox.Visible = true;
+                    tagOrTraitSearchButton.Visible = true;
+                    break;
+                case "Traits":
+                    //TODO
+                    traitRootsDropdown.Visible = true;
+                    tagOrTraitSearchBox.Visible = true;
+                    tagOrTraitSearchButton.Visible = true;
+                    break;
+            }
+            filterValueCombobox.DataSource = dataSource;
+        }
+
+        private void AddPermanentFilterClick(object sender, EventArgs e)
+        {
+            var item = filterValueCombobox.SelectedItem;
+            var filter = new NewFilter(filterTypeCombobox.SelectedItem as string, item, excludeFilterCheckbox.Checked);
+            if (orGroupCheckbox.Checked) permanentOrListbox.Items.Add(filter);
+            else permanentAndListbox.Items.Add(filter);
+        }
+        private void AddFilterClick(object sender, EventArgs e)
+        {
+            var item = filterValueCombobox.SelectedItem;
+            var filter = new NewFilter(filterTypeCombobox.SelectedItem as string, item, excludeFilterCheckbox.Checked);
+            if (orGroupCheckbox.Checked) customOrListbox.Items.Add(filter);
+            else customAndListbox.Items.Add(filter);
+        }
+
+        /// <summary>
+        /// Add trait from search results.
+        /// </summary>
+        private void AddTagOrTraitFromList<T>() where T : DumpFiles.ItemWithParents
+        {
+            tagOrTraitSearchBox.Text = "";
+            tagOrTraitSearchResultBox.Visible = false;
+            filterValueCombobox.DataSource = new[] { tagOrTraitSearchResultBox.SelectedItem as T };
+        }
+
+
+        /// <summary>
+        /// New custom filter class
+        /// </summary>
+        public class NewFilter
+        {
+            private readonly string _filterType;
+            private readonly object _value;
+            private readonly bool _exclude;
+            private readonly bool _yesNoType;
+
+            /// <summary>
+            /// Create custom filter
+            /// </summary>
+            /// <param name="type"></param>
+            /// <param name="value"></param>
+            /// <param name="exclude"></param>
+            public NewFilter(string type, object value, bool exclude)
+            {
+                _filterType = type;
+                _value = value;
+                if (type == "Voted" || type == "Blacklisted" || type == "By Favorite Producer")
+                {
+                    _yesNoType = true;
+                    _exclude = false;
+                }
+                else _exclude = exclude;
+            }
+
+            /// <inheritdoc />
+            public override string ToString()
+            {
+                return _yesNoType ? $"{_value}: {_filterType}" : $"{(_exclude ? "Exclude" : "Include")}: {_filterType} - {_value}";
             }
         }
+
     }
 }

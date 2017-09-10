@@ -11,54 +11,28 @@ namespace Happy_Apps_Core
     [Flags]
     public enum UnreleasedFilter
     {
+        [Description("Unreleased without date")]
         WithoutReleaseDate = 1,
+        [Description("Unreleased with date")]
         WithReleaseDate = 2,
-        Released = 4,
-        AllUnreleased = WithReleaseDate | WithoutReleaseDate,
-        ReleasedOrWithDate = WithReleaseDate | Released
+        [Description("Released")]
+        Released = 3
     }
-
-    [Flags]
-    public enum WishlistFilter
-    {
-        NA = 1,
-        High = 2,
-        Medium = 4,
-        Low = 8,
-        Any = High | Medium | Low
-    }
-
-    [Flags]
-    public enum UserlistFilter
-    {
-        NA = 1,
-        Unknown = 2,
-        Playing = 4,
-        Finished = 8,
-        Stalled = 16,
-        Dropped = 32,
-        Unplayed = NA | Unknown,
-        Any = Unknown | Playing | Finished | Stalled | Dropped
-    }
-
-    [Flags]
+    
     public enum LengthFilter
     {
-        [Description("")]
-        NA = 1,
+        [Description("Not Available")]
+        NA = 0,
         [Description("<2 Hours")]
-        UnderTwoHours = 2,
+        UnderTwoHours = 1,
         [Description("2-10 Hours")]
-        TwoToTenHours = 4,
+        TwoToTenHours = 2,
         [Description("10-30 Hours")]
-        TenToThirtyHours = 8,
+        TenToThirtyHours = 3,
         [Description("30-50 Hours")]
-        ThirtyToFiftyHours = 16,
+        ThirtyToFiftyHours = 4,
         [Description(">50 Hours")]
-        OverFiftyHours = 32,
-        Any = UnderTwoHours | TwoToTenHours | TenToThirtyHours | ThirtyToFiftyHours | OverFiftyHours
-
-
+        OverFiftyHours = 5,
     }
     // ReSharper restore UnusedMember.Global
     /// <summary>
@@ -84,17 +58,10 @@ namespace Happy_Apps_Core
     /// </summary>
     public class TagFilter
     {
-        /// <summary>
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="name"></param>
-        /// <param name="titles"></param>
-        /// <param name="children"></param>
-        public TagFilter(int id, string name, int titles, int[] children)
+        public TagFilter(int id, string name, int[] children)
         {
             ID = id;
             Name = name;
-            Titles = titles;
             Children = children;
             AllIDs = children.Union(new[] { id }).ToArray();
         }
@@ -108,12 +75,7 @@ namespace Happy_Apps_Core
         ///     Name of tag.
         /// </summary>
         public string Name { get; set; }
-
-        /// <summary>
-        ///     Number of titles with tag.
-        /// </summary>
-        public int Titles { get; set; }
-
+        
         /// <summary>
         ///     Subtag IDs of tag.
         /// </summary>

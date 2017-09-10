@@ -26,7 +26,7 @@ namespace Happy_Search.Other_Forms
             InitializeComponent();
             _parentForm = parentForm;
             rememberBox.Checked = FormMain.GuiSettings.RememberPassword;
-            rememberBox.CheckedChanged += rememberBox_CheckedChanged;
+            rememberBox.CheckedChanged += RememberPasswordChanged;
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Happy_Search.Other_Forms
             }
         }
         
-        private void rememberBox_CheckedChanged(object sender, EventArgs e)
+        private void RememberPasswordChanged(object sender, EventArgs e)
         {
             FormMain.GuiSettings.RememberPassword = rememberBox.Checked;
             FormMain.GuiSettings.Save();

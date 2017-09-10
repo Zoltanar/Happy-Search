@@ -16,8 +16,6 @@ namespace Happy_Search
         public bool Blacklisted { get; set; }
         public bool Voted { get; set; }
         public bool FavoriteProducers { get; set; }
-        public WishlistFilter Wishlist { get; set; }
-        public UserlistFilter Userlist { get; set; }
         public string[] Language { get; set; }
         public string[] OriginalLanguage { get; set; }
         public TagFilter[] Tags { get; set; }
@@ -97,12 +95,8 @@ namespace Happy_Search
             if (filter.BlacklistedFixed) result.Blacklisted = filter.Blacklisted;
             if (filter.VotedFixed) result.Voted = filter.Voted;
             if (filter.FavoriteProducersFixed) result.FavoriteProducers = filter.FavoriteProducers;
-            if (filter.WishlistFixed) result.Wishlist = filter.Wishlist;
-            if (filter.UserlistFixed) result.Userlist = filter.Userlist;
             result.Language = filter.LanguageFixed ? filter.Language.ToArray() : new string[0];
             result.OriginalLanguage = filter.OriginalLanguageFixed ? filter.OriginalLanguage.ToArray() : new string[0];
-            if (filter.TagsFixed) result.Tags = filter.Tags.ToArray();
-            if (filter.TraitsFixed) result.Traits = filter.Traits.ToArray();
             return result;
         }
     }
@@ -138,12 +132,8 @@ namespace Happy_Search
             if (!filter.BlacklistedFixed) result.Blacklisted = filter.Blacklisted;
             if (!filter.VotedFixed) result.Voted = filter.Voted;
             if (!filter.FavoriteProducersFixed) result.FavoriteProducers = filter.FavoriteProducers;
-            if (!filter.WishlistFixed) result.Wishlist = filter.Wishlist;
-            if (!filter.UserlistFixed) result.Userlist = filter.Userlist;
             result.Language = !filter.LanguageFixed ? filter.Language.ToArray() : new string[0];
             result.OriginalLanguage = !filter.OriginalLanguageFixed ? filter.OriginalLanguage.ToArray() : new string[0];
-            if (!filter.TagsFixed) result.Tags = filter.Tags.ToArray();
-            if (!filter.TraitsFixed) result.Traits = filter.Traits.ToArray();
             return result;
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -80,30 +79,8 @@ namespace Happy_Search
             }
         }
 
-        public WishlistFilter Wishlist
-        {
-            get => _wishlist;
-            set
-            {
-                Refresh(value != _wishlist);
-                _wishlist = value;
-            }
-        }
-
-        public UserlistFilter Userlist
-        {
-            get => _userlist;
-            set
-            {
-                Refresh(value != _userlist);
-                _userlist = value;
-            }
-        }
-
         public readonly BindingList<string> Language = new BindingList<string>();
         public readonly BindingList<string> OriginalLanguage = new BindingList<string>();
-        public readonly BindingList<TagFilter> Tags = new BindingList<TagFilter>();
-        public readonly BindingList<DumpFiles.WrittenTrait> Traits = new BindingList<DumpFiles.WrittenTrait>();
         /// <summary>
         /// True means OR, false means AND
         /// </summary>
@@ -123,8 +100,6 @@ namespace Happy_Search
         private bool _blacklisted;
         private bool _voted;
         private bool _favoriteProducers;
-        private WishlistFilter _wishlist;
-        private UserlistFilter _userlist;
         private bool _tagsTraitsMode;
 
         public static Filters FromFixedFilter(FixedFilter filter)
@@ -137,8 +112,6 @@ namespace Happy_Search
                 Blacklisted = filter.Blacklisted,
                 Voted = filter.Voted,
                 FavoriteProducers = filter.FavoriteProducers,
-                Wishlist = filter.Wishlist,
-                Userlist = filter.Userlist,
                 TagsTraitsMode = filter.TagsTraitsMode,
 
                 LengthFixed = filter.LengthFixed,
@@ -169,8 +142,6 @@ namespace Happy_Search
             };
             filters.Language.AddRange(filter.Language);
             filters.OriginalLanguage.AddRange(filter.OriginalLanguage);
-            filters.Tags.AddRange(filter.Tags);
-            filters.Traits.AddRange(filter.Traits);
             return filters;
         }
 
@@ -240,14 +211,14 @@ namespace Happy_Search
             var andFunctions = new List<Func<ListedVN, bool>>();
             var orFunctions = new List<Func<ListedVN, bool>>();
             Filters t = this;
-            if (LengthOn) andFunctions.Add(vn => (t.Length & vn.Length) != 0);
+            if (LengthOn) andFunctions.Add(vn => t.Length == vn.Length);
             if (ReleaseDateOn) andFunctions.Add(vn => vn.DateForSorting > t.ReleaseDate.From && vn.DateForSorting < t.ReleaseDate.To);
             if (UnreleasedOn) andFunctions.Add(vn => (t.Unreleased & vn.Unreleased) != 0);
             if (BlacklistedOn) andFunctions.Add(vn => t.Blacklisted == vn.Blacklisted);
             if (VotedOn) andFunctions.Add(vn => t.Voted == vn.Voted);
             if (FavoriteProducersOn) andFunctions.Add(vn => t.FavoriteProducers == vn.ByFavoriteProducer(LocalDatabase.FavoriteProducerList));
-            if (WishlistOn) andFunctions.Add(vn => (t.Wishlist & vn.Wishlist) != 0);
-            if (UserlistOn) andFunctions.Add(vn => (t.Userlist & vn.Userlist) != 0);
+            //if (WishlistOn) andFunctions.Add(vn => (t.Wishlist & vn.Wishlist) != 0);
+            //if (UserlistOn) andFunctions.Add(vn => (t.Userlist & vn.Userlist) != 0);
             var cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
             if (LanguageOn && Language.Count > 0)
             {
@@ -261,12 +232,12 @@ namespace Happy_Search
                     OriginalLanguage.Select(lang => cultures.FirstOrDefault(c => c.DisplayName.Equals(lang))?.Name ?? lang);
                 andFunctions.Add(vn => vn.Languages?.Originals.Any(l => fOriginalLanguages.Contains(l)) ?? false);
             }
-            if (TagsOn && Tags.Count > 0)
+            /*if (TagsOn && Tags.Count > 0)
             {
                 if (TagsTraitsMode) orFunctions.Add(tab.VNMatchesTagFilter);
                 else andFunctions.Add(tab.VNMatchesTagFilter);
-            }
-            if (TraitsOn && Traits.Count > 0)
+            }*/
+            /*if (TraitsOn && Traits.Count > 0)
             {
                 var watch = Stopwatch.StartNew();
                 //Make list of characters which contain traits
@@ -277,7 +248,7 @@ namespace Happy_Search
                 Debug.WriteLine($"Preparing Trait Function took {watch.ElapsedMilliseconds}ms.");
                 if (TagsTraitsMode) orFunctions.Add(vn => characterVNs.Contains(vn.VNID));
                 else andFunctions.Add(vn => characterVNs.Contains(vn.VNID));
-            }
+            }*/
             if (andFunctions.Count + orFunctions.Count == 0) return vn => true;
             if (andFunctions.Count > 0 & orFunctions.Count == 0) return vn => andFunctions.Select(filter => filter(vn)).All(valid => valid);
             if (andFunctions.Count == 0 & orFunctions.Count > 0) return vn => orFunctions.Select(orFilter => orFilter(vn)).Any(valid => valid);
@@ -316,12 +287,8 @@ namespace Happy_Search
             if (!BlacklistedFixed) Blacklisted = customFilter.Blacklisted;
             if (!VotedFixed) Voted = customFilter.Voted;
             if (!FavoriteProducersFixed) FavoriteProducers = customFilter.FavoriteProducers;
-            if (!WishlistFixed) Wishlist = customFilter.Wishlist;
-            if (!UserlistFixed) Userlist = customFilter.Userlist;
             if (!LengthFixed) Language.SetRange(customFilter.Language.ToArray());
             if (!OriginalLanguageFixed) OriginalLanguage.SetRange(customFilter.OriginalLanguage.ToArray());
-            if (!TagsFixed) Tags.SetRange(customFilter.Tags.ToArray());
-            if (!TraitsFixed) Traits.SetRange(customFilter.Traits.ToArray());
             TagsTraitsMode = customFilter.TagsTraitsMode;
 
             if (!LengthFixed) LengthOn = customFilter.LengthOn;

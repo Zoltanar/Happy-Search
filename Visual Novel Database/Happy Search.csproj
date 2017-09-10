@@ -149,14 +149,6 @@
     <Compile Include="Other_Forms\FiltersTab.Designer.cs">
       <DependentUpon>FiltersTab.cs</DependentUpon>
     </Compile>
-    <Compile Include="Other_Forms\FiltersTabTags.cs">
-      <DependentUpon>FiltersTab.cs</DependentUpon>
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Other_Forms\FiltersTabTraits.cs">
-      <DependentUpon>FiltersTab.cs</DependentUpon>
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Include="Other_Forms\HtmlForm.cs">
       <SubType>Form</SubType>
     </Compile>
