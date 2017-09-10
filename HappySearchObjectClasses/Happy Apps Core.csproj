@@ -103,21 +103,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API Objects\TopAPIObjects.cs" />
+    <Compile Include="API Objects\SubLevel\CharacterItem.cs" />
+    <Compile Include="API Objects\SubLevel\ProducerItem.cs" />
+    <Compile Include="API Objects\SubLevel\ReleaseItem.cs" />
+    <Compile Include="API Objects\SubLevel\UserItem.cs" />
+    <Compile Include="API Objects\SubLevel\UserListItem.cs" />
+    <Compile Include="API Objects\SubLevel\VNItem.cs" />
+    <Compile Include="API Objects\SubLevel\VoteListItem.cs" />
+    <Compile Include="API Objects\SubLevel\WishListItem.cs" />
+    <Compile Include="API Objects\Top Level\DbStats.cs" />
+    <Compile Include="API Objects\Top Level\ErrorResponse.cs" />
+    <Compile Include="API Objects\Top Level\ResultsRoot.cs" />
     <Compile Include="ApiQuery.cs" />
     <Compile Include="CoreSettings.cs" />
+    <Compile Include="Database Objects\ListedProducer.cs" />
+    <Compile Include="Database Objects\ListedProducerBase.cs" />
+    <Compile Include="Database Objects\ListedSearchedProducer.cs" />
     <Compile Include="DumpFiles.cs" />
-    <Compile Include="ListedProducerClasses.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="API Objects\SubAPIObjects.cs" />
     <Compile Include="VNDatabaseFile.cs" />
-    <Compile Include="FilterClasses.cs" />
-    <Compile Include="ListedVN.cs" />
-    <Compile Include="ObjectListItems.cs" />
+    <Compile Include="Database Objects\ListedVN.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="VNDatabaseMemory.cs" />

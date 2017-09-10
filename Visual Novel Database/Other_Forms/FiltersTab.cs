@@ -503,4 +503,11 @@ namespace Happy_Search.Other_Forms
             SaveFilters();
         }
     }
+
+    /// <summary>
+    /// Type of refresh determines how to reset VNList in GUI.
+    /// </summary>
+#pragma warning disable 1591
+    public enum RefreshType { None, UserChanged, NamedFilter }
+#pragma warning restore 1591
 }

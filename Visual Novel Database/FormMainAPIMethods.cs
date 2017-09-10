@@ -150,7 +150,5 @@ namespace Happy_Search
             ChangeAPIStatus(Conn.Status);
             if (AdvancedMode) serverR.Text += Conn.LastResponse.JsonPayload + Environment.NewLine;
         }
-
-
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using static Happy_Apps_Core.StaticHelpers;
+using System.ComponentModel;
 
 namespace Happy_Apps_Core
 {
@@ -23,7 +24,7 @@ namespace Happy_Apps_Core
             {4, LengthFilter.ThirtyToFiftyHours},
             {5, LengthFilter.OverFiftyHours}
         };
-        
+
         /// <summary>
         /// Get ListedVN from DataReader.
         /// </summary>
@@ -68,7 +69,7 @@ namespace Happy_Apps_Core
 
         // ReSharper disable once UnusedMember.Global
         public ListedVN() { }
-        
+
         /// <summary>
         /// Returns true if a title was last updated over x days ago.
         /// </summary>
@@ -260,7 +261,7 @@ namespace Happy_Apps_Core
         /// Gets voted status of vn.
         /// </summary>
         public bool Voted => Vote >= 1;
-        
+
         /// <summary>Returns a string that represents the current object.</summary>
         /// <returns>A string that represents the current object.</returns>
         /// <filterpriority>2</filterpriority>
@@ -391,7 +392,106 @@ namespace Happy_Apps_Core
         public bool MatchesSingleTrait(int id)
         {
             var allIds = DumpFiles.GetAllSubTraits(id);
-            return GetCharacters(LocalDatabase.CharacterList).Any(c =>c.Traits.Any(t=> allIds.Contains(t.ID)));
+            return GetCharacters(LocalDatabase.CharacterList).Any(c => c.Traits.Any(t => allIds.Contains(t.ID)));
         }
     }
+    
+    /// <summary>
+    /// Contains original and other languages available for vn.
+    /// </summary>
+    [Serializable]
+    public class VNLanguages
+    {
+        /// <summary>
+        /// Languages for original release
+        /// </summary>
+        public string[] Originals { get; set; }
+        /// <summary>
+        /// Languages for other releases
+        /// </summary>
+        public string[] Others { get; set; }
+
+        /// <summary>
+        /// Languages for all releases
+        /// </summary>
+        public IEnumerable<string> All => Originals.Concat(Others);
+
+        /// <summary>
+        /// Empty Constructor for serialization
+        /// </summary>
+        public VNLanguages() { }
+
+        /// <summary>
+        /// Constructor for vn languages.
+        /// </summary>
+        /// <param name="originals">Languages for original release</param>
+        /// <param name="all">Languages for all releases</param>
+        public VNLanguages(string[] originals, string[] all)
+        {
+            Originals = originals;
+            Others = all.Except(originals).ToArray();
+        }
+
+        /// <summary>
+        /// Displays a json-serialized string.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+    }
+    
+    public enum UnreleasedFilter : long
+    {
+        [Description("Unreleased without date")]
+        WithoutReleaseDate = 1,
+        [Description("Unreleased with date")]
+        WithReleaseDate = 2,
+        [Description("Released")]
+        Released = 3
+    }
+
+    public enum LengthFilter : long
+    {
+        [Description("Not Available")]
+        NA = 0,
+        [Description("<2 Hours")]
+        UnderTwoHours = 1,
+        [Description("2-10 Hours")]
+        TwoToTenHours = 2,
+        [Description("10-30 Hours")]
+        TenToThirtyHours = 3,
+        [Description("30-50 Hours")]
+        ThirtyToFiftyHours = 4,
+        [Description(">50 Hours")]
+        OverFiftyHours = 5,
+    }
+
+#pragma warning disable 1591
+    /// <summary>
+    /// Map Wishlist status numbers to words.
+    /// </summary>
+    public enum WishlistStatus : long
+    {
+        None = -1,
+        High = 0,
+        Medium = 1,
+        Low = 2,
+        Blacklist = 3
+    }
+
+    /// <summary>
+    /// Map Userlist status numbers to words.
+    /// </summary>
+    public enum UserlistStatus : long
+    {
+        None = -1,
+        Unknown = 0,
+        Playing = 1,
+        Finished = 2,
+        Stalled = 3,
+        Dropped = 4
+    }
+#pragma warning restore 1591
 }
