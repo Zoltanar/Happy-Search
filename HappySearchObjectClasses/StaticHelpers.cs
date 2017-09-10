@@ -48,7 +48,7 @@ namespace Happy_Apps_Core
         public const string DBStatsJson = StoredDataFolder + "dbs.json";
         public const string SettingsJson = StoredDataFolder + "settings.json";
         public const string CustomFiltersJson = StoredDataFolder + "customfilters.json";
-        public const string FiltersJson = StoredDataFolder + "filters.json";
+        public const string PermanentFilterJson = StoredDataFolder + "filters.json";
         public const string LogFile = StoredDataFolder + "message.log";
         public const string CoreSettingsJson = StoredDataFolder + "coresettings.json";
 #pragma warning restore 1591
@@ -210,50 +210,6 @@ namespace Happy_Apps_Core
         }
 
         /// <summary>
-        /// Adds a flag value to enum.
-        /// Please note that enums are value types so you need to handle the RETURNED value from this method.
-        /// Example: myEnumVariable = myEnumVariable.AddFlag(CustomEnumType.Value1);
-        /// </summary>
-        public static T AddFlag<T>(this Enum type, T enumFlag)
-        {
-            try
-            {
-                return (T)(object)((int)(object)type | (int)(object)enumFlag);
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"Could not append flag value {enumFlag} to enum {typeof(T).Name}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Removes the flag value from enum.
-        /// Please note that enums are value types so you need to handle the RETURNED value from this method.
-        /// Example: myEnumVariable = myEnumVariable.RemoveFlag(CustomEnumType.Value1);
-        /// </summary>
-        public static T RemoveFlag<T>(this Enum type, T enumFlag)
-        {
-            try
-            {
-                return (T)(object)((int)(object)type & ~(int)(object)enumFlag);
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"Could not remove flag value {enumFlag} from enum {typeof(T).Name}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Sets flag state on enum.
-        /// Please note that enums are value types so you need to handle the RETURNED value from this method.
-        /// Example: myEnumVariable = myEnumVariable.SetFlag(CustomEnumType.Value1, true);
-        /// </summary>
-        public static T SetFlag<T>(this Enum type, T enumFlag, bool value)
-        {
-            return value ? type.AddFlag(enumFlag) : type.RemoveFlag(enumFlag);
-        }
-
-        /// <summary>
         /// Pause RaiseListChangedEvents and add items then call the event when done adding.
         /// </summary>
         public static void AddRange<T>(this BindingList<T> list, IEnumerable<T> items)
@@ -275,18 +231,6 @@ namespace Happy_Apps_Core
             foreach (var item in items) list.Add(item);
             list.RaiseListChangedEvents = true;
             list.ResetBindings();
-        }
-
-        /// <summary>
-        /// Gets int from bool array of state of checkboxes in panel.
-        /// </summary>
-        public static int GetIntFromCheckboxes(Panel panel)
-        {
-            var name = panel.Name.Replace("Panel", "TF");
-            if (!((CheckBox)panel.Controls.Find(name, false).First()).Checked) return 0;
-            return panel.Controls.OfType<CheckBox>()
-                .Where(c => c.Appearance == Appearance.Normal && c.Checked)
-                .Sum(cc => (int)cc.Tag);
         }
 
         /// <summary>
@@ -350,16 +294,6 @@ namespace Happy_Apps_Core
                 stream?.Close();
             }
             return false;
-        }
-
-        /// <summary>
-        /// Gets selected radio option's tag as boolean.
-        /// </summary>
-        public static bool GetRadioOption(this Panel panel)
-        {
-            var radioButton = panel.Controls.OfType<RadioButton>().FirstOrDefault(c => c.Checked);
-            if (radioButton == null) throw new Exception($"Failed to get radio option from panel {panel.Name}");
-            return (bool)radioButton.Tag;
         }
 
         /// <summary>

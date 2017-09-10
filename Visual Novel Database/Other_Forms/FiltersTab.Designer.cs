@@ -58,6 +58,7 @@
             this.customAndListbox = new System.Windows.Forms.ListBox();
             this.label3 = new System.Windows.Forms.Label();
             this.customOrListbox = new System.Windows.Forms.ListBox();
+            this.button2 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -141,9 +142,9 @@
             this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button5.Location = new System.Drawing.Point(672, 325);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(100, 23);
+            this.button5.Size = new System.Drawing.Size(100, 21);
             this.button5.TabIndex = 100;
-            this.button5.Text = "Save Custom Filter";
+            this.button5.Text = "Save Filter";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.SaveCustomFilter);
             // 
@@ -151,7 +152,7 @@
             // 
             this.customFilterReply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.customFilterReply.ForeColor = System.Drawing.Color.White;
-            this.customFilterReply.Location = new System.Drawing.Point(672, 351);
+            this.customFilterReply.Location = new System.Drawing.Point(672, 349);
             this.customFilterReply.Name = "customFilterReply";
             this.customFilterReply.Size = new System.Drawing.Size(100, 40);
             this.customFilterReply.TabIndex = 101;
@@ -165,9 +166,9 @@
             this.button8.FlatAppearance.BorderSize = 0;
             this.button8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button8.ForeColor = System.Drawing.Color.Black;
-            this.button8.Location = new System.Drawing.Point(566, 326);
+            this.button8.Location = new System.Drawing.Point(489, 299);
             this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(100, 23);
+            this.button8.Size = new System.Drawing.Size(71, 21);
             this.button8.TabIndex = 108;
             this.button8.Text = "Filters";
             this.button8.UseVisualStyleBackColor = false;
@@ -315,19 +316,6 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.filterTypeCombobox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.filterTypeCombobox.FormattingEnabled = true;
-            this.filterTypeCombobox.Items.AddRange(new object[] {
-            "Length",
-            "Released Between",
-            "Release Status",
-            "Blacklisted",
-            "Voted",
-            "By Favorite Producer",
-            "Wishlist Status",
-            "Userlist Status",
-            "Language",
-            "Original Language",
-            "Tags",
-            "Traits"});
             this.filterTypeCombobox.Location = new System.Drawing.Point(107, 13);
             this.filterTypeCombobox.Name = "filterTypeCombobox";
             this.filterTypeCombobox.Size = new System.Drawing.Size(175, 21);
@@ -448,11 +436,23 @@
             this.customOrListbox.TabIndex = 115;
             this.customOrListbox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.RemoveFromListBox);
             // 
+            // button2
+            // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Location = new System.Drawing.Point(566, 325);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(100, 21);
+            this.button2.TabIndex = 121;
+            this.button2.Text = "Delete Filter";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.DeleteFilterClick);
+            // 
             // FiltersTab
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -507,5 +507,6 @@
         private System.Windows.Forms.ListBox customOrListbox;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox orGroupCheckbox;
+        private System.Windows.Forms.Button button2;
     }
 }

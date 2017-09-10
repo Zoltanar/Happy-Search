@@ -9,7 +9,7 @@ namespace Happy_Apps_Core
 
 
     [Flags]
-    public enum UnreleasedFilter
+    public enum UnreleasedFilter : long
     {
         [Description("Unreleased without date")]
         WithoutReleaseDate = 1,
@@ -19,7 +19,7 @@ namespace Happy_Apps_Core
         Released = 3
     }
     
-    public enum LengthFilter
+    public enum LengthFilter : long
     {
         [Description("Not Available")]
         NA = 0,
@@ -106,75 +106,6 @@ namespace Happy_Apps_Core
             return $"{ID} - {Name}";
         }
     }
-
-    /// <summary>
-    ///     Holds details of user-created custom filter
-    /// </summary>
-    public class CustomTagFilter
-    {
-        /// <summary>
-        ///     Constructor for Custom Tag Filter.
-        /// </summary>
-        /// <param name="name">User-set name of filter</param>
-        /// <param name="filters">List of Tags in filter</param>
-        public CustomTagFilter(string name, TagFilter[] filters)
-        {
-            Name = name;
-            Filters = filters;
-        }
-
-        /// <summary>
-        ///     User-set name of custom filter
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        ///     List of tags in custom filter
-        /// </summary>
-        public TagFilter[] Filters { get; set; }
-
-        /// <summary>
-        ///     Date of last update to custom filter
-        /// </summary>
-        public DateTime Updated { get; set; }
-
-        public override string ToString() => Name;
-    }
-
-    /// <summary>
-    ///     Holds details of user-created custom trait filter.
-    /// </summary>
-    public class CustomTraitFilter
-    {
-        /// <summary>
-        ///     Constructor for ComplexFilter (Custom Filter).
-        /// </summary>
-        /// <param name="name">User-set name of filter</param>
-        /// <param name="filters">List of traits in filter</param>
-        public CustomTraitFilter(string name, DumpFiles.WrittenTrait[] filters)
-        {
-            Name = name;
-            Filters = filters;
-        }
-
-        /// <summary>
-        ///     User-set name of custom filter
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        ///     List of traits in custom filter
-        /// </summary>
-        public DumpFiles.WrittenTrait[] Filters { get; set; }
-
-        /// <summary>
-        ///     Date of last update to custom filter
-        /// </summary>
-        public DateTime Updated { get; set; }
-
-        public override string ToString() => Name;
-    }
-
     public enum RefreshType { None, UserChanged, NamedFilter }
 #pragma warning restore 1591
 }

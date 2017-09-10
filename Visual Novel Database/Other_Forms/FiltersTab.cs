@@ -20,7 +20,8 @@ namespace Happy_Search.Other_Forms
     public partial class FiltersTab : UserControl
     {
         private readonly FormMain _mainForm;
-        private Filters _filters;
+        private CustomFilter _permanentFilter;
+        private CustomFilter _customFilter;
         private readonly BindingList<CustomFilter> _customFilters = new BindingList<CustomFilter>();
 
         /// <summary>
@@ -43,23 +44,39 @@ namespace Happy_Search.Other_Forms
             traitRootsDropdown.SelectedIndex = 0;
             customFilterReply.Text = "";
             tagOrTraitSearchResultBox.Text = "";
-            _languages = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.All).Distinct().Select(x => new CultureInfo(x).DisplayName).OrderBy(x => x).ToArray();
-            _originalLanguages = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.Originals).Distinct().Select(x => new CultureInfo(x).DisplayName).OrderBy(x => x).ToArray();
+            filterTypeCombobox.DataSource = Enum.GetValues(typeof(FilterItem.FilterType))
+                .Cast<FilterItem.FilterType>()
+                .Select(x => new ComboBoxItem(x, x.GetDescription())).ToList();
+            var languagesPre = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.All).Distinct().Select(x => CultureInfo.GetCultureInfo(x));
+            _languages = languagesPre.OrderBy(x => x.DisplayName).Select(ci => new ComboBoxItem(ci.Name, ci.DisplayName)).ToArray();
+            var originalLanguagesPre = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.Originals).Distinct().Select(x => CultureInfo.GetCultureInfo(x));
+            _originalLanguages = originalLanguagesPre.OrderBy(x => x.DisplayName).Select(ci => new ComboBoxItem(ci.Name, ci.DisplayName)).ToArray();
             InitialLoadFromFile();
-            _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
+            _mainForm.SetVNList(GetFilterFunction(), _customFilter.Name);
             _mainForm.LoadVNListToGui();
 
+        }
+
+        private Func<ListedVN, bool> GetFilterFunction()
+        {
+            var andFunctions = _permanentFilter.AndFilters.Concat(_customFilter.AndFilters).Select(filter => filter.GetFunction()).ToArray();
+            var orFunctions = _permanentFilter.OrFilters.Concat(_customFilter.OrFilters).Select(filter => filter.GetFunction()).ToArray();
+            //if all and functions are true and 1+ or function is true
+            if (andFunctions.Length + orFunctions.Length == 0) return vn => true;
+            if (andFunctions.Length > 0 && orFunctions.Length == 0) return vn => andFunctions.All(x => x(vn));
+            if (andFunctions.Length == 0 && orFunctions.Length > 0) return vn => orFunctions.Any(x => x(vn));
+            return vn => andFunctions.All(x => x(vn)) && orFunctions.Any(x => x(vn));
         }
 
         /// <summary>
         /// Languages of all releases
         /// </summary>
-        private readonly string[] _languages;
+        private readonly ComboBoxItem[] _languages;
 
         /// <summary>
         /// Languages of all original releases
         /// </summary>
-        private readonly string[] _originalLanguages;
+        private readonly ComboBoxItem[] _originalLanguages;
 
 
         /// <summary>
@@ -67,7 +84,10 @@ namespace Happy_Search.Other_Forms
         /// </summary>
         private void SetFiltersToGui()
         {
-            //TODO
+            permanentAndListbox.DataSource = _permanentFilter.AndFilters;
+            permanentOrListbox.DataSource = _permanentFilter.OrFilters;
+            customAndListbox.DataSource = _customFilter.AndFilters;
+            customOrListbox.DataSource = _customFilter.OrFilters;
         }
 
         private void FilterChanged(object sender, EventArgs e)
@@ -90,11 +110,11 @@ namespace Happy_Search.Other_Forms
             _mainForm.filterDropdown.SelectedItem = selectedItem;
             _customFilterBlock = false;
             if (DontTriggerEvent) return;
-            _filters.LoadCustomFilter(selectedItem);
+            _customFilter = new CustomFilter(selectedItem);
             SetFiltersToGui();
             if (sender == _mainForm)
             {
-                _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
+                _mainForm.SetVNList(GetFilterFunction(), _customFilter.Name);
                 _mainForm.LoadVNListToGui();
             }
         }
@@ -107,7 +127,11 @@ namespace Happy_Search.Other_Forms
             ((IList)listbox.DataSource).Remove(selectedItem);
         }
 
-        private void SaveFilters() => _filters.SaveFilters(FiltersJson);
+        private void SaveFilters()
+        {
+            SaveObjectToJsonFile(_permanentFilter, PermanentFilterJson);
+            SaveObjectToJsonFile(_customFilters, CustomFiltersJson);
+        }
 
         private void SaveCustomFilter(object sender, EventArgs e)
         {
@@ -125,19 +149,19 @@ namespace Happy_Search.Other_Forms
                     Resources.ask_overwrite, MessageBoxButtons.YesNo);
                 if (askBox != DialogResult.Yes) return;
                 DontTriggerEvent = true;
-                _filters.Name = filterName;
-                _customFilters[itemIndex] = (CustomFilter)_filters;
+                _customFilter.Name = filterName;
+                _customFilters[itemIndex] = new CustomFilter(_customFilter);
                 filterDropdown.SelectedIndex = itemIndex;
-                _filters.RefreshKind = RefreshType.NamedFilter;
+                _refreshKind = RefreshType.NamedFilter;
                 DontTriggerEvent = false;
             }
             else
             {
-                _filters.Name = filterName;
+                _customFilter.Name = filterName;
                 DontTriggerEvent = true;
-                _customFilters.Add((CustomFilter)_filters);
+                _customFilters.Add(new CustomFilter(_customFilter));
                 filterDropdown.SelectedIndex = _customFilters.Count - 1;
-                _filters.RefreshKind = RefreshType.NamedFilter;
+                _refreshKind = RefreshType.NamedFilter;
                 DontTriggerEvent = false;
             }
             SaveObjectToJsonFile(_customFilters, CustomFiltersJson);
@@ -155,24 +179,25 @@ namespace Happy_Search.Other_Forms
             return -1;
         }
 
+        private RefreshType _refreshKind;
+
         internal void LeftFiltersTab()
         {
-            switch (_filters.RefreshKind)
+            switch (_refreshKind)
             {
                 case RefreshType.None:
-                    SaveFilters();
                     return;
                 case RefreshType.UserChanged:
                     _mainForm.CurrentFilterLabel = "Custom Filter";
                     break;
                 case RefreshType.NamedFilter:
-                    _mainForm.CurrentFilterLabel = _filters.Name;
+                    _mainForm.CurrentFilterLabel = _customFilter.Name;
                     break;
             }
-            _mainForm.SetVNList(_filters.GetFunction(this), _filters.Name);
+            _mainForm.SetVNList(GetFilterFunction(), _customFilter.Name);
             SaveFilters();
             _mainForm.LoadVNListToGui();
-            _filters.RefreshKind = RefreshType.None;
+            _refreshKind = RefreshType.None;
         }
 
         private void Help_Filters(object sender, EventArgs e)
@@ -188,12 +213,17 @@ namespace Happy_Search.Other_Forms
             _customFilters.Clear();
             var loadedCustomFilters = LoadObjectFromJsonFile<List<CustomFilter>>(CustomFiltersJson) ?? LoadObjectFromJsonFile<List<CustomFilter>>(DefaultFiltersJson);
             if (loadedCustomFilters != null) _customFilters.AddRange(loadedCustomFilters);
-            _filters = Filters.LoadFixedFilter();
+            _permanentFilter = LoadObjectFromJsonFile<CustomFilter>(PermanentFilterJson) ?? new CustomFilter();
             DontTriggerEvent = true;
             filterDropdown.DataSource = _customFilters;
             _mainForm.filterDropdown.DataSource = _customFilters;
-            if (_customFilters.Count > 0) filterDropdown.SelectedIndex = 0;
-            if (_customFilters.Count > 0) _mainForm.filterDropdown.SelectedIndex = 0;
+            if (_customFilters.Count > 0)
+            {
+                filterDropdown.SelectedIndex = 0;
+                _mainForm.filterDropdown.SelectedIndex = 0;
+                _customFilter = new CustomFilter(_customFilters.First());
+            }
+            else _customFilter = new CustomFilter();
             DontTriggerEvent = false;
             SetFiltersToGui();
         }
@@ -350,7 +380,6 @@ namespace Happy_Search.Other_Forms
         }
 
         #endregion
-        //new
 
         /// <summary>
         /// Clear results list from view.
@@ -359,7 +388,7 @@ namespace Happy_Search.Other_Forms
         {
             tagOrTraitSearchResultBox.Visible = false;
         }
-        
+
         private void AddTagOrTraitBySearch(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
@@ -396,51 +425,55 @@ namespace Happy_Search.Other_Forms
 
         private void FilterTypeChanged(object sender, EventArgs e)
         {
+            var uiObj = filterTypeCombobox.SelectedItem as ComboBoxItem;
+            if (uiObj == null) return;
+            var type = (FilterItem.FilterType)uiObj.Key;
+
             excludeFilterCheckbox.Visible = true;
             tagOrTraitReply.Text = "";
             traitRootsDropdown.Visible = false;
             tagOrTraitSearchBox.Visible = false;
             tagOrTraitSearchButton.Visible = false;
             object dataSource = null;
-            switch (filterTypeCombobox.SelectedItem as string)
+            switch (type)
             {
-                case "Length":
+                case FilterItem.FilterType.Length:
                     dataSource = (from LengthFilter item in Enum.GetValues(typeof(LengthFilter))
                                   select new ComboBoxItem(item, item.GetDescription())).ToList();
                     break;
-                case "Released Between":
+                case FilterItem.FilterType.ReleasedBetween:
                     //TODO
                     break;
-                case "Release Status":
+                case FilterItem.FilterType.ReleaseStatus:
                     dataSource = (from UnreleasedFilter item in Enum.GetValues(typeof(UnreleasedFilter))
                                   select new ComboBoxItem(item, item.GetDescription())).ToList();
                     break;
-                case "Voted":
-                case "Blacklisted":
-                case "By Favorite Producer":
+                case FilterItem.FilterType.Voted:
+                case FilterItem.FilterType.Blacklisted:
+                case FilterItem.FilterType.ByFavoriteProducer:
                     excludeFilterCheckbox.Visible = false;
-                    dataSource = new[] { "Include", "Exclude" };
+                    dataSource = new[] { new ComboBoxItem(true, "Include"), new ComboBoxItem(false, "Exclude") };
                     break;
-                case "Wishlist Status":
+                case FilterItem.FilterType.WishlistStatus:
                     dataSource = (from WishlistStatus item in Enum.GetValues(typeof(WishlistStatus))
                                   select new ComboBoxItem(item, item.ToString())).ToList();
                     break;
-                case "Userlist Status":
+                case FilterItem.FilterType.UserlistStatus:
                     dataSource = (from UserlistStatus item in Enum.GetValues(typeof(UserlistStatus))
                                   select new ComboBoxItem(item, item.ToString())).ToList();
                     break;
-                case "Language":
+                case FilterItem.FilterType.Language:
                     dataSource = _languages;
                     break;
-                case "Original Language":
+                case FilterItem.FilterType.OriginalLanguage:
                     dataSource = _originalLanguages;
                     break;
-                case "Tags":
+                case FilterItem.FilterType.Tags:
                     //TODO
                     tagOrTraitSearchBox.Visible = true;
                     tagOrTraitSearchButton.Visible = true;
                     break;
-                case "Traits":
+                case FilterItem.FilterType.Traits:
                     //TODO
                     traitRootsDropdown.Visible = true;
                     tagOrTraitSearchBox.Visible = true;
@@ -452,17 +485,24 @@ namespace Happy_Search.Other_Forms
 
         private void AddPermanentFilterClick(object sender, EventArgs e)
         {
-            var item = filterValueCombobox.SelectedItem;
-            var filter = new NewFilter(filterTypeCombobox.SelectedItem as string, item, excludeFilterCheckbox.Checked);
-            if (orGroupCheckbox.Checked) permanentOrListbox.Items.Add(filter);
-            else permanentAndListbox.Items.Add(filter);
+            var typeItem = (filterTypeCombobox.SelectedItem as ComboBoxItem)?.Key;
+            var value = (filterValueCombobox.SelectedItem as ComboBoxItem)?.Key;
+            if (typeItem == null || value == null) return;
+            var type = (FilterItem.FilterType)typeItem;
+            var filter = new FilterItem(type, value, excludeFilterCheckbox.Checked);
+            if (orGroupCheckbox.Checked) _permanentFilter.OrFilters.Add(filter);
+            else _permanentFilter.AndFilters.Add(filter);
+            _refreshKind = RefreshType.UserChanged;
         }
         private void AddFilterClick(object sender, EventArgs e)
         {
-            var item = filterValueCombobox.SelectedItem;
-            var filter = new NewFilter(filterTypeCombobox.SelectedItem as string, item, excludeFilterCheckbox.Checked);
-            if (orGroupCheckbox.Checked) customOrListbox.Items.Add(filter);
-            else customAndListbox.Items.Add(filter);
+            var typeItem = (filterTypeCombobox.SelectedItem as ComboBoxItem)?.Key;
+            var value = (filterValueCombobox.SelectedItem as ComboBoxItem)?.Key;
+            if (typeItem == null || value == null) return;
+            var type = (FilterItem.FilterType)typeItem;
+            var filter = new FilterItem(type, value, excludeFilterCheckbox.Checked);
+            if (orGroupCheckbox.Checked) _customFilter.OrFilters.Add(filter);
+            else _customFilter.AndFilters.Add(filter);
         }
 
         /// <summary>
@@ -475,41 +515,14 @@ namespace Happy_Search.Other_Forms
             filterValueCombobox.DataSource = new[] { tagOrTraitSearchResultBox.SelectedItem as T };
         }
 
-
-        /// <summary>
-        /// New custom filter class
-        /// </summary>
-        public class NewFilter
+        private void DeleteFilterClick(object sender, EventArgs e)
         {
-            private readonly string _filterType;
-            private readonly object _value;
-            private readonly bool _exclude;
-            private readonly bool _yesNoType;
-
-            /// <summary>
-            /// Create custom filter
-            /// </summary>
-            /// <param name="type"></param>
-            /// <param name="value"></param>
-            /// <param name="exclude"></param>
-            public NewFilter(string type, object value, bool exclude)
-            {
-                _filterType = type;
-                _value = value;
-                if (type == "Voted" || type == "Blacklisted" || type == "By Favorite Producer")
-                {
-                    _yesNoType = true;
-                    _exclude = false;
-                }
-                else _exclude = exclude;
-            }
-
-            /// <inheritdoc />
-            public override string ToString()
-            {
-                return _yesNoType ? $"{_value}: {_filterType}" : $"{(_exclude ? "Exclude" : "Include")}: {_filterType} - {_value}";
-            }
+            if (!(filterDropdown.SelectedItem is CustomFilter filter)) return;
+            var result = MessageBox.Show($"Are you sure you wish to delete the filter {filter.Name}?",
+                "Delete Custom Filter", MessageBoxButtons.YesNo);
+            if (result != DialogResult.Yes) return;
+            ((IList)filterDropdown.DataSource).Remove(filter);
+            SaveFilters();
         }
-
     }
 }

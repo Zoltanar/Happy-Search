@@ -55,7 +55,7 @@ namespace Happy_Apps_Core
     /// <summary>
     /// Map Wishlist status numbers to words.
     /// </summary>
-    public enum WishlistStatus
+    public enum WishlistStatus : long
     {
         None = -1,
         High = 0,
@@ -67,7 +67,7 @@ namespace Happy_Apps_Core
     /// <summary>
     /// Map Userlist status numbers to words.
     /// </summary>
-    public enum UserlistStatus
+    public enum UserlistStatus : long
     {
         None = -1,
         Unknown = 0,

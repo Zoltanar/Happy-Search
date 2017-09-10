@@ -742,7 +742,7 @@ namespace Happy_Search.Other_Forms
                         return;
                     }
                     Working = true;
-                    statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
+                    statusInt = (int)(long)Enum.Parse(typeof(UserlistStatus), nitem.Text);
                     success = await _parentForm.ChangeVNStatus(_displayedVN, VNDatabase.ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
@@ -752,7 +752,7 @@ namespace Happy_Search.Other_Forms
                         return;
                     }
                     Working = true;
-                    statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
+                    statusInt = (int)(long)Enum.Parse(typeof(WishlistStatus), nitem.Text);
                     success = await _parentForm.ChangeVNStatus(_displayedVN, VNDatabase.ChangeType.WL, statusInt);
                     break;
                 case "Vote":

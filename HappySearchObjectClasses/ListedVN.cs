@@ -66,6 +66,7 @@ namespace Happy_Apps_Core
             DateFullyUpdated = DaysSince(DbDateTime(reader["DateFullyUpdated"]));
         }
 
+        // ReSharper disable once UnusedMember.Global
         public ListedVN() { }
         
         /// <summary>
@@ -372,5 +373,14 @@ namespace Happy_Apps_Core
             return favoriteProducers.FirstOrDefault(fp => fp.Name == Producer) != null;
         }
 
+        public bool HasLanguage(string value)
+        {
+            return Languages?.All.Contains(value) ?? false;
+        }
+
+        public bool HasOriginalLanguage(string value)
+        {
+            return Languages?.Originals.Contains(value) ?? false;
+        }
     }
 }

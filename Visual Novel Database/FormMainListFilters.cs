@@ -577,7 +577,7 @@ namespace Happy_Search
                         WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
-                    statusInt = (int)Enum.Parse(typeof(UserlistStatus), nitem.Text);
+                    statusInt = (int)(long)Enum.Parse(typeof(UserlistStatus), nitem.Text);
                     success = await ChangeVNStatus(vn, VNDatabase.ChangeType.UL, statusInt);
                     break;
                 case "Wishlist":
@@ -586,7 +586,7 @@ namespace Happy_Search
                         WriteText(replyText, $"{TruncateString(vn.Title, 20)} already has that status.");
                         return;
                     }
-                    statusInt = (int)Enum.Parse(typeof(WishlistStatus), nitem.Text);
+                    statusInt = (int)(long)Enum.Parse(typeof(WishlistStatus), nitem.Text);
                     success = await ChangeVNStatus(vn, VNDatabase.ChangeType.WL, statusInt);
                     break;
                 case "Vote":

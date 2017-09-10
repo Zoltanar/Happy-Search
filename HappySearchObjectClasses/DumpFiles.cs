@@ -14,7 +14,8 @@ namespace Happy_Apps_Core
         private const string TraitsJsonGz = StoredDataFolder + "traits.json.gz";
         private const string TagsJson = StoredDataFolder + "tags.json";
         private const string TraitsJson = StoredDataFolder + "traits.json";
-        
+
+        // ReSharper disable UnusedMember.Global
         public class ItemWithParents
         {
             public int ID { get; set; }
@@ -60,6 +61,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Object contained in tag dump file
         /// </summary>
+        // ReSharper disable ClassNeverInstantiated.Global
         public class WrittenTag : ItemWithParents
         {
             public int VNs { get; set; }
@@ -101,6 +103,8 @@ namespace Happy_Apps_Core
                 TopmostParentName = plainTraits.Find(x => x.ID == TopmostParent).Name;
             }
         }
+        // ReSharper restore ClassNeverInstantiated.Global
+        // ReSharper restore UnusedMember.Global
 
         /// <summary>
         /// Contains all tags as in tags.json
