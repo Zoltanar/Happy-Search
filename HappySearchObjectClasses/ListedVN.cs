@@ -382,5 +382,16 @@ namespace Happy_Apps_Core
         {
             return Languages?.Originals.Contains(value) ?? false;
         }
+
+        public bool MatchesSingleTag(int id)
+        {
+            var allIds = DumpFiles.GetAllSubTags(id);
+            return TagList.Any(tag => allIds.Contains(tag.ID));
+        }
+        public bool MatchesSingleTrait(int id)
+        {
+            var allIds = DumpFiles.GetAllSubTraits(id);
+            return GetCharacters(LocalDatabase.CharacterList).Any(c =>c.Traits.Any(t=> allIds.Contains(t.ID)));
+        }
     }
 }

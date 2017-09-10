@@ -47,9 +47,9 @@ namespace Happy_Search.Other_Forms
             filterTypeCombobox.DataSource = Enum.GetValues(typeof(FilterItem.FilterType))
                 .Cast<FilterItem.FilterType>()
                 .Select(x => new ComboBoxItem(x, x.GetDescription())).ToList();
-            var languagesPre = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.All).Distinct().Select(x => CultureInfo.GetCultureInfo(x));
+            IEnumerable<CultureInfo> languagesPre = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.All).Distinct().Select(CultureInfo.GetCultureInfo);
             _languages = languagesPre.OrderBy(x => x.DisplayName).Select(ci => new ComboBoxItem(ci.Name, ci.DisplayName)).ToArray();
-            var originalLanguagesPre = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.Originals).Distinct().Select(x => CultureInfo.GetCultureInfo(x));
+            IEnumerable<CultureInfo> originalLanguagesPre = LocalDatabase.VNList.Where(vn => vn.Languages != null).SelectMany(x => x.Languages.Originals).Distinct().Select(CultureInfo.GetCultureInfo);
             _originalLanguages = originalLanguagesPre.OrderBy(x => x.DisplayName).Select(ci => new ComboBoxItem(ci.Name, ci.DisplayName)).ToArray();
             InitialLoadFromFile();
             _mainForm.SetVNList(GetFilterFunction(), _customFilter.Name);
@@ -59,8 +59,8 @@ namespace Happy_Search.Other_Forms
 
         private Func<ListedVN, bool> GetFilterFunction()
         {
-            var andFunctions = _permanentFilter.AndFilters.Concat(_customFilter.AndFilters).Select(filter => filter.GetFunction()).ToArray();
-            var orFunctions = _permanentFilter.OrFilters.Concat(_customFilter.OrFilters).Select(filter => filter.GetFunction()).ToArray();
+            Func<ListedVN, bool>[] andFunctions = _permanentFilter.AndFilters.Concat(_customFilter.AndFilters).Select(filter => filter.GetFunction()).ToArray();
+            Func<ListedVN, bool>[] orFunctions = _permanentFilter.OrFilters.Concat(_customFilter.OrFilters).Select(filter => filter.GetFunction()).ToArray();
             //if all and functions are true and 1+ or function is true
             if (andFunctions.Length + orFunctions.Length == 0) return vn => true;
             if (andFunctions.Length > 0 && orFunctions.Length == 0) return vn => andFunctions.All(x => x(vn));
@@ -92,7 +92,7 @@ namespace Happy_Search.Other_Forms
 
         private void FilterChanged(object sender, EventArgs e)
         {
-            CustomFilter selectedItem = (CustomFilter)filterDropdown.SelectedItem;
+            var selectedItem = (CustomFilter)filterDropdown.SelectedItem;
             ChangeCustomFilter(sender, selectedItem);
         }
 
@@ -104,6 +104,7 @@ namespace Happy_Search.Other_Forms
         public void ChangeCustomFilter(object sender, CustomFilter selectedItem)
         {
             if (string.IsNullOrWhiteSpace(selectedItem.Name)) return;
+            if (selectedItem.Name == _customFilter.Name) return;
             if (_customFilterBlock) return;
             _customFilterBlock = true;
             filterDropdown.SelectedItem = selectedItem;
@@ -117,6 +118,7 @@ namespace Happy_Search.Other_Forms
                 _mainForm.SetVNList(GetFilterFunction(), _customFilter.Name);
                 _mainForm.LoadVNListToGui();
             }
+            else _refreshKind = RefreshType.NamedFilter;
         }
 
         private void RemoveFromListBox(object sender, KeyEventArgs e)
@@ -245,20 +247,19 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             //find all results with similar name or alias
-            var results = DumpFiles.PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(tagName) ||
+            DumpFiles.WrittenTag[] results = DumpFiles.PlainTags.Where(t => t.Name.ToLowerInvariant().Contains(tagName) ||
                                                          t.Aliases.Exists(a => a.ToLowerInvariant().Contains(tagName))).ToArray();
             //if no results, return not found
-            if (results.Length == 0)
+            switch (results.Length)
             {
-                WriteError(tagOrTraitReply, $"Tag {tagOrTraitSearchBox.Text} not found.");
-                return;
-            }
-            //if only one result, add it
-            if (results.Length == 1)
-            {
-                tagOrTraitSearchBox.Text = "";
-                AddFilterTag(results.First());
-                return;
+                case 0:
+                    WriteError(tagOrTraitReply, $"Tag {tagOrTraitSearchBox.Text} not found.");
+                    return;
+                //if only one result, add it
+                case 1:
+                    tagOrTraitSearchBox.Text = "";
+                    AddFilterTag(results.First());
+                    return;
             }
             //if several results, show list.
             tagOrTraitSearchResultBox.Items.Clear();
@@ -294,26 +295,9 @@ namespace Happy_Search.Other_Forms
                 foreach (var child in childrenForThisRound) tmp.AddRange(DumpFiles.PlainTags.Where(x => x.Parents.Contains(child)).Select(x => x.ID));
                 childrenForThisRound = tmp.ToArray();
             }
-            var newFilter = new TagFilter(writtenTag.ID, writtenTag.Name, children);
-            filterValueCombobox.DataSource = new[] { newFilter };
+            filterValueCombobox.DataSource = new[] { new ComboBoxItem(writtenTag.ID, writtenTag.Name) };
             WriteText(tagOrTraitReply, $"Tag {writtenTag.Name} selected.");
         }
-
-        /// <summary>
-        /// Whether Visual Novel matches list of active tag filters.
-        /// </summary>
-        /// <param name="vn">Visual Novel to be checked</param>
-        /// <returns>Whether it matches</returns>
-        public bool VNMatchesTagFilter(ListedVN vn)
-        {
-            //TODO
-            /*int[] vnTags = vn.TagList.Select(t => t.ID).ToArray();
-            var filtersMatched = _filters.Tags?.Count(filter => vnTags.Any(vntag => filter.AllIDs.Contains(vntag)));
-            if (filtersMatched == null) return false;
-            return filtersMatched == _filters.Tags.Count;*/
-            return true;
-        }
-
 
         #endregion
 
@@ -331,7 +315,7 @@ namespace Happy_Search.Other_Forms
             if (exact != null && !showResults)
             {
                 tagOrTraitSearchBox.Text = "";
-                filterValueCombobox.DataSource = new[] { exact };
+                filterValueCombobox.DataSource = new[] { new ComboBoxItem(exact.ID, exact.Name) };
                 WriteText(tagOrTraitReply, $"Added trait {exact}");
                 return;
             }
@@ -342,19 +326,18 @@ namespace Happy_Search.Other_Forms
                 return;
             }
             var text = tagOrTraitSearchBox.Text.ToLowerInvariant();
-            var results = DumpFiles.PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
+            DumpFiles.WrittenTrait[] results = DumpFiles.PlainTraits.Where(t => t.Name.ToLowerInvariant().Contains(text) ||
                                                            t.Aliases.Exists(a => a.ToLowerInvariant().Contains(text))).ToArray();
-            if (results.Length == 0)
+            switch (results.Length)
             {
-                WriteError(tagOrTraitReply, "No traits with that name/alias found.");
-                return;
-            }
-            if (results.Length == 1)
-            {
-                tagOrTraitSearchBox.Text = "";
-                WriteText(tagOrTraitReply, $"Added trait {results.First()}");
-                filterValueCombobox.DataSource = new[] { results.First() };
-                return;
+                case 0:
+                    WriteError(tagOrTraitReply, "No traits with that name/alias found.");
+                    return;
+                case 1:
+                    tagOrTraitSearchBox.Text = "";
+                    WriteText(tagOrTraitReply, $"Added trait {results.First()}");
+                    filterValueCombobox.DataSource = new[] { new ComboBoxItem(results.First().ID, results.First().Name) };
+                    return;
             }
             tagOrTraitSearchResultBox.Items.Clear();
             // ReSharper disable once CoVariantArrayConversion
@@ -397,10 +380,10 @@ namespace Happy_Search.Other_Forms
 
         private void AddTagOrTraitFromList(object sender, EventArgs e)
         {
-            var type = filterTypeCombobox.SelectedItem as string;
-            Debug.Assert(type != null, nameof(type) + " != null");
-            if (type.Equals("Tags")) AddTagOrTraitFromList<DumpFiles.WrittenTag>();
-            if (type.Equals("Traits")) AddTagOrTraitFromList<DumpFiles.WrittenTrait>();
+            // ReSharper disable once PossibleNullReferenceException
+            var type = (FilterItem.FilterType)(filterTypeCombobox.SelectedItem as ComboBoxItem)?.Key;
+            if (type == FilterItem.FilterType.Tags) AddTagOrTraitFromList<DumpFiles.WrittenTag>();
+            if (type == FilterItem.FilterType.Traits) AddTagOrTraitFromList<DumpFiles.WrittenTrait>();
         }
 
         private void SearchTagsOrTraits(object sender, EventArgs e)
@@ -410,25 +393,23 @@ namespace Happy_Search.Other_Forms
 
         private void SearchTagsOrTraits(bool showResults)
         {
-            var type = filterTypeCombobox.SelectedItem as string;
-            Debug.Assert(type != null, nameof(type) + " != null");
+            // ReSharper disable once PossibleNullReferenceException
+            var type = (FilterItem.FilterType)(filterTypeCombobox.SelectedItem as ComboBoxItem)?.Key;
             if (tagOrTraitSearchBox.Text == "") //check if box is empty
             {
-                WriteError(tagOrTraitReply, $"Enter {type.Replace("s", "")} name.");
+                WriteError(tagOrTraitReply, $"Enter {type.ToString().Replace("s", "")} name.");
                 return;
             }
             tagOrTraitSearchResultBox.Visible = false;
             string searchString = tagOrTraitSearchBox.Text.ToLowerInvariant();
-            if (type.Equals("Tags")) AddTagBySearch(searchString, showResults);
-            if (type.Equals("Traits")) AddTraitBySearch(searchString, showResults);
+            if (type == FilterItem.FilterType.Tags) AddTagBySearch(searchString, showResults);
+            if (type == FilterItem.FilterType.Traits) AddTraitBySearch(searchString, showResults);
         }
 
         private void FilterTypeChanged(object sender, EventArgs e)
         {
-            var uiObj = filterTypeCombobox.SelectedItem as ComboBoxItem;
-            if (uiObj == null) return;
+            if (!(filterTypeCombobox.SelectedItem is ComboBoxItem uiObj)) return;
             var type = (FilterItem.FilterType)uiObj.Key;
-
             excludeFilterCheckbox.Visible = true;
             tagOrTraitReply.Text = "";
             traitRootsDropdown.Visible = false;
@@ -440,9 +421,6 @@ namespace Happy_Search.Other_Forms
                 case FilterItem.FilterType.Length:
                     dataSource = (from LengthFilter item in Enum.GetValues(typeof(LengthFilter))
                                   select new ComboBoxItem(item, item.GetDescription())).ToList();
-                    break;
-                case FilterItem.FilterType.ReleasedBetween:
-                    //TODO
                     break;
                 case FilterItem.FilterType.ReleaseStatus:
                     dataSource = (from UnreleasedFilter item in Enum.GetValues(typeof(UnreleasedFilter))
@@ -469,12 +447,10 @@ namespace Happy_Search.Other_Forms
                     dataSource = _originalLanguages;
                     break;
                 case FilterItem.FilterType.Tags:
-                    //TODO
                     tagOrTraitSearchBox.Visible = true;
                     tagOrTraitSearchButton.Visible = true;
                     break;
                 case FilterItem.FilterType.Traits:
-                    //TODO
                     traitRootsDropdown.Visible = true;
                     tagOrTraitSearchBox.Visible = true;
                     tagOrTraitSearchButton.Visible = true;
@@ -512,7 +488,9 @@ namespace Happy_Search.Other_Forms
         {
             tagOrTraitSearchBox.Text = "";
             tagOrTraitSearchResultBox.Visible = false;
-            filterValueCombobox.DataSource = new[] { tagOrTraitSearchResultBox.SelectedItem as T };
+            var item = tagOrTraitSearchResultBox.SelectedItem as T;
+            Debug.Assert(item != null, nameof(item) + " != null");
+            filterValueCombobox.DataSource = new[] { new ComboBoxItem(item.ID, item.ToString()) };
         }
 
         private void DeleteFilterClick(object sender, EventArgs e)

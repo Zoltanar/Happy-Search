@@ -38,6 +38,12 @@ namespace Happy_Search.Other_Forms
         {
             switch (Type)
             {
+                case FilterType.ReleaseStatus:
+                    return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {(UnreleasedFilter)Value}";
+                case FilterType.WishlistStatus:
+                    return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {(WishlistStatus)Value}";
+                case FilterType.UserlistStatus:
+                    return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {(UserlistStatus)Value}";
                 case FilterType.Voted:
                 case FilterType.Blacklisted:
                 case FilterType.ByFavoriteProducer:
@@ -45,6 +51,10 @@ namespace Happy_Search.Other_Forms
                 case FilterType.Language:
                 case FilterType.OriginalLanguage:
                     return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - { CultureInfo.GetCultureInfo((string)Value).DisplayName}";
+                case FilterType.Tags:
+                    return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {DumpFiles.PlainTags.Find(x=>x.ID == (int)(long)Value).Name}";
+                case FilterType.Traits:
+                    return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {DumpFiles.PlainTraits.Find(x => x.ID == (int)(long)Value).Name}";
                 default:
                     return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {Value}";
             }
@@ -57,15 +67,13 @@ namespace Happy_Search.Other_Forms
         {
 #pragma warning disable 1591
             Length,
-            [Description("Released Between")]
-            ReleasedBetween,
             [Description("Release Status")]
             ReleaseStatus,
             Blacklisted,
             Voted,
             [Description("By Favorite Producer")]
             ByFavoriteProducer,
-            [Description("WishlistStatus")]
+            [Description("Wishlist Status")]
             WishlistStatus,
             [Description("Userlist Status")]
             UserlistStatus,
@@ -77,15 +85,16 @@ namespace Happy_Search.Other_Forms
 #pragma warning restore 1591
         }
 
+        /// <summary>
+        /// Gets function that determines if vn matches filter.
+        /// </summary>
+        /// <returns></returns>
         public Func<ListedVN, bool> GetFunction()
         {
             switch (Type)
             {
                 case FilterType.Length:
                     return vn => vn.Length == (LengthFilter)Value != Exclude;
-                case FilterType.ReleasedBetween:
-                    //TODO
-                    break;
                 case FilterType.ReleaseStatus:
                     return vn => vn.Unreleased == (UnreleasedFilter)Value != Exclude;
                 case FilterType.Voted:
@@ -103,11 +112,9 @@ namespace Happy_Search.Other_Forms
                 case FilterType.OriginalLanguage:
                     return vn => vn.HasOriginalLanguage((string)Value) != Exclude;
                 case FilterType.Tags:
-                    //TODO
-                    break;
+                    return vn => vn.MatchesSingleTag((int)(long)Value);
                 case FilterType.Traits:
-                    //TODO
-                    break;
+                    return vn => vn.MatchesSingleTrait((int)(long)Value);
             }
             return vn => true;
         }

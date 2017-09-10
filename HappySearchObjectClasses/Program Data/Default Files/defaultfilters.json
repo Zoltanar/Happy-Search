@@ -1,126 +1,86 @@
 ﻿[
   {
     "Name": "No Filters",
-    "Length": 0,
-    "ReleaseDate": {
-      "From": "2017-01-01T00:00:00",
-      "To": "2018-01-01T00:00:00"
-    },
-    "Unreleased": 0,
-    "Blacklisted": false,
-    "Voted": false,
-    "FavoriteProducers": false,
-    "Wishlist": 0,
-    "Userlist": 0,
-    "Language": [],
-    "OriginalLanguage": [],
-    "Tags": [],
-    "Traits": [],
-    "TagsTraitsMode": false,
-    "LengthOn": false,
-    "ReleaseDateOn": false,
-    "UnreleasedOn": false,
-    "BlacklistedOn": false,
-    "VotedOn": false,
-    "FavoriteProducersOn": false,
-    "WishlistOn": false,
-    "UserlistOn": false,
-    "LanguageOn": false,
-    "OriginalLanguageOn": false,
-    "TagsOn": false,
-    "TraitsOn": false
+    "AndFilters": [],
+    "OrFilters": []
   },
   {
     "Name": "Favorite Producers",
-    "Length": 0,
-    "ReleaseDate": {
-      "From": "2017-01-01T00:00:00",
-      "To": "2018-01-01T00:00:00"
-    },
-    "Unreleased": 0,
-    "Blacklisted": false,
-    "Voted": false,
-    "FavoriteProducers": true,
-    "Wishlist": 0,
-    "Userlist": 0,
-    "Language": [],
-    "OriginalLanguage": [],
-    "Tags": [],
-    "Traits": [],
-    "TagsTraitsMode": false,
-    "LengthOn": false,
-    "ReleaseDateOn": false,
-    "UnreleasedOn": false,
-    "BlacklistedOn": false,
-    "VotedOn": false,
-    "FavoriteProducersOn": true,
-    "WishlistOn": false,
-    "UserlistOn": false,
-    "LanguageOn": false,
-    "OriginalLanguageOn": false,
-    "TagsOn": false,
-    "TraitsOn": false
+    "AndFilters": [
+      {
+        "Type": 5,
+        "Value": true,
+        "Exclude": false
+      }
+    ],
+    "OrFilters": []
   },
   {
     "Name": "Never Played",
-    "Length": 0,
-    "ReleaseDate": {
-      "From": "2017-01-01T00:00:00",
-      "To": "2018-01-01T00:00:00"
-    },
-    "Unreleased": 0,
-    "Blacklisted": false,
-    "Voted": false,
-    "FavoriteProducers": true,
-    "Wishlist": 0,
-    "Userlist": 3,
-    "Language": [],
-    "OriginalLanguage": [],
-    "Tags": [],
-    "Traits": [],
-    "TagsTraitsMode": false,
-    "LengthOn": false,
-    "ReleaseDateOn": false,
-    "UnreleasedOn": false,
-    "BlacklistedOn": false,
-    "VotedOn": false,
-    "FavoriteProducersOn": false,
-    "WishlistOn": false,
-    "UserlistOn": true,
-    "LanguageOn": false,
-    "OriginalLanguageOn": false,
-    "TagsOn": false,
-    "TraitsOn": false
+    "AndFilters": [
+      {
+        "Type": 7,
+        "Value": 1,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": 2,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": 3,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": 4,
+        "Exclude": true
+      }
+    ],
+    "OrFilters": []
   },
   {
     "Name": "Hide URT",
-    "Length": 0,
-    "ReleaseDate": {
-      "From": "2017-01-01T00:00:00",
-      "To": "2018-01-01T00:00:00"
-    },
-    "Unreleased": 0,
-    "Blacklisted": false,
-    "Voted": false,
-    "FavoriteProducers": false,
-    "Wishlist": 1,
-    "Userlist": 1,
-    "Language": [],
-    "OriginalLanguage": [],
-    "Tags": [],
-    "Traits": [],
-    "TagsTraitsMode": false,
-    "LengthOn": false,
-    "ReleaseDateOn": false,
-    "UnreleasedOn": false,
-    "BlacklistedOn": false,
-    "VotedOn": true,
-    "FavoriteProducersOn": false,
-    "WishlistOn": true,
-    "UserlistOn": true,
-    "LanguageOn": false,
-    "OriginalLanguageOn": false,
-    "TagsOn": false,
-    "TraitsOn": false
+    "AndFilters": [
+      {
+        "Type": 4,
+        "Value": false,
+        "Exclude": true
+      },
+      {
+        "Type": 6,
+        "Value": -1,
+        "Exclude": false
+      },
+      {
+        "Type": 7,
+        "Value": -1,
+        "Exclude": false
+      }
+    ],
+    "OrFilters": []
+  },
+  {
+    "Name": "Only URT",
+    "AndFilters": [],
+    "OrFilters": [
+      {
+        "Type": 4,
+        "Value": true,
+        "Exclude": false
+      },
+      {
+        "Type": 6,
+        "Value": -1,
+        "Exclude": true
+      },
+      {
+        "Type": 7,
+        "Value": -1,
+        "Exclude": true
+      }
+    ]
   }
 ]

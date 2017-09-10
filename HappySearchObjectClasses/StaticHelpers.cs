@@ -224,6 +224,7 @@ namespace Happy_Apps_Core
         /// <summary>
         /// Pause RaiseListChangedEvents, clear list and add items, then call ResetBindings event.
         /// </summary>
+        // ReSharper disable once UnusedMember.Global
         public static void SetRange<T>(this BindingList<T> list, IEnumerable<T> items)
         {
             list.RaiseListChangedEvents = false;

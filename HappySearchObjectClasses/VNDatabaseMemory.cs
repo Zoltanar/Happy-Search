@@ -5,6 +5,7 @@ namespace Happy_Apps_Core
 {
     partial class VNDatabase
     {
+        // ReSharper disable once UnusedMember.Global
         public IEnumerable<ListedVN> ListVNByNameOrAlias(string searchString)
         {
             searchString = searchString.ToLowerInvariant();
