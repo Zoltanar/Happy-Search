@@ -214,11 +214,7 @@ namespace Happy_Search.Other_Forms
             if (loadedCustomFilters != null) _customFilters.AddRange(loadedCustomFilters);
             _permanentFilter = LoadObjectFromJsonFile<CustomFilter>(PermanentFilterJson) ?? new CustomFilter();
             DontTriggerEvent = true;
-            if (_customFilters.Count > 0)
-            {
-                _customFilter = new CustomFilter(_customFilters.First());
-            }
-            else _customFilter = new CustomFilter();
+            _customFilter = _customFilters.Count > 0 ? new CustomFilter(_customFilters.First()) : new CustomFilter();
             filterDropdown.DataSource = _customFilters;
             _mainForm.filterDropdown.DataSource = _customFilters;
             filterDropdown.SelectedIndex = 0;

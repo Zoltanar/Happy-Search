@@ -57,7 +57,7 @@ namespace Happy_Apps_Core
 
 #pragma warning disable 1591
         public const string ClientName = "Happy Search";
-        public const string ClientVersion = "1.4.8";
+        public const string ClientVersion = "1.5.0";
         public const string APIVersion = "2.25";
         public const int APIMaxResults = 25;
         public static readonly string MaxResultsString = "\"results\":" + APIMaxResults;
