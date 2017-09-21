@@ -135,7 +135,7 @@ namespace Happy_Search
         /// Remove titles and associated images from local database.
         /// </summary>
         /// <param name="titles">Titles to be removed</param>
-        private void RemoveTitlesFromDB(ListedVN[] titles)
+        private static void RemoveTitlesFromDB(ListedVN[] titles)
         {
             foreach (var title in titles)
             {
@@ -358,8 +358,7 @@ namespace Happy_Search
                     return;
             }
         }
-
-
+        
         /// <summary>
         /// Only allow Digits in input for List By Year.
         /// </summary>
@@ -419,12 +418,9 @@ namespace Happy_Search
                 WriteError(replyText, Resources.enter_vn_title);
                 return;
             }
-            var searchString = ListByTB.Text.ToLowerInvariant();
+            var searchString = ListByTB.Text;
             List_ClearOther(skipListBox: true);
-            _currentList = vn =>
-            vn.Title.ToLowerInvariant().Contains(searchString) ||
-            vn.KanjiTitle.ToLowerInvariant().Contains(searchString) ||
-            vn.Aliases.ToLowerInvariant().Contains(searchString);
+            _currentList = VNDatabase.ListVNByNameOrAliasFunc(searchString);
             _currentListLabel = $"{searchString} (Search)";
             LoadVNListToGui();
         }

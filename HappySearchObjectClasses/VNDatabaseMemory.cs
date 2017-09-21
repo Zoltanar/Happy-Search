@@ -1,18 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Happy_Apps_Core
 {
     partial class VNDatabase
     {
-        // ReSharper disable once UnusedMember.Global
-        public IEnumerable<ListedVN> ListVNByNameOrAlias(string searchString)
+        public static Func<ListedVN,bool> ListVNByNameOrAliasFunc(string searchString)
         {
             searchString = searchString.ToLowerInvariant();
-            return VNList.Where(vn =>
+            return vn =>
                 vn.Title.ToLowerInvariant().Contains(searchString) ||
                 vn.KanjiTitle.ToLowerInvariant().Contains(searchString) ||
-                vn.Aliases.ToLowerInvariant().Contains(searchString));
+                vn.Aliases.ToLowerInvariant().Contains(searchString);
         }
     }
 }

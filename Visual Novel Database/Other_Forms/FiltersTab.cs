@@ -190,10 +190,7 @@ namespace Happy_Search.Other_Forms
                 case RefreshType.None:
                     return;
                 case RefreshType.UserChanged:
-                    _mainForm.CurrentFilterLabel = "Custom Filter";
-                    break;
-                case RefreshType.NamedFilter:
-                    _mainForm.CurrentFilterLabel = _customFilter.Name;
+                    _customFilter.Name = "Custom Filter";
                     break;
             }
             _mainForm.SetVNList(GetFilterFunction(), _customFilter.Name);
@@ -217,15 +214,15 @@ namespace Happy_Search.Other_Forms
             if (loadedCustomFilters != null) _customFilters.AddRange(loadedCustomFilters);
             _permanentFilter = LoadObjectFromJsonFile<CustomFilter>(PermanentFilterJson) ?? new CustomFilter();
             DontTriggerEvent = true;
-            filterDropdown.DataSource = _customFilters;
-            _mainForm.filterDropdown.DataSource = _customFilters;
             if (_customFilters.Count > 0)
             {
-                filterDropdown.SelectedIndex = 0;
-                _mainForm.filterDropdown.SelectedIndex = 0;
                 _customFilter = new CustomFilter(_customFilters.First());
             }
             else _customFilter = new CustomFilter();
+            filterDropdown.DataSource = _customFilters;
+            _mainForm.filterDropdown.DataSource = _customFilters;
+            filterDropdown.SelectedIndex = 0;
+            _mainForm.filterDropdown.SelectedIndex = 0;
             DontTriggerEvent = false;
             SetFiltersToGui();
         }
@@ -479,6 +476,7 @@ namespace Happy_Search.Other_Forms
             var filter = new FilterItem(type, value, excludeFilterCheckbox.Checked);
             if (orGroupCheckbox.Checked) _customFilter.OrFilters.Add(filter);
             else _customFilter.AndFilters.Add(filter);
+            _refreshKind = RefreshType.UserChanged;
         }
 
         /// <summary>

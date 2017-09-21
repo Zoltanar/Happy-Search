@@ -38,6 +38,8 @@ namespace Happy_Search.Other_Forms
         {
             switch (Type)
             {
+                case FilterType.Length:
+                    return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {((LengthFilter)Value).GetDescription()}";
                 case FilterType.ReleaseStatus:
                     return $"{(Exclude ? "Exclude" : "Include")}: {Type.GetDescription()} - {(UnreleasedFilter)Value}";
                 case FilterType.WishlistStatus:
@@ -66,22 +68,23 @@ namespace Happy_Search.Other_Forms
         public enum FilterType
         {
 #pragma warning disable 1591
-            Length,
+            Length = 0,
+            //ReleasedBetween = 1,
             [Description("Release Status")]
-            ReleaseStatus,
-            Blacklisted,
-            Voted,
+            ReleaseStatus = 2,
+            Blacklisted = 3,
+            Voted = 4,
             [Description("By Favorite Producer")]
-            ByFavoriteProducer,
+            ByFavoriteProducer = 5,
             [Description("Wishlist Status")]
-            WishlistStatus,
+            WishlistStatus = 6,
             [Description("Userlist Status")]
-            UserlistStatus,
-            Language,
+            UserlistStatus = 7,
+            Language = 8,
             [Description("Original Language")]
-            OriginalLanguage,
-            Tags,
-            Traits
+            OriginalLanguage = 9,
+            Tags = 10,
+            Traits = 11
 #pragma warning restore 1591
         }
 

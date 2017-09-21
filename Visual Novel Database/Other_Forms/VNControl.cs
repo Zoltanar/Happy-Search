@@ -515,12 +515,6 @@ namespace Happy_Search.Other_Forms
             {
                 await Conn.GetMultipleVN(new[] { _displayedVN.VNID }, true);
             }
-#pragma warning disable 168
-            catch (Exception ex)
-#pragma warning restore 168
-            {
-                // ignored
-            }
             finally
             {
                 _parentForm.ChangeAPIStatus(Conn.Status);
