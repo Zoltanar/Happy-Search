@@ -257,6 +257,7 @@ ALTER TABLE vnlist
 `Anime` TEXT, 
 `Aliases` TEXT, 
 `Languages` TEXT, 
+`DateFullyUpdated` DATE, 
 PRIMARY KEY(`VNID`), 
 FOREIGN KEY(`ProducerID`) REFERENCES `ProducerID` )";
             var command = new SQLiteCommand(createCommand, Conn);

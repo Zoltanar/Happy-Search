@@ -248,10 +248,37 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="x64\SQLite.Interop.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="x86\SQLite.Interop.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Default Files\defaultfilters.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\splashloading.gif" />
     <None Include="Resources\nsfw-image.png" />
     <None Include="Resources\no-image.png" />
     <None Include="Resources\dark-striped.jpg" />
+    <None Include="Program Data\Help\favoriteproducers.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Help\filtering.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Help\getstarted.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Help\listingandsearching.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Help\listresults.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Program Data\Help\StyleSheet1.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="Resources\logo copy.ico" />
   </ItemGroup>
   <ItemGroup>

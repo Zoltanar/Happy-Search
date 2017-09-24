@@ -428,9 +428,9 @@ namespace Happy_Search
             this.GetStartedHelpButton.FlatAppearance.BorderSize = 0;
             this.GetStartedHelpButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.GetStartedHelpButton.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.GetStartedHelpButton.Location = new System.Drawing.Point(3, 242);
+            this.GetStartedHelpButton.Location = new System.Drawing.Point(3, 212);
             this.GetStartedHelpButton.Name = "GetStartedHelpButton";
-            this.GetStartedHelpButton.Size = new System.Drawing.Size(123, 23);
+            this.GetStartedHelpButton.Size = new System.Drawing.Size(176, 23);
             this.GetStartedHelpButton.TabIndex = 89;
             this.GetStartedHelpButton.Text = "Get Started";
             this.toolTip.SetToolTip(this.GetStartedHelpButton, "Help for getting started.");
@@ -1535,10 +1535,10 @@ namespace Happy_Search
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.GetStartedHelpButton);
             this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.otherMethodsCB);
             this.panel1.Controls.Add(this.yearLimitBox);
-            this.panel1.Controls.Add(this.GetStartedHelpButton);
             this.panel1.Controls.Add(this.autoUpdateURTBox);
             this.panel1.Controls.Add(this.updateTagsAndTraitsButton);
             this.panel1.Controls.Add(this.nsfwToggle);
@@ -1615,7 +1615,7 @@ namespace Happy_Search
             // 
             this.userListReply.Location = new System.Drawing.Point(3, 172);
             this.userListReply.Name = "userListReply";
-            this.userListReply.Size = new System.Drawing.Size(175, 63);
+            this.userListReply.Size = new System.Drawing.Size(176, 37);
             this.userListReply.TabIndex = 28;
             this.userListReply.Text = "(userListReply)";
             this.userListReply.TextAlign = System.Drawing.ContentAlignment.TopCenter;
